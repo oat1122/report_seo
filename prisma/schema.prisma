@@ -1,35 +1,34 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
-// prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mysql" // หรือ 'mysql' ตามที่คุณใช้
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
 // ----------------------------------------------------
 // Enums
 // ----------------------------------------------------
+
+// กำหนด Role ของผู้ใช้งานในระบบ
 enum Role {
-  ADMIN
-  SEO_DEV
-  CUSTOMER
+  ADMIN    // ผู้ดูแลสูงสุด
+  SEO_DEV  // เจ้าหน้าที่ SEO
+  CUSTOMER // ลูกค้า
 }
 
+// กำหนดระดับความยากง่ายของ Keyword (KD) ตามรูปภาพ
 enum KDLevel {
   HARD
   MEDIUM
   EASY
 }
 
+// กำหนดสถานะการชำระเงิน
 enum PaymentStatus {
   PENDING
   APPROVED
@@ -41,80 +40,85 @@ enum PaymentStatus {
 // ----------------------------------------------------
 
 // 1. ผู้ใช้งานระบบ (Admin, Seo_dev, Customer Account)
+//    - เก็บข้อมูลการล็อกอินและสิทธิ์การเข้าถึงส่วนต่างๆ
 model User {
-  id                String   @id @default(uuid())
+  id                String    @id @default(uuid())
+  name              String?   // เก็บชื่อผู้ใช้
   email             String    @unique
-  password          String    
-  role              Role
+  password          String    // เก็บรหัสผ่าน (ควรผ่านการ hash ก่อนบันทึก)
+  role              Role      // สิทธิ์การใช้งาน: ADMIN, SEO_DEV, CUSTOMER
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
-  
+
   // ความสัมพันธ์
-  customerProfile   Customer? // สำหรับ User ที่มี Role เป็น CUSTOMER
-  assignedCustomers Customer[] @relation("SeoDevCustomers") // สำหรับ User ที่มี Role เป็น SEO_DEV
+  customerProfile   Customer? @relation("CustomerUser") // ถ้าเป็น CUSTOMER จะมีข้อมูลลูกค้าผูกอยู่
+  assignedCustomers Customer[] @relation("SeoDevCustomers") // ถ้าเป็น SEO_DEV จะมีรายชื่อลูกค้าที่ดูแล
 }
 
 // 2. ข้อมูลลูกค้า (เจ้าของโดเมน)
+//    - เป็นโมเดลศูนย์กลางสำหรับเก็บข้อมูลของลูกค้า 1 ราย
+//    - ใช้เชื่อมโยงข้อมูล Report ทั้งหมดเข้ากับ User ที่เป็นเจ้าของ
 model Customer {
-  id        String   @id @default(uuid())
-  name              String
-  domain            String    @unique // เช่น WWW.THANAPLUS.COM
-  
-  // FK: บัญชีผู้ใช้ของลูกค้า (Role: CUSTOMER)
-  userId            String   @unique
-  user              User      @relation(fields: [userId], references: [id])
-  
-  // FK: ผู้ดูแล SEO (Role: SEO_DEV) - เป็น optional เพราะอาจยังไม่มีผู้ดูแล
-  seoDevId          String?
-  seoDev            User?     @relation("SeoDevCustomers", fields: [seoDevId], references: [id])
-  
-  // ความสัมพันธ์
-  reports           KeywordReport[]
-  metrics           OverallMetrics? // One-to-One
-  payments          PaymentProof[]
+  id     String @id @default(uuid())
+  name   String // ชื่อบริษัทลูกค้า เช่น Thanaplus
+  domain String @unique // ชื่อโดเมน เช่น WWW.THANAPLUS.COM
+
+  // ความสัมพันธ์กับ User
+  userId   String @unique // ID ของ User ที่มี Role เป็น CUSTOMER
+  user     User   @relation("CustomerUser", fields: [userId], references: [id])
+  seoDevId String? // ID ของ User ที่มี Role เป็น SEO_DEV (อาจจะยังไม่มีผู้ดูแล)
+  seoDev   User?     @relation("SeoDevCustomers", fields: [seoDevId], references: [id])
+
+  // ความสัมพันธ์กับข้อมูล Report
+  reports  KeywordReport[]  // ลูกค้า 1 คน มีรายงาน Keyword ได้หลายรายการ
+  metrics  OverallMetrics?  // ลูกค้า 1 คน มีข้อมูลภาพรวมล่าสุดได้ 1 ชุด
+  payments PaymentProof[]   // ลูกค้า 1 คน มีประวัติการชำระเงินได้หลายครั้ง
 }
 
-// 3. ข้อมูลสถิติโดยรวมของโดเมน
+// 3. ข้อมูลสถิติโดยรวมของโดเมน (Overall Metrics)
+//    - เก็บข้อมูลภาพรวมที่แสดงอยู่ด้านบนของ Report
 model OverallMetrics {
-  id                String  @id @default(uuid())
-  domainRating      Int
-  healthScore       Int
-  ageInYears        Int
-  spamScore         Int
-  organicTraffic    Float     // K. (e.g. 8.5K)
-  organicKeywords   Float     // K. (e.g. 1.7K)
-  backlinks         Int
-  refDomains        Int
-  dateRecorded      DateTime  @default(now())
-  
-  // FK: เชื่อมกับลูกค้า
-  customerId        String       @unique
-  customer          Customer  @relation(fields: [customerId], references: [id])
+  id              String   @id @default(uuid())
+  domainRating    Int      // ค่า Domain Rating (DR)
+  healthScore     Int      // ค่า Health Score
+  ageInYears      Int      // อายุของโดเมน (Age)
+  spamScore       Int      // ค่า Spam Score
+  organicTraffic  Float    // ยอด Organic Traffic
+  organicKeywords Float    // จำนวน Organic Keywords
+  backlinks       Int      // จำนวน Backlinks
+  refDomains      Int      // จำนวน Referring Domains
+  dateRecorded    DateTime @default(now()) // วันที่บันทึกข้อมูล
+
+  // ความสัมพันธ์: ข้อมูลนี้เป็นของลูกค้าคนไหน
+  customerId String   @unique
+  customer   Customer @relation(fields: [customerId], references: [id])
 }
 
 // 4. รายงาน Keyword และ Position
+//    - เก็บข้อมูลในตารางคีย์เวิร์ดที่แสดงใน Report
 model KeywordReport {
-  id                String       @id @default(uuid())
-  keyword           String
-  position          Int?      // Position
-  traffic           Int
-  kd                KDLevel
-  isTopReport       Boolean   @default(false) // เพื่อแยกกลุ่มรายงาน
-  dateRecorded      DateTime  @default(now())
-  
-  // FK: เชื่อมกับลูกค้า
-  customerId        String
-  customer          Customer  @relation(fields: [customerId], references: [id])
+  id           String   @id @default(uuid())
+  keyword      String   // ชื่อ Keyword
+  position     Int?     // อันดับ (Position)
+  traffic      Int      // ยอด Traffic ที่ได้จากคีย์เวิร์ดนี้
+  kd           KDLevel  // ระดับความยาก (KD)
+  isTopReport  Boolean  @default(false) // ใช้แยกกลุ่มรายงาน เช่น ตารางบน-ล่าง ในรูป
+  dateRecorded DateTime @default(now()) // วันที่บันทึกข้อมูล
+
+  // ความสัมพันธ์: ข้อมูลนี้เป็นของลูกค้าคนไหน
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
 }
 
 // 5. หลักฐานการโอนเงิน
+//    - เก็บข้อมูลการอัปโหลดสลิปหรือหลักฐานการชำระเงินของลูกค้า
 model PaymentProof {
-  id                String       @id @default(uuid())
-  uploadUrl         String    // URL ที่เก็บรูปภาพ/ไฟล์
-  uploadDate        DateTime  @default(now())
-  status            PaymentStatus @default(PENDING)
-  
-  // FK: เชื่อมกับลูกค้า
-  customerId        String
-  customer          Customer  @relation(fields: [customerId], references: [id])
+  id         String        @id @default(uuid())
+  uploadUrl  String        // URL ของไฟล์ที่อัปโหลด
+  uploadDate DateTime      @default(now())
+  status     PaymentStatus @default(PENDING) // สถานะ: รอตรวจสอบ, อนุมัติ, ปฏิเสธ
+
+  // ความสัมพันธ์: ข้อมูลนี้เป็นของลูกค้าคนไหน
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
 }
