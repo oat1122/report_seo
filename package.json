@@ -9,11 +9,9 @@
     "lint": "eslint",
     "seed": "tsx prisma/seed.ts"
   },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
-  },
   "dependencies": {
     "@prisma/client": "^6.17.1",
+    "dotenv": "^17.2.3",
     "next": "15.5.4",
     "react": "19.1.0",
     "react-dom": "19.1.0"

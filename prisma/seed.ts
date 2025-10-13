@@ -1,58 +1,63 @@
 import { PrismaClient } from "@prisma/client";
+import { randomUUID } from "crypto"; // ใช้ในกรณีที่อยาก set UUID เอง
 
-// สร้าง PrismaClient instance ใหม่สำหรับ Seeder
 const prisma = new PrismaClient();
 
 async function main() {
   console.log("▶️ เริ่มต้น Seed ข้อมูล...");
 
-  // ⚠️ คำเตือน: ในการใช้งานจริง ควรทำการ Hash รหัสผ่านก่อนบันทึก (เช่น ใช้ bcrypt)
+  // ⚠️ ในโปรดักชันควรใช้ bcrypt เพื่อ hash password เสมอ
+  // เช่น bcrypt.hash("password123", 10)
 
-  // 1. Seed: ADMIN User
+  // 1️⃣ สร้าง ADMIN User
   const adminUser = await prisma.user.upsert({
     where: { email: "admin@report.com" },
     update: {},
     create: {
+      id: randomUUID(), // ❗ เพิ่ม UUID เองได้ หรือปล่อยให้ Prisma สร้างก็ได้
       email: "admin@report.com",
       password: "password123",
       role: "ADMIN",
     },
   });
 
-  // 2. Seed: SEO_DEV User (ผู้ดูแล)
+  // 2️⃣ สร้าง SEO_DEV User
   const seoDevUser = await prisma.user.upsert({
     where: { email: "seo.dev@report.com" },
     update: {},
     create: {
+      id: randomUUID(),
       email: "seo.dev@report.com",
       password: "password123",
       role: "SEO_DEV",
     },
   });
 
-  // 3. Seed: CUSTOMER User (บัญชีลูกค้า)
+  // 3️⃣ สร้าง CUSTOMER User
   const customerUser = await prisma.user.upsert({
     where: { email: "customer@report.com" },
     update: {},
     create: {
+      id: randomUUID(),
       email: "customer@report.com",
       password: "password123",
       role: "CUSTOMER",
     },
   });
 
-  // 4. Seed: Customer Profile และเชื่อมโยงกับ SEO_DEV และ CUSTOMER User
+  // 4️⃣ สร้าง Customer Profile และเชื่อมโยงกับ SEO_DEV + CUSTOMER
   const customerProfile = await prisma.customer.upsert({
     where: { domain: "www.my-domain-report.com" },
     update: {},
     create: {
+      id: randomUUID(),
       name: "Thanaplus Co., Ltd.",
       domain: "www.my-domain-report.com",
-      // เชื่อมกับบัญชีผู้ใช้ที่เป็น CUSTOMER
+      // เชื่อมกับ user/customer
       user: {
         connect: { id: customerUser.id },
       },
-      // เชื่อมกับบัญชีผู้ใช้ที่เป็น SEO_DEV (ผู้ดูแล)
+      // เชื่อมกับ seoDev (ผู้ดูแล)
       seoDev: {
         connect: { id: seoDevUser.id },
       },
@@ -61,13 +66,13 @@ async function main() {
 
   console.log("✅ Seed ข้อมูลเสร็จสมบูรณ์");
   console.log("--- ข้อมูลผู้ใช้งานหลัก ---");
-  console.log({
+  console.table({
     Admin: adminUser.email,
     SeoDev: seoDevUser.email,
     Customer: customerUser.email,
   });
   console.log("--- ข้อมูลลูกค้า ---");
-  console.log({
+  console.table({
     CustomerDomain: customerProfile.domain,
     AssignedSeoDev: seoDevUser.email,
   });

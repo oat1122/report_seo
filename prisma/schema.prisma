@@ -42,7 +42,7 @@ enum PaymentStatus {
 
 // 1. ผู้ใช้งานระบบ (Admin, Seo_dev, Customer Account)
 model User {
-  id                Int       @id @default(autoincrement())
+  id                String   @id @default(uuid())
   email             String    @unique
   password          String    
   role              Role
@@ -56,16 +56,16 @@ model User {
 
 // 2. ข้อมูลลูกค้า (เจ้าของโดเมน)
 model Customer {
-  id                Int       @id @default(autoincrement())
+  id        String   @id @default(uuid())
   name              String
   domain            String    @unique // เช่น WWW.THANAPLUS.COM
   
   // FK: บัญชีผู้ใช้ของลูกค้า (Role: CUSTOMER)
-  userId            Int       @unique
+  userId            String   @unique
   user              User      @relation(fields: [userId], references: [id])
   
   // FK: ผู้ดูแล SEO (Role: SEO_DEV) - เป็น optional เพราะอาจยังไม่มีผู้ดูแล
-  seoDevId          Int?
+  seoDevId          String?
   seoDev            User?     @relation("SeoDevCustomers", fields: [seoDevId], references: [id])
   
   // ความสัมพันธ์
@@ -76,7 +76,7 @@ model Customer {
 
 // 3. ข้อมูลสถิติโดยรวมของโดเมน
 model OverallMetrics {
-  id                Int       @id @default(autoincrement())
+  id                String  @id @default(uuid())
   domainRating      Int
   healthScore       Int
   ageInYears        Int
@@ -88,13 +88,13 @@ model OverallMetrics {
   dateRecorded      DateTime  @default(now())
   
   // FK: เชื่อมกับลูกค้า
-  customerId        Int       @unique
+  customerId        String       @unique
   customer          Customer  @relation(fields: [customerId], references: [id])
 }
 
 // 4. รายงาน Keyword และ Position
 model KeywordReport {
-  id                Int       @id @default(autoincrement())
+  id                String       @id @default(uuid())
   keyword           String
   position          Int?      // Position
   traffic           Int
@@ -103,18 +103,18 @@ model KeywordReport {
   dateRecorded      DateTime  @default(now())
   
   // FK: เชื่อมกับลูกค้า
-  customerId        Int
+  customerId        String
   customer          Customer  @relation(fields: [customerId], references: [id])
 }
 
 // 5. หลักฐานการโอนเงิน
 model PaymentProof {
-  id                Int       @id @default(autoincrement())
+  id                String       @id @default(uuid())
   uploadUrl         String    // URL ที่เก็บรูปภาพ/ไฟล์
   uploadDate        DateTime  @default(now())
   status            PaymentStatus @default(PENDING)
   
   // FK: เชื่อมกับลูกค้า
-  customerId        Int
+  customerId        String
   customer          Customer  @relation(fields: [customerId], references: [id])
 }
