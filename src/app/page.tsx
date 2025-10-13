@@ -2,7 +2,7 @@
 
 import React from "react";
 import { ThemeProvider, Box } from "@mui/material";
-import { theme } from "@/theme/theme";
+import { theme } from "@/components/Home/theme/theme";
 import { useMobileDrawer } from "@/components/Home/hooks/useMobileDrawer";
 import { Header } from "@/components/Home/subcomponents/Header";
 import { HeroSection } from "@/components/Home/subcomponents/HeroSection";

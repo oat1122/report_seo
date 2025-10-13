@@ -1,5 +1,6 @@
 import React from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   AppBar,
   Toolbar,
@@ -28,6 +29,11 @@ export const Header: React.FC<HeaderProps> = ({
   onDrawerToggle,
   onDrawerClose,
 }) => {
+  const router = useRouter();
+
+  const handleLoginClick = () => {
+    router.push("/login");
+  };
   const drawer = (
     <Box onClick={onDrawerClose} sx={{ textAlign: "center" }}>
       <Typography variant="h6" sx={{ my: 2 }}>
@@ -48,6 +54,7 @@ export const Header: React.FC<HeaderProps> = ({
           color="info"
           fullWidth
           sx={{ color: "white" }}
+          onClick={handleLoginClick}
         >
           เข้าสู่ระบบ
         </Button>
@@ -92,6 +99,7 @@ export const Header: React.FC<HeaderProps> = ({
                 color: "white",
                 display: { xs: "none", lg: "block" },
               }}
+              onClick={handleLoginClick}
             >
               เข้าสู่ระบบ
             </Button>
