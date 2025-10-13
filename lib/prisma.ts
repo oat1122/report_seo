@@ -1,0 +1,18 @@
+// lib/prisma.ts
+
+import { PrismaClient } from '@prisma/client'
+
+const globalForPrisma = global as unknown as {
+  prisma: PrismaClient | undefined
+}
+
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    // ไม่ต้องใส่ log ก็ได้ถ้าไม่ต้องการ
+    // log: ['query'], 
+  })
+
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+
+export default prisma

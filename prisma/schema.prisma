@@ -1,0 +1,120 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql" // หรือ 'mysql' ตามที่คุณใช้
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------
+// Enums
+// ----------------------------------------------------
+enum Role {
+  ADMIN
+  SEO_DEV
+  CUSTOMER
+}
+
+enum KDLevel {
+  HARD
+  MEDIUM
+  EASY
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// ----------------------------------------------------
+// Models
+// ----------------------------------------------------
+
+// 1. ผู้ใช้งานระบบ (Admin, Seo_dev, Customer Account)
+model User {
+  id                Int       @id @default(autoincrement())
+  email             String    @unique
+  password          String    
+  role              Role
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  // ความสัมพันธ์
+  customerProfile   Customer? // สำหรับ User ที่มี Role เป็น CUSTOMER
+  assignedCustomers Customer[] @relation("SeoDevCustomers") // สำหรับ User ที่มี Role เป็น SEO_DEV
+}
+
+// 2. ข้อมูลลูกค้า (เจ้าของโดเมน)
+model Customer {
+  id                Int       @id @default(autoincrement())
+  name              String
+  domain            String    @unique // เช่น WWW.THANAPLUS.COM
+  
+  // FK: บัญชีผู้ใช้ของลูกค้า (Role: CUSTOMER)
+  userId            Int       @unique
+  user              User      @relation(fields: [userId], references: [id])
+  
+  // FK: ผู้ดูแล SEO (Role: SEO_DEV) - เป็น optional เพราะอาจยังไม่มีผู้ดูแล
+  seoDevId          Int?
+  seoDev            User?     @relation("SeoDevCustomers", fields: [seoDevId], references: [id])
+  
+  // ความสัมพันธ์
+  reports           KeywordReport[]
+  metrics           OverallMetrics? // One-to-One
+  payments          PaymentProof[]
+}
+
+// 3. ข้อมูลสถิติโดยรวมของโดเมน
+model OverallMetrics {
+  id                Int       @id @default(autoincrement())
+  domainRating      Int
+  healthScore       Int
+  ageInYears        Int
+  spamScore         Int
+  organicTraffic    Float     // K. (e.g. 8.5K)
+  organicKeywords   Float     // K. (e.g. 1.7K)
+  backlinks         Int
+  refDomains        Int
+  dateRecorded      DateTime  @default(now())
+  
+  // FK: เชื่อมกับลูกค้า
+  customerId        Int       @unique
+  customer          Customer  @relation(fields: [customerId], references: [id])
+}
+
+// 4. รายงาน Keyword และ Position
+model KeywordReport {
+  id                Int       @id @default(autoincrement())
+  keyword           String
+  position          Int?      // Position
+  traffic           Int
+  kd                KDLevel
+  isTopReport       Boolean   @default(false) // เพื่อแยกกลุ่มรายงาน
+  dateRecorded      DateTime  @default(now())
+  
+  // FK: เชื่อมกับลูกค้า
+  customerId        Int
+  customer          Customer  @relation(fields: [customerId], references: [id])
+}
+
+// 5. หลักฐานการโอนเงิน
+model PaymentProof {
+  id                Int       @id @default(autoincrement())
+  uploadUrl         String    // URL ที่เก็บรูปภาพ/ไฟล์
+  uploadDate        DateTime  @default(now())
+  status            PaymentStatus @default(PENDING)
+  
+  // FK: เชื่อมกับลูกค้า
+  customerId        Int
+  customer          Customer  @relation(fields: [customerId], references: [id])
+}
