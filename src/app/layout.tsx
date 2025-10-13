@@ -30,13 +30,12 @@ export default function RootLayout({
 }>) {
   return (
     // กำหนด CSS Variable ของฟอนต์ทั้งหมด
-    <html
-      lang="th"
-      className={`${kanit.variable} ${geistSans.variable}`}
-    >
+    <html lang="th" className={`${kanit.variable} ${geistSans.variable}`}>
       {/* ใช้ kanit.className บน body โดยตรงเพื่อบังคับให้ Kanit เป็นฟอนต์หลัก
           (คลาสนี้จะถูกกำหนด font-family โดย Next.js) */}
-      <body className={`${kanit.className} font-sans antialiased`}>{children}</body>
+      <body className={`${kanit.className} font-sans antialiased`}>
+        {children}
+      </body>
     </html>
   );
 }
