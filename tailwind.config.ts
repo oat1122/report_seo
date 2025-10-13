@@ -1,6 +1,4 @@
-// tailwind.config.js
-
-const defaultTheme = require("tailwindcss/defaultTheme"); // ต้อง import defaultTheme เข้ามา
+const defaultTheme = require("tailwindcss/defaultTheme");
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -9,28 +7,34 @@ module.exports = {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/**/*.{js,ts,jsx,tsx,mdx}", // เพิ่ม src/ เพื่อรองรับ App Router
   ],
   theme: {
     extend: {
       colors: {
-        // --- Primary Colors ---
+        // --- Primary Colors (ตามดีไซน์) ---
         "primary-purple": "#9592FF", // #9592ff
-        "text-dark": "#2f2f2f", // #2f2f2f - สีเทาเข้มสำหรับ Background/Text
-        "text-light": "#FFFFFF", // #FFFFFF - สีขาว
-        "background-dark": "#2f2f2f", // Background สีดำ/เทาเข้ม
-        "background-light": "#FFFFFF", // Background สีขาว
+        "text-dark": "#2f2f2f",
+        "text-light": "#FFFFFF",
+        "background-dark": "#2f2f2f",
+        "background-light": "#FFFFFF",
 
-        // --- Secondary/Accent Colors ---
-        "secondary-green": "#31ffb4", // #31ffb4 - สีเขียวนีออน
-        "accent-black": "#6460F8", // สีม่วงเข้ม (เป็นไปได้ว่าใช้แทนสีดำในบางส่วน)
+        // --- Secondary/Accent Colors (ตามดีไซน์) ---
+        "secondary-green": "#31ffb4", // #31ffb4
+        "accent-purple-dark": "#6460F8", // #6460F8
       },
       fontFamily: {
-        // ** (1) กำหนดให้ Kanit เป็นฟอนต์หลักในกลุ่ม 'sans' **
-        // อ้างอิงจาก CSS Variable: '--font-kanit' ที่ตั้งค่าใน app/layout.tsx
-        sans: ["var(--font-kanit)", ...defaultTheme.fontFamily.sans],
+        // **กำหนด Kanit เป็นฟอนต์หลักในกลุ่ม 'sans'** // ฟอนต์อื่นๆ (Geist) ถูกใช้เป็น Fallback
+        sans: [
+          "var(--font-kanit)",
+          "var(--font-geist-sans)",
+          ...defaultTheme.fontFamily.sans,
+        ],
 
-        // ** (2) กำหนด 'kanit' เป็น Utility Class แยก (ตัวเลือกเสริม) **
-        // ถ้าต้องการใช้ font-kanit ก็ยังใช้ได้
+        // กำหนดฟอนต์สำหรับโค้ด
+        mono: ["var(--font-geist-mono)", ...defaultTheme.fontFamily.mono],
+
+        // Utility Class แยกสำหรับ Kanit (font-kanit)
         kanit: ["var(--font-kanit)", ...defaultTheme.fontFamily.sans],
       },
     },
