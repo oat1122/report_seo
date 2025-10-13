@@ -91,3 +91,86 @@ export const contactInfo = {
   facebook: "SEOPRIMEth",
   line: "#",
 };
+
+// New Package data constants from images
+export const packages = {
+  basic: [
+    {
+      title: "Easy",
+      price: "10,000",
+      duration: "ขั้นต่ำ 3 เดือน",
+      keywords: "1 Keyword",
+      features: [
+        "แถมฟรี 4 รายการ",
+        "วิเคราะห์คีย์เวิร์ด",
+        "วิเคราะห์คู่แข่ง",
+        "ให้คำปรึกษาพัฒนา",
+        "มีรายงานประจำเดือน",
+      ],
+      guarantee: "ติด TOP 10 แน่นอน",
+    },
+    {
+      title: "Medium",
+      price: "20,000",
+      duration: "ขั้นต่ำ 6 เดือน",
+      keywords: "1 Keyword",
+      features: [
+        "แถมฟรี 5 รายการ",
+        "วิเคราะห์คีย์เวิร์ด",
+        "วิเคราะห์คู่แข่ง",
+        "ให้คำปรึกษาพัฒนา",
+        "มีรายงานประจำเดือน",
+        "2 บทความต่อเดือน",
+      ],
+      guarantee: "ติด TOP 10 แน่นอน",
+      recommended: true, // Highlight this package
+    },
+    {
+      title: "Hard",
+      price: "35,000",
+      duration: "ขั้นต่ำ 6-12 เดือน",
+      keywords: "1 Keyword",
+      features: [
+        "แถมฟรี 5 รายการ",
+        "วิเคราะห์คีย์เวิร์ด",
+        "วิเคราะห์คู่แข่ง",
+        "ให้คำปรึกษาพัฒนา",
+        "มีรายงานประจำเดือน",
+        "2 บทความต่อเดือน",
+      ],
+      guarantee: "ติด TOP 10 แน่นอน",
+    },
+  ],
+  business: [
+    {
+      title: "Business Pro",
+      price: "35,000",
+      duration: "ขั้นต่ำ 6 เดือน",
+      keywords: "10 Keywords",
+      features: [
+        "แถมฟรี 5 รายการ",
+        "วิเคราะห์คีย์เวิร์ด",
+        "วิเคราะห์คู่แข่ง",
+        "ให้คำปรึกษาพัฒนา",
+        "มีรายงานประจำเดือน",
+        "2 บทความต่อเดือน",
+      ],
+      guarantee: "การันตีติด TOP 10 จำนวน 2 คีย์",
+    },
+    {
+      title: "Business Pro Plus",
+      price: "65,000",
+      duration: "ขั้นต่ำ 6-12 เดือน",
+      keywords: "20 Keywords",
+      features: [
+        "แถมฟรี 5 รายการ",
+        "วิเคราะห์คีย์เวิร์ด",
+        "วิเคราะห์คู่แข่ง",
+        "ให้คำปรึกษาพัฒนา",
+        "มีรายงานประจำเดือน",
+        "2 บทความต่อเดือน",
+      ],
+      guarantee: "การันตีติด TOP 10 จำนวน 5 คีย์",
+    },
+  ],
+};

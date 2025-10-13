@@ -6,11 +6,12 @@ import { theme } from "@/components/Home/theme/theme";
 import { useMobileDrawer } from "@/components/Home/hooks/useMobileDrawer";
 import { Header } from "@/components/Home/subcomponents/Header";
 import { HeroSection } from "@/components/Home/subcomponents/HeroSection";
-import { ServicesSection } from "@/components/Home/subcomponents/ServicesSection";
-import { CTASection } from "@/components/Home/subcomponents/CTASection";
-import { StatsSection } from "@/components/Home/subcomponents/StatsSection";
+import { PackagesSection } from "@/components/Home/subcomponents/PackagesSection"; // ** Import ใหม่ **
 import { FAQSection } from "@/components/Home/subcomponents/FAQSection";
 import { Footer } from "@/components/Home/subcomponents/Footer";
+// import { ServicesSection } from "@/components/Home/subcomponents/ServicesSection";
+// import { CTASection } from "@/components/Home/subcomponents/CTASection";
+// import { StatsSection } from "@/components/Home/subcomponents/StatsSection";
 
 const HomePage: React.FC = () => {
   const { mobileOpen, handleDrawerToggle, handleDrawerClose } =
@@ -29,10 +30,11 @@ const HomePage: React.FC = () => {
 
         <main>
           <HeroSection />
-          <ServicesSection />
-          <CTASection />
-          <StatsSection />
+          <PackagesSection /> {/* ** เพิ่ม Section ใหม่ที่นี่ ** */}
           <FAQSection />
+          {/* คุณสามารถนำ Section อื่นๆ กลับมาได้ถ้าต้องการ
+            แต่การตัดออกจะทำให้หน้าเว็บโฟกัสที่การขายแพ็คเกจมากขึ้น 
+          */}
         </main>
 
         <Footer />

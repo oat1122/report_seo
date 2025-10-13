@@ -1,38 +1,46 @@
 import { createTheme } from "@mui/material/styles";
 
-// Custom theme based on design system colors
+// New theme based on the provided image palette
 export const theme = createTheme({
   palette: {
     primary: {
-      main: "#1A284D", // from --primary
-      contrastText: "#FFFFFF", // from --primary-foreground
+      main: "#2f2f2f", // Dark Grey
+      contrastText: "#FFFFFF",
     },
     secondary: {
-      main: "#00F0B5", // from --secondary
-      contrastText: "#0D1117", // from --secondary-foreground
+      main: "#31fb4c", // Bright Teal/Green
+      contrastText: "#2f2f2f",
     },
     info: {
-      main: "#00A3FF", // from --primary-accent
+      main: "#9592ff", // Purple
     },
     background: {
-      default: "#FFFFFF", // from --background
-      paper: "#F7FAFC", // from --background-muted
+      default: "#FFFFFF", // White
+      paper: "#F8F9FA", // Off-white
     },
     text: {
-      primary: "#1A202C", // from --foreground
-      secondary: "#718096", // from --muted-foreground
+      primary: "#2f2f2f",
+      secondary: "#64748B", // A softer grey for secondary text
     },
   },
   typography: {
     fontFamily: '"Kanit", sans-serif',
+    h1: {
+      fontWeight: 700,
+      fontSize: "3.5rem",
+      lineHeight: 1.2,
+      color: "#2f2f2f",
+    },
     h2: {
       fontWeight: 700,
       fontSize: "2.5rem",
       lineHeight: 1.2,
+      color: "#2f2f2f",
     },
     h3: {
       fontWeight: 600,
       fontSize: "1.75rem",
+      color: "#2f2f2f",
     },
     h4: {
       fontWeight: 600,
@@ -43,23 +51,31 @@ export const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: "8px",
+          borderRadius: "9999px", // Pill-shaped buttons
           textTransform: "none",
           fontWeight: 600,
-          padding: "10px 24px",
+          padding: "12px 28px",
+          boxShadow: "none",
+        },
+        containedSecondary: {
+          "&:hover": {
+            backgroundColor: "#29e0a0",
+          },
+        },
+        containedInfo: {
+          color: "#FFFFFF",
+          "&:hover": {
+            backgroundColor: "#837fe8",
+          },
         },
       },
     },
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: "12px",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-          transition: "transform 0.3s, box-shadow 0.3s",
-          "&:hover": {
-            transform: "translateY(-5px)",
-            boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
-          },
+          borderRadius: "16px",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+          border: "1px solid #E2E8F0",
         },
       },
     },
