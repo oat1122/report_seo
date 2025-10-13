@@ -1,40 +1,86 @@
-const defaultTheme = require("tailwindcss/defaultTheme");
+import type { Config } from "tailwindcss";
+import defaultTheme from "tailwindcss/defaultTheme";
+import tailwindcssAnimate from "tailwindcss-animate";
 
-/** @type {import('tailwindcss').Config} */
-module.exports = {
+const config = {
+  darkMode: "class",
   content: [
-    // ... ไฟล์สำหรับสแกน Tailwind CSS ของคุณ
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/**/*.{js,ts,jsx,tsx,mdx}", // เพิ่ม src/ เพื่อรองรับ App Router
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
   ],
+  prefix: "",
   theme: {
+    container: {
+      center: true,
+      padding: "2rem",
+      screens: {
+        "2xl": "1400px",
+      },
+    },
     extend: {
       colors: {
-        // --- Primary Colors (ตามดีไซน์) ---
-        "primary-purple": "#9592FF", // #9592ff
-        "text-dark": "#2f2f2f",
-        "text-light": "#FFFFFF",
-        "background-dark": "#2f2f2f",
-        "background-light": "#FFFFFF",
-
-        // --- Secondary/Accent Colors (ตามดีไซน์) ---
-        "secondary-green": "#31ffb4", // #31ffb4
-        "accent-purple-dark": "#6460F8", // #6460F8
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          accent: "hsl(var(--primary-accent))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
+      },
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        // ให้ font-sans ใช้ Kanit เป็นหลัก (via CSS Variable)
-        // **การมีคลาส font-sans สำคัญในการรับรองว่า Tailwind Utilities ทำงานได้**
-        sans: [
-          "var(--font-kanit)",
-          "var(--font-geist-sans)",
-          ...defaultTheme.fontFamily.sans,
-        ],
-        // ลบ utility class 'kanit' ที่ซ้ำซ้อนออก
-        mono: ["var(--font-geist-mono)", ...defaultTheme.fontFamily.mono],
+        sans: ["var(--font-kanit)", ...defaultTheme.fontFamily.sans],
+      },
+      // [NEW] เพิ่ม boxShadow เพื่อให้เรียกใช้เงา --card-shadow ได้
+      boxShadow: {
+        card: "var(--card-shadow)",
+      },
+      keyframes: {
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
       },
     },
   },
-  plugins: [],
-};
+  plugins: [tailwindcssAnimate],
+} satisfies Config;
+
+export default config;

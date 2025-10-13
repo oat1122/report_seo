@@ -1,25 +1,54 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  /* ลบการกำหนดฟอนต์ที่นี่ออก เพื่อให้ Tailwind.config.ts จัดการ */
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
+  /* --- Light Theme (Default) --- */
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 240 10% 98%; /* สีพื้นหลังหลัก (เทาอมฟ้าอ่อนๆ) */
+    --foreground: 224 71.4% 4.1%; /* สีตัวอักษรหลัก (เกือบดำ) */
+
+    --card: 0 0% 100%; /* สีพื้นหลัง Card (ขาว) */
+    --card-foreground: 224 71.4% 4.1%;
+
+    --muted: 240 5.9% 90%;
+    --muted-foreground: 240 3.8% 46.1%;
+
+    /* [UPDATED] ปรับค่า Lightness ของสีม่วงให้ตรงกับ #9592ff มากขึ้น */
+    --primary: 241 100% 79%;
+    --primary-accent: 242 93% 67%; /* #6460F8 */
+    --primary-foreground: 224 71.4% 4.1%;
+
+    --secondary: 159 100% 60%; /* #31ffb4 */
+    --secondary-foreground: 224 71.4% 4.1%;
+
+    --destructive: 0 84.2% 60.2%; /* สีแดง */
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 200 84.2% 60.2%; /* สีฟ้า/น้ำเงินสำหรับ "EASY" */
+    --success-foreground: 0 0% 100%;
+
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 242 93% 67%;
+
+    --radius: 0.75rem; /* ค่าความโค้งมนของขอบ */
+
+    /* [NEW] เพิ่มตัวแปรสำหรับเงาของ Card โดยเฉพาะ */
+    --card-shadow: 0 4px 12px 0 rgb(0 0 0 / 0.05);
+  }
+
+  /* --- Dark Theme --- */
+  .dark {
+    /* คุณสามารถกำหนดค่าสีสำหรับ Dark Theme ที่นี่ได้ในอนาคต */
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  /* ลบ font-family ออก เพื่อให้ class="font-sans" ใน layout.tsx ทำงานได้ */
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }

@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { Kanit } from "next/font/google";
+import { Providers } from "@/components/providers";
 import "./globals.css";
 
 // 1. กำหนดค่าฟอนต์ Kanit (ฟอนต์หลักภาษาไทย/Sans)
@@ -34,7 +35,7 @@ export default function RootLayout({
       {/* ใช้ kanit.className บน body โดยตรงเพื่อบังคับให้ Kanit เป็นฟอนต์หลัก
           (คลาสนี้จะถูกกำหนด font-family โดย Next.js) */}
       <body className={`${kanit.className} font-sans antialiased`}>
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
