@@ -19,7 +19,7 @@ async function main() {
       role: "ADMIN",
     },
     create: {
-      id: randomUUID(), // ❗ เพิ่ม UUID เองได้ หรือปล่อยให้ Prisma สร้างก็ได้
+      id: randomUUID(), //  เพิ่ม UUID เองได้ หรือปล่อยให้ Prisma สร้างก็ได้
       name: "System Admin",
       email: "admin@report.com",
       password: hashedPassword,
