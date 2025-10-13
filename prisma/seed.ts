@@ -13,7 +13,11 @@ async function main() {
   // 1️⃣ สร้าง ADMIN User
   const adminUser = await prisma.user.upsert({
     where: { email: "admin@report.com" },
-    update: {},
+    update: {
+      password: hashedPassword, // Force update password
+      name: "System Admin",
+      role: "ADMIN",
+    },
     create: {
       id: randomUUID(), // ❗ เพิ่ม UUID เองได้ หรือปล่อยให้ Prisma สร้างก็ได้
       name: "System Admin",
@@ -26,7 +30,11 @@ async function main() {
   // 2️⃣ สร้าง SEO_DEV User
   const seoDevUser = await prisma.user.upsert({
     where: { email: "seo.dev@report.com" },
-    update: {},
+    update: {
+      password: hashedPassword, // Force update password
+      name: "SEO Developer",
+      role: "SEO_DEV",
+    },
     create: {
       id: randomUUID(),
       name: "SEO Developer",
@@ -39,7 +47,11 @@ async function main() {
   // 3️⃣ สร้าง CUSTOMER User
   const customerUser = await prisma.user.upsert({
     where: { email: "customer@report.com" },
-    update: {},
+    update: {
+      password: hashedPassword, // Force update password
+      name: "Test Customer",
+      role: "CUSTOMER",
+    },
     create: {
       id: randomUUID(),
       name: "Test Customer",
