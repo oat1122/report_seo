@@ -1,13 +1,14 @@
 import { PrismaClient } from "@prisma/client";
 import { randomUUID } from "crypto"; // ใช้ในกรณีที่อยาก set UUID เอง
+import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log("▶️ เริ่มต้น Seed ข้อมูล...");
 
-  // ⚠️ ในโปรดักชันควรใช้ bcrypt เพื่อ hash password เสมอ
-  // เช่น bcrypt.hash("password123", 10)
+  // Hash password สำหรับทุก user
+  const hashedPassword = await bcrypt.hash("password123", 10);
 
   // 1️⃣ สร้าง ADMIN User
   const adminUser = await prisma.user.upsert({
@@ -15,8 +16,9 @@ async function main() {
     update: {},
     create: {
       id: randomUUID(), // ❗ เพิ่ม UUID เองได้ หรือปล่อยให้ Prisma สร้างก็ได้
+      name: "System Admin",
       email: "admin@report.com",
-      password: "password123",
+      password: hashedPassword,
       role: "ADMIN",
     },
   });
@@ -27,8 +29,9 @@ async function main() {
     update: {},
     create: {
       id: randomUUID(),
+      name: "SEO Developer",
       email: "seo.dev@report.com",
-      password: "password123",
+      password: hashedPassword,
       role: "SEO_DEV",
     },
   });
@@ -39,8 +42,9 @@ async function main() {
     update: {},
     create: {
       id: randomUUID(),
+      name: "Test Customer",
       email: "customer@report.com",
-      password: "password123",
+      password: hashedPassword,
       role: "CUSTOMER",
     },
   });
@@ -64,7 +68,7 @@ async function main() {
     },
   });
 
-  console.log("✅ Seed ข้อมูลเสร็จสมบูรณ์");
+  console.log(" Seed ข้อมูลเสร็จสมบูรณ์");
   console.log("--- ข้อมูลผู้ใช้งานหลัก ---");
   console.table({
     Admin: adminUser.email,
@@ -80,7 +84,7 @@ async function main() {
 
 main()
   .catch((e) => {
-    console.error("❌ เกิดข้อผิดพลาดในการ Seed ข้อมูล", e);
+    console.error(" เกิดข้อผิดพลาดในการ Seed ข้อมูล", e);
     process.exit(1);
   })
   .finally(async () => {
