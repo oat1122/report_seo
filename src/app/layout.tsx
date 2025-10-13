@@ -1,5 +1,6 @@
+// src/app/layout.tsx (โค้ดที่สะอาด)
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist } from "next/font/google";
 import { Kanit } from "next/font/google";
 import "./globals.css";
 
@@ -8,23 +9,16 @@ const kanit = Kanit({
   subsets: ["latin", "thai"],
   // โหลดน้ำหนักที่ใช้: Regular (400), Medium (500), Bold (700)
   weight: ["400", "500", "700"],
-  variable: "--font-kanit",
+  variable: "--font-kanit", // ใช้ variable เพื่อให้ Tailwind ใช้ได้
 });
 
-// กำหนด Geist เป็นฟอนต์สำรอง (Geist Sans)
+// กำหนด Geist เป็นฟอนต์สำรอง (ใช้เฉพาะ variable)
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
-// กำหนด Geist Mono สำหรับโค้ด (ถ้ามี)
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  // แนะนำให้เปลี่ยน title/description ให้สื่อความหมายมากขึ้น
   title: "SEO Report Dashboard",
   description: "Dashboard for SEO keyword and domain reports",
 };
@@ -35,13 +29,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // กำหนด CSS Variable ของฟอนต์ทั้งหมด และให้ Kanit เป็นคลาสเริ่มต้น
+    // กำหนด CSS Variable ของฟอนต์ทั้งหมด
     <html
       lang="th"
-      className={`${kanit.variable} ${geistSans.variable} ${geistMono.variable} ${kanit.className}`}
+      className={`${kanit.variable} ${geistSans.variable}`}
     >
-      {/* font-sans ใน body จะใช้ฟอนต์ Kanit ตามที่กำหนดใน tailwind.config.ts */}
-      <body className={`font-sans antialiased`}>{children}</body>
+      {/* ใช้ kanit.className บน body โดยตรงเพื่อบังคับให้ Kanit เป็นฟอนต์หลัก
+          (คลาสนี้จะถูกกำหนด font-family โดย Next.js) */}
+      <body className={`${kanit.className} font-sans antialiased`}>{children}</body>
     </html>
   );
 }

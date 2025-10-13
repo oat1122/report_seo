@@ -24,18 +24,15 @@ module.exports = {
         "accent-purple-dark": "#6460F8", // #6460F8
       },
       fontFamily: {
-        // **กำหนด Kanit เป็นฟอนต์หลักในกลุ่ม 'sans'** // ฟอนต์อื่นๆ (Geist) ถูกใช้เป็น Fallback
+        // ให้ font-sans ใช้ Kanit เป็นหลัก (via CSS Variable)
+        // **การมีคลาส font-sans สำคัญในการรับรองว่า Tailwind Utilities ทำงานได้**
         sans: [
           "var(--font-kanit)",
           "var(--font-geist-sans)",
           ...defaultTheme.fontFamily.sans,
         ],
-
-        // กำหนดฟอนต์สำหรับโค้ด
+        // ลบ utility class 'kanit' ที่ซ้ำซ้อนออก
         mono: ["var(--font-geist-mono)", ...defaultTheme.fontFamily.mono],
-
-        // Utility Class แยกสำหรับ Kanit (font-kanit)
-        kanit: ["var(--font-kanit)", ...defaultTheme.fontFamily.sans],
       },
     },
   },
