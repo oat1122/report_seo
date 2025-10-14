@@ -13,7 +13,7 @@ import { Add } from "@mui/icons-material";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { UserTable } from "./UserTable";
 import { UserModal } from "./UserModal";
-import { MetricsModal } from "./MetricsModal";
+import { MetricsModal } from "./MetricsModal/MetricsModal";
 import { useUserManagement } from "./hook/useUserManagement";
 
 const UserManagement: React.FC = () => {

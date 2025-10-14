@@ -57,13 +57,13 @@ export default function LoginForm({ className = "" }: LoginFormProps) {
           // Redirect based on role
           switch (session.user.role) {
             case "ADMIN":
-              router.push("/admin/dashboard");
+              router.push("/admin");
               break;
             case "SEO_DEV":
-              router.push("/seo/dashboard");
+              router.push("/seo");
               break;
             case "CUSTOMER":
-              router.push("/customer/dashboard");
+              router.push("/customer");
               break;
             default:
               router.push("/dashboard");

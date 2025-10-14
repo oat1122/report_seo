@@ -1,0 +1,253 @@
+"use client";
+
+import React, { useState } from "react";
+import {
+  Modal,
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Paper,
+  IconButton,
+  Divider,
+  Stack,
+  Tabs,
+  Tab,
+  Tooltip,
+} from "@mui/material";
+import {
+  Save,
+  Close,
+  AssessmentOutlined,
+  RecommendOutlined,
+} from "@mui/icons-material";
+import { User } from "@/types/user";
+import {
+  OverallMetrics,
+  KeywordReport,
+  KeywordReportForm,
+  KeywordRecommend,
+  KeywordRecommendForm,
+} from "@/types/metrics";
+import { KeywordReportSection } from "./KeywordReportSection";
+import { RecommendKeywordSection } from "./RecommendKeywordSection";
+import { useMetricsModal } from "./hook/useMetricsModal";
+
+interface MetricsModalProps {
+  open: boolean;
+  onClose: () => void;
+  customer: User | null;
+  metricsData: OverallMetrics | null;
+  keywordsData: KeywordReport[];
+  onSaveMetrics: (data: Partial<OverallMetrics>) => Promise<void>;
+  onAddKeyword: (data: KeywordReportForm) => Promise<void>;
+  onDeleteKeyword: (id: string) => Promise<void>;
+  recommendKeywordsData: KeywordRecommend[];
+  onAddRecommendKeyword: (data: KeywordRecommendForm) => Promise<void>;
+  onDeleteRecommendKeyword: (id: string) => Promise<void>;
+}
+
+// Component สำหรับแสดง Tab Panel
+const TabPanel = (props: {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}) => {
+  const { children, value, index, ...other } = props;
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+    </div>
+  );
+};
+
+export const MetricsModal: React.FC<MetricsModalProps> = ({
+  open,
+  onClose,
+  customer,
+  metricsData,
+  keywordsData,
+  onSaveMetrics,
+  onAddKeyword,
+  onDeleteKeyword,
+  recommendKeywordsData,
+  onAddRecommendKeyword,
+  onDeleteRecommendKeyword,
+}) => {
+  const [tabIndex, setTabIndex] = useState(0);
+  const {
+    metrics,
+    newKeyword,
+    newRecommend,
+    handleMetricsChange,
+    handleKeywordChange,
+    handleKeywordSelectChange,
+    handleRecommendChange,
+    handleRecommendSelectChange,
+    resetKeywordForm,
+    resetRecommendForm,
+  } = useMetricsModal(metricsData);
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabIndex(newValue);
+  };
+
+  // Handlers สำหรับการเพิ่มข้อมูล
+  const handleAddKeyword = async () => {
+    if (!newKeyword.keyword) return;
+    await onAddKeyword(newKeyword);
+    resetKeywordForm();
+  };
+
+  const handleAddRecommend = async () => {
+    if (!newRecommend.keyword) return;
+    await onAddRecommendKeyword(newRecommend);
+    resetRecommendForm();
+  };
+
+  if (!customer) return null;
+
+  return (
+    <Modal open={open} onClose={onClose} sx={{ backdropFilter: "blur(5px)" }}>
+      <Paper
+        sx={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: { xs: "95%", md: 950 },
+          maxHeight: "90vh",
+          overflowY: "auto",
+          borderRadius: 4,
+          boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+        }}
+      >
+        <Box
+          sx={{
+            p: 3,
+            borderBottom: 1,
+            borderColor: "divider",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Box>
+            <Typography variant="h5" fontWeight={700}>
+              จัดการข้อมูล Domain
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              ลูกค้า: <span style={{ fontWeight: 600 }}>{customer.name}</span>
+            </Typography>
+          </Box>
+          <Tooltip title="ปิด">
+            <IconButton onClick={onClose}>
+              <Close />
+            </IconButton>
+          </Tooltip>
+        </Box>
+
+        {/* Overall Metrics Form */}
+        <Box p={3}>
+          <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
+            <Stack direction="row" alignItems="center" spacing={1.5} mb={2.5}>
+              <AssessmentOutlined color="secondary" />
+              <Typography variant="h6" fontWeight={600}>
+                คุณภาพ Domain (Overall Metrics)
+              </Typography>
+            </Stack>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "repeat(1, 1fr)",
+                  sm: "repeat(2, 1fr)",
+                  md: "repeat(4, 1fr)",
+                },
+                gap: 2,
+              }}
+            >
+              {Object.keys(metrics).map((key) => (
+                <TextField
+                  key={key}
+                  name={key}
+                  label={
+                    key.charAt(0).toUpperCase() +
+                    key.slice(1).replace(/([A-Z])/g, " $1")
+                  }
+                  type="number"
+                  value={metrics[key]}
+                  onChange={handleMetricsChange}
+                  fullWidth
+                  size="small"
+                />
+              ))}
+            </Box>
+            <Box sx={{ mt: 3, textAlign: "right" }}>
+              <Button
+                variant="contained"
+                color="secondary"
+                startIcon={<Save />}
+                onClick={() => onSaveMetrics(metrics)}
+              >
+                บันทึก Metrics
+              </Button>
+            </Box>
+          </Paper>
+        </Box>
+
+        <Divider />
+
+        {/* Keyword Report & Recommend Section */}
+        <Box>
+          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+            <Tabs
+              value={tabIndex}
+              onChange={handleTabChange}
+              aria-label="Keyword sections"
+              variant="fullWidth"
+            >
+              <Tab
+                label="รายงานคีย์เวิร์ด"
+                icon={<AssessmentOutlined />}
+                iconPosition="start"
+              />
+              <Tab
+                label="Keyword แนะนำ"
+                icon={<RecommendOutlined />}
+                iconPosition="start"
+              />
+            </Tabs>
+          </Box>
+
+          <TabPanel value={tabIndex} index={0}>
+            <KeywordReportSection
+              newKeyword={newKeyword}
+              keywordsData={keywordsData}
+              onKeywordChange={handleKeywordChange}
+              onKeywordSelectChange={handleKeywordSelectChange}
+              onAddKeyword={handleAddKeyword}
+              onDeleteKeyword={onDeleteKeyword}
+            />
+          </TabPanel>
+          <TabPanel value={tabIndex} index={1}>
+            <RecommendKeywordSection
+              newRecommend={newRecommend}
+              recommendKeywordsData={recommendKeywordsData}
+              onRecommendChange={handleRecommendChange}
+              onRecommendSelectChange={handleRecommendSelectChange}
+              onAddRecommend={handleAddRecommend}
+              onDeleteRecommendKeyword={onDeleteRecommendKeyword}
+            />
+          </TabPanel>
+        </Box>
+      </Paper>
+    </Modal>
+  );
+};
