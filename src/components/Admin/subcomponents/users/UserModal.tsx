@@ -27,6 +27,7 @@ interface UserFormState extends Partial<User> {
   password?: string;
   companyName?: string;
   domain?: string;
+  seoDevId?: string | null;
 }
 
 interface UserModalProps {
@@ -36,6 +37,7 @@ interface UserModalProps {
   onClose: () => void;
   onSave: () => void;
   setCurrentUser: React.Dispatch<React.SetStateAction<UserFormState>>;
+  seoDevs: User[]; // รับ props seoDevs
 }
 
 export const UserModal: React.FC<UserModalProps> = ({
@@ -45,6 +47,7 @@ export const UserModal: React.FC<UserModalProps> = ({
   onClose,
   onSave,
   setCurrentUser,
+  seoDevs, // รับค่า seoDevs มาจาก props
 }) => {
   const handleRoleChange = (event: SelectChangeEvent<Role>) => {
     setCurrentUser({
@@ -58,6 +61,11 @@ export const UserModal: React.FC<UserModalProps> = ({
   ) => {
     const { name, value } = event.target;
     setCurrentUser((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Handler สำหรับ Select ของ SEO Dev
+  const handleSeoDevChange = (event: SelectChangeEvent<string>) => {
+    setCurrentUser((prev) => ({ ...prev, seoDevId: event.target.value }));
   };
 
   return (
@@ -105,8 +113,13 @@ export const UserModal: React.FC<UserModalProps> = ({
           />
         )}
         <FormControl fullWidth margin="normal">
-          <InputLabel>Role</InputLabel>
-          <Select value={currentUser.role || ""} onChange={handleRoleChange}>
+          <InputLabel id="role-label">Role</InputLabel>
+          <Select
+            labelId="role-label"
+            label="Role"
+            value={currentUser.role || ""}
+            onChange={handleRoleChange}
+          >
             {Object.values(Role).map((role) => (
               <MenuItem key={role} value={role}>
                 {role}
@@ -136,6 +149,26 @@ export const UserModal: React.FC<UserModalProps> = ({
               margin="normal"
               required={!isEditing}
             />
+
+            {/* Dropdown สำหรับเลือก SEO Dev (แสดงทั้งตอนสร้างและแก้ไข) */}
+            <FormControl fullWidth margin="normal">
+              <InputLabel id="seodev-label">ผู้ดูแล (SEO Dev)</InputLabel>
+              <Select
+                labelId="seodev-label"
+                label="ผู้ดูแล (SEO Dev)"
+                value={currentUser.seoDevId || ""}
+                onChange={handleSeoDevChange}
+              >
+                <MenuItem value="">
+                  <em>-- ไม่กำหนด --</em>
+                </MenuItem>
+                {seoDevs.map((dev) => (
+                  <MenuItem key={dev.id} value={dev.id}>
+                    {dev.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </>
         )}
 

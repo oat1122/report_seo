@@ -27,10 +27,12 @@ interface UserFormState extends Partial<User> {
   password?: string;
   companyName?: string;
   domain?: string;
+  seoDevId?: string | null; // เพิ่ม field นี้
 }
 
 const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
+  const [seoDevs, setSeoDevs] = useState<User[]>([]); // state สำหรับเก็บ SEO Devs
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
@@ -39,6 +41,7 @@ const UserManagement: React.FC = () => {
 
   useEffect(() => {
     fetchUsers();
+    fetchSeoDevs(); // เรียกฟังก์ชันดึง SEO Devs
   }, []);
 
   const fetchUsers = async () => {
@@ -56,6 +59,18 @@ const UserManagement: React.FC = () => {
     }
   };
 
+  // ฟังก์ชันใหม่สำหรับดึงรายชื่อ SEO Devs
+  const fetchSeoDevs = async () => {
+    try {
+      const response = await fetch("/api/users/seodevs");
+      if (!response.ok) throw new Error("Failed to fetch SEO Devs");
+      const data = await response.json();
+      setSeoDevs(data);
+    } catch (err) {
+      console.error((err as Error).message);
+    }
+  };
+
   const handleOpen = async (user?: User) => {
     setIsEditing(!!user);
     if (user) {
@@ -68,6 +83,7 @@ const UserManagement: React.FC = () => {
               ...user,
               companyName: userData.customerProfile?.name,
               domain: userData.customerProfile?.domain,
+              seoDevId: userData.customerProfile?.seoDevId, // เพิ่มข้อมูล seoDevId
             });
           } else {
             setCurrentUser(user);
@@ -176,6 +192,7 @@ const UserManagement: React.FC = () => {
           onClose={handleClose}
           onSave={handleSave}
           setCurrentUser={setCurrentUser}
+          seoDevs={seoDevs} // ส่ง props seoDevs ไปที่ Modal
         />
       </Container>
     </DashboardLayout>

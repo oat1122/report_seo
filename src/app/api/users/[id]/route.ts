@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { Role } from "@/types/auth";
 
 // GET /api/users/[id] - ดึงผู้ใช้รายบุคคล
 export async function GET(
@@ -14,6 +15,7 @@ export async function GET(
           select: {
             name: true,
             domain: true,
+            seoDevId: true, // เพิ่ม field นี้
           },
         },
       },
@@ -37,7 +39,9 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { name, email, role, companyName, domain } = await request.json();
+    // เพิ่ม seoDevId เข้ามา
+    const { name, email, role, companyName, domain, seoDevId } =
+      await request.json();
 
     // ตรวจสอบว่า user มีอยู่จริงหรือไม่
     const existingUser = await prisma.user.findUnique({
@@ -50,7 +54,7 @@ export async function PUT(
     }
 
     // ถ้า role เป็น CUSTOMER และมีการส่ง companyName หรือ domain มา
-    if (role === "CUSTOMER" && (companyName || domain)) {
+    if (role === Role.CUSTOMER && (companyName || domain)) {
       const updatedUser = await prisma.$transaction(async (tx) => {
         // อัปเดต User
         const user = await tx.user.update({
@@ -58,15 +62,25 @@ export async function PUT(
           data: { name, email, role },
         });
 
+        // เตรียมข้อมูลสำหรับอัปเดต Customer
+        const customerData: {
+          name?: string;
+          domain?: string;
+          seoDevId?: string | null;
+        } = {};
+        if (companyName) customerData.name = companyName;
+        if (domain) customerData.domain = domain;
+        // ถ้ามี seoDevId ส่งมา (แม้จะเป็นค่าว่าง) ให้ทำการอัปเดต
+        if (seoDevId !== undefined) {
+          customerData.seoDevId = seoDevId === "" ? null : seoDevId;
+        }
+
         // อัปเดตหรือสร้าง Customer profile
         if (existingUser.customerProfile) {
           // อัปเดต customer profile ที่มีอยู่
           await tx.customer.update({
             where: { userId: params.id },
-            data: {
-              name: companyName,
-              domain: domain,
-            },
+            data: customerData,
           });
         } else {
           // สร้าง customer profile ใหม่ถ้ายังไม่มี
@@ -75,6 +89,7 @@ export async function PUT(
               name: companyName,
               domain: domain,
               userId: params.id,
+              seoDevId: seoDevId || null,
             },
           });
         }
