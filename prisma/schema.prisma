@@ -132,10 +132,12 @@ model PaymentProof {
 // 6. Keyword แนะนำสำหรับลูกค้า
 //    - เก็บ Keyword ที่ทีม SEO แนะนำให้ลูกค้าทำเพิ่มเติม
 model KeywordRecommend {
-  id         String   @id @default(uuid())
-  keyword    String   // ชื่อ Keyword ที่แนะนำ
-  note       String?  @db.Text // หมายเหตุเพิ่มเติม (เช่น เหตุผลที่แนะนำ)
-  createdAt  DateTime @default(now())
+  id          String   @id @default(uuid())
+  keyword     String   // ชื่อ Keyword ที่แนะนำ
+  kd          KDLevel? // ระดับความยาก (KD)
+  isTopReport Boolean  @default(false) // ใช้แยกกลุ่มรายงาน
+  note        String?  @db.Text // หมายเหตุเพิ่มเติม (เช่น เหตุผลที่แนะนำ)
+  createdAt   DateTime @default(now())
 
   // ความสัมพันธ์: ข้อมูลนี้เป็นของลูกค้าคนไหน
   customerId String

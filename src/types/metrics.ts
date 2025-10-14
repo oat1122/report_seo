@@ -38,6 +38,8 @@ export type KeywordReportForm = Omit<
 export interface KeywordRecommend {
   id: string;
   keyword: string;
+  kd: KDLevel | null;
+  isTopReport: boolean;
   note: string | null;
   createdAt: string;
   customerId: string;

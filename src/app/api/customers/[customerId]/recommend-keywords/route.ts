@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { KDLevel } from "@prisma/client";
 
 // GET /api/customers/[customerId]/recommend-keywords
 export async function GET(
@@ -42,7 +43,7 @@ export async function POST(
 ) {
   try {
     const { customerId } = await params;
-    const { keyword, note } = await req.json();
+    const { keyword, kd, isTopReport, note } = await req.json();
 
     if (!keyword) {
       return NextResponse.json(
@@ -67,6 +68,8 @@ export async function POST(
       data: {
         keyword,
         note,
+        kd: kd as KDLevel | null,
+        isTopReport: isTopReport || false,
         customerId: customer.id,
       },
     });

@@ -79,6 +79,8 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
   });
   const [newRecommend, setNewRecommend] = useState<KeywordRecommendForm>({
     keyword: "",
+    kd: null,
+    isTopReport: false,
     note: "",
   });
 
@@ -137,13 +139,29 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
   };
 
   const handleRecommendChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNewRecommend({ ...newRecommend, [e.target.name]: e.target.value });
+    const { name, value, type, checked } = e.target;
+    setNewRecommend((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value === "" ? null : value,
+    }));
+  };
+
+  const handleRecommendSelectChange = (e: SelectChangeEvent<KDLevel | "">) => {
+    setNewRecommend((prev) => ({
+      ...prev,
+      kd: e.target.value === "" ? null : (e.target.value as KDLevel),
+    }));
   };
 
   const handleAddRecommend = async () => {
     if (!newRecommend.keyword) return;
     await onAddRecommendKeyword(newRecommend);
-    setNewRecommend({ keyword: "", note: "" });
+    setNewRecommend({
+      keyword: "",
+      kd: null,
+      isTopReport: false,
+      note: "",
+    });
   };
 
   if (!customer) return null;
@@ -381,23 +399,50 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
               Keyword แนะนำ
             </Typography>
           </Stack>
-          {/* Add Form */}
-          <Stack direction="row" spacing={1} sx={{ mb: 2 }} alignItems="center">
+
+          {/* Add Form ที่เหมือนกับ Keyword Report */}
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{ mb: 2, flexWrap: "wrap" }}
+            alignItems="center"
+          >
             <TextField
               name="keyword"
-              label="Keyword แนะนำ"
+              label="Keyword"
               value={newRecommend.keyword}
               onChange={handleRecommendChange}
               size="small"
-              sx={{ flex: 1 }}
+              sx={{ minWidth: 200, flex: 1 }}
             />
-            <TextField
-              name="note"
-              label="หมายเหตุ (ไม่บังคับ)"
-              value={newRecommend.note || ""}
-              onChange={handleRecommendChange}
-              size="small"
-              sx={{ flex: 1 }}
+            <FormControl size="small" sx={{ width: 100 }}>
+              <InputLabel>KD</InputLabel>
+              <Select
+                name="kd"
+                value={newRecommend.kd || ""}
+                label="KD"
+                onChange={handleRecommendSelectChange}
+              >
+                <MenuItem value="">
+                  <em>ไม่ระบุ</em>
+                </MenuItem>
+                {Object.values(KDLevel).map((level) => (
+                  <MenuItem key={level} value={level}>
+                    {level}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  name="isTopReport"
+                  checked={newRecommend.isTopReport}
+                  onChange={handleRecommendChange}
+                  size="small"
+                />
+              }
+              label="Top"
             />
             <Button
               startIcon={<Add />}
@@ -409,8 +454,17 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
               แนะนำ
             </Button>
           </Stack>
+          <TextField
+            name="note"
+            label="หมายเหตุ (ไม่บังคับ)"
+            value={newRecommend.note || ""}
+            onChange={handleRecommendChange}
+            size="small"
+            fullWidth
+          />
+
           <Divider sx={{ my: 2 }} />
-          {/* List */}
+          {/* List ที่แสดงข้อมูลใหม่ */}
           <List dense>
             {recommendKeywordsData.length === 0 ? (
               <Typography
@@ -433,7 +487,12 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
                     </IconButton>
                   }
                 >
-                  <ListItemText primary={kw.keyword} secondary={kw.note} />
+                  <ListItemText
+                    primary={kw.keyword}
+                    secondary={`KD: ${kw.kd || "N/A"}${
+                      kw.isTopReport ? " - Top" : ""
+                    }${kw.note ? ` - Note: ${kw.note}` : ""}`}
+                  />
                 </ListItem>
               ))
             )}
