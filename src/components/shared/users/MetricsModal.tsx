@@ -22,13 +22,15 @@ import {
   Checkbox,
   Stack,
 } from "@mui/material";
-import { Add, Delete } from "@mui/icons-material";
+import { Add, Delete, LightbulbOutlined } from "@mui/icons-material";
 import { KDLevel } from "@prisma/client";
 import { User } from "@/types/user";
 import {
   OverallMetrics,
   KeywordReport,
   KeywordReportForm,
+  KeywordRecommend,
+  KeywordRecommendForm,
 } from "@/types/metrics";
 
 interface MetricsModalProps {
@@ -40,6 +42,9 @@ interface MetricsModalProps {
   onSaveMetrics: (data: Partial<OverallMetrics>) => Promise<void>;
   onAddKeyword: (data: KeywordReportForm) => Promise<void>;
   onDeleteKeyword: (id: string) => Promise<void>;
+  recommendKeywordsData: KeywordRecommend[];
+  onAddRecommendKeyword: (data: KeywordRecommendForm) => Promise<void>;
+  onDeleteRecommendKeyword: (id: string) => Promise<void>;
 }
 
 export const MetricsModal: React.FC<MetricsModalProps> = ({
@@ -51,6 +56,9 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
   onSaveMetrics,
   onAddKeyword,
   onDeleteKeyword,
+  recommendKeywordsData,
+  onAddRecommendKeyword,
+  onDeleteRecommendKeyword,
 }) => {
   const [metrics, setMetrics] = useState<Record<string, string | number>>({
     domainRating: "",
@@ -68,6 +76,10 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
     traffic: 0,
     kd: KDLevel.EASY,
     isTopReport: false,
+  });
+  const [newRecommend, setNewRecommend] = useState<KeywordRecommendForm>({
+    keyword: "",
+    note: "",
   });
 
   useEffect(() => {
@@ -122,6 +134,16 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
       kd: KDLevel.EASY,
       isTopReport: false,
     });
+  };
+
+  const handleRecommendChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewRecommend({ ...newRecommend, [e.target.name]: e.target.value });
+  };
+
+  const handleAddRecommend = async () => {
+    if (!newRecommend.keyword) return;
+    await onAddRecommendKeyword(newRecommend);
+    setNewRecommend({ keyword: "", note: "" });
   };
 
   if (!customer) return null;
@@ -345,6 +367,73 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
                       kw.traffic
                     } - KD: ${kw.kd}${kw.isTopReport ? " - Top Report" : ""}`}
                   />
+                </ListItem>
+              ))
+            )}
+          </List>
+        </Paper>
+
+        {/* Keyword Recommend Section */}
+        <Paper variant="outlined" sx={{ p: 3, borderRadius: 2, mt: 4 }}>
+          <Stack direction="row" alignItems="center" spacing={1.5} mb={2}>
+            <LightbulbOutlined color="warning" />
+            <Typography variant="h6" fontWeight={600}>
+              Keyword แนะนำ
+            </Typography>
+          </Stack>
+          {/* Add Form */}
+          <Stack direction="row" spacing={1} sx={{ mb: 2 }} alignItems="center">
+            <TextField
+              name="keyword"
+              label="Keyword แนะนำ"
+              value={newRecommend.keyword}
+              onChange={handleRecommendChange}
+              size="small"
+              sx={{ flex: 1 }}
+            />
+            <TextField
+              name="note"
+              label="หมายเหตุ (ไม่บังคับ)"
+              value={newRecommend.note || ""}
+              onChange={handleRecommendChange}
+              size="small"
+              sx={{ flex: 1 }}
+            />
+            <Button
+              startIcon={<Add />}
+              variant="contained"
+              color="warning"
+              onClick={handleAddRecommend}
+              size="small"
+            >
+              แนะนำ
+            </Button>
+          </Stack>
+          <Divider sx={{ my: 2 }} />
+          {/* List */}
+          <List dense>
+            {recommendKeywordsData.length === 0 ? (
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ textAlign: "center", py: 2 }}
+              >
+                ยังไม่มี Keyword ที่แนะนำ
+              </Typography>
+            ) : (
+              recommendKeywordsData.map((kw) => (
+                <ListItem
+                  key={kw.id}
+                  secondaryAction={
+                    <IconButton
+                      edge="end"
+                      onClick={() => onDeleteRecommendKeyword(kw.id)}
+                    >
+                      <Delete color="error" />
+                    </IconButton>
+                  }
+                >
+                  <ListItemText primary={kw.keyword} secondary={kw.note} />
                 </ListItem>
               ))
             )}

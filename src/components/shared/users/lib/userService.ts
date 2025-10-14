@@ -1,5 +1,9 @@
 import { UserFormState } from "@/types/user";
-import { OverallMetricsForm, KeywordReportForm } from "@/types/metrics";
+import {
+  OverallMetricsForm,
+  KeywordReportForm,
+  KeywordRecommendForm,
+} from "@/types/metrics";
 
 // ฟังก์ชันสำหรับดึงข้อมูลผู้ใช้ทั้งหมด
 export const fetchUsersAPI = async () => {
@@ -97,4 +101,42 @@ export const deleteKeywordAPI = async (keywordId: string) => {
     method: "DELETE",
   });
   if (!response.ok) throw new Error("Failed to delete keyword");
+};
+
+// === Keyword Recommend API ===
+export const fetchRecommendKeywordsAPI = async (customerId: string) => {
+  const response = await fetch(
+    `/api/customers/${customerId}/recommend-keywords`
+  );
+  if (!response.ok) throw new Error("Failed to fetch recommended keywords");
+  return await response.json();
+};
+
+export const addRecommendKeywordAPI = async (
+  customerId: string,
+  keyword: KeywordRecommendForm
+) => {
+  const response = await fetch(
+    `/api/customers/${customerId}/recommend-keywords`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(keyword),
+    }
+  );
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to add recommended keyword");
+  }
+  return await response.json();
+};
+
+export const deleteRecommendKeywordAPI = async (recommendId: string) => {
+  const response = await fetch(
+    `/api/customers/recommend-keywords/${recommendId}`,
+    {
+      method: "DELETE",
+    }
+  );
+  if (!response.ok) throw new Error("Failed to delete recommended keyword");
 };

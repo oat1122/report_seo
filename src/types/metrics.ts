@@ -34,3 +34,16 @@ export type KeywordReportForm = Omit<
   KeywordReport,
   "id" | "dateRecorded" | "customerId"
 >;
+
+export interface KeywordRecommend {
+  id: string;
+  keyword: string;
+  note: string | null;
+  createdAt: string;
+  customerId: string;
+}
+
+export type KeywordRecommendForm = Omit<
+  KeywordRecommend,
+  "id" | "createdAt" | "customerId"
+>;

@@ -41,6 +41,10 @@ const UserManagement: React.FC = () => {
     handleSaveMetrics,
     handleAddKeyword,
     handleDeleteKeyword,
+    // Recommend Keywords
+    recommendKeywordsData,
+    handleAddRecommendKeyword,
+    handleDeleteRecommendKeyword,
   } = useUserManagement();
 
   return (
@@ -130,6 +134,9 @@ const UserManagement: React.FC = () => {
           onSaveMetrics={handleSaveMetrics}
           onAddKeyword={handleAddKeyword}
           onDeleteKeyword={handleDeleteKeyword}
+          recommendKeywordsData={recommendKeywordsData}
+          onAddRecommendKeyword={handleAddRecommendKeyword}
+          onDeleteRecommendKeyword={handleDeleteRecommendKeyword}
         />
       </Container>
     </DashboardLayout>

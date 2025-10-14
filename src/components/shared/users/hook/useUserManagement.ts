@@ -12,12 +12,17 @@ import {
   fetchKeywordsAPI,
   addKeywordAPI,
   deleteKeywordAPI,
+  fetchRecommendKeywordsAPI,
+  addRecommendKeywordAPI,
+  deleteRecommendKeywordAPI,
 } from "../lib/userService";
 import {
   OverallMetrics,
   KeywordReport,
   KeywordReportForm,
   OverallMetricsForm,
+  KeywordRecommend,
+  KeywordRecommendForm,
 } from "@/types/metrics";
 
 export const useUserManagement = () => {
@@ -34,6 +39,9 @@ export const useUserManagement = () => {
   const [selectedCustomer, setSelectedCustomer] = useState<User | null>(null);
   const [metricsData, setMetricsData] = useState<OverallMetrics | null>(null);
   const [keywordsData, setKeywordsData] = useState<KeywordReport[]>([]);
+  const [recommendKeywordsData, setRecommendKeywordsData] = useState<
+    KeywordRecommend[]
+  >([]);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -118,12 +126,14 @@ export const useUserManagement = () => {
   const handleOpenMetricsModal = useCallback(async (customer: User) => {
     setSelectedCustomer(customer);
     try {
-      const [metrics, keywords] = await Promise.all([
+      const [metrics, keywords, recommends] = await Promise.all([
         fetchMetricsAPI(customer.id),
         fetchKeywordsAPI(customer.id),
+        fetchRecommendKeywordsAPI(customer.id),
       ]);
       setMetricsData(metrics);
       setKeywordsData(keywords);
+      setRecommendKeywordsData(recommends);
     } catch (err) {
       setError((err as Error).message);
     }
@@ -135,6 +145,7 @@ export const useUserManagement = () => {
     setSelectedCustomer(null);
     setMetricsData(null);
     setKeywordsData([]);
+    setRecommendKeywordsData([]);
   };
 
   const handleSaveMetrics = async (data: Partial<OverallMetrics>) => {
@@ -179,6 +190,33 @@ export const useUserManagement = () => {
     }
   };
 
+  // === New Handlers for Recommended Keywords ===
+  const handleAddRecommendKeyword = async (keyword: KeywordRecommendForm) => {
+    if (!selectedCustomer) return;
+    try {
+      await addRecommendKeywordAPI(selectedCustomer.id, keyword);
+      // Re-fetch เพื่ออัปเดต list
+      const updatedRecommends = await fetchRecommendKeywordsAPI(
+        selectedCustomer.id
+      );
+      setRecommendKeywordsData(updatedRecommends);
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
+  const handleDeleteRecommendKeyword = async (recommendId: string) => {
+    try {
+      await deleteRecommendKeywordAPI(recommendId);
+      // อัปเดต UI ทันที
+      setRecommendKeywordsData((prev) =>
+        prev.filter((kw) => kw.id !== recommendId)
+      );
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
   return {
     users,
     seoDevs,
@@ -203,5 +241,9 @@ export const useUserManagement = () => {
     handleSaveMetrics,
     handleAddKeyword,
     handleDeleteKeyword,
+    // Recommend Keywords
+    recommendKeywordsData,
+    handleAddRecommendKeyword,
+    handleDeleteRecommendKeyword,
   };
 };

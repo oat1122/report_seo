@@ -75,9 +75,10 @@ model Customer {
   seoDev   User?     @relation("SeoDevCustomers", fields: [seoDevId], references: [id])
 
   // ความสัมพันธ์กับข้อมูล Report
-  reports  KeywordReport[]  // ลูกค้า 1 คน มีรายงาน Keyword ได้หลายรายการ
-  metrics  OverallMetrics?  // ลูกค้า 1 คน มีข้อมูลภาพรวมล่าสุดได้ 1 ชุด
-  payments PaymentProof[]   // ลูกค้า 1 คน มีประวัติการชำระเงินได้หลายครั้ง
+  reports         KeywordReport[]     // ลูกค้า 1 คน มีรายงาน Keyword ได้หลายรายการ
+  metrics         OverallMetrics?     // ลูกค้า 1 คน มีข้อมูลภาพรวมล่าสุดได้ 1 ชุด
+  payments        PaymentProof[]      // ลูกค้า 1 คน มีประวัติการชำระเงินได้หลายครั้ง
+  recommendations KeywordRecommend[]  // ลูกค้า 1 คน มี Keyword แนะนำได้หลายรายการ
 }
 
 // 3. ข้อมูลสถิติโดยรวมของโดเมน (Overall Metrics)
@@ -126,6 +127,21 @@ model PaymentProof {
   // ความสัมพันธ์: ข้อมูลนี้เป็นของลูกค้าคนไหน
   customerId String
   customer   Customer @relation(fields: [customerId], references: [id])
+}
+
+// 6. Keyword แนะนำสำหรับลูกค้า
+//    - เก็บ Keyword ที่ทีม SEO แนะนำให้ลูกค้าทำเพิ่มเติม
+model KeywordRecommend {
+  id         String   @id @default(uuid())
+  keyword    String   // ชื่อ Keyword ที่แนะนำ
+  note       String?  @db.Text // หมายเหตุเพิ่มเติม (เช่น เหตุผลที่แนะนำ)
+  createdAt  DateTime @default(now())
+
+  // ความสัมพันธ์: ข้อมูลนี้เป็นของลูกค้าคนไหน
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
 }
 
 // ----------------------------------------------------
