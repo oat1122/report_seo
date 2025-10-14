@@ -15,68 +15,15 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import {
-  Edit,
-  Delete,
-  Person,
-  AdminPanelSettings,
-  Business,
-  Code,
-} from "@mui/icons-material";
-import { Role } from "@/types/auth";
-
-interface User {
-  id: string;
-  name: string | null;
-  email: string;
-  role: Role;
-  createdAt: string;
-}
+import { Edit, Delete } from "@mui/icons-material";
+import { User } from "@/types/user";
+import { getRoleIcon, getRoleColor, getRoleLabel } from "./lib/userUtils";
 
 interface UserTableProps {
   users: User[];
   onEdit: (user: User) => void;
   onDelete: (id: string) => void;
 }
-
-const getRoleIcon = (role: Role) => {
-  switch (role) {
-    case Role.ADMIN:
-      return <AdminPanelSettings fontSize="small" />;
-    case Role.CUSTOMER:
-      return <Business fontSize="small" />;
-    case Role.SEO_DEV:
-      return <Code fontSize="small" />;
-    default:
-      return <Person fontSize="small" />;
-  }
-};
-
-const getRoleColor = (role: Role) => {
-  switch (role) {
-    case Role.ADMIN:
-      return "error";
-    case Role.CUSTOMER:
-      return "info";
-    case Role.SEO_DEV:
-      return "secondary";
-    default:
-      return "default";
-  }
-};
-
-const getRoleLabel = (role: Role) => {
-  switch (role) {
-    case Role.ADMIN:
-      return "ผู้ดูแลระบบ";
-    case Role.CUSTOMER:
-      return "ลูกค้า";
-    case Role.SEO_DEV:
-      return "SEO Developer";
-    default:
-      return role;
-  }
-};
 
 export const UserTable: React.FC<UserTableProps> = ({
   users,

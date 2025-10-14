@@ -149,35 +149,64 @@ const UserManagement: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <Container maxWidth="lg">
+      <Container maxWidth="lg" sx={{ py: 4 }}>
         <Box
           sx={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
             mb: 4,
+            flexWrap: "wrap",
+            gap: 2,
           }}
         >
-          <Typography variant="h4" component="h1">
-            User Management
-          </Typography>
+          <Box>
+            <Typography variant="h2" component="h1" gutterBottom>
+              การจัดการผู้ใช้งาน
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              จัดการบัญชีผู้ใช้งานทั้งหมดในระบบ
+            </Typography>
+          </Box>
           <Button
             variant="contained"
+            color="secondary"
+            size="large"
             startIcon={<Add />}
             onClick={() => handleOpen()}
+            sx={{
+              px: 4,
+              py: 1.5,
+              fontSize: "1rem",
+              fontWeight: 600,
+            }}
           >
-            Add User
+            เพิ่มผู้ใช้งาน
           </Button>
         </Box>
 
-        {loading && <CircularProgress />}
         {error && (
-          <Alert severity="error" onClose={() => setError(null)}>
+          <Alert
+            severity="error"
+            onClose={() => setError(null)}
+            sx={{ mb: 3, borderRadius: 2 }}
+          >
             {error}
           </Alert>
         )}
 
-        {!loading && !error && (
+        {loading ? (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              minHeight: "400px",
+            }}
+          >
+            <CircularProgress size={48} color="secondary" />
+          </Box>
+        ) : (
           <UserTable
             users={users}
             onEdit={handleOpen}
@@ -192,7 +221,7 @@ const UserManagement: React.FC = () => {
           onClose={handleClose}
           onSave={handleSave}
           setCurrentUser={setCurrentUser}
-          seoDevs={seoDevs} // ส่ง props seoDevs ไปที่ Modal
+          seoDevs={seoDevs}
         />
       </Container>
     </DashboardLayout>

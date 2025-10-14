@@ -14,21 +14,8 @@ import {
   Typography,
 } from "@mui/material";
 import { Role } from "@/types/auth";
-
-interface User {
-  id: string;
-  name: string | null;
-  email: string;
-  role: Role;
-  createdAt: string;
-}
-
-interface UserFormState extends Partial<User> {
-  password?: string;
-  companyName?: string;
-  domain?: string;
-  seoDevId?: string | null;
-}
+import { User, UserFormState } from "@/types/user";
+import { getRoleLabel } from "./lib/userUtils";
 
 interface UserModalProps {
   open: boolean;
@@ -37,7 +24,7 @@ interface UserModalProps {
   onClose: () => void;
   onSave: () => void;
   setCurrentUser: React.Dispatch<React.SetStateAction<UserFormState>>;
-  seoDevs: User[]; // รับ props seoDevs
+  seoDevs: User[];
 }
 
 export const UserModal: React.FC<UserModalProps> = ({
@@ -47,7 +34,7 @@ export const UserModal: React.FC<UserModalProps> = ({
   onClose,
   onSave,
   setCurrentUser,
-  seoDevs, // รับค่า seoDevs มาจาก props
+  seoDevs,
 }) => {
   const handleRoleChange = (event: SelectChangeEvent<Role>) => {
     setCurrentUser({
@@ -63,22 +50,8 @@ export const UserModal: React.FC<UserModalProps> = ({
     setCurrentUser((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handler สำหรับ Select ของ SEO Dev
   const handleSeoDevChange = (event: SelectChangeEvent<string>) => {
     setCurrentUser((prev) => ({ ...prev, seoDevId: event.target.value }));
-  };
-
-  const getRoleLabel = (role: Role) => {
-    switch (role) {
-      case Role.ADMIN:
-        return "ผู้ดูแลระบบ";
-      case Role.CUSTOMER:
-        return "ลูกค้า";
-      case Role.SEO_DEV:
-        return "SEO Developer";
-      default:
-        return role;
-    }
   };
 
   return (
