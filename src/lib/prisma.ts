@@ -60,7 +60,6 @@ export const prisma = prismaBase.$extends({
   },
 });
 
-if (process.env.NODE_ENV !== "production")
-  globalForPrisma.prisma = prismaBase;
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prismaBase;
 
 export default prisma;
