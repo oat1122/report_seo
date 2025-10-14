@@ -13,6 +13,7 @@ import { Add } from "@mui/icons-material";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { UserTable } from "./UserTable";
 import { UserModal } from "./UserModal";
+import { MetricsModal } from "./MetricsModal";
 import { useUserManagement } from "./hook/useUserManagement";
 
 const UserManagement: React.FC = () => {
@@ -30,6 +31,16 @@ const UserManagement: React.FC = () => {
     handleSave,
     handleDelete,
     setError,
+    // Metrics Modal
+    isMetricsModalOpen,
+    selectedCustomer,
+    metricsData,
+    keywordsData,
+    handleOpenMetricsModal,
+    handleCloseMetricsModal,
+    handleSaveMetrics,
+    handleAddKeyword,
+    handleDeleteKeyword,
   } = useUserManagement();
 
   return (
@@ -96,6 +107,7 @@ const UserManagement: React.FC = () => {
             users={users}
             onEdit={handleOpenModal}
             onDelete={handleDelete}
+            onOpenMetrics={handleOpenMetricsModal}
           />
         )}
 
@@ -107,6 +119,17 @@ const UserManagement: React.FC = () => {
           onSave={handleSave}
           setCurrentUser={setCurrentUser}
           seoDevs={seoDevs}
+        />
+
+        <MetricsModal
+          open={isMetricsModalOpen}
+          onClose={handleCloseMetricsModal}
+          customer={selectedCustomer}
+          metricsData={metricsData}
+          keywordsData={keywordsData}
+          onSaveMetrics={handleSaveMetrics}
+          onAddKeyword={handleAddKeyword}
+          onDeleteKeyword={handleDeleteKeyword}
         />
       </Container>
     </DashboardLayout>

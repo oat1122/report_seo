@@ -15,20 +15,23 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { Edit, Delete } from "@mui/icons-material";
+import { Edit, Delete, BarChart } from "@mui/icons-material";
 import { User } from "@/types/user";
+import { Role } from "@/types/auth";
 import { getRoleIcon, getRoleColor, getRoleLabel } from "./lib/userUtils";
 
 interface UserTableProps {
   users: User[];
   onEdit: (user: User) => void;
   onDelete: (id: string) => void;
+  onOpenMetrics: (user: User) => void;
 }
 
 export const UserTable: React.FC<UserTableProps> = ({
   users,
   onEdit,
   onDelete,
+  onOpenMetrics,
 }) => {
   return (
     <TableContainer
@@ -146,6 +149,22 @@ export const UserTable: React.FC<UserTableProps> = ({
                   <Box
                     sx={{ display: "flex", gap: 1, justifyContent: "center" }}
                   >
+                    {user.role === Role.CUSTOMER && (
+                      <Tooltip title="จัดการข้อมูล Domain">
+                        <IconButton
+                          onClick={() => onOpenMetrics(user)}
+                          size="small"
+                          sx={{
+                            color: "secondary.main",
+                            "&:hover": {
+                              bgcolor: "rgba(100, 100, 255, 0.1)",
+                            },
+                          }}
+                        >
+                          <BarChart fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                     <Tooltip title="แก้ไข">
                       <IconButton
                         onClick={() => onEdit(user)}

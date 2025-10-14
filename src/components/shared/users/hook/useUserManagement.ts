@@ -7,7 +7,18 @@ import {
   fetchUserByIdAPI,
   saveUserAPI,
   deleteUserAPI,
+  fetchMetricsAPI,
+  saveMetricsAPI,
+  fetchKeywordsAPI,
+  addKeywordAPI,
+  deleteKeywordAPI,
 } from "../lib/userService";
+import {
+  OverallMetrics,
+  KeywordReport,
+  KeywordReportForm,
+  OverallMetricsForm,
+} from "@/types/metrics";
 
 export const useUserManagement = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -17,6 +28,12 @@ export const useUserManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentUser, setCurrentUser] = useState<UserFormState>({});
+
+  // === New State for Metrics Modal ===
+  const [isMetricsModalOpen, setIsMetricsModalOpen] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<User | null>(null);
+  const [metricsData, setMetricsData] = useState<OverallMetrics | null>(null);
+  const [keywordsData, setKeywordsData] = useState<KeywordReport[]>([]);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -97,6 +114,71 @@ export const useUserManagement = () => {
     }
   };
 
+  // === New Handlers for Metrics Modal ===
+  const handleOpenMetricsModal = useCallback(async (customer: User) => {
+    setSelectedCustomer(customer);
+    try {
+      const [metrics, keywords] = await Promise.all([
+        fetchMetricsAPI(customer.id),
+        fetchKeywordsAPI(customer.id),
+      ]);
+      setMetricsData(metrics);
+      setKeywordsData(keywords);
+    } catch (err) {
+      setError((err as Error).message);
+    }
+    setIsMetricsModalOpen(true);
+  }, []);
+
+  const handleCloseMetricsModal = () => {
+    setIsMetricsModalOpen(false);
+    setSelectedCustomer(null);
+    setMetricsData(null);
+    setKeywordsData([]);
+  };
+
+  const handleSaveMetrics = async (data: Partial<OverallMetrics>) => {
+    if (!selectedCustomer) return;
+    try {
+      const updatedMetrics = await saveMetricsAPI(
+        selectedCustomer.id,
+        data as OverallMetricsForm
+      );
+      setMetricsData(updatedMetrics);
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
+  const refreshKeywords = async () => {
+    if (!selectedCustomer) return;
+    try {
+      const keywords = await fetchKeywordsAPI(selectedCustomer.id);
+      setKeywordsData(keywords);
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
+  const handleAddKeyword = async (keyword: KeywordReportForm) => {
+    if (!selectedCustomer) return;
+    try {
+      await addKeywordAPI(selectedCustomer.id, keyword);
+      await refreshKeywords();
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
+  const handleDeleteKeyword = async (keywordId: string) => {
+    try {
+      await deleteKeywordAPI(keywordId);
+      setKeywordsData((prev) => prev.filter((kw) => kw.id !== keywordId));
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
   return {
     users,
     seoDevs,
@@ -111,5 +193,15 @@ export const useUserManagement = () => {
     handleSave,
     handleDelete,
     setError,
+    // Metrics Modal
+    isMetricsModalOpen,
+    selectedCustomer,
+    metricsData,
+    keywordsData,
+    handleOpenMetricsModal,
+    handleCloseMetricsModal,
+    handleSaveMetrics,
+    handleAddKeyword,
+    handleDeleteKeyword,
   };
 };

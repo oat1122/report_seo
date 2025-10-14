@@ -1,4 +1,5 @@
 import { UserFormState } from "@/types/user";
+import { OverallMetricsForm, KeywordReportForm } from "@/types/metrics";
 
 // ฟังก์ชันสำหรับดึงข้อมูลผู้ใช้ทั้งหมด
 export const fetchUsersAPI = async () => {
@@ -43,4 +44,57 @@ export const saveUserAPI = async (user: UserFormState, isEditing: boolean) => {
 export const deleteUserAPI = async (id: string) => {
   const response = await fetch(`/api/users/${id}`, { method: "DELETE" });
   if (!response.ok) throw new Error("Failed to delete user");
+};
+
+// === Metrics API ===
+export const fetchMetricsAPI = async (customerId: string) => {
+  const response = await fetch(`/api/customers/${customerId}/metrics`);
+  if (!response.ok) return null; // ไม่ต้อง throw error ถ้าไม่มีข้อมูล
+  return await response.json();
+};
+
+export const saveMetricsAPI = async (
+  customerId: string,
+  metrics: OverallMetricsForm
+) => {
+  const response = await fetch(`/api/customers/${customerId}/metrics`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(metrics),
+  });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to save metrics");
+  }
+  return await response.json();
+};
+
+// === Keywords API ===
+export const fetchKeywordsAPI = async (customerId: string) => {
+  const response = await fetch(`/api/customers/${customerId}/keywords`);
+  if (!response.ok) throw new Error("Failed to fetch keywords");
+  return await response.json();
+};
+
+export const addKeywordAPI = async (
+  customerId: string,
+  keyword: KeywordReportForm
+) => {
+  const response = await fetch(`/api/customers/${customerId}/keywords`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(keyword),
+  });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to add keyword");
+  }
+  return await response.json();
+};
+
+export const deleteKeywordAPI = async (keywordId: string) => {
+  const response = await fetch(`/api/customers/keywords/${keywordId}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) throw new Error("Failed to delete keyword");
 };
