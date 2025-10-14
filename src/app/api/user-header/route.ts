@@ -13,7 +13,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  console.log("🔍 Searching for user with userId:", session.user.id);
+  console.log(" Searching for user with userId:", session.user.id);
 
   try {
     // 3. ดึงข้อมูล User พร้อม role เพื่อตรวจสอบประเภทผู้ใช้
@@ -34,11 +34,11 @@ export async function GET() {
     });
 
     if (!user) {
-      console.log("❌ No user found for userId:", session.user.id);
+      // console.log(" No user found for userId:", session.user.id);
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    console.log("✅ Found user:", user);
+    // console.log(" Found user:", user);
 
     // 4. จัดรูปแบบข้อมูลตาม Role
     const headerData: {
@@ -56,7 +56,7 @@ export async function GET() {
       headerData.domain = user.customerProfile.domain;
     } else if (user.role === "CUSTOMER" && !user.customerProfile) {
       // CUSTOMER แต่ไม่มี profile
-      console.log("⚠️ Customer user without profile:", session.user.id);
+      console.log(" Customer user without profile:", session.user.id);
       headerData.domain = "No domain assigned";
     }
     // ADMIN หรือ SEO_DEV จะมี domain เป็น null

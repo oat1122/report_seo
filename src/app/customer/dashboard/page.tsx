@@ -1,5 +1,5 @@
 import { requireCustomer } from "@/lib/auth-utils";
-import { CustomerOnly } from "@/components/RoleGuard";
+import { CustomerOnly } from "@/components/Login/subcomponents/RoleGuard";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 
 export default async function CustomerDashboard() {

@@ -1,5 +1,5 @@
 import { requireStaff } from "@/lib/auth-utils";
-import { StaffOnly } from "@/components/RoleGuard";
+import { StaffOnly } from "@/components/Login/subcomponents/RoleGuard";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 
 export default async function SeoDashboard() {

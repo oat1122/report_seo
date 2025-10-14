@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { Kanit } from "next/font/google";
-import { Providers } from "@/components/providers";
+import { Providers } from "@/components/Login/subcomponents/providers";
 import "./globals.css";
 
 // 1. กำหนดค่าฟอนต์ Kanit (ฟอนต์หลักภาษาไทย/Sans)

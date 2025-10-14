@@ -1,5 +1,5 @@
 import { requireAdmin } from "@/lib/auth-utils";
-import { AdminOnly } from "@/components/RoleGuard";
+import { AdminOnly } from "@/components/Login/subcomponents/RoleGuard";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 
 export default async function AdminDashboard() {
