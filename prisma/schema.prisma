@@ -49,6 +49,7 @@ model User {
   role              Role      // สิทธิ์การใช้งาน: ADMIN, SEO_DEV, CUSTOMER
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
+  deletedAt         DateTime? // สำหรับ Soft Delete
 
   // ความสัมพันธ์
   customerProfile   Customer? @relation("CustomerUser") // ถ้าเป็น CUSTOMER จะมีข้อมูลลูกค้าผูกอยู่

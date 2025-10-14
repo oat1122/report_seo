@@ -1,6 +1,7 @@
 import { requireAdmin } from "@/lib/auth-utils";
 import { AdminOnly } from "@/components/Login/subcomponents/RoleGuard";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
+import Link from "next/link";
 
 export default async function AdminDashboard() {
   // Server-side protection
@@ -25,14 +26,16 @@ export default async function AdminDashboard() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-purple-800 mb-2">
-                จัดการผู้ใช้งาน
-              </h3>
-              <p className="text-purple-600 text-sm">
-                เพิ่ม แก้ไข และลบผู้ใช้งานในระบบ
-              </p>
-            </div>
+            <Link href="/admin/users" className="block hover:bg-purple-100 rounded-lg transition-colors">
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 h-full">
+                <h3 className="text-lg font-semibold text-purple-800 mb-2">
+                  จัดการผู้ใช้งาน
+                </h3>
+                <p className="text-purple-600 text-sm">
+                  เพิ่ม แก้ไข และลบผู้ใช้งานในระบบ
+                </p>
+              </div>
+            </Link>
 
             <div className="bg-green-50 border border-green-200 rounded-lg p-6">
               <h3 className="text-lg font-semibold text-green-800 mb-2">
