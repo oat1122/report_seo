@@ -7,6 +7,7 @@ export interface User {
   email: string;
   role: Role;
   createdAt: string;
+  deletedAt?: string | null; // เพิ่ม property นี้
 }
 
 export interface UserFormState extends Partial<User> {

@@ -48,6 +48,20 @@ export async function POST(request: Request) {
 
     // ถ้าเป็น CUSTOMER ให้สร้าง User และ Customer พร้อมกันใน Transaction เดียว
     if (role === Role.CUSTOMER) {
+      // ตรวจสอบว่า domain ซ้ำหรือไม่ก่อนสร้าง
+      const existingCustomer = await prisma.customer.findUnique({
+        where: { domain: domain },
+      });
+
+      if (existingCustomer) {
+        return NextResponse.json(
+          {
+            error: `Domain "${domain}" is already registered to another customer.`,
+          },
+          { status: 409 }
+        );
+      }
+
       const newUserAndCustomer = await prisma.$transaction(async (tx) => {
         const newUser = await tx.user.create({
           data: {
@@ -83,15 +97,24 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     console.error("Failed to create user:", error);
-    // ตรวจจับ error กรณี email หรือ domain ซ้ำ
+    // ตรวจจับ error กรณี email ซ้ำ (เนื่องจาก domain เราเช็คไปแล้วด้านบน)
     if (
       error &&
       typeof error === "object" &&
       "code" in error &&
       error.code === "P2002"
     ) {
+      // ถ้าเป็น Unique constraint ให้ดูว่า field ไหน
+      const meta = (error as any).meta;
+      if (meta?.target?.includes("email")) {
+        return NextResponse.json(
+          { error: "Email already exists." },
+          { status: 409 }
+        );
+      }
+      // กรณีอื่นๆ
       return NextResponse.json(
-        { error: "Email or Domain already exists." },
+        { error: "Duplicate data found." },
         { status: 409 }
       );
     }

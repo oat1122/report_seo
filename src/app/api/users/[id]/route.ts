@@ -55,6 +55,25 @@ export async function PUT(
 
     // ถ้า role เป็น CUSTOMER และมีการส่ง companyName หรือ domain มา
     if (role === Role.CUSTOMER && (companyName || domain)) {
+      // ตรวจสอบว่า domain ซ้ำกับ customer อื่นหรือไม่ (ถ้ามีการเปลี่ยน domain)
+      if (domain) {
+        const existingCustomerWithDomain = await prisma.customer.findFirst({
+          where: {
+            domain: domain,
+            userId: { not: params.id }, // ไม่นับ customer ของตัวเอง
+          },
+        });
+
+        if (existingCustomerWithDomain) {
+          return NextResponse.json(
+            {
+              error: `Domain "${domain}" is already registered to another customer.`,
+            },
+            { status: 409 }
+          );
+        }
+      }
+
       const updatedUser = await prisma.$transaction(async (tx) => {
         // อัปเดต User
         const user = await tx.user.update({
