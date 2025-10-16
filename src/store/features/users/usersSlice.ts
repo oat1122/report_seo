@@ -22,7 +22,10 @@ const initialState: UsersState = {
 // 3. สร้าง Async Thunks สำหรับเรียก API
 // Thunk สำหรับดึงผู้ใช้ทั้งหมด
 export const fetchUsers = createAsyncThunk("users/fetchUsers", async () => {
-  const response = await axios.get<User[]>("/users");
+  // เพิ่ม params: { includeDeleted: true } เข้าไปในการเรียก API
+  const response = await axios.get<User[]>("/users", {
+    params: { includeDeleted: true },
+  });
   return response.data;
 });
 

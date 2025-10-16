@@ -1,12 +1,18 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@/types/auth";
 import bcrypt from "bcrypt";
 
 // GET /api/users - ดึงผู้ใช้ทั้งหมด
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const users = await prisma.user.findMany({
+    // อ่าน query parameter จาก URL
+    const { searchParams } = new URL(request.url);
+    const includeDeleted = searchParams.get('includeDeleted') === 'true';
+
+    const users = await (prisma as any).user.findMany({
+      // ส่ง property `includeDeleted` ไปให้ middleware
+      includeDeleted: includeDeleted,
       orderBy: {
         createdAt: "desc",
       },

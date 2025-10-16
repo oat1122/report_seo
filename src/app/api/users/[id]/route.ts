@@ -5,11 +5,12 @@ import { Role } from "@/types/auth";
 // GET /api/users/[id] - ดึงผู้ใช้รายบุคคล
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const user = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         customerProfile: {
           select: {
@@ -36,16 +37,17 @@ export async function GET(
 // PUT /api/users/[id] - อัปเดตผู้ใช้
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // เพิ่ม seoDevId เข้ามา
     const { name, email, role, companyName, domain, seoDevId } =
       await request.json();
 
     // ตรวจสอบว่า user มีอยู่จริงหรือไม่
     const existingUser = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { customerProfile: true },
     });
 
@@ -60,7 +62,7 @@ export async function PUT(
         const existingCustomerWithDomain = await prisma.customer.findFirst({
           where: {
             domain: domain,
-            userId: { not: params.id }, // ไม่นับ customer ของตัวเอง
+            userId: { not: id }, // ไม่นับ customer ของตัวเอง
           },
         });
 
@@ -77,7 +79,7 @@ export async function PUT(
       const updatedUser = await prisma.$transaction(async (tx) => {
         // อัปเดต User
         const user = await tx.user.update({
-          where: { id: params.id },
+          where: { id },
           data: { name, email, role },
         });
 
@@ -98,7 +100,7 @@ export async function PUT(
         if (existingUser.customerProfile) {
           // อัปเดต customer profile ที่มีอยู่
           await tx.customer.update({
-            where: { userId: params.id },
+            where: { userId: id },
             data: customerData,
           });
         } else {
@@ -107,7 +109,7 @@ export async function PUT(
             data: {
               name: companyName,
               domain: domain,
-              userId: params.id,
+              userId: id,
               seoDevId: seoDevId || null,
             },
           });
@@ -120,7 +122,7 @@ export async function PUT(
     } else {
       // ถ้าไม่ใช่ CUSTOMER หรือไม่มีข้อมูล customer ให้อัปเดตแค่ User
       const updatedUser = await prisma.user.update({
-        where: { id: params.id },
+        where: { id },
         data: { name, email, role },
       });
       return NextResponse.json(updatedUser);
@@ -137,11 +139,12 @@ export async function PUT(
 // DELETE /api/users/[id] - ลบผู้ใช้ (จะถูกเปลี่ยนเป็น Soft Delete โดย Middleware)
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await prisma.user.delete({
-      where: { id: params.id },
+      where: { id },
     });
     return new NextResponse(null, { status: 204 });
   } catch (error) {

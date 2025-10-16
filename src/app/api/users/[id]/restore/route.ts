@@ -5,16 +5,16 @@ import { prisma } from "@/lib/prisma";
 // อัปเดต field `deletedAt` ให้เป็น null
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = params.id;
+    const { id } = await params;
 
     // ใช้ updateMany เพื่อหลีกเลี่ยง middleware ของ findUnique
     // และอัปเดตเฉพาะ user ที่ถูก soft-delete ไปแล้ว
     await (prisma as any).user.updateMany({
       where: {
-        id: userId,
+        id: id,
         deletedAt: {
           not: null,
         },

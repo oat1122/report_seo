@@ -46,6 +46,17 @@ export const prisma = prismaBase.$extends({
       },
       // กรองข้อมูลที่ถูกลบออกจาก findMany
       async findMany({ args, query }) {
+        // ตรวจสอบว่ามีการส่ง "includeDeleted: true" มาหรือไม่
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if ((args as any).includeDeleted) {
+          // ลบ property นี้ออกก่อนส่งให้ Prisma ทำงานต่อ
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          delete (args as any).includeDeleted;
+          // ส่ง query เดิมๆ โดยไม่เพิ่มเงื่อนไข deletedAt
+          return query(args);
+        }
+
+        // Logic เดิม: ถ้าไม่มีการระบุ deletedAt ให้กรองเฉพาะข้อมูลที่ไม่ถูกลบ
         if (!args.where) {
           args.where = {};
         }
