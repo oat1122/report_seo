@@ -1,11 +1,12 @@
 // src/store/store.ts
 import { configureStore } from "@reduxjs/toolkit";
 import usersReducer from "./features/users/usersSlice";
+import metricsReducer from "./features/metrics/metricsSlice";
 
 export const store = configureStore({
   reducer: {
     users: usersReducer,
-    // ... สามารถเพิ่ม reducers อื่นๆ ได้ที่นี่
+    metrics: metricsReducer,
   },
 });
 

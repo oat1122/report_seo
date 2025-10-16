@@ -23,25 +23,24 @@ import {
   deleteUser,
   restoreUser,
 } from "@/store/features/users/usersSlice";
+import {
+  fetchMetrics,
+  fetchKeywords,
+  fetchRecommendKeywords,
+  saveMetrics,
+  addKeyword,
+  deleteKeyword,
+  addRecommendKeyword,
+  deleteRecommendKeyword,
+  clearMetricsState,
+} from "@/store/features/metrics/metricsSlice";
 import { User, UserFormState } from "@/types/user";
 import { Role } from "@/types/auth";
-import {
-  fetchMetricsAPI,
-  saveMetricsAPI,
-  fetchKeywordsAPI,
-  addKeywordAPI,
-  deleteKeywordAPI,
-  fetchRecommendKeywordsAPI,
-  addRecommendKeywordAPI,
-  deleteRecommendKeywordAPI,
-  fetchUserByIdAPI,
-} from "./lib/userService";
+import axios from "@/lib/axios";
 import {
   OverallMetrics,
-  KeywordReport,
-  KeywordReportForm,
   OverallMetricsForm,
-  KeywordRecommend,
+  KeywordReportForm,
   KeywordRecommendForm,
 } from "@/types/metrics";
 
@@ -54,6 +53,15 @@ const UserManagement: React.FC = () => {
     status,
     error: usersError,
   } = useAppSelector((state) => state.users);
+
+  // Redux State สำหรับ Metrics
+  const {
+    metrics,
+    keywords,
+    recommendKeywords,
+    status: metricsStatus,
+  } = useAppSelector((state) => state.metrics);
+
   const loading = status === "loading";
 
   // Local State สำหรับ Modal
@@ -65,11 +73,6 @@ const UserManagement: React.FC = () => {
   // State สำหรับ Metrics Modal
   const [isMetricsModalOpen, setIsMetricsModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<User | null>(null);
-  const [metricsData, setMetricsData] = useState<OverallMetrics | null>(null);
-  const [keywordsData, setKeywordsData] = useState<KeywordReport[]>([]);
-  const [recommendKeywordsData, setRecommendKeywordsData] = useState<
-    KeywordRecommend[]
-  >([]);
 
   // Fetch Users และ SEO Devs เมื่อ Component Mount
   useEffect(() => {
@@ -91,7 +94,8 @@ const UserManagement: React.FC = () => {
     if (user) {
       if (user.role === Role.CUSTOMER) {
         try {
-          const userData = await fetchUserByIdAPI(user.id);
+          const response = await axios.get(`/users/${user.id}`);
+          const userData = response.data;
           setCurrentUser({
             ...user,
             companyName: userData.customerProfile?.name,
@@ -162,86 +166,51 @@ const UserManagement: React.FC = () => {
   };
 
   // === Handlers for Metrics Modal ===
-  const handleOpenMetricsModal = async (customer: User) => {
+  const handleOpenMetricsModal = (customer: User) => {
     setSelectedCustomer(customer);
-    try {
-      const [metrics, keywords, recommends] = await Promise.all([
-        fetchMetricsAPI(customer.id),
-        fetchKeywordsAPI(customer.id),
-        fetchRecommendKeywordsAPI(customer.id),
-      ]);
-      setMetricsData(metrics);
-      setKeywordsData(keywords);
-      setRecommendKeywordsData(recommends);
-    } catch (err) {
-      setError((err as Error).message);
-    }
+    // Dispatch action เพื่อดึงข้อมูลทั้งหมดพร้อมกัน
+    dispatch(fetchMetrics(customer.id));
+    dispatch(fetchKeywords(customer.id));
+    dispatch(fetchRecommendKeywords(customer.id));
     setIsMetricsModalOpen(true);
   };
 
   const handleCloseMetricsModal = () => {
     setIsMetricsModalOpen(false);
     setSelectedCustomer(null);
-    setMetricsData(null);
-    setKeywordsData([]);
-    setRecommendKeywordsData([]);
+    dispatch(clearMetricsState()); // เคลียร์ State ของ metrics เมื่อปิด Modal
   };
 
   const handleSaveMetrics = async (data: Partial<OverallMetrics>) => {
     if (!selectedCustomer) return;
-    try {
-      const updatedMetrics = await saveMetricsAPI(
-        selectedCustomer.id,
-        data as OverallMetricsForm
-      );
-      setMetricsData(updatedMetrics);
-    } catch (err) {
-      setError((err as Error).message);
-    }
+    await dispatch(
+      saveMetrics({
+        customerId: selectedCustomer.id,
+        data: data as OverallMetricsForm,
+      })
+    );
   };
 
   const handleAddKeyword = async (keyword: KeywordReportForm) => {
     if (!selectedCustomer) return;
-    try {
-      await addKeywordAPI(selectedCustomer.id, keyword);
-      const keywords = await fetchKeywordsAPI(selectedCustomer.id);
-      setKeywordsData(keywords);
-    } catch (err) {
-      setError((err as Error).message);
-    }
+    await dispatch(
+      addKeyword({ customerId: selectedCustomer.id, data: keyword })
+    );
   };
 
   const handleDeleteKeyword = async (keywordId: string) => {
-    try {
-      await deleteKeywordAPI(keywordId);
-      setKeywordsData((prev) => prev.filter((kw) => kw.id !== keywordId));
-    } catch (err) {
-      setError((err as Error).message);
-    }
+    await dispatch(deleteKeyword(keywordId));
   };
 
   const handleAddRecommendKeyword = async (keyword: KeywordRecommendForm) => {
     if (!selectedCustomer) return;
-    try {
-      await addRecommendKeywordAPI(selectedCustomer.id, keyword);
-      const updatedRecommends = await fetchRecommendKeywordsAPI(
-        selectedCustomer.id
-      );
-      setRecommendKeywordsData(updatedRecommends);
-    } catch (err) {
-      setError((err as Error).message);
-    }
+    await dispatch(
+      addRecommendKeyword({ customerId: selectedCustomer.id, data: keyword })
+    );
   };
 
   const handleDeleteRecommendKeyword = async (recommendId: string) => {
-    try {
-      await deleteRecommendKeywordAPI(recommendId);
-      setRecommendKeywordsData((prev) =>
-        prev.filter((kw) => kw.id !== recommendId)
-      );
-    } catch (err) {
-      setError((err as Error).message);
-    }
+    await dispatch(deleteRecommendKeyword(recommendId));
   };
 
   return (
@@ -323,19 +292,21 @@ const UserManagement: React.FC = () => {
           seoDevs={seoDevs}
         />
 
-        <MetricsModal
-          open={isMetricsModalOpen}
-          onClose={handleCloseMetricsModal}
-          customer={selectedCustomer}
-          metricsData={metricsData}
-          keywordsData={keywordsData}
-          onSaveMetrics={handleSaveMetrics}
-          onAddKeyword={handleAddKeyword}
-          onDeleteKeyword={handleDeleteKeyword}
-          recommendKeywordsData={recommendKeywordsData}
-          onAddRecommendKeyword={handleAddRecommendKeyword}
-          onDeleteRecommendKeyword={handleDeleteRecommendKeyword}
-        />
+        {selectedCustomer && (
+          <MetricsModal
+            open={isMetricsModalOpen}
+            onClose={handleCloseMetricsModal}
+            customer={selectedCustomer}
+            metricsData={metrics}
+            keywordsData={keywords}
+            onSaveMetrics={handleSaveMetrics}
+            onAddKeyword={handleAddKeyword}
+            onDeleteKeyword={handleDeleteKeyword}
+            recommendKeywordsData={recommendKeywords}
+            onAddRecommendKeyword={handleAddRecommendKeyword}
+            onDeleteRecommendKeyword={handleDeleteRecommendKeyword}
+          />
+        )}
       </Container>
     </DashboardLayout>
   );
