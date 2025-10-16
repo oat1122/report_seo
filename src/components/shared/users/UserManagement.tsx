@@ -44,7 +44,7 @@ import {
   KeywordRecommendForm,
 } from "@/types/metrics";
 import { ConfirmAlert } from "../ConfirmAlert";
-import { showPromiseToast } from "@/lib/toastify";
+import { showPromiseToast } from "@/components/shared/toast/lib/toastify";
 
 const UserManagement: React.FC = () => {
   // Redux State และ Dispatch
@@ -128,9 +128,6 @@ const UserManagement: React.FC = () => {
     setCurrentUser({});
   };
 
-  /**
-   * ✅ [IMPROVED] - Uses showPromiseToast for save/update operations.
-   */
   const handleSave = async () => {
     setError(null);
     const action = isEditing ? updateUser(currentUser) : addUser(currentUser);
@@ -168,9 +165,6 @@ const UserManagement: React.FC = () => {
     setConfirmOpen(true);
   };
 
-  /**
-   * ✅ [IMPROVED] - Uses showPromiseToast for restore operation.
-   */
   const handleRestore = (id: string) => {
     setConfirmTitle("ยืนยันการกู้คืน");
     setConfirmMessage("คุณแน่ใจหรือไม่ว่าต้องการกู้คืนผู้ใช้งานนี้?");
