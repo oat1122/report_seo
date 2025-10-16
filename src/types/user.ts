@@ -12,6 +12,9 @@ export interface User {
 
 export interface UserFormState extends Partial<User> {
   password?: string;
+  currentPassword?: string;
+  newPassword?: string;
+  confirmPassword?: string;
   companyName?: string;
   domain?: string;
   seoDevId?: string | null;

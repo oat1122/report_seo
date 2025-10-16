@@ -12,10 +12,12 @@ import {
   SelectChangeEvent,
   TextField,
   Typography,
+  Divider,
 } from "@mui/material";
 import { Role } from "@/types/auth";
 import { User, UserFormState } from "@/types/user";
 import { getRoleLabel } from "./lib/userUtils";
+import { useSession } from "next-auth/react";
 
 interface UserModalProps {
   open: boolean;
@@ -25,6 +27,7 @@ interface UserModalProps {
   onSave: () => void;
   setCurrentUser: React.Dispatch<React.SetStateAction<UserFormState>>;
   seoDevs: User[];
+  isSeoDevView?: boolean;
 }
 
 export const UserModal: React.FC<UserModalProps> = ({
@@ -35,7 +38,11 @@ export const UserModal: React.FC<UserModalProps> = ({
   onSave,
   setCurrentUser,
   seoDevs,
+  isSeoDevView = false,
 }) => {
+  const { data: session } = useSession();
+  const canEditRole = session?.user?.role === Role.ADMIN;
+  const isOwnProfile = session?.user?.id === currentUser.id;
   const handleRoleChange = (event: SelectChangeEvent<Role>) => {
     setCurrentUser({
       ...currentUser,
@@ -131,7 +138,11 @@ export const UserModal: React.FC<UserModalProps> = ({
             }}
           />
         )}
-        <FormControl fullWidth margin="normal">
+        <FormControl
+          fullWidth
+          margin="normal"
+          disabled={isSeoDevView && !canEditRole}
+        >
           <InputLabel id="role-label">บทบาท</InputLabel>
           <Select
             labelId="role-label"
@@ -143,7 +154,11 @@ export const UserModal: React.FC<UserModalProps> = ({
             }}
           >
             {Object.values(Role).map((role) => (
-              <MenuItem key={role} value={role}>
+              <MenuItem
+                key={role}
+                value={role}
+                disabled={isSeoDevView && role !== Role.CUSTOMER}
+              >
                 {getRoleLabel(role)}
               </MenuItem>
             ))}
@@ -203,28 +218,84 @@ export const UserModal: React.FC<UserModalProps> = ({
             />
 
             {/* Dropdown สำหรับเลือก SEO Dev */}
-            <FormControl fullWidth margin="normal">
-              <InputLabel id="seodev-label">ผู้ดูแล (SEO Dev)</InputLabel>
-              <Select
-                labelId="seodev-label"
-                label="ผู้ดูแล (SEO Dev)"
-                value={currentUser.seoDevId || ""}
-                onChange={handleSeoDevChange}
-                sx={{
-                  borderRadius: 2,
-                  bgcolor: "white",
-                }}
-              >
-                <MenuItem value="">
-                  <em>-- ไม่กำหนด --</em>
-                </MenuItem>
-                {seoDevs.map((dev) => (
-                  <MenuItem key={dev.id} value={dev.id}>
-                    {dev.name || dev.email}
+            {!isSeoDevView && (
+              <FormControl fullWidth margin="normal">
+                <InputLabel id="seodev-label">ผู้ดูแล (SEO Dev)</InputLabel>
+                <Select
+                  labelId="seodev-label"
+                  label="ผู้ดูแล (SEO Dev)"
+                  value={currentUser.seoDevId || ""}
+                  onChange={handleSeoDevChange}
+                  sx={{
+                    borderRadius: 2,
+                    bgcolor: "white",
+                  }}
+                >
+                  <MenuItem value="">
+                    <em>-- ไม่กำหนด --</em>
                   </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                  {seoDevs.map((dev) => (
+                    <MenuItem key={dev.id} value={dev.id}>
+                      {dev.name || dev.email}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+          </Box>
+        )}
+
+        {isEditing && (
+          <Box mt={3}>
+            <Divider sx={{ mb: 2 }}>
+              <Typography variant="overline">Change Password</Typography>
+            </Divider>
+            {isOwnProfile && !canEditRole && (
+              <TextField
+                fullWidth
+                label="Current Password"
+                name="currentPassword"
+                type="password"
+                onChange={handleFormChange}
+                margin="normal"
+                variant="outlined"
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 2,
+                  },
+                }}
+              />
+            )}
+            <TextField
+              fullWidth
+              label="New Password"
+              name="newPassword"
+              type="password"
+              onChange={handleFormChange}
+              margin="normal"
+              variant="outlined"
+              disabled={isSeoDevView && !isOwnProfile}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                },
+              }}
+            />
+            <TextField
+              fullWidth
+              label="Confirm New Password"
+              name="confirmPassword"
+              type="password"
+              onChange={handleFormChange}
+              margin="normal"
+              variant="outlined"
+              disabled={isSeoDevView && !isOwnProfile}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                },
+              }}
+            />
           </Box>
         )}
 

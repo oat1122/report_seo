@@ -104,6 +104,25 @@ export const restoreUser = createAsyncThunk(
   }
 );
 
+// Thunk for updating password
+export const updatePassword = createAsyncThunk(
+  "users/updatePassword",
+  async (
+    { userId, values }: { userId: string; values: Partial<UserFormState> },
+    { rejectWithValue }
+  ) => {
+    try {
+      await axios.put(`/users/${userId}/password`, values);
+      return userId;
+    } catch (error: any) {
+      if (error.response?.data?.error) {
+        return rejectWithValue(error.response.data.error);
+      }
+      return rejectWithValue("Failed to update password");
+    }
+  }
+);
+
 // 4. สร้าง Slice
 const usersSlice = createSlice({
   name: "users",
@@ -185,6 +204,14 @@ const usersSlice = createSlice({
       )
       .addCase(restoreUser.rejected, (state, action) => {
         state.error = (action.payload as string) || "Failed to restore user";
+      })
+      // Cases for updatePassword
+      .addCase(updatePassword.fulfilled, (state, action) => {
+        // You can optionally do something on success, e.g., clear errors
+        state.error = null;
+      })
+      .addCase(updatePassword.rejected, (state, action) => {
+        state.error = (action.payload as string) || "Failed to update password";
       });
   },
 });

@@ -26,6 +26,7 @@ interface UserTableProps {
   onDelete: (id: string) => void;
   onRestore: (id: string) => void;
   onOpenMetrics: (user: User) => void;
+  isSeoDevView?: boolean;
 }
 
 export const UserTable: React.FC<UserTableProps> = ({
@@ -34,6 +35,7 @@ export const UserTable: React.FC<UserTableProps> = ({
   onDelete,
   onRestore,
   onOpenMetrics,
+  isSeoDevView = false,
 }) => {
   return (
     <TableContainer
@@ -162,16 +164,18 @@ export const UserTable: React.FC<UserTableProps> = ({
                       sx={{ display: "flex", gap: 1, justifyContent: "center" }}
                     >
                       {isDeleted ? (
-                        // ถ้าถูกลบแล้ว ให้แสดงปุ่ม Restore
-                        <Tooltip title="กู้คืน">
-                          <IconButton
-                            onClick={() => onRestore(user.id)}
-                            size="small"
-                            color="success"
-                          >
-                            <RestoreFromTrash fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
+                        // ถ้าถูกลบแล้ว ให้แสดงปุ่ม Restore (ซ่อนสำหรับ SEO Dev)
+                        !isSeoDevView && (
+                          <Tooltip title="กู้คืน">
+                            <IconButton
+                              onClick={() => onRestore(user.id)}
+                              size="small"
+                              color="success"
+                            >
+                              <RestoreFromTrash fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )
                       ) : (
                         // ถ้ายังไม่ถูกลบ ให้แสดงปุ่มปกติ
                         <>
@@ -205,20 +209,22 @@ export const UserTable: React.FC<UserTableProps> = ({
                               <Edit fontSize="small" />
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title="ลบ">
-                            <IconButton
-                              onClick={() => onDelete(user.id)}
-                              size="small"
-                              sx={{
-                                color: "error.main",
-                                "&:hover": {
-                                  bgcolor: "rgba(244, 67, 54, 0.1)",
-                                },
-                              }}
-                            >
-                              <Delete fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
+                          {!isSeoDevView && (
+                            <Tooltip title="ลบ">
+                              <IconButton
+                                onClick={() => onDelete(user.id)}
+                                size="small"
+                                sx={{
+                                  color: "error.main",
+                                  "&:hover": {
+                                    bgcolor: "rgba(244, 67, 54, 0.1)",
+                                  },
+                                }}
+                              >
+                                <Delete fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
                         </>
                       )}
                     </Box>
