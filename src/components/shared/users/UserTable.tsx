@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import {
   Table,
   TableBody,
@@ -15,7 +16,14 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { Edit, Delete, BarChart, RestoreFromTrash } from "@mui/icons-material";
+import {
+  Edit,
+  Delete,
+  BarChart,
+  RestoreFromTrash,
+  Visibility,
+} from "@mui/icons-material";
+import { useSession } from "next-auth/react";
 import { User } from "@/types/user";
 import { Role } from "@/types/auth";
 import { getRoleIcon, getRoleColor, getRoleLabel } from "./lib/userUtils";
@@ -37,6 +45,12 @@ export const UserTable: React.FC<UserTableProps> = ({
   onOpenMetrics,
   isSeoDevView = false,
 }) => {
+  const { data: session } = useSession();
+
+  // Check if the viewer can see the report link
+  const canViewReport =
+    session?.user?.role === Role.ADMIN || session?.user?.role === Role.SEO_DEV;
+
   return (
     <TableContainer
       component={Paper}
@@ -179,6 +193,20 @@ export const UserTable: React.FC<UserTableProps> = ({
                       ) : (
                         // ถ้ายังไม่ถูกลบ ให้แสดงปุ่มปกติ
                         <>
+                          {user.role === Role.CUSTOMER && canViewReport && (
+                            <Tooltip title="ดูหน้ารายงานของลูกค้า">
+                              <IconButton
+                                component={Link}
+                                href={`/customer/${user.id}/report`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                size="small"
+                                color="secondary"
+                              >
+                                <Visibility fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
                           {user.role === Role.CUSTOMER && (
                             <Tooltip title="จัดการข้อมูล Domain">
                               <IconButton

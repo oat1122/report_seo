@@ -43,6 +43,7 @@ export const UserModal: React.FC<UserModalProps> = ({
   const { data: session } = useSession();
   const canEditRole = session?.user?.role === Role.ADMIN;
   const isOwnProfile = session?.user?.id === currentUser.id;
+
   const handleRoleChange = (event: SelectChangeEvent<Role>) => {
     setCurrentUser({
       ...currentUser,
@@ -84,14 +85,17 @@ export const UserModal: React.FC<UserModalProps> = ({
           borderRadius: 3,
         }}
       >
-        <Typography variant="h4" component="h2" mb={1} fontWeight={700}>
-          {isEditing ? "แก้ไขผู้ใช้งาน" : "เพิ่มผู้ใช้งานใหม่"}
-        </Typography>
-        <Typography variant="body2" color="text.secondary" mb={3}>
-          {isEditing
-            ? "แก้ไขข้อมูลผู้ใช้งานในระบบ"
-            : "กรอกข้อมูลเพื่อสร้างบัญชีผู้ใช้งานใหม่"}
-        </Typography>
+        {/* Modal Header */}
+        <Box>
+          <Typography variant="h4" component="h2" mb={1} fontWeight={700}>
+            {isEditing ? "แก้ไขผู้ใช้งาน" : "เพิ่มผู้ใช้งานใหม่"}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" mb={3}>
+            {isEditing
+              ? "แก้ไขข้อมูลผู้ใช้งานในระบบ"
+              : "กรอกข้อมูลเพื่อสร้างบัญชีผู้ใช้งานใหม่"}
+          </Typography>
+        </Box>
 
         <TextField
           fullWidth
