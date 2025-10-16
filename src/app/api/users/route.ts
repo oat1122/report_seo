@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   try {
     // อ่าน query parameter จาก URL
     const { searchParams } = new URL(request.url);
-    const includeDeleted = searchParams.get('includeDeleted') === 'true';
+    const includeDeleted = searchParams.get("includeDeleted") === "true";
 
     const users = await (prisma as any).user.findMany({
       // ส่ง property `includeDeleted` ไปให้ middleware
