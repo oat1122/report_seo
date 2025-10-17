@@ -31,6 +31,8 @@ const UserManagementSeoDev: React.FC = () => {
     setCurrentUser,
     isMetricsModalOpen,
     selectedCustomer,
+    isHistoryModalOpen,
+    historyData,
     handleOpenModal,
     handleCloseModal,
     handleSave,
@@ -41,6 +43,8 @@ const UserManagementSeoDev: React.FC = () => {
     handleDeleteKeyword,
     handleAddRecommendKeyword,
     handleDeleteRecommendKeyword,
+    handleOpenHistoryModal,
+    handleCloseHistoryModal,
   } = useUserManagementSeoDev();
 
   const loading = status === "loading";
@@ -122,6 +126,10 @@ const UserManagementSeoDev: React.FC = () => {
             recommendKeywordsData={recommendKeywords}
             onAddRecommendKeyword={handleAddRecommendKeyword}
             onDeleteRecommendKeyword={handleDeleteRecommendKeyword}
+            onOpenHistory={handleOpenHistoryModal}
+            isHistoryOpen={isHistoryModalOpen}
+            onCloseHistory={handleCloseHistoryModal}
+            historyData={historyData}
           />
         )}
       </Container>

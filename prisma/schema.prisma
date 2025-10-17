@@ -77,6 +77,7 @@ model Customer {
   // ความสัมพันธ์กับข้อมูล Report
   reports         KeywordReport[]     // ลูกค้า 1 คน มีรายงาน Keyword ได้หลายรายการ
   metrics         OverallMetrics?     // ลูกค้า 1 คน มีข้อมูลภาพรวมล่าสุดได้ 1 ชุด
+  metricsHistory  OverallMetricsHistory[] @relation("MetricsHistory") // ประวัติการเปลี่ยนแปลง Metrics
   payments        PaymentProof[]      // ลูกค้า 1 คน มีประวัติการชำระเงินได้หลายครั้ง
   recommendations KeywordRecommend[]  // ลูกค้า 1 คน มี Keyword แนะนำได้หลายรายการ
 }
@@ -100,6 +101,28 @@ model OverallMetrics {
   customer   Customer @relation(fields: [customerId], references: [id])
 }
 
+// 3.1 ประวัติการเปลี่ยนแปลง Overall Metrics
+//     - เก็บสแน็ปช็อตของ Overall Metrics ทุกครั้งที่มีการแก้ไข
+model OverallMetricsHistory {
+  id              String   @id @default(uuid())
+  domainRating    Int      // ค่า Domain Rating (DR)
+  healthScore     Int      // ค่า Health Score
+  ageInYears      Int      // อายุของโดเมน (Age)
+  spamScore       Int      // ค่า Spam Score
+  organicTraffic  Float    // ยอด Organic Traffic
+  organicKeywords Float    // จำนวน Organic Keywords
+  backlinks       Int      // จำนวน Backlinks
+  refDomains      Int      // จำนวน Referring Domains
+  dateRecorded    DateTime @default(now()) // วันที่บันทึกประวัติ
+
+  // ความสัมพันธ์: ข้อมูลนี้เป็นของลูกค้าคนไหน
+  customerId String
+  customer   Customer @relation("MetricsHistory", fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([dateRecorded])
+}
+
 // 4. รายงาน Keyword และ Position
 //    - เก็บข้อมูลในตารางคีย์เวิร์ดที่แสดงใน Report
 model KeywordReport {
@@ -114,6 +137,28 @@ model KeywordReport {
   // ความสัมพันธ์: ข้อมูลนี้เป็นของลูกค้าคนไหน
   customerId String
   customer   Customer @relation(fields: [customerId], references: [id])
+  
+  // ความสัมพันธ์กับประวัติ
+  history    KeywordReportHistory[] // ประวัติการเปลี่ยนแปลง
+}
+
+// 4.1 ประวัติการเปลี่ยนแปลง Keyword Report
+//     - เก็บสแน็ปช็อตของ Keyword Report ทุกครั้งที่มีการแก้ไข
+model KeywordReportHistory {
+  id           String   @id @default(uuid())
+  keyword      String   // ชื่อ Keyword
+  position     Int?     // อันดับ (Position)
+  traffic      Int      // ยอด Traffic
+  kd           KDLevel  // ระดับความยาก (KD)
+  isTopReport  Boolean  // ใช้แยกกลุ่มรายงาน
+  dateRecorded DateTime @default(now()) // วันที่บันทึกประวัติ
+
+  // ความสัมพันธ์: ข้อมูลนี้เป็นของ KeywordReport ไหน
+  reportId String
+  report   KeywordReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([reportId])
+  @@index([dateRecorded])
 }
 
 // 5. หลักฐานการโอนเงิน

@@ -53,6 +53,8 @@ export const useUserManagement = () => {
   const [confirmAction, setConfirmAction] = useState<() => void>(() => {});
   const [confirmTitle, setConfirmTitle] = useState("");
   const [confirmMessage, setConfirmMessage] = useState("");
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [historyData, setHistoryData] = useState<any[]>([]);
 
   useEffect(() => {
     if (status === "idle") {
@@ -273,6 +275,31 @@ export const useUserManagement = () => {
     });
   };
 
+  // เพิ่มฟังก์ชันเปิด History Modal
+  const handleOpenHistoryModal = useCallback(async () => {
+    if (!selectedCustomer) return;
+    try {
+      // เรียก API ที่เราสร้างขึ้น
+      const response = await axios.get(
+        `/customers/${selectedCustomer.id}/metrics/history`
+      );
+      setHistoryData(response.data);
+      setIsHistoryModalOpen(true);
+    } catch (err) {
+      console.error("Failed to fetch metrics history", err);
+      showPromiseToast(Promise.reject(err), {
+        pending: "",
+        success: "",
+        error: "ไม่สามารถโหลดข้อมูลประวัติได้",
+      });
+    }
+  }, [selectedCustomer]);
+
+  const handleCloseHistoryModal = () => {
+    setIsHistoryModalOpen(false);
+    setHistoryData([]);
+  };
+
   return {
     users,
     seoDevs,
@@ -291,6 +318,8 @@ export const useUserManagement = () => {
     confirmOpen,
     confirmTitle,
     confirmMessage,
+    isHistoryModalOpen,
+    historyData,
     handleOpenModal,
     handleCloseModal,
     handleSave,
@@ -303,6 +332,8 @@ export const useUserManagement = () => {
     handleDeleteKeyword,
     handleAddRecommendKeyword,
     handleDeleteRecommendKeyword,
+    handleOpenHistoryModal,
+    handleCloseHistoryModal,
     setConfirmOpen,
     confirmAction,
   };

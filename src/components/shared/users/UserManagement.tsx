@@ -36,6 +36,8 @@ const UserManagement: React.FC = () => {
     confirmOpen,
     confirmTitle,
     confirmMessage,
+    isHistoryModalOpen,
+    historyData,
     handleOpenModal,
     handleCloseModal,
     handleSave,
@@ -48,6 +50,8 @@ const UserManagement: React.FC = () => {
     handleDeleteKeyword,
     handleAddRecommendKeyword,
     handleDeleteRecommendKeyword,
+    handleOpenHistoryModal,
+    handleCloseHistoryModal,
     setConfirmOpen,
     confirmAction,
   } = useUserManagement();
@@ -146,6 +150,10 @@ const UserManagement: React.FC = () => {
             recommendKeywordsData={recommendKeywords}
             onAddRecommendKeyword={handleAddRecommendKeyword}
             onDeleteRecommendKeyword={handleDeleteRecommendKeyword}
+            onOpenHistory={handleOpenHistoryModal}
+            isHistoryOpen={isHistoryModalOpen}
+            onCloseHistory={handleCloseHistoryModal}
+            historyData={historyData}
           />
         )}
         <ConfirmAlert

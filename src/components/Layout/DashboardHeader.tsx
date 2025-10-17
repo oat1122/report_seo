@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import {
   AppBar,
   Toolbar,
@@ -16,6 +16,7 @@ import {
   MenuItem,
   ListItemIcon,
   ListItemText,
+  Tooltip,
 } from "@mui/material";
 import {
   AccessTime,
@@ -24,6 +25,10 @@ import {
   Logout,
   ExpandMore,
 } from "@mui/icons-material";
+import { HistoryModal } from "@/components/shared/users/MetricsModal/HistoryModal";
+import { Role } from "@/types/auth";
+import axios from "@/lib/axios";
+import { showPromiseToast } from "@/components/shared/toast/lib/toastify";
 
 // สร้าง Interface สำหรับข้อมูลที่จะดึงมา
 interface HeaderData {
@@ -33,10 +38,15 @@ interface HeaderData {
 }
 
 export const DashboardHeader: React.FC = () => {
+  const { data: session } = useSession();
   const [data, setData] = useState<HeaderData | null>(null);
   const [loading, setLoading] = useState(true);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
+
+  // State สำหรับ History Modal
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [historyData, setHistoryData] = useState<any[]>([]);
 
   // เปิด/ปิด เมนู user
   const handleUserMenuClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -53,6 +63,38 @@ export const DashboardHeader: React.FC = () => {
     await signOut({
       callbackUrl: "/",
     });
+  };
+
+  // ฟังก์ชันเปิด History Modal
+  const handleOpenHistoryModal = async () => {
+    // ตรวจสอบว่าเป็น Customer เท่านั้น
+    if (session?.user?.role !== Role.CUSTOMER) {
+      showPromiseToast(Promise.reject(), {
+        pending: "",
+        success: "",
+        error: "ฟีเจอร์นี้สำหรับลูกค้าเท่านั้น",
+      });
+      return;
+    }
+
+    try {
+      const userId = session.user.id;
+      const response = await axios.get(`/customers/${userId}/metrics/history`);
+      setHistoryData(response.data);
+      setIsHistoryModalOpen(true);
+    } catch (err) {
+      console.error("Failed to fetch metrics history", err);
+      showPromiseToast(Promise.reject(err), {
+        pending: "",
+        success: "",
+        error: "ไม่สามารถโหลดข้อมูลประวัติได้",
+      });
+    }
+  };
+
+  const handleCloseHistoryModal = () => {
+    setIsHistoryModalOpen(false);
+    setHistoryData([]);
   };
 
   useEffect(() => {
@@ -102,15 +144,19 @@ export const DashboardHeader: React.FC = () => {
 
           {/* Right Icon Group */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <IconButton
-              sx={{
-                border: "1px solid #e0e0e0",
-                width: 40,
-                height: 40,
-              }}
-            >
-              <AccessTime />
-            </IconButton>
+            <Tooltip title="ดูประวัติการเปลี่ยนแปลง">
+              <IconButton
+                onClick={handleOpenHistoryModal}
+                disabled={session?.user?.role !== Role.CUSTOMER}
+                sx={{
+                  border: "1px solid #e0e0e0",
+                  width: 40,
+                  height: 40,
+                }}
+              >
+                <AccessTime />
+              </IconButton>
+            </Tooltip>
             <Button
               variant="contained"
               onClick={handleUserMenuClick}
@@ -198,6 +244,14 @@ export const DashboardHeader: React.FC = () => {
           </Typography>
         </Box>
       </Container>
+
+      {/* History Modal */}
+      <HistoryModal
+        open={isHistoryModalOpen}
+        onClose={handleCloseHistoryModal}
+        history={historyData}
+        customerName={data?.userName || ""}
+      />
     </AppBar>
   );
 };
