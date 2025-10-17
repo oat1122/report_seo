@@ -1,6 +1,6 @@
 "use client"; // แปลงเป็น Client Component
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import { signOut, useSession } from "next-auth/react";
 import {
@@ -30,17 +30,8 @@ import { Role } from "@/types/auth";
 import axios from "@/lib/axios";
 import { showPromiseToast } from "@/components/shared/toast/lib/toastify";
 
-// สร้าง Interface สำหรับข้อมูลที่จะดึงมา
-interface HeaderData {
-  userName: string | null;
-  userRole: string;
-  domain: string | null;
-}
-
 export const DashboardHeader: React.FC = () => {
-  const { data: session } = useSession();
-  const [data, setData] = useState<HeaderData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: session, status } = useSession(); // เพิ่ม status เพื่อเช็ค loading
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
@@ -97,27 +88,10 @@ export const DashboardHeader: React.FC = () => {
     setHistoryData([]);
   };
 
-  useEffect(() => {
-    // ฟังก์ชันสำหรับดึงข้อมูลจาก API
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch("/api/user-header");
-        if (!response.ok) {
-          throw new Error("Failed to fetch data");
-        }
-        const result: HeaderData = await response.json();
-        setData(result);
-      } catch (error) {
-        console.error(error);
-        setData(null); // ตั้งค่าข้อมูลเป็น null หากเกิดข้อผิดพลาด
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []); // useEffect จะทำงานครั้งเดียวเมื่อ component ถูก mount
+  // ดึงข้อมูลจาก session โดยตรง
+  const isLoading = status === "loading";
+  const userName = session?.user?.name || "Guest";
+  const userRole = session?.user?.role;
 
   return (
     <AppBar
@@ -130,13 +104,14 @@ export const DashboardHeader: React.FC = () => {
     >
       <Container maxWidth="xl">
         <Toolbar sx={{ justifyContent: "space-between", py: 1 }}>
-          {/* Logo */}
+          {/* Logo - เปลี่ยน path ที่นี่ */}
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Image
-              src="https://placehold.jp/80x80.png"
-              alt="Logo"
-              width={50}
-              height={50}
+              src="/img/LOGO SEO PRIME4_0.png"
+              alt="SEO Prime Logo"
+              width={120}
+              height={32}
+              priority
             />
           </Box>
 
@@ -173,7 +148,8 @@ export const DashboardHeader: React.FC = () => {
               startIcon={<PersonOutline />}
               endIcon={<ExpandMore />}
             >
-              {loading ? <Skeleton width="80%" /> : data?.userName || "Guest"}
+              {/* ดึงข้อมูลจาก session โดยตรง */}
+              {isLoading ? <Skeleton width="80%" /> : userName}
             </Button>
 
             {/* User Menu */}
@@ -232,14 +208,12 @@ export const DashboardHeader: React.FC = () => {
         >
           <Language sx={{ fontSize: 18, mr: 1, color: "text.secondary" }} />
           <Typography variant="body2" sx={{ color: "text.secondary" }}>
-            {loading ? (
+            {isLoading ? (
               <Skeleton width="150px" />
-            ) : data?.domain ? (
-              data.domain
-            ) : data?.userRole === "CUSTOMER" ? (
-              "No domain assigned"
+            ) : userRole === "CUSTOMER" ? (
+              "Customer Report Panel" // แสดงข้อความสำหรับ Customer
             ) : (
-              `${data?.userRole || "USER"} Dashboard`
+              `${userRole || "USER"} Dashboard`
             )}
           </Typography>
         </Box>
@@ -250,7 +224,7 @@ export const DashboardHeader: React.FC = () => {
         open={isHistoryModalOpen}
         onClose={handleCloseHistoryModal}
         history={historyData}
-        customerName={data?.userName || ""}
+        customerName={userName}
       />
     </AppBar>
   );

@@ -17,7 +17,7 @@ import {
   Chip,
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
-import { KeywordReportHistory } from "@/store/features/metrics/metricsSlice";
+import { KeywordReportHistory } from "@/types/history";
 
 interface KeywordHistoryModalProps {
   open: boolean;
@@ -32,6 +32,12 @@ export const KeywordHistoryModal: React.FC<KeywordHistoryModalProps> = ({
   history,
   keywordName,
 }) => {
+  // เรียงลำดับข้อมูลก่อนแสดงผล - ล่าสุดขึ้นก่อน
+  const sortedHistory = [...history].sort(
+    (a, b) =>
+      new Date(b.dateRecorded).getTime() - new Date(a.dateRecorded).getTime()
+  );
+
   return (
     <Modal open={open} onClose={onClose}>
       <Paper
@@ -66,8 +72,8 @@ export const KeywordHistoryModal: React.FC<KeywordHistoryModalProps> = ({
               </TableRow>
             </TableHead>
             <TableBody>
-              {history.length > 0 ? (
-                history.map((record) => (
+              {sortedHistory.length > 0 ? (
+                sortedHistory.map((record) => (
                   <TableRow key={record.id}>
                     <TableCell>
                       {new Date(record.dateRecorded).toLocaleString("th-TH")}

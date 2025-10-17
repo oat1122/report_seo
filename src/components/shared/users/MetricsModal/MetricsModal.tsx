@@ -254,28 +254,32 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
             </Box>
 
             <TabPanel value={tabIndex} index={0} prefix="simple-tabpanel">
-              <KeywordReportSection
-                newKeyword={newKeyword}
-                keywordsData={keywordsData}
-                editingKeywordId={editingKeywordId}
-                onKeywordChange={handleKeywordChange}
-                onKeywordSelectChange={handleKeywordSelectChange}
-                onAddOrUpdateKeyword={handleAddOrUpdateKeyword}
-                onDeleteKeyword={onDeleteKeyword}
-                onSetEditing={handleSetEditingKeyword}
-                onClearEditing={clearEditing}
-                onViewHistory={onOpenKeywordHistory}
-              />
+              <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
+                <KeywordReportSection
+                  newKeyword={newKeyword}
+                  keywordsData={keywordsData}
+                  editingKeywordId={editingKeywordId}
+                  onKeywordChange={handleKeywordChange}
+                  onKeywordSelectChange={handleKeywordSelectChange}
+                  onAddOrUpdateKeyword={handleAddOrUpdateKeyword}
+                  onDeleteKeyword={onDeleteKeyword}
+                  onSetEditing={handleSetEditingKeyword}
+                  onClearEditing={clearEditing}
+                  onViewHistory={onOpenKeywordHistory}
+                />
+              </Box>
             </TabPanel>
             <TabPanel value={tabIndex} index={1} prefix="simple-tabpanel">
-              <RecommendKeywordSection
-                newRecommend={newRecommend}
-                recommendKeywordsData={recommendKeywordsData}
-                onRecommendChange={handleRecommendChange}
-                onRecommendSelectChange={handleRecommendSelectChange}
-                onAddRecommend={handleAddRecommend}
-                onDeleteRecommendKeyword={onDeleteRecommendKeyword}
-              />
+              <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
+                <RecommendKeywordSection
+                  newRecommend={newRecommend}
+                  recommendKeywordsData={recommendKeywordsData}
+                  onRecommendChange={handleRecommendChange}
+                  onRecommendSelectChange={handleRecommendSelectChange}
+                  onAddRecommend={handleAddRecommend}
+                  onDeleteRecommendKeyword={onDeleteRecommendKeyword}
+                />
+              </Box>
             </TabPanel>
           </Box>
         </Paper>
