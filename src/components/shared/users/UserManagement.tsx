@@ -38,6 +38,10 @@ const UserManagement: React.FC = () => {
     confirmMessage,
     isHistoryModalOpen,
     historyData,
+    // Keyword History Modal
+    isKeywordHistoryModalOpen,
+    keywordHistory,
+    selectedKeyword,
     handleOpenModal,
     handleCloseModal,
     handleSave,
@@ -48,10 +52,13 @@ const UserManagement: React.FC = () => {
     handleSaveMetrics,
     handleAddKeyword,
     handleDeleteKeyword,
+    handleUpdateKeyword,
     handleAddRecommendKeyword,
     handleDeleteRecommendKeyword,
     handleOpenHistoryModal,
     handleCloseHistoryModal,
+    handleOpenKeywordHistoryModal,
+    handleCloseKeywordHistoryModal,
     setConfirmOpen,
     confirmAction,
   } = useUserManagement();
@@ -147,6 +154,7 @@ const UserManagement: React.FC = () => {
             onSaveMetrics={handleSaveMetrics}
             onAddKeyword={handleAddKeyword}
             onDeleteKeyword={handleDeleteKeyword}
+            onUpdateKeyword={handleUpdateKeyword}
             recommendKeywordsData={recommendKeywords}
             onAddRecommendKeyword={handleAddRecommendKeyword}
             onDeleteRecommendKeyword={handleDeleteRecommendKeyword}
@@ -154,6 +162,11 @@ const UserManagement: React.FC = () => {
             isHistoryOpen={isHistoryModalOpen}
             onCloseHistory={handleCloseHistoryModal}
             historyData={historyData}
+            isKeywordHistoryOpen={isKeywordHistoryModalOpen}
+            onOpenKeywordHistory={handleOpenKeywordHistoryModal}
+            onCloseKeywordHistory={handleCloseKeywordHistoryModal}
+            keywordHistoryData={keywordHistory}
+            selectedKeyword={selectedKeyword}
           />
         )}
         <ConfirmAlert

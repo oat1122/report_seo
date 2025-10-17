@@ -9,9 +9,14 @@ export async function GET(
   try {
     const { customerId } = params;
 
-    // 1. ค้นหา Customer Profile โดยใช้ userId
+    // 1. ค้นหา Customer Profile โดยใช้ userId พร้อมกับข้อมูล User
     const customer = await prisma.customer.findUnique({
       where: { userId: customerId },
+      include: {
+        user: {
+          select: { name: true },
+        },
+      },
     });
 
     if (!customer) {
@@ -20,6 +25,8 @@ export async function GET(
         metrics: null,
         topKeywords: [],
         otherKeywords: [],
+        customerName: null,
+        domain: null,
       });
     }
 
@@ -38,7 +45,13 @@ export async function GET(
     const topKeywords = keywords.filter((kw) => kw.isTopReport);
     const otherKeywords = keywords.filter((kw) => !kw.isTopReport);
 
-    return NextResponse.json({ metrics, topKeywords, otherKeywords });
+    return NextResponse.json({
+      metrics,
+      topKeywords,
+      otherKeywords,
+      customerName: customer.user.name,
+      domain: customer.domain,
+    });
   } catch (error) {
     console.error("Failed to fetch customer report data:", error);
     return NextResponse.json(

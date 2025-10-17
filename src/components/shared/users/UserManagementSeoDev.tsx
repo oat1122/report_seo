@@ -33,6 +33,10 @@ const UserManagementSeoDev: React.FC = () => {
     selectedCustomer,
     isHistoryModalOpen,
     historyData,
+    // Keyword History Modal
+    isKeywordHistoryModalOpen,
+    keywordHistory,
+    selectedKeyword,
     handleOpenModal,
     handleCloseModal,
     handleSave,
@@ -41,10 +45,13 @@ const UserManagementSeoDev: React.FC = () => {
     handleSaveMetrics,
     handleAddKeyword,
     handleDeleteKeyword,
+    handleUpdateKeyword,
     handleAddRecommendKeyword,
     handleDeleteRecommendKeyword,
     handleOpenHistoryModal,
     handleCloseHistoryModal,
+    handleOpenKeywordHistoryModal,
+    handleCloseKeywordHistoryModal,
   } = useUserManagementSeoDev();
 
   const loading = status === "loading";
@@ -123,6 +130,7 @@ const UserManagementSeoDev: React.FC = () => {
             onSaveMetrics={handleSaveMetrics}
             onAddKeyword={handleAddKeyword}
             onDeleteKeyword={handleDeleteKeyword}
+            onUpdateKeyword={handleUpdateKeyword}
             recommendKeywordsData={recommendKeywords}
             onAddRecommendKeyword={handleAddRecommendKeyword}
             onDeleteRecommendKeyword={handleDeleteRecommendKeyword}
@@ -130,6 +138,11 @@ const UserManagementSeoDev: React.FC = () => {
             isHistoryOpen={isHistoryModalOpen}
             onCloseHistory={handleCloseHistoryModal}
             historyData={historyData}
+            isKeywordHistoryOpen={isKeywordHistoryModalOpen}
+            onOpenKeywordHistory={handleOpenKeywordHistoryModal}
+            onCloseKeywordHistory={handleCloseKeywordHistoryModal}
+            keywordHistoryData={keywordHistory}
+            selectedKeyword={selectedKeyword}
           />
         )}
       </Container>

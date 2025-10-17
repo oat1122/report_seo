@@ -11,12 +11,38 @@ import {
 } from "@/types/metrics";
 
 // --- 1. Interfaces ---
+// Interface สำหรับข้อมูล Report
+interface ReportData {
+  metrics: OverallMetrics | null;
+  topKeywords: KeywordReport[];
+  otherKeywords: KeywordReport[];
+  customerName: string | null;
+  domain: string | null;
+}
+
+// Interface สำหรับ Keyword History
+export interface KeywordReportHistory {
+  id: string;
+  keyword: string;
+  position: number | null;
+  traffic: number;
+  kd: string;
+  isTopReport: boolean;
+  dateRecorded: string;
+}
+
 interface MetricsState {
   metrics: OverallMetrics | null;
   keywords: KeywordReport[];
   recommendKeywords: KeywordRecommend[];
   status: "idle" | "loading" | "succeeded" | "failed";
   error: string | null;
+  // State ใหม่สำหรับ Report Page
+  reportData: ReportData | null;
+  reportStatus: "idle" | "loading" | "succeeded" | "failed";
+  // State ใหม่สำหรับ Keyword History
+  keywordHistory: KeywordReportHistory[];
+  historyStatus: "idle" | "loading" | "succeeded" | "failed";
 }
 
 // --- 2. Initial State ---
@@ -26,9 +52,30 @@ const initialState: MetricsState = {
   recommendKeywords: [],
   status: "idle",
   error: null,
+  // ค่าเริ่มต้นสำหรับ Report State
+  reportData: null,
+  reportStatus: "idle",
+  // ค่าเริ่มต้นสำหรับ Keyword History
+  keywordHistory: [],
+  historyStatus: "idle",
 };
 
 // --- 3. Async Thunks ---
+// Thunk ใหม่สำหรับดึงข้อมูล Report ทั้งหมด
+export const fetchReportData = createAsyncThunk(
+  "metrics/fetchReportData",
+  async (customerId: string, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`/customers/${customerId}/report`);
+      return response.data;
+    } catch (err: any) {
+      return rejectWithValue(
+        err.response?.data?.error || "Failed to fetch report data"
+      );
+    }
+  }
+);
+
 // Thunks for Overall Metrics
 export const fetchMetrics = createAsyncThunk(
   "metrics/fetchMetrics",
@@ -113,6 +160,44 @@ export const deleteKeyword = createAsyncThunk(
   }
 );
 
+// Thunk for updating a keyword
+export const updateKeyword = createAsyncThunk(
+  "metrics/updateKeyword",
+  async (
+    { keywordId, data }: { keywordId: string; data: KeywordReportForm },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await axios.put(
+        `/customers/keywords/${keywordId}`,
+        data
+      );
+      return response.data;
+    } catch (err: any) {
+      return rejectWithValue(
+        err.response?.data?.error || "Failed to update keyword"
+      );
+    }
+  }
+);
+
+// Thunk for fetching keyword history
+export const fetchKeywordHistory = createAsyncThunk(
+  "metrics/fetchKeywordHistory",
+  async (keywordId: string, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(
+        `/customers/keywords/${keywordId}/history`
+      );
+      return response.data;
+    } catch (err: any) {
+      return rejectWithValue(
+        err.response?.data?.error || "Failed to fetch history"
+      );
+    }
+  }
+);
+
 // Thunks for Recommended Keywords
 export const fetchRecommendKeywords = createAsyncThunk(
   "metrics/fetchRecommendKeywords",
@@ -173,6 +258,22 @@ const metricsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // === Reducers สำหรับ Report Page ===
+      .addCase(fetchReportData.pending, (state) => {
+        state.reportStatus = "loading";
+      })
+      .addCase(
+        fetchReportData.fulfilled,
+        (state, action: PayloadAction<ReportData>) => {
+          state.reportStatus = "succeeded";
+          state.reportData = action.payload;
+        }
+      )
+      .addCase(fetchReportData.rejected, (state, action) => {
+        state.reportStatus = "failed";
+        state.error = action.payload as string;
+      })
+
       // Fetch all data (using fetchMetrics as the primary trigger)
       .addCase(fetchMetrics.pending, (state) => {
         state.status = "loading";
@@ -228,6 +329,35 @@ const metricsSlice = createSlice({
           );
         }
       )
+
+      // Update Keyword
+      .addCase(
+        updateKeyword.fulfilled,
+        (state, action: PayloadAction<KeywordReport>) => {
+          const index = state.keywords.findIndex(
+            (kw) => kw.id === action.payload.id
+          );
+          if (index !== -1) {
+            state.keywords[index] = action.payload;
+          }
+        }
+      )
+
+      // Fetch Keyword History
+      .addCase(fetchKeywordHistory.pending, (state) => {
+        state.historyStatus = "loading";
+      })
+      .addCase(
+        fetchKeywordHistory.fulfilled,
+        (state, action: PayloadAction<KeywordReportHistory[]>) => {
+          state.historyStatus = "succeeded";
+          state.keywordHistory = action.payload;
+        }
+      )
+      .addCase(fetchKeywordHistory.rejected, (state, action) => {
+        state.historyStatus = "failed";
+        state.error = action.payload as string;
+      })
 
       // Add Recommend Keyword
       .addCase(

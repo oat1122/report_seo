@@ -34,6 +34,7 @@ import { KeywordReportSection } from "./KeywordReportSection";
 import { RecommendKeywordSection } from "./RecommendKeywordSection";
 import { useMetricsModal } from "./hook/useMetricsModal";
 import { HistoryModal } from "./HistoryModal";
+import { KeywordHistoryModal } from "./KeywordHistoryModal"; // Import modal ใหม่
 
 interface MetricsModalProps {
   open: boolean;
@@ -44,6 +45,10 @@ interface MetricsModalProps {
   onSaveMetrics: (data: Partial<OverallMetrics>) => Promise<void>;
   onAddKeyword: (data: KeywordReportForm) => Promise<void>;
   onDeleteKeyword: (id: string) => Promise<void>;
+  onUpdateKeyword: (
+    keywordId: string,
+    data: KeywordReportForm
+  ) => Promise<void>;
   recommendKeywordsData: KeywordRecommend[];
   onAddRecommendKeyword: (data: KeywordRecommendForm) => Promise<void>;
   onDeleteRecommendKeyword: (id: string) => Promise<void>;
@@ -52,6 +57,12 @@ interface MetricsModalProps {
   isHistoryOpen: boolean;
   onCloseHistory: () => void;
   historyData: any[];
+  // Props ใหม่สำหรับ Keyword History
+  isKeywordHistoryOpen: boolean;
+  onOpenKeywordHistory: (keyword: KeywordReport) => void;
+  onCloseKeywordHistory: () => void;
+  keywordHistoryData: any[];
+  selectedKeyword: KeywordReport | null;
 }
 
 // Component สำหรับแสดง Tab Panel
@@ -83,6 +94,7 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
   onSaveMetrics,
   onAddKeyword,
   onDeleteKeyword,
+  onUpdateKeyword,
   recommendKeywordsData,
   onAddRecommendKeyword,
   onDeleteRecommendKeyword,
@@ -90,12 +102,18 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
   isHistoryOpen,
   onCloseHistory,
   historyData,
+  isKeywordHistoryOpen,
+  onOpenKeywordHistory,
+  onCloseKeywordHistory,
+  keywordHistoryData,
+  selectedKeyword,
 }) => {
   const [tabIndex, setTabIndex] = useState(0);
   const {
     metrics,
     newKeyword,
     newRecommend,
+    editingKeywordId,
     handleMetricsChange,
     handleKeywordChange,
     handleKeywordSelectChange,
@@ -103,17 +121,23 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
     handleRecommendSelectChange,
     resetKeywordForm,
     resetRecommendForm,
+    handleSetEditingKeyword,
+    clearEditing,
   } = useMetricsModal(metricsData);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabIndex(newValue);
   };
 
-  // Handlers สำหรับการเพิ่มข้อมูล
-  const handleAddKeyword = async () => {
+  // Handler ที่จะตัดสินใจว่าจะ Add หรือ Update
+  const handleAddOrUpdateKeyword = async () => {
     if (!newKeyword.keyword) return;
-    await onAddKeyword(newKeyword);
-    resetKeywordForm();
+    if (editingKeywordId) {
+      await onUpdateKeyword(editingKeywordId, newKeyword);
+    } else {
+      await onAddKeyword(newKeyword);
+    }
+    clearEditing(); // Reset ฟอร์มและ edit state
   };
 
   const handleAddRecommend = async () => {
@@ -249,10 +273,14 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
               <KeywordReportSection
                 newKeyword={newKeyword}
                 keywordsData={keywordsData}
+                editingKeywordId={editingKeywordId}
                 onKeywordChange={handleKeywordChange}
                 onKeywordSelectChange={handleKeywordSelectChange}
-                onAddKeyword={handleAddKeyword}
+                onAddOrUpdateKeyword={handleAddOrUpdateKeyword}
                 onDeleteKeyword={onDeleteKeyword}
+                onSetEditing={handleSetEditingKeyword}
+                onClearEditing={clearEditing}
+                onViewHistory={onOpenKeywordHistory}
               />
             </TabPanel>
             <TabPanel value={tabIndex} index={1}>
@@ -276,6 +304,16 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
         history={historyData}
         customerName={customer.name || ""}
       />
+
+      {/* Keyword History Modal */}
+      {selectedKeyword && (
+        <KeywordHistoryModal
+          open={isKeywordHistoryOpen}
+          onClose={onCloseKeywordHistory}
+          history={keywordHistoryData}
+          keywordName={selectedKeyword.keyword}
+        />
+      )}
     </>
   );
 };

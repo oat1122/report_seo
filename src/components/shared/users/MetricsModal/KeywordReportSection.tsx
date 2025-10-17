@@ -17,29 +17,37 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { Add, Delete } from "@mui/icons-material";
+import { Add, Delete, Edit, History } from "@mui/icons-material";
 import { KDLevel } from "@prisma/client";
 import { KeywordReport, KeywordReportForm } from "@/types/metrics";
 
 interface KeywordReportSectionProps {
   newKeyword: KeywordReportForm;
   keywordsData: KeywordReport[];
+  editingKeywordId: string | null; // ID ของ keyword ที่กำลังแก้ไข
   onKeywordChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onKeywordSelectChange: (e: SelectChangeEvent<KDLevel>) => void;
-  onAddKeyword: () => void;
+  onAddOrUpdateKeyword: () => void; // เปลี่ยนชื่อ handler
   onDeleteKeyword: (id: string) => void;
+  onSetEditing: (keyword: KeywordReport) => void; // สำหรับเริ่มแก้ไข
+  onClearEditing: () => void; // สำหรับยกเลิกการแก้ไข
+  onViewHistory: (keyword: KeywordReport) => void; // สำหรับดูประวัติ
 }
 
 export const KeywordReportSection: React.FC<KeywordReportSectionProps> = ({
   newKeyword,
   keywordsData,
+  editingKeywordId,
   onKeywordChange,
   onKeywordSelectChange,
-  onAddKeyword,
+  onAddOrUpdateKeyword,
   onDeleteKeyword,
+  onSetEditing,
+  onClearEditing,
+  onViewHistory,
 }) => (
   <>
-    {/* Add Keyword Form */}
+    {/* Add/Edit Keyword Form */}
     <Stack
       direction={{ xs: "column", sm: "row" }}
       spacing={1}
@@ -101,11 +109,17 @@ export const KeywordReportSection: React.FC<KeywordReportSectionProps> = ({
       <Button
         startIcon={<Add />}
         variant="contained"
-        onClick={onAddKeyword}
+        onClick={onAddOrUpdateKeyword}
         size="medium"
+        color={editingKeywordId ? "secondary" : "primary"}
       >
-        เพิ่ม
+        {editingKeywordId ? "บันทึก" : "เพิ่ม"}
       </Button>
+      {editingKeywordId && (
+        <Button onClick={onClearEditing} size="medium">
+          ยกเลิก
+        </Button>
+      )}
     </Stack>
     <Divider sx={{ my: 2 }} />
 
@@ -124,13 +138,21 @@ export const KeywordReportSection: React.FC<KeywordReportSectionProps> = ({
           <ListItem
             key={kw.id}
             secondaryAction={
-              <IconButton
-                edge="end"
-                aria-label="delete"
-                onClick={() => onDeleteKeyword(kw.id)}
-              >
-                <Delete color="error" />
-              </IconButton>
+              <Stack direction="row" spacing={1}>
+                <IconButton edge="end" onClick={() => onViewHistory(kw)}>
+                  <History />
+                </IconButton>
+                <IconButton edge="end" onClick={() => onSetEditing(kw)}>
+                  <Edit />
+                </IconButton>
+                <IconButton
+                  edge="end"
+                  aria-label="delete"
+                  onClick={() => onDeleteKeyword(kw.id)}
+                >
+                  <Delete color="error" />
+                </IconButton>
+              </Stack>
             }
           >
             <ListItemText

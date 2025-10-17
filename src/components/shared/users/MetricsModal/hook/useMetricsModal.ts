@@ -3,6 +3,7 @@ import { SelectChangeEvent } from "@mui/material";
 import { KDLevel } from "@prisma/client";
 import {
   OverallMetrics,
+  KeywordReport,
   KeywordReportForm,
   KeywordRecommendForm,
 } from "@/types/metrics";
@@ -23,6 +24,7 @@ export const useMetricsModal = (metricsData: OverallMetrics | null) => {
     isTopReport: false,
     note: "",
   });
+  const [editingKeywordId, setEditingKeywordId] = useState<string | null>(null);
 
   // Effect สำหรับ Sync ข้อมูล Metrics เมื่อมีการเปลี่ยนแปลง
   useEffect(() => {
@@ -123,10 +125,29 @@ export const useMetricsModal = (metricsData: OverallMetrics | null) => {
     });
   };
 
+  // Function to set the form for editing a keyword
+  const handleSetEditingKeyword = (keyword: KeywordReport) => {
+    setEditingKeywordId(keyword.id);
+    setNewKeyword({
+      keyword: keyword.keyword,
+      position: keyword.position ?? 0,
+      traffic: keyword.traffic,
+      kd: keyword.kd,
+      isTopReport: keyword.isTopReport,
+    });
+  };
+
+  // Function to clear the editing state
+  const clearEditing = () => {
+    setEditingKeywordId(null);
+    resetKeywordForm();
+  };
+
   return {
     metrics,
     newKeyword,
     newRecommend,
+    editingKeywordId,
     handleMetricsChange,
     handleKeywordChange,
     handleKeywordSelectChange,
@@ -134,5 +155,7 @@ export const useMetricsModal = (metricsData: OverallMetrics | null) => {
     handleRecommendSelectChange,
     resetKeywordForm,
     resetRecommendForm,
+    handleSetEditingKeyword,
+    clearEditing,
   };
 };

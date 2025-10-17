@@ -16,6 +16,8 @@ import {
   saveMetrics,
   addKeyword,
   deleteKeyword,
+  updateKeyword,
+  fetchKeywordHistory,
   addRecommendKeyword,
   deleteRecommendKeyword,
   clearMetricsState,
@@ -25,6 +27,7 @@ import { Role } from "@/types/auth";
 import {
   OverallMetrics,
   OverallMetricsForm,
+  KeywordReport,
   KeywordReportForm,
   KeywordRecommendForm,
 } from "@/types/metrics";
@@ -39,9 +42,8 @@ export const useUserManagement = () => {
     status,
     error: usersError,
   } = useAppSelector((state) => state.users);
-  const { metrics, keywords, recommendKeywords } = useAppSelector(
-    (state) => state.metrics
-  );
+  const { metrics, keywords, recommendKeywords, keywordHistory } =
+    useAppSelector((state) => state.metrics);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -55,6 +57,13 @@ export const useUserManagement = () => {
   const [confirmMessage, setConfirmMessage] = useState("");
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [historyData, setHistoryData] = useState<any[]>([]);
+
+  // State ใหม่สำหรับ Keyword History Modal
+  const [isKeywordHistoryModalOpen, setIsKeywordHistoryModalOpen] =
+    useState(false);
+  const [selectedKeyword, setSelectedKeyword] = useState<KeywordReport | null>(
+    null
+  );
 
   useEffect(() => {
     if (status === "idle") {
@@ -254,6 +263,30 @@ export const useUserManagement = () => {
     });
   };
 
+  const handleUpdateKeyword = async (
+    keywordId: string,
+    data: KeywordReportForm
+  ) => {
+    const promise = dispatch(updateKeyword({ keywordId, data })).unwrap();
+    showPromiseToast(promise, {
+      pending: "กำลังอัปเดตคีย์เวิร์ด...",
+      success: "อัปเดตคีย์เวิร์ดสำเร็จ!",
+      error: "อัปเดตคีย์เวิร์ดไม่สำเร็จ",
+    });
+  };
+
+  // Handlers สำหรับ Keyword History Modal
+  const handleOpenKeywordHistoryModal = (keyword: KeywordReport) => {
+    setSelectedKeyword(keyword);
+    dispatch(fetchKeywordHistory(keyword.id));
+    setIsKeywordHistoryModalOpen(true);
+  };
+
+  const handleCloseKeywordHistoryModal = () => {
+    setIsKeywordHistoryModalOpen(false);
+    setSelectedKeyword(null);
+  };
+
   const handleAddRecommendKeyword = async (keyword: KeywordRecommendForm) => {
     if (!selectedCustomer) return;
     const promise = dispatch(
@@ -320,6 +353,10 @@ export const useUserManagement = () => {
     confirmMessage,
     isHistoryModalOpen,
     historyData,
+    // Keyword History Modal exports
+    isKeywordHistoryModalOpen,
+    keywordHistory,
+    selectedKeyword,
     handleOpenModal,
     handleCloseModal,
     handleSave,
@@ -330,10 +367,13 @@ export const useUserManagement = () => {
     handleSaveMetrics,
     handleAddKeyword,
     handleDeleteKeyword,
+    handleUpdateKeyword,
     handleAddRecommendKeyword,
     handleDeleteRecommendKeyword,
     handleOpenHistoryModal,
     handleCloseHistoryModal,
+    handleOpenKeywordHistoryModal,
+    handleCloseKeywordHistoryModal,
     setConfirmOpen,
     confirmAction,
   };
