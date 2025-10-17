@@ -19,31 +19,8 @@ import {
   Divider,
 } from "@mui/material";
 import { Close, TrendingUp, Assessment } from "@mui/icons-material";
-
-interface OverallMetricsHistory {
-  id: string;
-  domainRating: number;
-  healthScore: number;
-  ageInYears: number;
-  spamScore: number;
-  organicTraffic: number;
-  organicKeywords: number;
-  backlinks: number;
-  refDomains: number;
-  dateRecorded: Date;
-  customerId: string;
-}
-
-interface KeywordReportHistory {
-  id: string;
-  keyword: string;
-  position: number | null;
-  traffic: number;
-  kd: string;
-  isTopReport: boolean;
-  dateRecorded: string;
-  reportId: string;
-}
+import { OverallMetricsHistory, KeywordReportHistory } from "@/types/history";
+import { TabPanel } from "@/components/shared/TabPanel";
 
 interface HistoryModalProps {
   open: boolean;
@@ -52,26 +29,6 @@ interface HistoryModalProps {
   keywordHistory?: KeywordReportHistory[];
   customerName: string;
 }
-
-// Component สำหรับแสดง Tab Panel
-const TabPanel = (props: {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}) => {
-  const { children, value, index, ...other } = props;
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`history-tabpanel-${index}`}
-      aria-labelledby={`history-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ mt: 2 }}>{children}</Box>}
-    </div>
-  );
-};
 
 export const HistoryModal: React.FC<HistoryModalProps> = ({
   open,
@@ -148,7 +105,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
         </Box>
 
         {/* Overall Metrics History Tab */}
-        <TabPanel value={tabIndex} index={0}>
+        <TabPanel value={tabIndex} index={0} prefix="history-tabpanel">
           <TableContainer>
             <Table stickyHeader>
               <TableHead>
@@ -202,7 +159,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
         </TabPanel>
 
         {/* Keywords History Tab */}
-        <TabPanel value={tabIndex} index={1}>
+        <TabPanel value={tabIndex} index={1} prefix="history-tabpanel">
           {Object.keys(groupedKeywordHistory).length > 0 ? (
             Object.entries(groupedKeywordHistory).map(([keyword, records]) => (
               <Box key={keyword} sx={{ mb: 3 }}>

@@ -9,6 +9,7 @@ import {
   KeywordReportForm,
   KeywordRecommendForm,
 } from "@/types/metrics";
+import { KeywordReportHistory } from "@/types/history";
 
 // --- 1. Interfaces ---
 // Interface สำหรับข้อมูล Report
@@ -18,17 +19,6 @@ interface ReportData {
   otherKeywords: KeywordReport[];
   customerName: string | null;
   domain: string | null;
-}
-
-// Interface สำหรับ Keyword History
-export interface KeywordReportHistory {
-  id: string;
-  keyword: string;
-  position: number | null;
-  traffic: number;
-  kd: string;
-  isTopReport: boolean;
-  dateRecorded: string;
 }
 
 interface MetricsState {

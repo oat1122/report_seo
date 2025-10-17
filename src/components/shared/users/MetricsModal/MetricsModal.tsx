@@ -34,7 +34,8 @@ import { KeywordReportSection } from "./KeywordReportSection";
 import { RecommendKeywordSection } from "./RecommendKeywordSection";
 import { useMetricsModal } from "./hook/useMetricsModal";
 import { HistoryModal } from "./HistoryModal";
-import { KeywordHistoryModal } from "./KeywordHistoryModal"; // Import modal ใหม่
+import { KeywordHistoryModal } from "./KeywordHistoryModal";
+import { TabPanel } from "@/components/shared/TabPanel";
 
 interface MetricsModalProps {
   open: boolean;
@@ -67,26 +68,6 @@ interface MetricsModalProps {
   keywordHistoryData: any[];
   selectedKeyword: KeywordReport | null;
 }
-
-// Component สำหรับแสดง Tab Panel
-const TabPanel = (props: {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}) => {
-  const { children, value, index, ...other } = props;
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-    </div>
-  );
-};
 
 export const MetricsModal: React.FC<MetricsModalProps> = ({
   open,
@@ -272,7 +253,7 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
               </Tabs>
             </Box>
 
-            <TabPanel value={tabIndex} index={0}>
+            <TabPanel value={tabIndex} index={0} prefix="simple-tabpanel">
               <KeywordReportSection
                 newKeyword={newKeyword}
                 keywordsData={keywordsData}
@@ -286,7 +267,7 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
                 onViewHistory={onOpenKeywordHistory}
               />
             </TabPanel>
-            <TabPanel value={tabIndex} index={1}>
+            <TabPanel value={tabIndex} index={1} prefix="simple-tabpanel">
               <RecommendKeywordSection
                 newRecommend={newRecommend}
                 recommendKeywordsData={recommendKeywordsData}

@@ -1,5 +1,5 @@
 // src/components/Customer/Report/OverallMetricsCard.tsx
-import React, { useState } from "react";
+import React from "react";
 import {
   Paper,
   Grid,
@@ -23,8 +23,7 @@ import {
   History,
 } from "@mui/icons-material";
 import { HistoryModal } from "@/components/shared/users/MetricsModal/HistoryModal";
-import axios from "@/lib/axios";
-import { showPromiseToast } from "@/components/shared/toast/lib/toastify";
+import { useOverallMetricsCard } from "./hooks/useOverallMetricsCard";
 
 // Helper component for each metric item
 const MetricItem = ({
@@ -60,36 +59,13 @@ export const OverallMetricsCard: React.FC<OverallMetricsCardProps> = ({
   customerId,
   customerName,
 }) => {
-  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
-  const [historyData, setHistoryData] = useState<{
-    metricsHistory: any[];
-    keywordHistory: any[];
-  }>({
-    metricsHistory: [],
-    keywordHistory: [],
-  });
-
-  const handleOpenHistoryModal = async () => {
-    try {
-      const response = await axios.get(
-        `/customers/${customerId}/metrics/history`
-      );
-      setHistoryData(response.data);
-      setIsHistoryModalOpen(true);
-    } catch (err) {
-      console.error("Failed to fetch metrics history", err);
-      showPromiseToast(Promise.reject(err), {
-        pending: "",
-        success: "",
-        error: "ไม่สามารถโหลดข้อมูลประวัติได้",
-      });
-    }
-  };
-
-  const handleCloseHistoryModal = () => {
-    setIsHistoryModalOpen(false);
-    setHistoryData({ metricsHistory: [], keywordHistory: [] });
-  };
+  // ใช้ Custom Hook สำหรับจัดการ State และ Logic
+  const {
+    isHistoryModalOpen,
+    historyData,
+    handleOpenHistoryModal,
+    handleCloseHistoryModal,
+  } = useOverallMetricsCard(customerId);
 
   if (!metrics) {
     return (

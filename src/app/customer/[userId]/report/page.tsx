@@ -2,19 +2,18 @@
 "use client";
 
 import React from "react";
+import { useParams } from "next/navigation";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { ReportPage } from "@/components/Customer/Report";
 
-interface PageProps {
-  params: { userId: string };
-}
-
-export default function AdminViewCustomerReportPage({ params }: PageProps) {
-  const { userId } = params;
+export default function AdminViewCustomerReportPage() {
+  // ใช้ useParams hook เพื่อดึงค่าจาก URL (แก้ไข Warning จาก Next.js)
+  const params = useParams();
+  const userId = params.userId as string;
 
   return (
     <DashboardLayout>
-      <ReportPage customerId={userId} />
+      {userId && <ReportPage customerId={userId} />}
     </DashboardLayout>
   );
 }

@@ -12,20 +12,7 @@ import {
   Chip,
 } from "@mui/material";
 import { KeywordReport } from "@/types/metrics";
-import { KDLevel } from "@prisma/client";
-
-const getKdColor = (kd: KDLevel) => {
-  switch (kd) {
-    case KDLevel.HARD:
-      return "error";
-    case KDLevel.MEDIUM:
-      return "warning";
-    case KDLevel.EASY:
-      return "success";
-    default:
-      return "default";
-  }
-};
+import { getKdColor } from "./lib/utils";
 
 interface KeywordReportTableProps {
   keywords: KeywordReport[];

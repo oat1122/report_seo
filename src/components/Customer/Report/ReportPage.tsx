@@ -1,9 +1,7 @@
 // src/components/Customer/Report/ReportPage.tsx
 "use client";
 
-import React, { useEffect } from "react";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { fetchReportData } from "@/store/features/metrics/metricsSlice";
+import React from "react";
 import {
   Container,
   Typography,
@@ -13,22 +11,15 @@ import {
 } from "@mui/material";
 import { OverallMetricsCard } from "./OverallMetricsCard";
 import { KeywordReportTable } from "./KeywordReportTable";
+import { useReportPage } from "./hooks/useReportPage";
 
 interface ReportPageProps {
   customerId: string;
 }
 
 const ReportPage: React.FC<ReportPageProps> = ({ customerId }) => {
-  const dispatch = useAppDispatch();
-  const { reportData, reportStatus, error } = useAppSelector(
-    (state) => state.metrics
-  );
-
-  useEffect(() => {
-    if (customerId) {
-      dispatch(fetchReportData(customerId));
-    }
-  }, [customerId, dispatch]);
+  // ใช้ Custom Hook สำหรับจัดการ Data Fetching และ State
+  const { reportData, reportStatus, error } = useReportPage(customerId);
 
   if (reportStatus === "loading" || reportStatus === "idle") {
     return (
