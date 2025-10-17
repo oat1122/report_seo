@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import { OverallMetricsCard } from "./OverallMetricsCard";
 import { KeywordReportTable } from "./KeywordReportTable";
+import { RecommendKeywordTable } from "./RecommendKeywordTable"; // Import component ใหม่
 import { useReportPage } from "./hooks/useReportPage";
 
 interface ReportPageProps {
@@ -63,6 +64,11 @@ const ReportPage: React.FC<ReportPageProps> = ({ customerId }) => {
         <KeywordReportTable
           title="Top Keywords Report"
           keywords={reportData?.topKeywords || []}
+        />
+        {/* เพิ่มตาราง Keyword ที่แนะนำที่นี่ */}
+        <RecommendKeywordTable
+          title="Recommended Keywords"
+          keywords={reportData?.recommendations || []}
         />
         <KeywordReportTable
           title="Other Keywords"

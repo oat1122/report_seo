@@ -17,6 +17,7 @@ interface ReportData {
   metrics: OverallMetrics | null;
   topKeywords: KeywordReport[];
   otherKeywords: KeywordReport[];
+  recommendations: KeywordRecommend[]; // เพิ่ม field นี้
   customerName: string | null;
   domain: string | null;
 }

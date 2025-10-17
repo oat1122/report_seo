@@ -6,16 +6,11 @@ import {
   Typography,
   Box,
   CircularProgress,
-  LinearProgress,
   IconButton,
   Tooltip,
 } from "@mui/material";
 import { OverallMetrics } from "@/types/metrics";
 import {
-  StarBorder,
-  HealthAndSafety,
-  AccessTime,
-  ReportProblem,
   Traffic,
   VpnKey,
   Link as LinkIcon,
@@ -24,8 +19,11 @@ import {
 } from "@mui/icons-material";
 import { HistoryModal } from "@/components/shared/users/MetricsModal/HistoryModal";
 import { useOverallMetricsCard } from "./hooks/useOverallMetricsCard";
+import { getRatingColor, getAgeColor, getSpamColor } from "./lib/utils";
 
-// Helper component for each metric item
+// --- Helper Components ---
+
+// 1. MetricItem สำหรับตัวเลขธรรมดา
 const MetricItem = ({
   icon,
   label,
@@ -37,7 +35,10 @@ const MetricItem = ({
   value: string | number;
   color?: string;
 }) => (
-  <Paper variant="outlined" sx={{ p: 2, textAlign: "center", borderRadius: 3 }}>
+  <Paper
+    variant="outlined"
+    sx={{ p: 2, textAlign: "center", borderRadius: 3, height: "100%" }}
+  >
     <Box sx={{ color: color || "text.secondary", mb: 1 }}>{icon}</Box>
     <Typography variant="h6" fontWeight={700}>
       {value}
@@ -47,6 +48,105 @@ const MetricItem = ({
     </Typography>
   </Paper>
 );
+
+// 2. Gauge Chart Component ใหม่ (ใช้แทน CircularProgress แบบเดิม)
+const GaugeChart = ({ label, value }: { label: string; value: number }) => {
+  const color = getRatingColor(value);
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        height: "100%",
+        p: 2,
+        flexDirection: "column",
+        justifyContent: "center",
+      }}
+    >
+      <Box sx={{ position: "relative", display: "inline-flex", mb: 1 }}>
+        <CircularProgress
+          variant="determinate"
+          value={value}
+          size={80}
+          thickness={6}
+          style={{ color }}
+        />
+        <Box
+          sx={{
+            top: 0,
+            left: 0,
+            bottom: 0,
+            right: 0,
+            position: "absolute",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Typography variant="h5" component="div" fontWeight={700}>
+            {value}
+          </Typography>
+        </Box>
+      </Box>
+      <Typography variant="h6">{label}</Typography>
+    </Box>
+  );
+};
+
+// 3. Custom Linear Progress (ใช้แทน LinearProgress)
+const CustomLinearProgress = ({
+  label,
+  value,
+  colorFunc,
+  unit = "",
+}: {
+  label: string;
+  value: number;
+  colorFunc: (val: number) => string;
+  unit?: string;
+}) => {
+  const color = colorFunc(value);
+  return (
+    <Box
+      sx={{
+        p: 2,
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+      }}
+    >
+      <Typography variant="h6">{label}</Typography>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 2, mt: 1 }}>
+        <Box sx={{ width: "100%", mr: 1 }}>
+          <Box
+            sx={{
+              height: 10,
+              borderRadius: 5,
+              bgcolor: "action.disabledBackground",
+            }}
+          >
+            <Box
+              sx={{
+                width: `${Math.min(value, 100)}%`,
+                height: 10,
+                borderRadius: 5,
+                bgcolor: color,
+                transition: "width 0.5s ease-in-out",
+              }}
+            />
+          </Box>
+        </Box>
+        <Typography variant="body1" fontWeight={600}>
+          {value}
+          {unit}
+        </Typography>
+      </Box>
+    </Box>
+  );
+};
+
+// --- Main Component ---
 
 interface OverallMetricsCardProps {
   metrics: OverallMetrics | null;
@@ -107,105 +207,31 @@ export const OverallMetricsCard: React.FC<OverallMetricsCardProps> = ({
         </Box>
 
         <Grid container spacing={2}>
-          {/* Main metrics with visuals */}
+          {/* Main metrics with new charts */}
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                height: "100%",
-                p: 2,
-              }}
-            >
-              <Box sx={{ position: "relative", display: "inline-flex", mr: 2 }}>
-                <CircularProgress
-                  variant="determinate"
-                  value={metrics.domainRating}
-                  size={60}
-                  color="info"
-                />
-                <Box
-                  sx={{
-                    top: 0,
-                    left: 0,
-                    bottom: 0,
-                    right: 0,
-                    position: "absolute",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Typography variant="h6" component="div" color="text.primary">
-                    {metrics.domainRating}
-                  </Typography>
-                </Box>
-              </Box>
-              <Typography variant="h6">Domain Rating</Typography>
-            </Box>
+            <GaugeChart label="Domain Rating" value={metrics.domainRating} />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                height: "100%",
-                p: 2,
-              }}
-            >
-              <Box sx={{ position: "relative", display: "inline-flex", mr: 2 }}>
-                <CircularProgress
-                  variant="determinate"
-                  value={metrics.healthScore}
-                  size={60}
-                  color="secondary"
-                />
-                <Box
-                  sx={{
-                    top: 0,
-                    left: 0,
-                    bottom: 0,
-                    right: 0,
-                    position: "absolute",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Typography variant="h6" component="div" color="text.primary">
-                    {metrics.healthScore}
-                  </Typography>
-                </Box>
-              </Box>
-              <Typography variant="h6">Health Score</Typography>
-            </Box>
+            <GaugeChart label="Health Score" value={metrics.healthScore} />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <Box sx={{ p: 2, height: "100%" }}>
-              <Typography variant="h6">Age</Typography>
-              <LinearProgress
-                variant="determinate"
-                value={(metrics.ageInYears / 10) * 100} // Assuming max age of 10 for visual
-                sx={{ my: 1 }}
-                color="secondary"
-              />
-              <Typography variant="body1">{metrics.ageInYears} Y</Typography>
-            </Box>
+            <CustomLinearProgress
+              label="Age"
+              value={metrics.ageInYears}
+              colorFunc={getAgeColor}
+              unit=" Y"
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <Box sx={{ p: 2, height: "100%" }}>
-              <Typography variant="h6">Spam Score</Typography>
-              <LinearProgress
-                variant="determinate"
-                value={metrics.spamScore}
-                color="error"
-                sx={{ my: 1 }}
-              />
-              <Typography variant="body1">{metrics.spamScore}%</Typography>
-            </Box>
+            <CustomLinearProgress
+              label="Spam Score"
+              value={metrics.spamScore}
+              colorFunc={getSpamColor}
+              unit="%"
+            />
           </Grid>
 
-          {/* Other metrics */}
+          {/* Other metrics (ใช้ MetricItem เดิม) */}
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <MetricItem
               icon={<Traffic />}
