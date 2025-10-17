@@ -62,7 +62,11 @@ const ReportPage: React.FC<ReportPageProps> = ({ customerId }) => {
         {domain}
       </Typography>
 
-      <OverallMetricsCard metrics={reportData?.metrics || null} />
+      <OverallMetricsCard
+        metrics={reportData?.metrics || null}
+        customerId={customerId}
+        customerName={customerName}
+      />
 
       <Box sx={{ display: "flex", flexDirection: "column", gap: 4, mt: 4 }}>
         <KeywordReportTable

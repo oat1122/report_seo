@@ -56,7 +56,13 @@ export const useUserManagement = () => {
   const [confirmTitle, setConfirmTitle] = useState("");
   const [confirmMessage, setConfirmMessage] = useState("");
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
-  const [historyData, setHistoryData] = useState<any[]>([]);
+  const [historyData, setHistoryData] = useState<{
+    metricsHistory: any[];
+    keywordHistory: any[];
+  }>({
+    metricsHistory: [],
+    keywordHistory: [],
+  });
 
   // State ใหม่สำหรับ Keyword History Modal
   const [isKeywordHistoryModalOpen, setIsKeywordHistoryModalOpen] =
@@ -330,7 +336,7 @@ export const useUserManagement = () => {
 
   const handleCloseHistoryModal = () => {
     setIsHistoryModalOpen(false);
-    setHistoryData([]);
+    setHistoryData({ metricsHistory: [], keywordHistory: [] });
   };
 
   return {

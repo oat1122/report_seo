@@ -20,15 +20,38 @@ export async function GET(
       );
     }
 
-    // ดึงข้อมูลประวัติทั้งหมดเรียงจากใหม่ไปเก่า
-    const history = await prisma.overallMetricsHistory.findMany({
+    // ดึงข้อมูลประวัติ Overall Metrics เรียงจากใหม่ไปเก่า
+    const metricsHistory = await prisma.overallMetricsHistory.findMany({
       where: { customerId: customer.id },
       orderBy: {
         dateRecorded: "desc",
       },
     });
 
-    return NextResponse.json(history);
+    // ดึงข้อมูล Keywords ปัจจุบันของ Customer
+    const keywords = await prisma.keywordReport.findMany({
+      where: { customerId: customer.id },
+      select: { id: true },
+    });
+
+    const keywordIds = keywords.map((kw) => kw.id);
+
+    // ดึงประวัติของ Keywords ทั้งหมด
+    const keywordHistory = await prisma.keywordReportHistory.findMany({
+      where: {
+        reportId: {
+          in: keywordIds,
+        },
+      },
+      orderBy: {
+        dateRecorded: "desc",
+      },
+    });
+
+    return NextResponse.json({
+      metricsHistory,
+      keywordHistory,
+    });
   } catch (error) {
     console.error("Failed to fetch metrics history:", error);
     return NextResponse.json(

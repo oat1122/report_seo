@@ -56,7 +56,10 @@ interface MetricsModalProps {
   onOpenHistory: () => void;
   isHistoryOpen: boolean;
   onCloseHistory: () => void;
-  historyData: any[];
+  historyData: {
+    metricsHistory: any[];
+    keywordHistory: any[];
+  };
   // Props ใหม่สำหรับ Keyword History
   isKeywordHistoryOpen: boolean;
   onOpenKeywordHistory: (keyword: KeywordReport) => void;
@@ -301,7 +304,8 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
       <HistoryModal
         open={isHistoryOpen}
         onClose={onCloseHistory}
-        history={historyData}
+        history={historyData.metricsHistory}
+        keywordHistory={historyData.keywordHistory}
         customerName={customer.name || ""}
       />
 
