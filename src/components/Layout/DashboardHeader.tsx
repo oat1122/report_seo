@@ -103,14 +103,16 @@ export const DashboardHeader: React.FC = () => {
       }}
     >
       <Container maxWidth="xl">
-        <Toolbar sx={{ justifyContent: "space-between", py: 1 }}>
+        <Toolbar
+          sx={{ justifyContent: "space-between", py: 0.5, minHeight: "48px" }}
+        >
           {/* Logo - เปลี่ยน path ที่นี่ */}
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Image
               src="/img/LOGO SEO PRIME4_0.png"
               alt="SEO Prime Logo"
-              width={120}
-              height={32}
+              width={70}
+              height={24}
               priority
             />
           </Box>
@@ -118,35 +120,38 @@ export const DashboardHeader: React.FC = () => {
           <Box sx={{ flexGrow: 1 }} />
 
           {/* Right Icon Group */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
             <Tooltip title="ดูประวัติการเปลี่ยนแปลง">
               <IconButton
                 onClick={handleOpenHistoryModal}
                 disabled={session?.user?.role !== Role.CUSTOMER}
+                size="small"
                 sx={{
                   border: "1px solid #e0e0e0",
-                  width: 40,
-                  height: 40,
+                  width: 32,
+                  height: 32,
                 }}
               >
-                <AccessTime />
+                <AccessTime fontSize="small" />
               </IconButton>
             </Tooltip>
             <Button
               variant="contained"
               onClick={handleUserMenuClick}
+              size="small"
               sx={{
                 backgroundColor: "#f5f5f5",
                 color: "black",
                 boxShadow: "none",
                 "&:hover": { backgroundColor: "#e0e0e0" },
-                borderRadius: "20px",
-                padding: "6px 16px",
+                borderRadius: "16px",
+                padding: "4px 12px",
                 textTransform: "none",
-                minWidth: 150, // กำหนดความกว้างขั้นต่ำ
+                minWidth: 120,
+                fontSize: "0.875rem",
               }}
-              startIcon={<PersonOutline />}
-              endIcon={<ExpandMore />}
+              startIcon={<PersonOutline fontSize="small" />}
+              endIcon={<ExpandMore fontSize="small" />}
             >
               {/* ดึงข้อมูลจาก session โดยตรง */}
               {isLoading ? <Skeleton width="80%" /> : userName}
@@ -201,13 +206,16 @@ export const DashboardHeader: React.FC = () => {
           sx={{
             display: "flex",
             alignItems: "center",
-            py: 0.5,
+            py: 0.25,
             px: 2,
             borderTop: "1px solid #e0e0e0",
           }}
         >
-          <Language sx={{ fontSize: 18, mr: 1, color: "text.secondary" }} />
-          <Typography variant="body2" sx={{ color: "text.secondary" }}>
+          <Language sx={{ fontSize: 16, mr: 0.75, color: "text.secondary" }} />
+          <Typography
+            variant="caption"
+            sx={{ color: "text.secondary", fontSize: "0.75rem" }}
+          >
             {isLoading ? (
               <Skeleton width="150px" />
             ) : userRole === "CUSTOMER" ? (

@@ -1,6 +1,21 @@
 import { requireCustomer } from "@/lib/auth-utils";
 import { CustomerOnly } from "@/components/Login/subcomponents/RoleGuard";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
+import {
+  Box,
+  Typography,
+  Paper,
+  Container,
+  Card,
+  CardContent,
+} from "@mui/material";
+import Link from "next/link";
+import AssessmentIcon from "@mui/icons-material/Assessment";
+import SupportAgentIcon from "@mui/icons-material/SupportAgent";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import WavingHandIcon from "@mui/icons-material/WavingHand";
+import LockIcon from "@mui/icons-material/Lock";
+import PromotionSection from "./PromotionSection";
 
 export default async function CustomerDashboard() {
   // Server-side protection
@@ -8,73 +23,339 @@ export default async function CustomerDashboard() {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto">
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h1 className="text-3xl font-bold text-text-dark mb-4">
-            Customer Dashboard
-          </h1>
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        {/* Welcome Section - Gradient Hero */}
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 3, md: 5 },
+            borderRadius: 4,
+            mb: 5,
+            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            color: "white",
+            position: "relative",
+            overflow: "hidden",
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              top: -50,
+              right: -50,
+              width: "300px",
+              height: "300px",
+              background: "rgba(255, 255, 255, 0.1)",
+              borderRadius: "50%",
+            },
+            "&::after": {
+              content: '""',
+              position: "absolute",
+              bottom: -100,
+              left: -100,
+              width: "400px",
+              height: "400px",
+              background: "rgba(255, 255, 255, 0.05)",
+              borderRadius: "50%",
+            },
+          }}
+        >
+          <Box sx={{ position: "relative", zIndex: 1 }}>
+            <Box sx={{ display: "flex", alignItems: "center", mb: 2, gap: 2 }}>
+              <Typography
+                variant="h3"
+                component="h1"
+                sx={{ fontWeight: 800, fontSize: { xs: "2rem", md: "3rem" } }}
+              >
+                ยินดีต้อนรับ!
+              </Typography>
+              <WavingHandIcon
+                sx={{ fontSize: { xs: "2rem", md: "3rem" }, color: "#FFD700" }}
+              />
+            </Box>
+            <Typography
+              variant="h5"
+              sx={{ opacity: 0.95, fontWeight: 600, mb: 1 }}
+            >
+              {session.user.name}
+            </Typography>
+            <Typography
+              variant="body1"
+              sx={{ opacity: 0.9, fontSize: "1.1rem", maxWidth: "800px" }}
+            >
+              นี่คือแดชบอร์ดของคุณ คุณสามารถดูรายงาน SEO,
+              ติดตามประสิทธิภาพเว็บไซต์ และรับโปรโมชันพิเศษได้ที่นี่
+            </Typography>
+          </Box>
+        </Paper>
 
-          <div className="bg-primary-purple/10 border border-primary-purple/20 rounded-lg p-4 mb-6">
-            <p className="text-primary-purple">
-              ยินดีต้อนรับ,{" "}
-              <span className="font-semibold">{session.user.name}</span>!
-            </p>
-            <p className="text-primary-purple/80 text-sm">
-              บทบาท: {session.user.role} | อีเมล: {session.user.email}
-            </p>
-          </div>
+        {/* Promotion Section - Highlighted */}
+        <PromotionSection />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-blue-800 mb-2">
-                รายงาน SEO ของคุณ
-              </h3>
-              <p className="text-blue-600 text-sm">
-                ดูรายงาน Keyword และ Domain Rating ล่าสุด
-              </p>
-            </div>
+        {/* Quick Actions Section */}
+        <Box sx={{ my: 6 }}>
+          <Box sx={{ mb: 4 }}>
+            <Typography
+              variant="h4"
+              component="h2"
+              sx={{
+                fontWeight: 800,
+                mb: 1,
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+              }}
+            >
+              <TrendingUpIcon sx={{ fontSize: "2.5rem", color: "#667eea" }} />
+              เมนูด่วน
+            </Typography>
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              sx={{ fontSize: "1.1rem" }}
+            >
+              เข้าถึงฟีเจอร์สำคัญได้อย่างรวดเร็ว
+            </Typography>
+          </Box>
 
-            <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-green-800 mb-2">
-                อัปโหลดหลักฐานการชำระเงิน
-              </h3>
-              <p className="text-green-600 text-sm">
-                อัปโหลดสลิปการโอนเงินเพื่อการอนุมัติ
-              </p>
-            </div>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)" },
+              gap: 3,
+            }}
+          >
+            {/* SEO Report Card */}
+            <Link
+              href="/customer/report"
+              passHref
+              style={{ textDecoration: "none" }}
+            >
+              <Card
+                elevation={0}
+                sx={{
+                  p: 4,
+                  borderRadius: 4,
+                  border: "2px solid #E2E8F0",
+                  height: "100%",
+                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                  position: "relative",
+                  overflow: "hidden",
+                  cursor: "pointer",
+                  "&:hover": {
+                    boxShadow: "0 12px 32px rgba(102, 126, 234, 0.25)",
+                    borderColor: "#667eea",
+                    transform: "translateY(-6px)",
+                  },
+                  "&::before": {
+                    content: '""',
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "5px",
+                    height: "100%",
+                    background:
+                      "linear-gradient(180deg, #667eea 0%, #764ba2 100%)",
+                    transform: "scaleY(0)",
+                    transition: "transform 0.3s ease",
+                  },
+                  "&:hover::before": {
+                    transform: "scaleY(1)",
+                  },
+                }}
+              >
+                <CardContent sx={{ p: 0 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+                    <Box
+                      sx={{
+                        width: 64,
+                        height: 64,
+                        borderRadius: 3,
+                        background:
+                          "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        mr: 3,
+                        boxShadow: "0 8px 16px rgba(102, 126, 234, 0.3)",
+                      }}
+                    >
+                      <AssessmentIcon sx={{ color: "white", fontSize: 36 }} />
+                    </Box>
+                    <Box>
+                      <Typography
+                        variant="h5"
+                        component="h3"
+                        sx={{ fontWeight: 700, color: "#1a202c", mb: 0.5 }}
+                      >
+                        รายงาน SEO
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: "#667eea",
+                          fontWeight: 600,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.5px",
+                        }}
+                      >
+                        ดูเลย →
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Typography
+                    variant="body1"
+                    color="text.secondary"
+                    sx={{ fontSize: "1rem", lineHeight: 1.7 }}
+                  >
+                    ติดตามประสิทธิภาพของคุณด้วยรายงาน Keyword, Domain Rating
+                    และข้อมูลเชิงลึกที่ช่วยพัฒนาเว็บไซต์
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Link>
 
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-purple-800 mb-2">
-                ติดต่อเจ้าหน้าที่ SEO
-              </h3>
-              <p className="text-purple-600 text-sm">
-                สอบถามหรือขอคำปรึกษาเกี่ยวกับ SEO
-              </p>
-            </div>
+            {/* Contact Support Card */}
+            <Card
+              elevation={0}
+              sx={{
+                p: 4,
+                borderRadius: 4,
+                border: "2px solid #E2E8F0",
+                height: "100%",
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                position: "relative",
+                overflow: "hidden",
+                cursor: "pointer",
+                "&:hover": {
+                  boxShadow: "0 12px 32px rgba(245, 87, 108, 0.25)",
+                  borderColor: "#f5576c",
+                  transform: "translateY(-6px)",
+                },
+                "&::before": {
+                  content: '""',
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "5px",
+                  height: "100%",
+                  background:
+                    "linear-gradient(180deg, #f093fb 0%, #f5576c 100%)",
+                  transform: "scaleY(0)",
+                  transition: "transform 0.3s ease",
+                },
+                "&:hover::before": {
+                  transform: "scaleY(1)",
+                },
+              }}
+            >
+              <CardContent sx={{ p: 0 }}>
+                <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+                  <Box
+                    sx={{
+                      width: 64,
+                      height: 64,
+                      borderRadius: 3,
+                      background:
+                        "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      mr: 3,
+                      boxShadow: "0 8px 16px rgba(245, 87, 108, 0.3)",
+                    }}
+                  >
+                    <SupportAgentIcon sx={{ color: "white", fontSize: 36 }} />
+                  </Box>
+                  <Box>
+                    <Typography
+                      variant="h5"
+                      component="h3"
+                      sx={{ fontWeight: 700, color: "#1a202c", mb: 0.5 }}
+                    >
+                      ติดต่อเจ้าหน้าที่
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: "#f5576c",
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                      }}
+                    >
+                      พร้อมช่วยเหลือ 24/7
+                    </Typography>
+                  </Box>
+                </Box>
+                <Typography
+                  variant="body1"
+                  color="text.secondary"
+                  sx={{ fontSize: "1rem", lineHeight: 1.7 }}
+                >
+                  สอบถามหรือขอคำปรึกษาเกี่ยวกับ SEO จากทีมผู้เชี่ยวชาญของเรา
+                  พร้อมให้บริการตลอด 24 ชั่วโมง
+                </Typography>
+              </CardContent>
+            </Card>
+          </Box>
+        </Box>
 
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-yellow-800 mb-2">
-                ประวัติการใช้งาน
-              </h3>
-              <p className="text-yellow-600 text-sm">
-                ดูประวัติรายงานและการชำระเงิน
-              </p>
-            </div>
-          </div>
-
-          {/* Client-side protection example */}
-          <CustomerOnly>
-            <div className="mt-8 bg-secondary-green/10 border border-secondary-green/20 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-secondary-green mb-2">
-                ข้อมูลเฉพาะลูกค้า
-              </h3>
-              <p className="text-secondary-green/80">
-                เนื้อหาส่วนตัวที่เฉพาะลูกค้าเท่านั้นที่เห็นได้
-              </p>
-            </div>
-          </CustomerOnly>
-        </div>
-      </div>
+        {/* Client-side protection example */}
+        <CustomerOnly>
+          <Box mt={5}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 4,
+                borderRadius: 4,
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                color: "white",
+                position: "relative",
+                overflow: "hidden",
+                "&::before": {
+                  content: '""',
+                  position: "absolute",
+                  bottom: -50,
+                  right: -50,
+                  width: "250px",
+                  height: "250px",
+                  background: "rgba(255, 255, 255, 0.1)",
+                  borderRadius: "50%",
+                },
+                "&::after": {
+                  content: '""',
+                  position: "absolute",
+                  top: -30,
+                  left: -30,
+                  width: "150px",
+                  height: "150px",
+                  background: "rgba(255, 255, 255, 0.05)",
+                  borderRadius: "50%",
+                },
+              }}
+            >
+              <Box sx={{ position: "relative", zIndex: 1 }}>
+                <Typography
+                  variant="h5"
+                  component="h3"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 2,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                  }}
+                >
+                  <LockIcon sx={{ fontSize: "1.75rem" }} />
+                  ข้อมูลเฉพาะลูกค้า
+                </Typography>
+                <Typography sx={{ opacity: 0.95, fontSize: "1.1rem" }}>
+                  เนื้อหาส่วนตัวที่เฉพาะลูกค้าเท่านั้นที่เห็นได้
+                  คุณสามารถเข้าถึงฟีเจอร์พิเศษและข้อมูลส่วนตัวของคุณได้ที่นี่
+                </Typography>
+              </Box>
+            </Paper>
+          </Box>
+        </CustomerOnly>
+      </Container>
     </DashboardLayout>
   );
 }
