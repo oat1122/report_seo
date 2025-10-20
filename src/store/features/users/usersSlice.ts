@@ -2,6 +2,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axios from "@/lib/axios"; // ใช้ axios instance ที่เราสร้าง
 import { User, UserFormState } from "@/types/user";
+import { AxiosErrorResponse } from "@/types/common";
 
 // 1. กำหนด Interface ของ State
 interface UsersState {
@@ -42,7 +43,8 @@ export const addUser = createAsyncThunk(
     try {
       const response = await axios.post<User>("/users", newUser);
       return response.data;
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as AxiosErrorResponse;
       // จัดการ error จาก API
       if (error.response?.data?.error) {
         return rejectWithValue(error.response.data.error);
@@ -62,7 +64,8 @@ export const updateUser = createAsyncThunk(
         updatedUser
       );
       return response.data;
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as AxiosErrorResponse;
       if (error.response?.data?.error) {
         return rejectWithValue(error.response.data.error);
       }
@@ -79,7 +82,8 @@ export const deleteUser = createAsyncThunk(
       await axios.delete(`/users/${userId}`);
       // ส่งกลับ userId และวันที่ลบ
       return { userId, deletedAt: new Date().toISOString() };
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as AxiosErrorResponse;
       if (error.response?.data?.error) {
         return rejectWithValue(error.response.data.error);
       }
@@ -95,7 +99,8 @@ export const restoreUser = createAsyncThunk(
     try {
       await axios.put(`/users/${userId}/restore`);
       return userId;
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as AxiosErrorResponse;
       if (error.response?.data?.error) {
         return rejectWithValue(error.response.data.error);
       }
@@ -114,7 +119,8 @@ export const updatePassword = createAsyncThunk(
     try {
       await axios.put(`/users/${userId}/password`, values);
       return userId;
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as AxiosErrorResponse;
       if (error.response?.data?.error) {
         return rejectWithValue(error.response.data.error);
       }
@@ -206,7 +212,7 @@ const usersSlice = createSlice({
         state.error = (action.payload as string) || "Failed to restore user";
       })
       // Cases for updatePassword
-      .addCase(updatePassword.fulfilled, (state, action) => {
+      .addCase(updatePassword.fulfilled, (state) => {
         // You can optionally do something on success, e.g., clear errors
         state.error = null;
       })

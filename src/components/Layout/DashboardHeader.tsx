@@ -26,9 +26,15 @@ import {
   ExpandMore,
 } from "@mui/icons-material";
 import { HistoryModal } from "@/components/shared/users/MetricsModal/HistoryModal";
-import { Role } from "@/types/auth";
+import { Role, OverallMetricsHistory, KeywordReportHistory } from "@/types";
 import axios from "@/lib/axios";
 import { showPromiseToast } from "@/components/shared/toast/lib/toastify";
+
+// Define a type for the combined history data
+interface CombinedHistoryData {
+  metricsHistory: OverallMetricsHistory[];
+  keywordHistory: KeywordReportHistory[];
+}
 
 export const DashboardHeader: React.FC = () => {
   const { data: session, status } = useSession(); // เพิ่ม status เพื่อเช็ค loading
@@ -37,7 +43,10 @@ export const DashboardHeader: React.FC = () => {
 
   // State สำหรับ History Modal
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
-  const [historyData, setHistoryData] = useState<any[]>([]);
+  const [historyData, setHistoryData] = useState<CombinedHistoryData>({
+    metricsHistory: [],
+    keywordHistory: [],
+  });
 
   // เปิด/ปิด เมนู user
   const handleUserMenuClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -70,7 +79,9 @@ export const DashboardHeader: React.FC = () => {
 
     try {
       const userId = session.user.id;
-      const response = await axios.get(`/customers/${userId}/metrics/history`);
+      const response = await axios.get<CombinedHistoryData>(
+        `/customers/${userId}/metrics/history`
+      );
       setHistoryData(response.data);
       setIsHistoryModalOpen(true);
     } catch (err) {
@@ -85,7 +96,7 @@ export const DashboardHeader: React.FC = () => {
 
   const handleCloseHistoryModal = () => {
     setIsHistoryModalOpen(false);
-    setHistoryData([]);
+    setHistoryData({ metricsHistory: [], keywordHistory: [] });
   };
 
   // ดึงข้อมูลจาก session โดยตรง
@@ -231,7 +242,8 @@ export const DashboardHeader: React.FC = () => {
       <HistoryModal
         open={isHistoryModalOpen}
         onClose={handleCloseHistoryModal}
-        history={historyData}
+        history={historyData.metricsHistory}
+        keywordHistory={historyData.keywordHistory}
         customerName={userName}
       />
     </AppBar>

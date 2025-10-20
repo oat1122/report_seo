@@ -9,6 +9,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const includeDeleted = searchParams.get("includeDeleted") === "true";
 
+    // Note: includeDeleted is a custom property handled by Prisma extension
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const users = await (prisma as any).user.findMany({
       includeDeleted: includeDeleted,
       orderBy: {
@@ -119,13 +121,18 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     console.error("Failed to create user:", error);
+
+    // Type error safely for Prisma unique constraint violation
     if (
       error &&
       typeof error === "object" &&
       "code" in error &&
-      error.code === "P2002"
+      error.code === "P2002" &&
+      "meta" in error &&
+      typeof (error as { meta?: { target?: string[] } }).meta?.target
+        ?.includes === "function"
     ) {
-      const meta = (error as any).meta;
+      const meta = (error as { meta: { target: string[] } }).meta;
       if (meta?.target?.includes("email")) {
         return NextResponse.json(
           { error: "Email already exists." },

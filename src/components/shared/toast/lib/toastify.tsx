@@ -19,9 +19,9 @@ interface PromiseToastMessages {
  * @returns The toast ID.
  */
 export const showPromiseToast = (
-  promise: Promise<any>,
+  promise: Promise<unknown>,
   messages: PromiseToastMessages
-): Promise<any> => {
+): Promise<unknown> => {
   return toast.promise(promise, {
     pending: {
       render: () => <PendingToast message={messages.pending} />,
@@ -32,7 +32,7 @@ export const showPromiseToast = (
       icon: false,
     },
     error: {
-      render: ({ data }: any) => {
+      render: ({ data }: { data?: unknown }) => {
         const errorMessage = typeof data === "string" ? data : messages.error;
         return <ErrorToast message={errorMessage} />;
       },

@@ -30,6 +30,7 @@ import {
   KeywordRecommend,
   KeywordRecommendForm,
 } from "@/types/metrics";
+import { OverallMetricsHistory, KeywordReportHistory } from "@/types/history";
 import { KeywordReportSection } from "./KeywordReportSection";
 import { RecommendKeywordSection } from "./RecommendKeywordSection";
 import { useMetricsModal } from "./hook/useMetricsModal";
@@ -58,14 +59,14 @@ interface MetricsModalProps {
   isHistoryOpen: boolean;
   onCloseHistory: () => void;
   historyData: {
-    metricsHistory: any[];
-    keywordHistory: any[];
+    metricsHistory: OverallMetricsHistory[];
+    keywordHistory: KeywordReportHistory[];
   };
   // Props ใหม่สำหรับ Keyword History
   isKeywordHistoryOpen: boolean;
   onOpenKeywordHistory: (keyword: KeywordReport) => void;
   onCloseKeywordHistory: () => void;
-  keywordHistoryData: any[];
+  keywordHistoryData: KeywordReportHistory[];
   selectedKeyword: KeywordReport | null;
 }
 
@@ -103,7 +104,6 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
     handleKeywordSelectChange,
     handleRecommendChange,
     handleRecommendSelectChange,
-    resetKeywordForm,
     resetRecommendForm,
     handleSetEditingKeyword,
     clearEditing,

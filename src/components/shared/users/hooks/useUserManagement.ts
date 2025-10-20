@@ -31,8 +31,15 @@ import {
   KeywordReportForm,
   KeywordRecommendForm,
 } from "@/types/metrics";
+import { OverallMetricsHistory, KeywordReportHistory } from "@/types/history";
 import { showPromiseToast } from "@/components/shared/toast/lib/toastify";
 import axios from "@/lib/axios";
+
+// Define a type for the combined history data
+interface CombinedHistoryData {
+  metricsHistory: OverallMetricsHistory[];
+  keywordHistory: KeywordReportHistory[];
+}
 
 export const useUserManagement = () => {
   const dispatch = useAppDispatch();
@@ -56,10 +63,7 @@ export const useUserManagement = () => {
   const [confirmTitle, setConfirmTitle] = useState("");
   const [confirmMessage, setConfirmMessage] = useState("");
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
-  const [historyData, setHistoryData] = useState<{
-    metricsHistory: any[];
-    keywordHistory: any[];
-  }>({
+  const [historyData, setHistoryData] = useState<CombinedHistoryData>({
     metricsHistory: [],
     keywordHistory: [],
   });
@@ -160,7 +164,7 @@ export const useUserManagement = () => {
 
       try {
         await promise;
-      } catch (err: any) {
+      } catch (err: unknown) {
         setError(typeof err === "string" ? err : "Failed to save user");
       }
     }
@@ -221,17 +225,6 @@ export const useUserManagement = () => {
     setSelectedCustomer(null);
     dispatch(clearMetricsState());
   };
-
-  const createMetricsHandler =
-    (
-      action: Function,
-      messages: { pending: string; success: string; error: string }
-    ) =>
-    async (data: any) => {
-      if (!selectedCustomer) return;
-      const promise = dispatch(action(data)).unwrap();
-      showPromiseToast(promise, messages);
-    };
 
   const handleSaveMetrics = async (data: Partial<OverallMetrics>) => {
     if (!selectedCustomer) return;
@@ -319,7 +312,7 @@ export const useUserManagement = () => {
     if (!selectedCustomer) return;
     try {
       // เรียก API ที่เราสร้างขึ้น
-      const response = await axios.get(
+      const response = await axios.get<CombinedHistoryData>(
         `/customers/${selectedCustomer.id}/metrics/history`
       );
       setHistoryData(response.data);

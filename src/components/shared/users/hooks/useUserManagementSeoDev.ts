@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useUserManagement } from "./useUserManagement";
 import { Role } from "@/types/auth";
+import { User } from "@/types/user";
 
 export const useUserManagementSeoDev = () => {
   const { data: session } = useSession();
@@ -12,9 +13,9 @@ export const useUserManagementSeoDev = () => {
 
   const managedCustomers = useMemo(() => {
     return userManagement.users.filter(
-      (user) =>
+      (user: User) =>
         user.role === Role.CUSTOMER &&
-        (user as any).customerProfile?.seoDevId === currentSeoDevId
+        user.customerProfile?.seoDevId === currentSeoDevId
     );
   }, [userManagement.users, currentSeoDevId]);
 

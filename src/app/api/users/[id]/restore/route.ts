@@ -12,7 +12,7 @@ export async function PUT(
 
     // ใช้ updateMany เพื่อหลีกเลี่ยง middleware ของ findUnique
     // และอัปเดตเฉพาะ user ที่ถูก soft-delete ไปแล้ว
-    await (prisma as any).user.updateMany({
+    await prisma.user.updateMany({
       where: {
         id: id,
         deletedAt: {

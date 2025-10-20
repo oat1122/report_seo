@@ -10,6 +10,7 @@ import {
   KeywordRecommendForm,
 } from "@/types/metrics";
 import { KeywordReportHistory } from "@/types/history";
+import { AxiosErrorResponse } from "@/types/common";
 
 // --- 1. Interfaces ---
 // Interface สำหรับข้อมูล Report
@@ -59,9 +60,10 @@ export const fetchReportData = createAsyncThunk(
     try {
       const response = await axios.get(`/customers/${customerId}/report`);
       return response.data;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as AxiosErrorResponse;
       return rejectWithValue(
-        err.response?.data?.error || "Failed to fetch report data"
+        error.response?.data?.error || "Failed to fetch report data"
       );
     }
   }
@@ -74,9 +76,10 @@ export const fetchMetrics = createAsyncThunk(
     try {
       const response = await axios.get(`/customers/${customerId}/metrics`);
       return response.data;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as AxiosErrorResponse;
       return rejectWithValue(
-        err.response?.data?.error || "Failed to fetch metrics"
+        error.response?.data?.error || "Failed to fetch metrics"
       );
     }
   }
@@ -94,9 +97,10 @@ export const saveMetrics = createAsyncThunk(
         data
       );
       return response.data;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as AxiosErrorResponse;
       return rejectWithValue(
-        err.response?.data?.error || "Failed to save metrics"
+        error.response?.data?.error || "Failed to save metrics"
       );
     }
   }
@@ -109,9 +113,10 @@ export const fetchKeywords = createAsyncThunk(
     try {
       const response = await axios.get(`/customers/${customerId}/keywords`);
       return response.data;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as AxiosErrorResponse;
       return rejectWithValue(
-        err.response?.data?.error || "Failed to fetch keywords"
+        error.response?.data?.error || "Failed to fetch keywords"
       );
     }
   }
@@ -129,9 +134,10 @@ export const addKeyword = createAsyncThunk(
         data
       );
       return response.data;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as AxiosErrorResponse;
       return rejectWithValue(
-        err.response?.data?.error || "Failed to add keyword"
+        error.response?.data?.error || "Failed to add keyword"
       );
     }
   }
@@ -143,9 +149,10 @@ export const deleteKeyword = createAsyncThunk(
     try {
       await axios.delete(`/customers/keywords/${keywordId}`);
       return keywordId;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as AxiosErrorResponse;
       return rejectWithValue(
-        err.response?.data?.error || "Failed to delete keyword"
+        error.response?.data?.error || "Failed to delete keyword"
       );
     }
   }
@@ -164,9 +171,10 @@ export const updateKeyword = createAsyncThunk(
         data
       );
       return response.data;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as AxiosErrorResponse;
       return rejectWithValue(
-        err.response?.data?.error || "Failed to update keyword"
+        error.response?.data?.error || "Failed to update keyword"
       );
     }
   }
@@ -181,9 +189,10 @@ export const fetchKeywordHistory = createAsyncThunk(
         `/customers/keywords/${keywordId}/history`
       );
       return response.data;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as AxiosErrorResponse;
       return rejectWithValue(
-        err.response?.data?.error || "Failed to fetch history"
+        error.response?.data?.error || "Failed to fetch history"
       );
     }
   }
@@ -198,9 +207,10 @@ export const fetchRecommendKeywords = createAsyncThunk(
         `/customers/${customerId}/recommend-keywords`
       );
       return response.data;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as AxiosErrorResponse;
       return rejectWithValue(
-        err.response?.data?.error || "Failed to fetch recommended keywords"
+        error.response?.data?.error || "Failed to fetch recommended keywords"
       );
     }
   }
@@ -218,9 +228,10 @@ export const addRecommendKeyword = createAsyncThunk(
         data
       );
       return response.data;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as AxiosErrorResponse;
       return rejectWithValue(
-        err.response?.data?.error || "Failed to add recommended keyword"
+        error.response?.data?.error || "Failed to add recommended keyword"
       );
     }
   }
@@ -232,9 +243,10 @@ export const deleteRecommendKeyword = createAsyncThunk(
     try {
       await axios.delete(`/customers/recommend-keywords/${recommendId}`);
       return recommendId;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as AxiosErrorResponse;
       return rejectWithValue(
-        err.response?.data?.error || "Failed to delete recommended keyword"
+        error.response?.data?.error || "Failed to delete recommended keyword"
       );
     }
   }
