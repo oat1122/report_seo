@@ -1,11 +1,15 @@
-import { requireStaff } from "@/lib/auth-utils";
+import { getSession } from "@/lib/auth-utils";
 import { StaffOnly } from "@/components/Login/subcomponents/RoleGuard";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import Link from "next/link";
 
 export default async function SeoDashboard() {
-  // Server-side protection - allows both ADMIN and SEO_DEV
-  const session = await requireStaff();
+  // ดึงข้อมูล session โดยตรง ไม่ต้อง redirect แล้ว
+  const session = await getSession();
+
+  if (!session) {
+    return null;
+  }
 
   return (
     <DashboardLayout>

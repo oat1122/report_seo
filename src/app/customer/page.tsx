@@ -1,4 +1,4 @@
-import { requireCustomer } from "@/lib/auth-utils";
+import { getSession } from "@/lib/auth-utils";
 import { CustomerOnly } from "@/components/Login/subcomponents/RoleGuard";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import {
@@ -18,8 +18,12 @@ import LockIcon from "@mui/icons-material/Lock";
 import PromotionSection from "./PromotionSection";
 
 export default async function CustomerDashboard() {
-  // Server-side protection
-  const session = await requireCustomer();
+  // ดึงข้อมูล session โดยตรง ไม่ต้อง redirect แล้ว
+  const session = await getSession();
+
+  if (!session) {
+    return null;
+  }
 
   return (
     <DashboardLayout>
