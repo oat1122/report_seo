@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -13,11 +13,20 @@ import {
   TextField,
   Typography,
   Divider,
+  IconButton,
+  InputAdornment,
+  Tooltip,
+  Stack,
 } from "@mui/material";
 import { Role } from "@/types/auth";
 import { User, UserFormState } from "@/types/user";
 import { getRoleLabel } from "./lib/userUtils";
 import { useSession } from "next-auth/react";
+import {
+  Visibility,
+  VisibilityOff,
+  Edit as EditIcon,
+} from "@mui/icons-material";
 
 interface UserModalProps {
   open: boolean;
@@ -44,6 +53,10 @@ export const UserModal: React.FC<UserModalProps> = ({
   const canEditRole = session?.user?.role === Role.ADMIN;
   const isOwnProfile = session?.user?.id === currentUser.id;
 
+  // State สำหรับจัดการการแก้ไขรหัสผ่านและการแสดงผล
+  const [isPasswordEditing, setIsPasswordEditing] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
   const handleRoleChange = (event: SelectChangeEvent<Role>) => {
     setCurrentUser({
       ...currentUser,
@@ -62,10 +75,36 @@ export const UserModal: React.FC<UserModalProps> = ({
     setCurrentUser((prev) => ({ ...prev, seoDevId: event.target.value }));
   };
 
+  // ฟังก์ชันสำหรับ Toggle การแสดงผลรหัสผ่าน
+  const handleTogglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  // ฟังก์ชันสำหรับเปิด/ปิดโหมดแก้ไขรหัสผ่าน
+  const handleTogglePasswordEdit = () => {
+    setIsPasswordEditing(!isPasswordEditing);
+    // Reset password fields เมื่อปิดโหมดแก้ไข
+    if (isPasswordEditing) {
+      setCurrentUser((prev) => ({
+        ...prev,
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      }));
+    }
+  };
+
+  // ฟังก์ชันสำหรับปิด Modal พร้อมรีเซ็ต state
+  const handleCloseModal = () => {
+    setIsPasswordEditing(false);
+    setShowPassword(false);
+    onClose();
+  };
+
   return (
     <Modal
       open={open}
-      onClose={onClose}
+      onClose={handleCloseModal}
       sx={{
         backdropFilter: "blur(4px)",
       }}
@@ -131,10 +170,23 @@ export const UserModal: React.FC<UserModalProps> = ({
             fullWidth
             label="รหัสผ่าน"
             name="password"
-            type="password"
+            type={showPassword ? "text" : "password"}
             onChange={handleFormChange}
             margin="normal"
             variant="outlined"
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={handleTogglePasswordVisibility}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
             sx={{
               "& .MuiOutlinedInput-root": {
                 borderRadius: 2,
@@ -252,60 +304,86 @@ export const UserModal: React.FC<UserModalProps> = ({
         {isEditing && (
           <Box mt={3}>
             <Divider sx={{ mb: 2 }}>
-              <Typography variant="overline">Change Password</Typography>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Typography variant="overline">Change Password</Typography>
+                <Tooltip title={isPasswordEditing ? "ยกเลิก" : "แก้ไขรหัสผ่าน"}>
+                  <IconButton onClick={handleTogglePasswordEdit} size="small">
+                    <EditIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Stack>
             </Divider>
-            {isOwnProfile && !canEditRole && (
-              <TextField
-                fullWidth
-                label="Current Password"
-                name="currentPassword"
-                type="password"
-                onChange={handleFormChange}
-                margin="normal"
-                variant="outlined"
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: 2,
-                  },
-                }}
-              />
+
+            {isPasswordEditing && (
+              <>
+                {isOwnProfile && !canEditRole && (
+                  <TextField
+                    fullWidth
+                    label="Current Password"
+                    name="currentPassword"
+                    type={showPassword ? "text" : "password"}
+                    onChange={handleFormChange}
+                    margin="normal"
+                    variant="outlined"
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 2,
+                      },
+                    }}
+                  />
+                )}
+                <TextField
+                  fullWidth
+                  label="New Password"
+                  name="newPassword"
+                  type={showPassword ? "text" : "password"}
+                  onChange={handleFormChange}
+                  margin="normal"
+                  variant="outlined"
+                  disabled={isSeoDevView && !isOwnProfile}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={handleTogglePasswordVisibility}
+                          edge="end"
+                          disabled={isSeoDevView && !isOwnProfile}
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 2,
+                    },
+                  }}
+                />
+                <TextField
+                  fullWidth
+                  label="Confirm New Password"
+                  name="confirmPassword"
+                  type={showPassword ? "text" : "password"}
+                  onChange={handleFormChange}
+                  margin="normal"
+                  variant="outlined"
+                  disabled={isSeoDevView && !isOwnProfile}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 2,
+                    },
+                  }}
+                />
+              </>
             )}
-            <TextField
-              fullWidth
-              label="New Password"
-              name="newPassword"
-              type="password"
-              onChange={handleFormChange}
-              margin="normal"
-              variant="outlined"
-              disabled={isSeoDevView && !isOwnProfile}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                },
-              }}
-            />
-            <TextField
-              fullWidth
-              label="Confirm New Password"
-              name="confirmPassword"
-              type="password"
-              onChange={handleFormChange}
-              margin="normal"
-              variant="outlined"
-              disabled={isSeoDevView && !isOwnProfile}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                },
-              }}
-            />
           </Box>
         )}
 
         <Box mt={4} display="flex" justifyContent="flex-end" gap={2}>
           <Button
-            onClick={onClose}
+            onClick={handleCloseModal}
             variant="outlined"
             size="large"
             sx={{
