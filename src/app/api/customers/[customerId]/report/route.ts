@@ -4,10 +4,10 @@ import { prisma } from "@/lib/prisma";
 // GET /api/customers/[customerId]/report
 export async function GET(
   req: Request,
-  { params }: { params: { customerId: string } }
+  { params }: { params: Promise<{ customerId: string }> }
 ) {
   try {
-    const { customerId } = params;
+    const { customerId } = await params;
 
     // 1. ค้นหา Customer Profile โดยใช้ userId พร้อมกับข้อมูล User
     const customer = await prisma.customer.findUnique({

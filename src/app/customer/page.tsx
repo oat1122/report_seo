@@ -301,64 +301,6 @@ export default async function CustomerDashboard() {
             </Card>
           </Box>
         </Box>
-
-        {/* Client-side protection example */}
-        <CustomerOnly>
-          <Box mt={5}>
-            <Paper
-              elevation={0}
-              sx={{
-                p: 4,
-                borderRadius: 4,
-                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                color: "white",
-                position: "relative",
-                overflow: "hidden",
-                "&::before": {
-                  content: '""',
-                  position: "absolute",
-                  bottom: -50,
-                  right: -50,
-                  width: "250px",
-                  height: "250px",
-                  background: "rgba(255, 255, 255, 0.1)",
-                  borderRadius: "50%",
-                },
-                "&::after": {
-                  content: '""',
-                  position: "absolute",
-                  top: -30,
-                  left: -30,
-                  width: "150px",
-                  height: "150px",
-                  background: "rgba(255, 255, 255, 0.05)",
-                  borderRadius: "50%",
-                },
-              }}
-            >
-              <Box sx={{ position: "relative", zIndex: 1 }}>
-                <Typography
-                  variant="h5"
-                  component="h3"
-                  sx={{
-                    fontWeight: 700,
-                    mb: 2,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1.5,
-                  }}
-                >
-                  <LockIcon sx={{ fontSize: "1.75rem" }} />
-                  ข้อมูลเฉพาะลูกค้า
-                </Typography>
-                <Typography sx={{ opacity: 0.95, fontSize: "1.1rem" }}>
-                  เนื้อหาส่วนตัวที่เฉพาะลูกค้าเท่านั้นที่เห็นได้
-                  คุณสามารถเข้าถึงฟีเจอร์พิเศษและข้อมูลส่วนตัวของคุณได้ที่นี่
-                </Typography>
-              </Box>
-            </Paper>
-          </Box>
-        </CustomerOnly>
       </Container>
     </DashboardLayout>
   );

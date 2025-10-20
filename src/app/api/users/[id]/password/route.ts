@@ -8,7 +8,7 @@ import { Role } from "@/types/auth";
 // PUT /api/users/[id]/password - อัปเดตรหัสผ่าน
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -16,7 +16,7 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const { currentPassword, newPassword, confirmPassword } = await req.json();
 
     // Admin can change anyone's password without the current password
