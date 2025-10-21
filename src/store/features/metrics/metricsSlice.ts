@@ -10,7 +10,6 @@ import {
   KeywordRecommendForm,
 } from "@/types/metrics";
 import { KeywordReportHistory } from "@/types/history";
-import { AxiosErrorResponse } from "@/types/common";
 
 // --- 1. Interfaces ---
 // Interface สำหรับข้อมูล Report
@@ -56,199 +55,128 @@ const initialState: MetricsState = {
 // Thunk ใหม่สำหรับดึงข้อมูล Report ทั้งหมด
 export const fetchReportData = createAsyncThunk(
   "metrics/fetchReportData",
-  async (customerId: string, { rejectWithValue }) => {
-    try {
-      const response = await axios.get(`/customers/${customerId}/report`);
-      return response.data;
-    } catch (err: unknown) {
-      const error = err as AxiosErrorResponse;
-      return rejectWithValue(
-        error.response?.data?.error || "Failed to fetch report data"
-      );
-    }
+  async (customerId: string) => {
+    const response = await axios.get(`/customers/${customerId}/report`);
+    return response.data;
   }
 );
 
 // Thunks for Overall Metrics
 export const fetchMetrics = createAsyncThunk(
   "metrics/fetchMetrics",
-  async (customerId: string, { rejectWithValue }) => {
-    try {
-      const response = await axios.get(`/customers/${customerId}/metrics`);
-      return response.data;
-    } catch (err: unknown) {
-      const error = err as AxiosErrorResponse;
-      return rejectWithValue(
-        error.response?.data?.error || "Failed to fetch metrics"
-      );
-    }
+  async (customerId: string) => {
+    const response = await axios.get(`/customers/${customerId}/metrics`);
+    return response.data;
   }
 );
 
 export const saveMetrics = createAsyncThunk(
   "metrics/saveMetrics",
-  async (
-    { customerId, data }: { customerId: string; data: OverallMetricsForm },
-    { rejectWithValue }
-  ) => {
-    try {
-      const response = await axios.post(
-        `/customers/${customerId}/metrics`,
-        data
-      );
-      return response.data;
-    } catch (err: unknown) {
-      const error = err as AxiosErrorResponse;
-      return rejectWithValue(
-        error.response?.data?.error || "Failed to save metrics"
-      );
-    }
+  async ({
+    customerId,
+    data,
+  }: {
+    customerId: string;
+    data: OverallMetricsForm;
+  }) => {
+    const response = await axios.post(`/customers/${customerId}/metrics`, data);
+    return response.data;
   }
 );
 
 // Thunks for Keyword Reports
 export const fetchKeywords = createAsyncThunk(
   "metrics/fetchKeywords",
-  async (customerId: string, { rejectWithValue }) => {
-    try {
-      const response = await axios.get(`/customers/${customerId}/keywords`);
-      return response.data;
-    } catch (err: unknown) {
-      const error = err as AxiosErrorResponse;
-      return rejectWithValue(
-        error.response?.data?.error || "Failed to fetch keywords"
-      );
-    }
+  async (customerId: string) => {
+    const response = await axios.get(`/customers/${customerId}/keywords`);
+    return response.data;
   }
 );
 
 export const addKeyword = createAsyncThunk(
   "metrics/addKeyword",
-  async (
-    { customerId, data }: { customerId: string; data: KeywordReportForm },
-    { rejectWithValue }
-  ) => {
-    try {
-      const response = await axios.post(
-        `/customers/${customerId}/keywords`,
-        data
-      );
-      return response.data;
-    } catch (err: unknown) {
-      const error = err as AxiosErrorResponse;
-      return rejectWithValue(
-        error.response?.data?.error || "Failed to add keyword"
-      );
-    }
+  async ({
+    customerId,
+    data,
+  }: {
+    customerId: string;
+    data: KeywordReportForm;
+  }) => {
+    const response = await axios.post(
+      `/customers/${customerId}/keywords`,
+      data
+    );
+    return response.data;
   }
 );
 
 export const deleteKeyword = createAsyncThunk(
   "metrics/deleteKeyword",
-  async (keywordId: string, { rejectWithValue }) => {
-    try {
-      await axios.delete(`/customers/keywords/${keywordId}`);
-      return keywordId;
-    } catch (err: unknown) {
-      const error = err as AxiosErrorResponse;
-      return rejectWithValue(
-        error.response?.data?.error || "Failed to delete keyword"
-      );
-    }
+  async (keywordId: string) => {
+    await axios.delete(`/customers/keywords/${keywordId}`);
+    return keywordId;
   }
 );
 
 // Thunk for updating a keyword
 export const updateKeyword = createAsyncThunk(
   "metrics/updateKeyword",
-  async (
-    { keywordId, data }: { keywordId: string; data: KeywordReportForm },
-    { rejectWithValue }
-  ) => {
-    try {
-      const response = await axios.put(
-        `/customers/keywords/${keywordId}`,
-        data
-      );
-      return response.data;
-    } catch (err: unknown) {
-      const error = err as AxiosErrorResponse;
-      return rejectWithValue(
-        error.response?.data?.error || "Failed to update keyword"
-      );
-    }
+  async ({
+    keywordId,
+    data,
+  }: {
+    keywordId: string;
+    data: KeywordReportForm;
+  }) => {
+    const response = await axios.put(`/customers/keywords/${keywordId}`, data);
+    return response.data;
   }
 );
 
 // Thunk for fetching keyword history
 export const fetchKeywordHistory = createAsyncThunk(
   "metrics/fetchKeywordHistory",
-  async (keywordId: string, { rejectWithValue }) => {
-    try {
-      const response = await axios.get(
-        `/customers/keywords/${keywordId}/history`
-      );
-      return response.data;
-    } catch (err: unknown) {
-      const error = err as AxiosErrorResponse;
-      return rejectWithValue(
-        error.response?.data?.error || "Failed to fetch history"
-      );
-    }
+  async (keywordId: string) => {
+    const response = await axios.get(
+      `/customers/keywords/${keywordId}/history`
+    );
+    return response.data;
   }
 );
 
 // Thunks for Recommended Keywords
 export const fetchRecommendKeywords = createAsyncThunk(
   "metrics/fetchRecommendKeywords",
-  async (customerId: string, { rejectWithValue }) => {
-    try {
-      const response = await axios.get(
-        `/customers/${customerId}/recommend-keywords`
-      );
-      return response.data;
-    } catch (err: unknown) {
-      const error = err as AxiosErrorResponse;
-      return rejectWithValue(
-        error.response?.data?.error || "Failed to fetch recommended keywords"
-      );
-    }
+  async (customerId: string) => {
+    const response = await axios.get(
+      `/customers/${customerId}/recommend-keywords`
+    );
+    return response.data;
   }
 );
 
 export const addRecommendKeyword = createAsyncThunk(
   "metrics/addRecommendKeyword",
-  async (
-    { customerId, data }: { customerId: string; data: KeywordRecommendForm },
-    { rejectWithValue }
-  ) => {
-    try {
-      const response = await axios.post(
-        `/customers/${customerId}/recommend-keywords`,
-        data
-      );
-      return response.data;
-    } catch (err: unknown) {
-      const error = err as AxiosErrorResponse;
-      return rejectWithValue(
-        error.response?.data?.error || "Failed to add recommended keyword"
-      );
-    }
+  async ({
+    customerId,
+    data,
+  }: {
+    customerId: string;
+    data: KeywordRecommendForm;
+  }) => {
+    const response = await axios.post(
+      `/customers/${customerId}/recommend-keywords`,
+      data
+    );
+    return response.data;
   }
 );
 
 export const deleteRecommendKeyword = createAsyncThunk(
   "metrics/deleteRecommendKeyword",
-  async (recommendId: string, { rejectWithValue }) => {
-    try {
-      await axios.delete(`/customers/recommend-keywords/${recommendId}`);
-      return recommendId;
-    } catch (err: unknown) {
-      const error = err as AxiosErrorResponse;
-      return rejectWithValue(
-        error.response?.data?.error || "Failed to delete recommended keyword"
-      );
-    }
+  async (recommendId: string) => {
+    await axios.delete(`/customers/recommend-keywords/${recommendId}`);
+    return recommendId;
   }
 );
 
@@ -274,7 +202,7 @@ const metricsSlice = createSlice({
       )
       .addCase(fetchReportData.rejected, (state, action) => {
         state.reportStatus = "failed";
-        state.error = action.payload as string;
+        state.error = action.error.message || "Failed to fetch report data";
       })
 
       // Fetch all data (using fetchMetrics as the primary trigger)
@@ -284,7 +212,7 @@ const metricsSlice = createSlice({
       })
       .addCase(fetchMetrics.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload as string;
+        state.error = action.error.message || "Failed to fetch metrics";
       })
       .addCase(
         fetchMetrics.fulfilled,
@@ -359,7 +287,7 @@ const metricsSlice = createSlice({
       )
       .addCase(fetchKeywordHistory.rejected, (state, action) => {
         state.historyStatus = "failed";
-        state.error = action.payload as string;
+        state.error = action.error.message || "Failed to fetch keyword history";
       })
 
       // Add Recommend Keyword

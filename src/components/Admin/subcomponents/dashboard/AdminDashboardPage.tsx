@@ -1,20 +1,42 @@
 import { getSession } from "@/lib/auth-utils";
-import { Dashboard } from "@/components/Admin/subcomponents/dashboard/Dashboard";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
+import { DashboardPageLayout } from "@/components/shared/DashboardPageLayout";
 
 export default async function AdminDashboardPage() {
-  // ดึงข้อมูล session โดยตรง ไม่ต้อง redirect แล้ว
   const session = await getSession();
 
-  // Middleware จะป้องกันไม่ให้ user ที่ไม่มี session เข้ามาได้
-  // แต่เราควรเช็คเผื่อไว้สำหรับการแสดงผล
   if (!session) {
-    return null; // หรือแสดงหน้า Loading/Error
+    return null;
   }
+
+  const adminCards = [
+    {
+      title: "จัดการผู้ใช้งาน",
+      description: "เพิ่ม แก้ไข และลบผู้ใช้งานในระบบ",
+      href: "/admin/users",
+      color: "secondary" as const,
+    },
+    {
+      title: "ตั้งค่าระบบ",
+      description: "กำหนดค่าการทำงานของระบบ",
+      href: "/admin/settings",
+      color: "success" as const,
+    },
+    {
+      title: "รายงาน",
+      description: "ดูสถิติและรายงานต่างๆ",
+      href: "/admin/reports",
+      color: "warning" as const,
+    },
+  ];
 
   return (
     <DashboardLayout>
-      <Dashboard user={session.user} />
+      <DashboardPageLayout
+        user={session.user}
+        title="Admin Dashboard"
+        cards={adminCards}
+      />
     </DashboardLayout>
   );
 }

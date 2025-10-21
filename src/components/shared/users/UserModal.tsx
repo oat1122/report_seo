@@ -34,7 +34,7 @@ interface UserModalProps {
   currentUser: UserFormState;
   onClose: () => void;
   onSave: () => void;
-  setCurrentUser: React.Dispatch<React.SetStateAction<UserFormState>>;
+  onFormChange: (name: string, value: string | Role | boolean) => void;
   seoDevs: User[];
   isSeoDevView?: boolean;
 }
@@ -45,7 +45,7 @@ export const UserModal: React.FC<UserModalProps> = ({
   currentUser,
   onClose,
   onSave,
-  setCurrentUser,
+  onFormChange,
   seoDevs,
   isSeoDevView = false,
 }) => {
@@ -58,21 +58,19 @@ export const UserModal: React.FC<UserModalProps> = ({
   const [showPassword, setShowPassword] = useState(false);
 
   const handleRoleChange = (event: SelectChangeEvent<Role>) => {
-    setCurrentUser({
-      ...currentUser,
-      role: event.target.value as Role,
-    });
+    onFormChange("role", event.target.value as Role);
   };
 
   const handleFormChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    const { name, value } = event.target;
-    setCurrentUser((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type } = event.target;
+    const checked = (event.target as HTMLInputElement).checked;
+    onFormChange(name, type === "checkbox" ? checked : value);
   };
 
   const handleSeoDevChange = (event: SelectChangeEvent<string>) => {
-    setCurrentUser((prev) => ({ ...prev, seoDevId: event.target.value }));
+    onFormChange("seoDevId", event.target.value);
   };
 
   // ฟังก์ชันสำหรับ Toggle การแสดงผลรหัสผ่าน
@@ -85,12 +83,9 @@ export const UserModal: React.FC<UserModalProps> = ({
     setIsPasswordEditing(!isPasswordEditing);
     // Reset password fields เมื่อปิดโหมดแก้ไข
     if (isPasswordEditing) {
-      setCurrentUser((prev) => ({
-        ...prev,
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      }));
+      onFormChange("currentPassword", "");
+      onFormChange("newPassword", "");
+      onFormChange("confirmPassword", "");
     }
   };
 

@@ -2,7 +2,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axios from "@/lib/axios"; // ใช้ axios instance ที่เราสร้าง
 import { User, UserFormState } from "@/types/user";
-import { AxiosErrorResponse } from "@/types/common";
+import { Role } from "@/types/auth";
 
 // 1. กำหนด Interface ของ State
 interface UsersState {
@@ -10,6 +10,18 @@ interface UsersState {
   seoDevs: User[];
   status: "idle" | "loading" | "succeeded" | "failed";
   error: string | null;
+  // --- UI State Management ---
+  isModalOpen: boolean;
+  isEditing: boolean;
+  currentUser: UserFormState | null;
+  confirmState: {
+    isOpen: boolean;
+    title: string;
+    message: string;
+    // --- เปลี่ยนจากเก็บ function มาเก็บ action type และ targetId ---
+    actionType: "delete" | "restore" | null;
+    targetId: string | null;
+  };
 }
 
 // 2. กำหนด Initial State
@@ -18,6 +30,17 @@ const initialState: UsersState = {
   seoDevs: [],
   status: "idle",
   error: null,
+  // --- ค่าเริ่มต้นสำหรับ UI State ---
+  isModalOpen: false,
+  isEditing: false,
+  currentUser: null,
+  confirmState: {
+    isOpen: false,
+    title: "",
+    message: "",
+    actionType: null,
+    targetId: null,
+  },
 };
 
 // 3. สร้าง Async Thunks สำหรับเรียก API
@@ -39,93 +62,55 @@ export const fetchSeoDevs = createAsyncThunk("users/fetchSeoDevs", async () => {
 // Thunk สำหรับเพิ่มผู้ใช้ใหม่
 export const addUser = createAsyncThunk(
   "users/addUser",
-  async (newUser: UserFormState, { rejectWithValue }) => {
-    try {
-      const response = await axios.post<User>("/users", newUser);
-      return response.data;
-    } catch (err: unknown) {
-      const error = err as AxiosErrorResponse;
-      // จัดการ error จาก API
-      if (error.response?.data?.error) {
-        return rejectWithValue(error.response.data.error);
-      }
-      return rejectWithValue("Failed to add user");
-    }
+  async (newUser: UserFormState) => {
+    const response = await axios.post<User>("/users", newUser);
+    return response.data;
   }
 );
 
 // Thunk สำหรับอัปเดตผู้ใช้
 export const updateUser = createAsyncThunk(
   "users/updateUser",
-  async (updatedUser: UserFormState, { rejectWithValue }) => {
-    try {
-      const response = await axios.put<User>(
-        `/users/${updatedUser.id}`,
-        updatedUser
-      );
-      return response.data;
-    } catch (err: unknown) {
-      const error = err as AxiosErrorResponse;
-      if (error.response?.data?.error) {
-        return rejectWithValue(error.response.data.error);
-      }
-      return rejectWithValue("Failed to update user");
-    }
+  async (updatedUser: UserFormState) => {
+    const response = await axios.put<User>(
+      `/users/${updatedUser.id}`,
+      updatedUser
+    );
+    return response.data;
   }
 );
 
 // Thunk สำหรับลบผู้ใช้ (Soft delete)
 export const deleteUser = createAsyncThunk(
   "users/deleteUser",
-  async (userId: string, { rejectWithValue }) => {
-    try {
-      await axios.delete(`/users/${userId}`);
-      // ส่งกลับ userId และวันที่ลบ
-      return { userId, deletedAt: new Date().toISOString() };
-    } catch (err: unknown) {
-      const error = err as AxiosErrorResponse;
-      if (error.response?.data?.error) {
-        return rejectWithValue(error.response.data.error);
-      }
-      return rejectWithValue("Failed to delete user");
-    }
+  async (userId: string) => {
+    await axios.delete(`/users/${userId}`);
+    // ส่งกลับ userId และวันที่ลบ
+    return { userId, deletedAt: new Date().toISOString() };
   }
 );
 
 // Thunk ใหม่สำหรับ Restore User
 export const restoreUser = createAsyncThunk(
   "users/restoreUser",
-  async (userId: string, { rejectWithValue }) => {
-    try {
-      await axios.put(`/users/${userId}/restore`);
-      return userId;
-    } catch (err: unknown) {
-      const error = err as AxiosErrorResponse;
-      if (error.response?.data?.error) {
-        return rejectWithValue(error.response.data.error);
-      }
-      return rejectWithValue("Failed to restore user");
-    }
+  async (userId: string) => {
+    await axios.put(`/users/${userId}/restore`);
+    return userId;
   }
 );
 
 // Thunk for updating password
 export const updatePassword = createAsyncThunk(
   "users/updatePassword",
-  async (
-    { userId, values }: { userId: string; values: Partial<UserFormState> },
-    { rejectWithValue }
-  ) => {
-    try {
-      await axios.put(`/users/${userId}/password`, values);
-      return userId;
-    } catch (err: unknown) {
-      const error = err as AxiosErrorResponse;
-      if (error.response?.data?.error) {
-        return rejectWithValue(error.response.data.error);
-      }
-      return rejectWithValue("Failed to update password");
-    }
+  async ({
+    userId,
+    values,
+  }: {
+    userId: string;
+    values: Partial<UserFormState>;
+  }) => {
+    await axios.put(`/users/${userId}/password`, values);
+    return userId;
   }
 );
 
@@ -133,7 +118,57 @@ export const updatePassword = createAsyncThunk(
 const usersSlice = createSlice({
   name: "users",
   initialState,
-  reducers: {},
+  // --- เพิ่ม Reducers สำหรับจัดการ UI State ---
+  reducers: {
+    openUserModal: (state, action: PayloadAction<User | undefined>) => {
+      state.isModalOpen = true;
+      state.isEditing = !!action.payload;
+      if (action.payload) {
+        state.currentUser = action.payload;
+      } else {
+        state.currentUser = { role: Role.CUSTOMER }; // Default for new user
+      }
+    },
+    closeUserModal: (state) => {
+      state.isModalOpen = false;
+      state.isEditing = false;
+      state.currentUser = null;
+    },
+    setCurrentUser: (state, action: PayloadAction<Partial<UserFormState>>) => {
+      if (state.currentUser) {
+        state.currentUser = { ...state.currentUser, ...action.payload };
+      } else {
+        state.currentUser = action.payload as UserFormState;
+      }
+    },
+    showConfirmation: (
+      state,
+      action: PayloadAction<{
+        title: string;
+        message: string;
+        actionType: "delete" | "restore";
+        targetId: string;
+      }>
+    ) => {
+      state.confirmState = {
+        isOpen: true,
+        title: action.payload.title,
+        message: action.payload.message,
+        actionType: action.payload.actionType,
+        targetId: action.payload.targetId,
+      };
+    },
+    hideConfirmation: (state) => {
+      state.confirmState.isOpen = false;
+      state.confirmState.title = "";
+      state.confirmState.message = "";
+      state.confirmState.actionType = null;
+      state.confirmState.targetId = null;
+    },
+    clearUserError: (state) => {
+      state.error = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
       // Cases for fetchUsers
@@ -158,10 +193,11 @@ const usersSlice = createSlice({
       // Cases for addUser
       .addCase(addUser.fulfilled, (state, action: PayloadAction<User>) => {
         state.users.unshift(action.payload); // เพิ่ม user ใหม่ไว้บนสุด
+        state.isModalOpen = false; // ปิด Modal เมื่อสำเร็จ
         state.error = null; // Clear error on success
       })
       .addCase(addUser.rejected, (state, action) => {
-        state.error = (action.payload as string) || "Failed to add user";
+        state.error = action.error.message || "Failed to add user";
       })
       // Cases for updateUser
       .addCase(updateUser.fulfilled, (state, action: PayloadAction<User>) => {
@@ -171,10 +207,11 @@ const usersSlice = createSlice({
         if (index !== -1) {
           state.users[index] = action.payload;
         }
+        state.isModalOpen = false; // ปิด Modal เมื่อสำเร็จ
         state.error = null; // Clear error on success
       })
       .addCase(updateUser.rejected, (state, action) => {
-        state.error = (action.payload as string) || "Failed to update user";
+        state.error = action.error.message || "Failed to update user";
       })
       // Cases for deleteUser (Soft Delete)
       .addCase(
@@ -193,7 +230,7 @@ const usersSlice = createSlice({
         }
       )
       .addCase(deleteUser.rejected, (state, action) => {
-        state.error = (action.payload as string) || "Failed to delete user";
+        state.error = action.error.message || "Failed to delete user";
       })
       // Cases for restoreUser
       .addCase(
@@ -209,17 +246,27 @@ const usersSlice = createSlice({
         }
       )
       .addCase(restoreUser.rejected, (state, action) => {
-        state.error = (action.payload as string) || "Failed to restore user";
+        state.error = action.error.message || "Failed to restore user";
       })
       // Cases for updatePassword
       .addCase(updatePassword.fulfilled, (state) => {
-        // You can optionally do something on success, e.g., clear errors
+        state.isModalOpen = false; // ปิด Modal เมื่อสำเร็จ
         state.error = null;
       })
       .addCase(updatePassword.rejected, (state, action) => {
-        state.error = (action.payload as string) || "Failed to update password";
+        state.error = action.error.message || "Failed to update password";
       });
   },
 });
+
+// --- Export actions ---
+export const {
+  openUserModal,
+  closeUserModal,
+  setCurrentUser,
+  showConfirmation,
+  hideConfirmation,
+  clearUserError,
+} = usersSlice.actions;
 
 export default usersSlice.reducer;
