@@ -9,7 +9,8 @@ import {
   KeywordReportForm,
   KeywordRecommendForm,
 } from "@/types/metrics";
-import { KeywordReportHistory } from "@/types/history";
+import { KeywordReportHistory, OverallMetricsHistory } from "@/types/history";
+import { User } from "@/types/user";
 
 // --- 1. Interfaces ---
 // Interface สำหรับข้อมูล Report
@@ -20,6 +21,12 @@ interface ReportData {
   recommendations: KeywordRecommend[]; // เพิ่ม field นี้
   customerName: string | null;
   domain: string | null;
+}
+
+// Interface สำหรับประวัติรวม (Metrics + Keywords)
+interface CombinedHistoryData {
+  metricsHistory: OverallMetricsHistory[];
+  keywordHistory: KeywordReportHistory[];
 }
 
 interface MetricsState {
@@ -34,6 +41,13 @@ interface MetricsState {
   // State ใหม่สำหรับ Keyword History
   keywordHistory: KeywordReportHistory[];
   historyStatus: "idle" | "loading" | "succeeded" | "failed";
+  // --- Modal States ---
+  isMetricsModalOpen: boolean;
+  selectedCustomerId: string | null;
+  isHistoryModalOpen: boolean;
+  isKeywordHistoryModalOpen: boolean;
+  selectedKeyword: KeywordReport | null;
+  historyData: CombinedHistoryData;
 }
 
 // --- 2. Initial State ---
@@ -49,6 +63,13 @@ const initialState: MetricsState = {
   // ค่าเริ่มต้นสำหรับ Keyword History
   keywordHistory: [],
   historyStatus: "idle",
+  // --- ค่าเริ่มต้นสำหรับ Modal State ---
+  isMetricsModalOpen: false,
+  selectedCustomerId: null,
+  isHistoryModalOpen: false,
+  isKeywordHistoryModalOpen: false,
+  selectedKeyword: null,
+  historyData: { metricsHistory: [], keywordHistory: [] },
 };
 
 // --- 3. Async Thunks ---
@@ -144,6 +165,17 @@ export const fetchKeywordHistory = createAsyncThunk(
   }
 );
 
+// Thunk for fetching combined history data (metrics + keywords)
+export const fetchHistoryData = createAsyncThunk(
+  "metrics/fetchHistoryData",
+  async (customerId: string) => {
+    const response = await axios.get(
+      `/customers/${customerId}/metrics/history`
+    );
+    return response.data as CombinedHistoryData;
+  }
+);
+
 // Thunks for Recommended Keywords
 export const fetchRecommendKeywords = createAsyncThunk(
   "metrics/fetchRecommendKeywords",
@@ -185,6 +217,35 @@ const metricsSlice = createSlice({
   name: "metrics",
   initialState,
   reducers: {
+    // --- Reducers สำหรับจัดการ Modal ---
+    openMetricsModal: (state, action: PayloadAction<User>) => {
+      state.isMetricsModalOpen = true;
+      state.selectedCustomerId = action.payload.id;
+    },
+    closeMetricsModal: (state) => {
+      state.isMetricsModalOpen = false;
+      state.selectedCustomerId = null;
+      // Reset related states
+      state.metrics = null;
+      state.keywords = [];
+      state.recommendKeywords = [];
+      state.historyData = { metricsHistory: [], keywordHistory: [] };
+    },
+    openHistoryModal: (state) => {
+      state.isHistoryModalOpen = true;
+    },
+    closeHistoryModal: (state) => {
+      state.isHistoryModalOpen = false;
+    },
+    openKeywordHistoryModal: (state, action: PayloadAction<KeywordReport>) => {
+      state.isKeywordHistoryModalOpen = true;
+      state.selectedKeyword = action.payload;
+    },
+    closeKeywordHistoryModal: (state) => {
+      state.isKeywordHistoryModalOpen = false;
+      state.selectedKeyword = null;
+      state.keywordHistory = [];
+    },
     clearMetricsState: () => initialState,
   },
   extraReducers: (builder) => {
@@ -274,6 +335,15 @@ const metricsSlice = createSlice({
         }
       )
 
+      // Fetch Combined History Data
+      .addCase(
+        fetchHistoryData.fulfilled,
+        (state, action: PayloadAction<CombinedHistoryData>) => {
+          state.historyData = action.payload;
+          state.isHistoryModalOpen = true;
+        }
+      )
+
       // Fetch Keyword History
       .addCase(fetchKeywordHistory.pending, (state) => {
         state.historyStatus = "loading";
@@ -310,5 +380,13 @@ const metricsSlice = createSlice({
   },
 });
 
-export const { clearMetricsState } = metricsSlice.actions;
+export const {
+  clearMetricsState,
+  openMetricsModal,
+  closeMetricsModal,
+  openHistoryModal,
+  closeHistoryModal,
+  openKeywordHistoryModal,
+  closeKeywordHistoryModal,
+} = metricsSlice.actions;
 export default metricsSlice.reducer;

@@ -1,5 +1,18 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { z } from "zod";
+
+// --- Zod Schema สำหรับ Validation ---
+const metricsSchema = z.object({
+  domainRating: z.coerce.number().int().min(0).max(100),
+  healthScore: z.coerce.number().int().min(0).max(100),
+  ageInYears: z.coerce.number().int().min(0),
+  spamScore: z.coerce.number().int().min(0).max(100),
+  organicTraffic: z.coerce.number().int().min(0),
+  organicKeywords: z.coerce.number().int().min(0),
+  backlinks: z.coerce.number().int().min(0),
+  refDomains: z.coerce.number().int().min(0),
+});
 
 // GET /api/customers/[customerId]/metrics - ดึงข้อมูล Metrics ของลูกค้า
 export async function GET(
@@ -73,18 +86,23 @@ export async function POST(
       });
     }
 
-    const data = await req.json();
-    // แปลงค่าที่เป็น string ให้เป็นตัวเลข
-    const numericData = {
-      domainRating: parseInt(data.domainRating, 10),
-      healthScore: parseInt(data.healthScore, 10),
-      ageInYears: parseInt(data.ageInYears, 10),
-      spamScore: parseInt(data.spamScore, 10),
-      organicTraffic: parseFloat(data.organicTraffic),
-      organicKeywords: parseFloat(data.organicKeywords),
-      backlinks: parseInt(data.backlinks, 10),
-      refDomains: parseInt(data.refDomains, 10),
-    };
+    const json = await req.json();
+
+    // --- Validate ข้อมูลด้วย Zod ---
+    const validationResult = metricsSchema.safeParse(json);
+
+    if (!validationResult.success) {
+      return NextResponse.json(
+        {
+          error: "Invalid data",
+          issues: validationResult.error.issues,
+        },
+        { status: 400 }
+      );
+    }
+
+    // ข้อมูลที่ผ่านการ validate และแปลง type แล้ว
+    const numericData = validationResult.data;
 
     const metrics = await prisma.overallMetrics.upsert({
       where: { customerId: customer.id },

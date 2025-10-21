@@ -34,6 +34,7 @@ interface UserModalProps {
   currentUser: UserFormState;
   onClose: () => void;
   onSave: () => void;
+  onSavePassword: () => void;
   onFormChange: (name: string, value: string | Role | boolean) => void;
   seoDevs: User[];
   isSeoDevView?: boolean;
@@ -45,6 +46,7 @@ export const UserModal: React.FC<UserModalProps> = ({
   currentUser,
   onClose,
   onSave,
+  onSavePassword,
   onFormChange,
   seoDevs,
   isSeoDevView = false,
@@ -371,6 +373,30 @@ export const UserModal: React.FC<UserModalProps> = ({
                     },
                   }}
                 />
+
+                {/* Dedicated Save Password Button */}
+                <Button
+                  fullWidth
+                  variant="contained"
+                  color="info"
+                  onClick={onSavePassword}
+                  disabled={
+                    !currentUser.newPassword ||
+                    !currentUser.confirmPassword ||
+                    (isOwnProfile &&
+                      !canEditRole &&
+                      !currentUser.currentPassword)
+                  }
+                  sx={{
+                    mt: 2,
+                    borderRadius: 2,
+                    py: 1.5,
+                    fontSize: "1rem",
+                    fontWeight: 600,
+                  }}
+                >
+                  Save Password
+                </Button>
               </>
             )}
           </Box>

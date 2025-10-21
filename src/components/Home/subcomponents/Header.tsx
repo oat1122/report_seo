@@ -85,10 +85,10 @@ export const Header: React.FC<HeaderProps> = ({
             </IconButton>
             <Box sx={{ flexGrow: 1, display: "flex", alignItems: "center" }}>
               <Image
-                src="https://placehold.jp/150x48.png"
+                src="/img/LOGO SEO PRIME4_0.png"
                 alt="SEO PRIME Logo"
-                width={150}
-                height={48}
+                width={80}
+                height={28}
                 style={{ marginRight: "16px" }}
               />
             </Box>
