@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed": "tsx prisma/seed.ts"
+    "seed": "tsx prisma/seed.ts",
+    "prisma:migrate:prod": "dotenv -e .env.production -- prisma migrate deploy",
+    "db:seed:prod": "dotenv -e .env.production -- tsx prisma/seed.ts",
+    "deploy:prod": "npm install && npm run prisma:migrate:prod && npm run build"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.0",
@@ -37,6 +40,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv-cli": "^10.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
     "prisma": "^6.17.1",
