@@ -15,43 +15,47 @@ import { UserTable } from "./UserTable";
 import { UserModal } from "./UserModal";
 import { MetricsModal } from "./MetricsModal/MetricsModal";
 import { useUserManagementSeoDev } from "./hooks/useUserManagementSeoDev";
+import {
+  setCurrentUser,
+  clearUserError,
+} from "@/store/features/users/usersSlice";
 
 const UserManagementSeoDev: React.FC = () => {
+  // Destructure ค่าที่ถูกต้องจาก Hook ที่อัปเดตแล้ว
   const {
     users: managedCustomers,
     status,
-    error,
-    setError,
-    metrics,
-    keywords,
-    recommendKeywords,
+    usersError, // เปลี่ยนจาก error เป็น usersError
     isModalOpen,
     isEditing,
     currentUser,
-    setCurrentUser,
+    metrics,
+    keywords,
+    recommendKeywords,
+    keywordHistory,
     isMetricsModalOpen,
     selectedCustomer,
     isHistoryModalOpen,
     historyData,
-    // Keyword History Modal
     isKeywordHistoryModalOpen,
-    keywordHistory,
     selectedKeyword,
-    handleOpenModal,
-    handleCloseModal,
-    handleSave,
-    handleOpenMetricsModal,
-    handleCloseMetricsModal,
+    handleOpenUserModal,
+    handleCloseUserModal,
+    handleSaveUser,
+    handlePasswordUpdate,
+    handleOpenMetrics,
+    handleCloseMetrics,
     handleSaveMetrics,
     handleAddKeyword,
     handleDeleteKeyword,
     handleUpdateKeyword,
     handleAddRecommendKeyword,
     handleDeleteRecommendKeyword,
-    handleOpenHistoryModal,
-    handleCloseHistoryModal,
-    handleOpenKeywordHistoryModal,
-    handleCloseKeywordHistoryModal,
+    handleOpenHistory,
+    handleCloseHistory,
+    handleOpenKeywordHistory,
+    handleCloseKeywordHistory,
+    dispatch,
   } = useUserManagementSeoDev();
 
   const loading = status === "loading";
@@ -82,15 +86,19 @@ const UserManagementSeoDev: React.FC = () => {
             color="secondary"
             size="large"
             startIcon={<Add />}
-            onClick={() => handleOpenModal()}
+            onClick={() => handleOpenUserModal()}
           >
             Add Customer
           </Button>
         </Box>
 
-        {error && (
-          <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 3 }}>
-            {error}
+        {usersError && (
+          <Alert
+            severity="error"
+            onClose={() => dispatch(clearUserError())}
+            sx={{ mb: 3 }}
+          >
+            {usersError}
           </Alert>
         )}
 
@@ -101,29 +109,34 @@ const UserManagementSeoDev: React.FC = () => {
         ) : (
           <UserTable
             users={managedCustomers}
-            onEdit={handleOpenModal}
+            onEdit={handleOpenUserModal}
             onDelete={() => {}} // Disabled for SEO Dev
             onRestore={() => {}} // Disabled for SEO Dev
-            onOpenMetrics={handleOpenMetricsModal}
+            onOpenMetrics={handleOpenMetrics}
             isSeoDevView={true} // Pass a prop to hide delete/restore
           />
         )}
 
-        <UserModal
-          open={isModalOpen}
-          isEditing={isEditing}
-          currentUser={currentUser}
-          onClose={handleCloseModal}
-          onSave={handleSave}
-          setCurrentUser={setCurrentUser}
-          seoDevs={[]} // Not needed for this view
-          isSeoDevView={true}
-        />
+        {isModalOpen && currentUser && (
+          <UserModal
+            open={isModalOpen}
+            isEditing={isEditing}
+            currentUser={currentUser}
+            onClose={handleCloseUserModal}
+            onSave={handleSaveUser}
+            onSavePassword={handlePasswordUpdate}
+            onFormChange={(name, value) => {
+              dispatch(setCurrentUser({ [name]: value }));
+            }}
+            seoDevs={[]} // Not needed for this view
+            isSeoDevView={true}
+          />
+        )}
 
         {selectedCustomer && (
           <MetricsModal
             open={isMetricsModalOpen}
-            onClose={handleCloseMetricsModal}
+            onClose={handleCloseMetrics}
             customer={selectedCustomer}
             metricsData={metrics}
             keywordsData={keywords}
@@ -134,13 +147,13 @@ const UserManagementSeoDev: React.FC = () => {
             recommendKeywordsData={recommendKeywords}
             onAddRecommendKeyword={handleAddRecommendKeyword}
             onDeleteRecommendKeyword={handleDeleteRecommendKeyword}
-            onOpenHistory={handleOpenHistoryModal}
+            onOpenHistory={handleOpenHistory}
             isHistoryOpen={isHistoryModalOpen}
-            onCloseHistory={handleCloseHistoryModal}
+            onCloseHistory={handleCloseHistory}
             historyData={historyData}
             isKeywordHistoryOpen={isKeywordHistoryModalOpen}
-            onOpenKeywordHistory={handleOpenKeywordHistoryModal}
-            onCloseKeywordHistory={handleCloseKeywordHistoryModal}
+            onOpenKeywordHistory={handleOpenKeywordHistory}
+            onCloseKeywordHistory={handleCloseKeywordHistory}
             keywordHistoryData={keywordHistory}
             selectedKeyword={selectedKeyword}
           />

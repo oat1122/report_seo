@@ -1,26 +1,27 @@
 // src/components/shared/users/hooks/useUserManagementSeoDev.ts
 import { useMemo } from "react";
 import { useSession } from "next-auth/react";
-import { useUserManagement } from "./useUserManagement";
+import { useUserManagementPage } from "./useUserManagementPage"; // เปลี่ยนไปใช้ Hook ใหม่
 import { Role } from "@/types/auth";
 import { User } from "@/types/user";
 
 export const useUserManagementSeoDev = () => {
   const { data: session } = useSession();
-  const userManagement = useUserManagement();
+  const userManagementPage = useUserManagementPage(); // เรียกใช้ Hook ใหม่
 
   const currentSeoDevId = session?.user?.id;
 
+  // Filter `users` จาก Hook ตัวใหม่
   const managedCustomers = useMemo(() => {
-    return userManagement.users.filter(
+    return userManagementPage.users.filter(
       (user: User) =>
         user.role === Role.CUSTOMER &&
         user.customerProfile?.seoDevId === currentSeoDevId
     );
-  }, [userManagement.users, currentSeoDevId]);
+  }, [userManagementPage.users, currentSeoDevId]);
 
   return {
-    ...userManagement,
-    users: managedCustomers, // Override `users` with filtered customers
+    ...userManagementPage, // Return ค่าทั้งหมดจาก Hook ใหม่
+    users: managedCustomers, // และทับค่า `users` ด้วย list ที่ผ่านการ filter แล้ว
   };
 };
