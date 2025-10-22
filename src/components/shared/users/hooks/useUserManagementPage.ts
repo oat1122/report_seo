@@ -47,9 +47,11 @@ import {
 import { Role } from "@/types/auth";
 import axios from "@/lib/axios";
 import { toast } from "react-toastify";
+import { useSession } from "next-auth/react";
 
 export const useUserManagementPage = () => {
   const dispatch = useAppDispatch();
+  const { data: session } = useSession();
 
   // Select all necessary states from Redux
   const {
@@ -127,6 +129,17 @@ export const useUserManagementPage = () => {
     delete infoToUpdate.newPassword;
     delete infoToUpdate.confirmPassword;
     delete infoToUpdate.currentPassword;
+
+    // --- บังคับให้ SEO_DEV ถูกกำหนดเป็นผู้ดูแลเมื่อสร้าง Customer ใหม่ ---
+    if (
+      session?.user?.role === Role.SEO_DEV && // ถ้าคนล็อกอินเป็น SEO_DEV
+      !isEditing && // และกำลังสร้าง User ใหม่
+      infoToUpdate.role === Role.CUSTOMER // และ User ใหม่เป็น CUSTOMER
+    ) {
+      // บังคับให้ seoDevId เป็น ID ของคนสร้าง
+      infoToUpdate.seoDevId = session.user.id;
+    }
+    // --- สิ้นสุด Logic ที่เพิ่ม ---
 
     const action = isEditing ? updateUser(infoToUpdate) : addUser(infoToUpdate);
     const promise = dispatch(action).unwrap();
