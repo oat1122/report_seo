@@ -11,12 +11,7 @@ import {
 } from "@mui/material";
 import { Add } from "@mui/icons-material";
 import { useSession } from "next-auth/react";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import {
-  fetchUsers,
-  fetchSeoDevs,
-  clearUserError,
-} from "@/store/features/users/usersSlice";
+import { useGetUsers, useGetSeoDevs } from "@/hooks/api/useUsersApi";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { UserTable } from "./UserTable";
 import { UserModal } from "./UserModal";
@@ -28,22 +23,14 @@ import { useCustomerMetricsModal } from "./hooks/useCustomerMetricsModal";
 
 const UserManagement: React.FC = () => {
   const { data: session } = useSession();
-  const dispatch = useAppDispatch();
 
-  // Fetch users data
+  // 🆕 React Query: Fetch users and SEO devs
   const {
-    users,
-    seoDevs,
-    status,
+    data: users = [],
+    isLoading: loading,
     error: usersError,
-  } = useAppSelector((state) => state.users);
-
-  React.useEffect(() => {
-    if (status === "idle") {
-      dispatch(fetchUsers());
-      dispatch(fetchSeoDevs());
-    }
-  }, [status, dispatch]);
+  } = useGetUsers(true);
+  const { data: seoDevs = [] } = useGetSeoDevs();
 
   // Use specialized hooks
   const {
@@ -76,6 +63,11 @@ const UserManagement: React.FC = () => {
     historyData,
     isKeywordHistoryModalOpen,
     selectedKeyword,
+    isLoadingMetrics,
+    isLoadingKeywords,
+    isLoadingRecommend,
+    isLoadingCombinedHistory,
+    isLoadingSpecificHistory,
     handleOpenMetrics,
     handleCloseMetrics,
     handleSaveMetrics,
@@ -89,8 +81,6 @@ const UserManagement: React.FC = () => {
     handleOpenKeywordHistory,
     handleCloseKeywordHistory,
   } = useCustomerMetricsModal(users);
-
-  const loading = status === "loading";
 
   return (
     <DashboardLayout>
@@ -131,12 +121,8 @@ const UserManagement: React.FC = () => {
         </Box>
 
         {usersError && (
-          <Alert
-            severity="error"
-            onClose={() => dispatch(clearUserError())}
-            sx={{ mb: 3, borderRadius: 2 }}
-          >
-            {usersError}
+          <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+            {usersError.message || "เกิดข้อผิดพลาดในการโหลดข้อมูล"}
           </Alert>
         )}
 
@@ -181,7 +167,7 @@ const UserManagement: React.FC = () => {
             open={isMetricsModalOpen}
             onClose={handleCloseMetrics}
             customer={selectedCustomer}
-            metricsData={metrics}
+            metricsData={metrics || null}
             keywordsData={keywords}
             onSaveMetrics={handleSaveMetrics}
             onAddKeyword={handleAddKeyword}
@@ -199,6 +185,11 @@ const UserManagement: React.FC = () => {
             onCloseKeywordHistory={handleCloseKeywordHistory}
             keywordHistoryData={keywordHistory}
             selectedKeyword={selectedKeyword}
+            isLoadingMetrics={isLoadingMetrics}
+            isLoadingKeywords={isLoadingKeywords}
+            isLoadingRecommend={isLoadingRecommend}
+            isLoadingCombinedHistory={isLoadingCombinedHistory}
+            isLoadingSpecificHistory={isLoadingSpecificHistory}
           />
         )}
 

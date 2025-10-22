@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth-utils";
+import { Role } from "@/types/auth";
 
 // PUT /api/customers/keywords/[keywordId] - อัปเดต Keyword
 export async function PUT(
@@ -7,7 +9,37 @@ export async function PUT(
   { params }: { params: Promise<{ keywordId: string }> }
 ) {
   try {
+    // 🔒 Authorization: ตรวจสอบ session
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { keywordId } = await params;
+
+    // 🔒 Authorization: ดึงข้อมูล keyword เพื่อตรวจสอบเจ้าของ
+    const existingKeyword = await prisma.keywordReport.findUnique({
+      where: { id: keywordId },
+      include: {
+        customer: {
+          select: { userId: true },
+        },
+      },
+    });
+
+    if (!existingKeyword) {
+      return NextResponse.json({ error: "Keyword not found" }, { status: 404 });
+    }
+
+    // 🔒 Authorization: ตรวจสอบสิทธิ์
+    const isOwner = session.user.id === existingKeyword.customer.userId;
+    const isAdmin = session.user.role === Role.ADMIN;
+    const isSeoDev = session.user.role === Role.SEO_DEV;
+
+    if (!isOwner && !isAdmin && !isSeoDev) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const data = await req.json();
 
     // อัปเดตข้อมูล Keyword
@@ -38,7 +70,37 @@ export async function DELETE(
   { params }: { params: Promise<{ keywordId: string }> }
 ) {
   try {
+    // 🔒 Authorization: ตรวจสอบ session
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { keywordId } = await params;
+
+    // 🔒 Authorization: ดึงข้อมูล keyword เพื่อตรวจสอบเจ้าของ
+    const existingKeyword = await prisma.keywordReport.findUnique({
+      where: { id: keywordId },
+      include: {
+        customer: {
+          select: { userId: true },
+        },
+      },
+    });
+
+    if (!existingKeyword) {
+      return NextResponse.json({ error: "Keyword not found" }, { status: 404 });
+    }
+
+    // 🔒 Authorization: ตรวจสอบสิทธิ์
+    const isOwner = session.user.id === existingKeyword.customer.userId;
+    const isAdmin = session.user.role === Role.ADMIN;
+    const isSeoDev = session.user.role === Role.SEO_DEV;
+
+    if (!isOwner && !isAdmin && !isSeoDev) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     await prisma.keywordReport.delete({
       where: { id: keywordId },
     });

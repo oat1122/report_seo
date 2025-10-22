@@ -20,9 +20,9 @@ interface ReportPageProps {
 
 const ReportPage: React.FC<ReportPageProps> = ({ customerId }) => {
   // ใช้ Custom Hook สำหรับจัดการ Data Fetching และ State
-  const { reportData, reportStatus, error } = useReportPage(customerId);
+  const { reportData, isLoading, error } = useReportPage(customerId);
 
-  if (reportStatus === "loading" || reportStatus === "idle") {
+  if (isLoading) {
     return (
       <Container maxWidth="lg" sx={{ textAlign: "center", py: 8 }}>
         <CircularProgress />
@@ -31,12 +31,10 @@ const ReportPage: React.FC<ReportPageProps> = ({ customerId }) => {
     );
   }
 
-  if (reportStatus === "failed") {
+  if (error) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Alert severity="error">
-          Failed to load report data: {error || "Unknown error"}
-        </Alert>
+        <Alert severity="error">Failed to load report data: {error}</Alert>
       </Container>
     );
   }

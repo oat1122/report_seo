@@ -3,13 +3,14 @@ import { SelectChangeEvent } from "@mui/material";
 import { KDLevel } from "@prisma/client";
 import {
   OverallMetrics,
+  OverallMetricsForm,
   KeywordReport,
   KeywordReportForm,
   KeywordRecommendForm,
 } from "@/types/metrics";
 
 // Hook สำหรับจัดการ Logic ของ MetricsModal
-export const useMetricsModal = (metricsData: OverallMetrics | null) => {
+export const useMetricsModal = (metricsData: OverallMetricsForm | null) => {
   const [metrics, setMetrics] = useState<Record<string, string | number>>({});
   const [newKeyword, setNewKeyword] = useState<KeywordReportForm>({
     keyword: "",

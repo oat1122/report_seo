@@ -14,6 +14,7 @@ import {
   Tabs,
   Tab,
   Tooltip,
+  CircularProgress,
 } from "@mui/material";
 import {
   Save,
@@ -25,11 +26,12 @@ import {
 import { User } from "@/types/user";
 import {
   OverallMetrics,
+  OverallMetricsForm,
   KeywordReport,
   KeywordReportForm,
   KeywordRecommend,
   KeywordRecommendForm,
-} from "@/types/metrics";
+} from "@/types";
 import { OverallMetricsHistory, KeywordReportHistory } from "@/types/history";
 import { KeywordReportSection } from "./KeywordReportSection";
 import { RecommendKeywordSection } from "./RecommendKeywordSection";
@@ -42,9 +44,9 @@ interface MetricsModalProps {
   open: boolean;
   onClose: () => void;
   customer: User | null;
-  metricsData: OverallMetrics | null;
+  metricsData: OverallMetricsForm | null;
   keywordsData: KeywordReport[];
-  onSaveMetrics: (data: Partial<OverallMetrics>) => Promise<void>;
+  onSaveMetrics: (data: Partial<OverallMetricsForm>) => Promise<void>;
   onAddKeyword: (data: KeywordReportForm) => Promise<void>;
   onDeleteKeyword: (id: string) => Promise<void>;
   onUpdateKeyword: (
@@ -68,6 +70,12 @@ interface MetricsModalProps {
   onCloseKeywordHistory: () => void;
   keywordHistoryData: KeywordReportHistory[];
   selectedKeyword: KeywordReport | null;
+  // Loading states
+  isLoadingMetrics?: boolean;
+  isLoadingKeywords?: boolean;
+  isLoadingRecommend?: boolean;
+  isLoadingCombinedHistory?: boolean;
+  isLoadingSpecificHistory?: boolean;
 }
 
 export const MetricsModal: React.FC<MetricsModalProps> = ({
@@ -92,6 +100,11 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
   onCloseKeywordHistory,
   keywordHistoryData,
   selectedKeyword,
+  isLoadingMetrics = false,
+  isLoadingKeywords = false,
+  isLoadingRecommend = false,
+  isLoadingCombinedHistory = false,
+  isLoadingSpecificHistory = false,
 }) => {
   const [tabIndex, setTabIndex] = useState(0);
   const {
@@ -292,6 +305,7 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
         history={historyData.metricsHistory}
         keywordHistory={historyData.keywordHistory}
         customerName={customer.name || ""}
+        isLoading={isLoadingCombinedHistory}
       />
 
       {/* Keyword History Modal */}
@@ -301,6 +315,7 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
           onClose={onCloseKeywordHistory}
           history={keywordHistoryData}
           keywordName={selectedKeyword.keyword}
+          isLoading={isLoadingSpecificHistory}
         />
       )}
     </>

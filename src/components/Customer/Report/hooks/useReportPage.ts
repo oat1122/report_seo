@@ -1,29 +1,27 @@
 // src/components/Customer/Report/hooks/useReportPage.ts
-import { useEffect } from "react";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { fetchReportData } from "@/store/features/metrics/metricsSlice";
+import { useGetCustomerReport } from "@/hooks/api/useCustomersApi";
 
 /**
- * Custom Hook สำหรับจัดการ State และ Logic ของ ReportPage
- * @param customerId - ID ของลูกค้า
- * @returns State ที่เกี่ยวข้องกับ Report (reportData, reportStatus, error)
+ * Custom Hook for ReportPage using React Query
+ * @param customerId - ID of the customer
+ * @returns React Query state for the customer report
  */
 export const useReportPage = (customerId: string) => {
-  const dispatch = useAppDispatch();
-  const { reportData, reportStatus, error } = useAppSelector(
-    (state) => state.metrics
-  );
+  // เรียกใช้ React Query Hook โดยตรง
+  const {
+    data: reportData,
+    isLoading, // ใช้ isLoading สำหรับ Initial Load
+    isFetching, // ใช้ isFetching สำหรับ Background Refetch
+    error,
+    status, // 'loading', 'error', 'success'
+  } = useGetCustomerReport(customerId);
 
-  // ดึงข้อมูล Report เมื่อ customerId เปลี่ยน
-  useEffect(() => {
-    if (customerId) {
-      dispatch(fetchReportData(customerId));
-    }
-  }, [customerId, dispatch]);
-
+  // Return ค่าจาก React Query โดยตรง
   return {
     reportData,
-    reportStatus,
-    error,
+    isLoading, // ส่ง isLoading ให้ Component ใช้
+    isFetching,
+    error: error ? (error as Error).message : null, // จัดการรูปแบบ error
+    reportStatus: status, // ส่ง status ให้ Component (เผื่ออยากใช้)
   };
 };

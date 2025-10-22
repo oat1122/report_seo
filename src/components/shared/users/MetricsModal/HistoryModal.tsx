@@ -9,6 +9,7 @@ import {
   IconButton,
   TableContainer,
   Table,
+  CircularProgress,
   TableHead,
   TableRow,
   TableCell,
@@ -28,6 +29,7 @@ interface HistoryModalProps {
   history: OverallMetricsHistory[];
   keywordHistory?: KeywordReportHistory[];
   customerName: string;
+  isLoading?: boolean;
 }
 
 export const HistoryModal: React.FC<HistoryModalProps> = ({
@@ -36,6 +38,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
   history,
   keywordHistory = [],
   customerName,
+  isLoading = false,
 }) => {
   const [tabIndex, setTabIndex] = useState(0);
 
@@ -106,61 +109,77 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
 
         {/* Overall Metrics History Tab */}
         <TabPanel value={tabIndex} index={0} prefix="history-tabpanel">
-          <TableContainer>
-            <Table stickyHeader>
-              <TableHead>
-                <TableRow>
-                  <TableCell>วันที่บันทึก</TableCell>
-                  <TableCell align="right">DR</TableCell>
-                  <TableCell align="right">Health</TableCell>
-                  <TableCell align="right">Age</TableCell>
-                  <TableCell align="right">Spam</TableCell>
-                  <TableCell align="right">Traffic</TableCell>
-                  <TableCell align="right">Keywords</TableCell>
-                  <TableCell align="right">Backlinks</TableCell>
-                  <TableCell align="right">Ref Domains</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {history.length > 0 ? (
-                  history.map((record) => (
-                    <TableRow key={record.id}>
-                      <TableCell>
-                        {new Date(record.dateRecorded).toLocaleString("th-TH")}
-                      </TableCell>
-                      <TableCell align="right">{record.domainRating}</TableCell>
-                      <TableCell align="right">{record.healthScore}</TableCell>
-                      <TableCell align="right">{record.ageInYears}</TableCell>
-                      <TableCell align="right">{record.spamScore}%</TableCell>
-                      <TableCell align="right">
-                        {record.organicTraffic.toLocaleString()}
-                      </TableCell>
-                      <TableCell align="right">
-                        {record.organicKeywords.toLocaleString()}
-                      </TableCell>
-                      <TableCell align="right">
-                        {record.backlinks.toLocaleString()}
-                      </TableCell>
-                      <TableCell align="right">
-                        {record.refDomains.toLocaleString()}
+          {isLoading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <TableContainer>
+              <Table stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>วันที่บันทึก</TableCell>
+                    <TableCell align="right">DR</TableCell>
+                    <TableCell align="right">Health</TableCell>
+                    <TableCell align="right">Age</TableCell>
+                    <TableCell align="right">Spam</TableCell>
+                    <TableCell align="right">Traffic</TableCell>
+                    <TableCell align="right">Keywords</TableCell>
+                    <TableCell align="right">Backlinks</TableCell>
+                    <TableCell align="right">Ref Domains</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {history.length > 0 ? (
+                    history.map((record) => (
+                      <TableRow key={record.id}>
+                        <TableCell>
+                          {new Date(record.dateRecorded).toLocaleString(
+                            "th-TH"
+                          )}
+                        </TableCell>
+                        <TableCell align="right">
+                          {record.domainRating}
+                        </TableCell>
+                        <TableCell align="right">
+                          {record.healthScore}
+                        </TableCell>
+                        <TableCell align="right">{record.ageInYears}</TableCell>
+                        <TableCell align="right">{record.spamScore}%</TableCell>
+                        <TableCell align="right">
+                          {record.organicTraffic.toLocaleString()}
+                        </TableCell>
+                        <TableCell align="right">
+                          {record.organicKeywords.toLocaleString()}
+                        </TableCell>
+                        <TableCell align="right">
+                          {record.backlinks.toLocaleString()}
+                        </TableCell>
+                        <TableCell align="right">
+                          {record.refDomains.toLocaleString()}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={9} align="center">
+                        ไม่พบข้อมูลประวัติ Overall Metrics
                       </TableCell>
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={9} align="center">
-                      ไม่พบข้อมูลประวัติ Overall Metrics
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
         </TabPanel>
 
         {/* Keywords History Tab */}
         <TabPanel value={tabIndex} index={1} prefix="history-tabpanel">
-          {Object.keys(groupedKeywordHistory).length > 0 ? (
+          {isLoading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : Object.keys(groupedKeywordHistory).length > 0 ? (
             Object.entries(groupedKeywordHistory).map(([keyword, records]) => (
               <Box key={keyword} sx={{ mb: 3 }}>
                 <Typography

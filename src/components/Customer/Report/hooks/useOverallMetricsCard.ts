@@ -1,7 +1,6 @@
 // src/components/Customer/Report/hooks/useOverallMetricsCard.ts
 import { useState } from "react";
-import axios from "@/lib/axios";
-import { showPromiseToast } from "@/components/shared/toast/lib/toastify";
+import { useGetCombinedHistory } from "@/hooks/api/useCustomersApi";
 import { OverallMetricsHistory, KeywordReportHistory } from "@/types/history";
 
 interface HistoryData {
@@ -10,48 +9,37 @@ interface HistoryData {
 }
 
 /**
- * Custom Hook สำหรับจัดการ State และ Logic ของ OverallMetricsCard
- * @param customerId - ID ของลูกค้า
- * @returns State และฟังก์ชันสำหรับจัดการ History Modal
+ * Custom Hook for OverallMetricsCard State and History Modal Logic (using React Query)
+ * @param customerId - ID of the customer
+ * @returns State and functions for History Modal
  */
 export const useOverallMetricsCard = (customerId: string) => {
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
-  const [historyData, setHistoryData] = useState<HistoryData>({
-    metricsHistory: [],
-    keywordHistory: [],
-  });
+  // ใช้ useQuery เพื่อดึงข้อมูล แต่ disable ไว้ก่อน
+  const {
+    data: historyData,
+    isFetching: isHistoryLoading, // ใช้ isFetching เพราะเราจะ trigger ทีหลัง
+    error: historyError,
+    refetch: fetchHistory, // ฟังก์ชันสำหรับสั่งให้ query ทำงาน
+  } = useGetCombinedHistory(isHistoryModalOpen ? customerId : null); // Enable query เมื่อ Modal เปิด
 
-  /**
-   * ฟังก์ชันเปิด Modal และดึงข้อมูลประวัติ
-   */
   const handleOpenHistoryModal = async () => {
-    try {
-      const response = await axios.get(
-        `/customers/${customerId}/metrics/history`
-      );
-      setHistoryData(response.data);
-      setIsHistoryModalOpen(true);
-    } catch (err) {
-      console.error("Failed to fetch metrics history", err);
-      showPromiseToast(Promise.reject(err), {
-        pending: "",
-        success: "",
-        error: "ไม่สามารถโหลดข้อมูลประวัติได้",
-      });
-    }
+    setIsHistoryModalOpen(true);
+    // ไม่ต้อง fetch เองแล้ว React Query จะทำเมื่อ enabled: true
+    // (อาจจะเรียก refetch() ถ้าต้องการโหลดใหม่ทุกครั้งที่เปิด)
+    // await fetchHistory(); // <--- Optional: ถ้าอยากให้โหลดใหม่ทุกครั้งที่เปิด
   };
 
-  /**
-   * ฟังก์ชันปิด Modal และรีเซ็ตข้อมูล
-   */
   const handleCloseHistoryModal = () => {
     setIsHistoryModalOpen(false);
-    setHistoryData({ metricsHistory: [], keywordHistory: [] });
   };
 
   return {
     isHistoryModalOpen,
-    historyData,
+    // ส่งข้อมูล, loading, error จาก React Query
+    historyData: historyData || { metricsHistory: [], keywordHistory: [] }, // Provide default empty state
+    isHistoryLoading,
+    historyError,
     handleOpenHistoryModal,
     handleCloseHistoryModal,
   };

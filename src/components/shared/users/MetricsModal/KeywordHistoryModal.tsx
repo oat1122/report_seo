@@ -11,6 +11,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  CircularProgress,
   TableContainer,
   TableHead,
   TableRow,
@@ -24,6 +25,7 @@ interface KeywordHistoryModalProps {
   onClose: () => void;
   history: KeywordReportHistory[];
   keywordName: string;
+  isLoading?: boolean;
 }
 
 export const KeywordHistoryModal: React.FC<KeywordHistoryModalProps> = ({
@@ -31,6 +33,7 @@ export const KeywordHistoryModal: React.FC<KeywordHistoryModalProps> = ({
   onClose,
   history,
   keywordName,
+  isLoading = false,
 }) => {
   // เรียงลำดับข้อมูลก่อนแสดงผล - ล่าสุดขึ้นก่อน
   const sortedHistory = [...history].sort(
@@ -61,44 +64,50 @@ export const KeywordHistoryModal: React.FC<KeywordHistoryModalProps> = ({
             <Close />
           </IconButton>
         </Box>
-        <TableContainer sx={{ mt: 2 }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>วันที่บันทึก</TableCell>
-                <TableCell align="center">Position</TableCell>
-                <TableCell align="center">Traffic</TableCell>
-                <TableCell align="center">KD</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {sortedHistory.length > 0 ? (
-                sortedHistory.map((record) => (
-                  <TableRow key={record.id}>
-                    <TableCell>
-                      {new Date(record.dateRecorded).toLocaleString("th-TH")}
-                    </TableCell>
-                    <TableCell align="center">
-                      {record.position || "-"}
-                    </TableCell>
-                    <TableCell align="center">
-                      {record.traffic.toLocaleString()}
-                    </TableCell>
-                    <TableCell align="center">
-                      <Chip label={record.kd} size="small" />
+        {isLoading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <TableContainer sx={{ mt: 2 }}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>วันที่บันทึก</TableCell>
+                  <TableCell align="center">Position</TableCell>
+                  <TableCell align="center">Traffic</TableCell>
+                  <TableCell align="center">KD</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {sortedHistory.length > 0 ? (
+                  sortedHistory.map((record) => (
+                    <TableRow key={record.id}>
+                      <TableCell>
+                        {new Date(record.dateRecorded).toLocaleString("th-TH")}
+                      </TableCell>
+                      <TableCell align="center">
+                        {record.position || "-"}
+                      </TableCell>
+                      <TableCell align="center">
+                        {record.traffic.toLocaleString()}
+                      </TableCell>
+                      <TableCell align="center">
+                        <Chip label={record.kd} size="small" />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={4} align="center">
+                      ไม่พบข้อมูลประวัติ
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={4} align="center">
-                    ไม่พบข้อมูลประวัติ
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
       </Paper>
     </Modal>
   );

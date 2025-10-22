@@ -1,45 +1,42 @@
 // src/components/shared/users/hooks/useCustomerMetricsModal.ts
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
-  saveMetrics,
-  addKeyword,
-  deleteKeyword,
-  updateKeyword,
-  addRecommendKeyword,
-  deleteRecommendKeyword,
-  fetchKeywordHistory,
   openMetricsModal,
   closeMetricsModal,
   openHistoryModal,
   closeHistoryModal,
   openKeywordHistoryModal,
   closeKeywordHistoryModal,
-  fetchHistoryData,
-  fetchMetrics,
-  fetchKeywords,
-  fetchRecommendKeywords,
 } from "@/store/features/metrics/metricsSlice";
 import { User } from "@/types/user";
+import {
+  useGetMetrics,
+  useGetKeywords,
+  useGetRecommendKeywords,
+  useSaveMetrics,
+  useAddKeyword,
+  useUpdateKeyword,
+  useDeleteKeyword,
+  useAddRecommendKeyword,
+  useDeleteRecommendKeyword,
+  useGetCombinedHistory,
+  useGetKeywordSpecificHistory,
+} from "@/hooks/api/useCustomersApi";
 import { showPromiseToast } from "../../toast/lib/toastify";
 import {
   KeywordReport,
   KeywordReportForm,
   KeywordRecommendForm,
-  OverallMetrics,
   OverallMetricsForm,
 } from "@/types";
 
 export const useCustomerMetricsModal = (users: User[]) => {
   const dispatch = useAppDispatch();
+  // ดึงเฉพาะ UI State จาก Redux
   const {
-    metrics,
-    keywords,
-    recommendKeywords,
-    keywordHistory,
     isMetricsModalOpen,
     selectedCustomerId,
     isHistoryModalOpen,
-    historyData,
     isKeywordHistoryModalOpen,
     selectedKeyword,
   } = useAppSelector((state) => state.metrics);
@@ -47,30 +44,62 @@ export const useCustomerMetricsModal = (users: User[]) => {
   const selectedCustomer =
     users.find((u) => u.id === selectedCustomerId) || null;
 
+  // --- ใช้ React Query Hooks ---
+  const {
+    data: metricsData,
+    isLoading: isLoadingMetrics,
+    error: errorMetrics,
+  } = useGetMetrics(selectedCustomerId || "");
+
+  const {
+    data: keywordsData = [],
+    isLoading: isLoadingKeywords,
+    error: errorKeywords,
+  } = useGetKeywords(selectedCustomerId || "");
+
+  const {
+    data: recommendKeywordsData = [],
+    isLoading: isLoadingRecommend,
+    error: errorRecommend,
+  } = useGetRecommendKeywords(selectedCustomerId || "");
+
+  const {
+    data: combinedHistoryData,
+    isFetching: isLoadingCombinedHistory,
+    error: errorCombinedHistory,
+    refetch: fetchCombinedHistory,
+  } = useGetCombinedHistory(isHistoryModalOpen ? selectedCustomerId : null);
+
+  const {
+    data: specificKeywordHistoryData = [],
+    isFetching: isLoadingSpecificHistory,
+    error: errorSpecificHistory,
+  } = useGetKeywordSpecificHistory(
+    isKeywordHistoryModalOpen ? selectedKeyword?.id ?? null : null
+  );
+
+  // --- ใช้ React Query Mutations ---
+  const saveMetricsMutation = useSaveMetrics();
+  const addKeywordMutation = useAddKeyword();
+  const updateKeywordMutation = useUpdateKeyword();
+  const deleteKeywordMutation = useDeleteKeyword();
+  const addRecommendKeywordMutation = useAddRecommendKeyword();
+  const deleteRecommendKeywordMutation = useDeleteRecommendKeyword();
+
+  // --- แก้ไข Handler Functions ---
   const handleOpenMetrics = (user: User) => {
     dispatch(openMetricsModal(user));
-    const promise = Promise.all([
-      dispatch(fetchMetrics(user.id)).unwrap(),
-      dispatch(fetchKeywords(user.id)).unwrap(),
-      dispatch(fetchRecommendKeywords(user.id)).unwrap(),
-    ]);
-    showPromiseToast(promise, {
-      pending: "กำลังโหลดข้อมูลลูกค้า...",
-      success: "โหลดข้อมูลสำเร็จ!",
-      error: "ไม่สามารถโหลดข้อมูลได้",
-    });
+    // ไม่ต้อง dispatch(fetch...) แล้ว React Query จะ fetch เองเมื่อ selectedCustomerId เปลี่ยน
   };
 
   const handleCloseMetrics = () => dispatch(closeMetricsModal());
 
-  const handleSaveMetrics = async (data: Partial<OverallMetrics>) => {
+  const handleSaveMetrics = async (data: Partial<OverallMetricsForm>) => {
     if (!selectedCustomerId) return;
-    const promise = dispatch(
-      saveMetrics({
-        customerId: selectedCustomerId,
-        data: data as OverallMetricsForm,
-      })
-    ).unwrap();
+    const promise = saveMetricsMutation.mutateAsync({
+      customerId: selectedCustomerId,
+      metrics: data as OverallMetricsForm,
+    });
     showPromiseToast(promise, {
       pending: "กำลังบันทึก Metrics...",
       success: "บันทึก Metrics สำเร็จ!",
@@ -80,9 +109,10 @@ export const useCustomerMetricsModal = (users: User[]) => {
 
   const handleAddKeyword = async (keyword: KeywordReportForm) => {
     if (!selectedCustomerId) return;
-    const promise = dispatch(
-      addKeyword({ customerId: selectedCustomerId, data: keyword })
-    ).unwrap();
+    const promise = addKeywordMutation.mutateAsync({
+      customerId: selectedCustomerId,
+      keyword: keyword,
+    });
     showPromiseToast(promise, {
       pending: "กำลังเพิ่ม Keyword...",
       success: "เพิ่ม Keyword สำเร็จ!",
@@ -91,7 +121,7 @@ export const useCustomerMetricsModal = (users: User[]) => {
   };
 
   const handleDeleteKeyword = async (keywordId: string) => {
-    const promise = dispatch(deleteKeyword(keywordId)).unwrap();
+    const promise = deleteKeywordMutation.mutateAsync(keywordId);
     showPromiseToast(promise, {
       pending: "กำลังลบ Keyword...",
       success: "ลบ Keyword สำเร็จ!",
@@ -103,7 +133,10 @@ export const useCustomerMetricsModal = (users: User[]) => {
     keywordId: string,
     data: KeywordReportForm
   ) => {
-    const promise = dispatch(updateKeyword({ keywordId, data })).unwrap();
+    const promise = updateKeywordMutation.mutateAsync({
+      keywordId: keywordId,
+      keyword: data,
+    });
     showPromiseToast(promise, {
       pending: "กำลังอัปเดต Keyword...",
       success: "อัปเดต Keyword สำเร็จ!",
@@ -113,9 +146,10 @@ export const useCustomerMetricsModal = (users: User[]) => {
 
   const handleAddRecommendKeyword = async (keyword: KeywordRecommendForm) => {
     if (!selectedCustomerId) return;
-    const promise = dispatch(
-      addRecommendKeyword({ customerId: selectedCustomerId, data: keyword })
-    ).unwrap();
+    const promise = addRecommendKeywordMutation.mutateAsync({
+      customerId: selectedCustomerId,
+      keyword: keyword,
+    });
     showPromiseToast(promise, {
       pending: "กำลังเพิ่ม Recommend Keyword...",
       success: "เพิ่ม Recommend Keyword สำเร็จ!",
@@ -124,7 +158,7 @@ export const useCustomerMetricsModal = (users: User[]) => {
   };
 
   const handleDeleteRecommendKeyword = async (recommendId: string) => {
-    const promise = dispatch(deleteRecommendKeyword(recommendId)).unwrap();
+    const promise = deleteRecommendKeywordMutation.mutateAsync(recommendId);
     showPromiseToast(promise, {
       pending: "กำลังลบ Recommend Keyword...",
       success: "ลบ Recommend Keyword สำเร็จ!",
@@ -133,42 +167,42 @@ export const useCustomerMetricsModal = (users: User[]) => {
   };
 
   const handleOpenHistory = () => {
-    if (!selectedCustomerId) return;
-    const promise = dispatch(fetchHistoryData(selectedCustomerId)).unwrap();
-    showPromiseToast(promise, {
-      pending: "กำลังโหลดประวัติ...",
-      success: "โหลดประวัติสำเร็จ!",
-      error: "ไม่สามารถโหลดประวัติได้",
-    });
+    dispatch(openHistoryModal());
+    // ไม่ต้อง dispatch(fetch...) แล้ว
   };
 
   const handleCloseHistory = () => dispatch(closeHistoryModal());
 
   const handleOpenKeywordHistory = (keyword: KeywordReport) => {
     dispatch(openKeywordHistoryModal(keyword));
-    const promise = dispatch(fetchKeywordHistory(keyword.id)).unwrap();
-    showPromiseToast(promise, {
-      pending: "กำลังโหลดประวัติ Keyword...",
-      success: "โหลดประวัติ Keyword สำเร็จ!",
-      error: "ไม่สามารถโหลดประวัติ Keyword ได้",
-    });
+    // ไม่ต้อง dispatch(fetch...) แล้ว
   };
 
   const handleCloseKeywordHistory = () => dispatch(closeKeywordHistoryModal());
 
+  // --- Return ค่า ---
   return {
-    // State
-    metrics,
-    keywords,
-    recommendKeywords,
-    keywordHistory,
+    // State (จาก React Query และ Redux UI State)
+    metrics: metricsData,
+    keywords: keywordsData,
+    recommendKeywords: recommendKeywordsData,
+    keywordHistory: specificKeywordHistoryData,
     isMetricsModalOpen,
     selectedCustomer,
     isHistoryModalOpen,
-    historyData,
+    historyData: combinedHistoryData || {
+      metricsHistory: [],
+      keywordHistory: [],
+    },
     isKeywordHistoryModalOpen,
     selectedKeyword,
-    // Actions
+    // Loading States (Optional: ส่งให้ Component จัดการ)
+    isLoadingMetrics,
+    isLoadingKeywords,
+    isLoadingRecommend,
+    isLoadingCombinedHistory,
+    isLoadingSpecificHistory,
+    // Actions/Handlers
     handleOpenMetrics,
     handleCloseMetrics,
     handleSaveMetrics,

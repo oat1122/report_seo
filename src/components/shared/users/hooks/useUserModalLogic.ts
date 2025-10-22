@@ -3,11 +3,13 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   openUserModal,
   closeUserModal,
-  addUser,
-  updateUser,
-  updatePassword,
   setCurrentUser,
 } from "@/store/features/users/usersSlice";
+import {
+  useAddUser,
+  useUpdateUser,
+  useUpdatePassword,
+} from "@/hooks/api/useUsersApi";
 import { User } from "@/types/user";
 import { showPromiseToast } from "../../toast/lib/toastify";
 import axios from "@/lib/axios";
@@ -19,6 +21,11 @@ export const useUserModalLogic = () => {
   const { isModalOpen, isEditing, currentUser } = useAppSelector(
     (state) => state.users
   );
+
+  // 🆕 React Query Mutations
+  const addUserMutation = useAddUser();
+  const updateUserMutation = useUpdateUser();
+  const updatePasswordMutation = useUpdatePassword();
 
   const handleOpenUserModal = async (user?: User) => {
     if (user && user.role === Role.CUSTOMER) {
@@ -58,14 +65,26 @@ export const useUserModalLogic = () => {
       infoToUpdate.seoDevId = sessionUser.id;
     }
 
-    const action = isEditing ? updateUser(infoToUpdate) : addUser(infoToUpdate);
-    const promise = dispatch(action).unwrap();
+    // 🆕 Use React Query mutations
+    const promise = isEditing
+      ? updateUserMutation.mutateAsync({
+          id: infoToUpdate.id!,
+          user: infoToUpdate,
+        })
+      : addUserMutation.mutateAsync(infoToUpdate);
 
     showPromiseToast(promise, {
       pending: "กำลังบันทึกข้อมูล...",
       success: isEditing ? "อัปเดตผู้ใช้สำเร็จ!" : "เพิ่มผู้ใช้สำเร็จ!",
       error: "เกิดข้อผิดพลาดในการบันทึก",
     });
+
+    try {
+      await promise;
+      dispatch(closeUserModal());
+    } catch (error) {
+      // Error is already handled by the mutation
+    }
   };
 
   const handlePasswordUpdate = () => {
@@ -76,15 +95,20 @@ export const useUserModalLogic = () => {
       return;
     }
 
-    const promise = dispatch(
-      updatePassword({ userId: currentUser.id, values: currentUser })
-    ).unwrap();
+    // 🆕 Use React Query mutation
+    const promise = updatePasswordMutation.mutateAsync({
+      id: currentUser.id,
+      currentPassword: currentUser.currentPassword,
+      newPassword: currentUser.newPassword,
+    });
 
     showPromiseToast(promise, {
       pending: "กำลังอัปเดตรหัสผ่าน...",
       success: "อัปเดตรหัสผ่านสำเร็จ!",
       error: "ไม่สามารถอัปเดตรหัสผ่านได้",
     });
+
+    promise.then(() => dispatch(closeUserModal())).catch(() => {});
   };
 
   const handleFormChange = (name: string, value: unknown) => {

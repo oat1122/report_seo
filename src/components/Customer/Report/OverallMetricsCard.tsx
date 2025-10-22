@@ -9,7 +9,7 @@ import {
   IconButton,
   Tooltip,
 } from "@mui/material";
-import { OverallMetrics } from "@/types/metrics";
+import { OverallMetrics, OverallMetricsForm } from "@/types/metrics";
 import {
   Traffic,
   VpnKey,
@@ -149,7 +149,7 @@ const CustomLinearProgress = ({
 // --- Main Component ---
 
 interface OverallMetricsCardProps {
-  metrics: OverallMetrics | null;
+  metrics: OverallMetricsForm | null;
   customerId: string;
   customerName: string;
 }
@@ -163,6 +163,7 @@ export const OverallMetricsCard: React.FC<OverallMetricsCardProps> = ({
   const {
     isHistoryModalOpen,
     historyData,
+    isHistoryLoading,
     handleOpenHistoryModal,
     handleCloseHistoryModal,
   } = useOverallMetricsCard(customerId);
@@ -272,6 +273,7 @@ export const OverallMetricsCard: React.FC<OverallMetricsCardProps> = ({
         history={historyData.metricsHistory}
         keywordHistory={historyData.keywordHistory}
         customerName={customerName}
+        isLoading={isHistoryLoading}
       />
     </>
   );

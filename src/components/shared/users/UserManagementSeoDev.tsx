@@ -79,6 +79,11 @@ const UserManagementSeoDev: React.FC = () => {
     historyData,
     isKeywordHistoryModalOpen,
     selectedKeyword,
+    isLoadingMetrics,
+    isLoadingKeywords,
+    isLoadingRecommend,
+    isLoadingCombinedHistory,
+    isLoadingSpecificHistory,
     handleOpenMetrics,
     handleCloseMetrics,
     handleSaveMetrics,
@@ -173,7 +178,7 @@ const UserManagementSeoDev: React.FC = () => {
             open={isMetricsModalOpen}
             onClose={handleCloseMetrics}
             customer={selectedCustomer}
-            metricsData={metrics}
+            metricsData={metrics || null}
             keywordsData={keywords}
             onSaveMetrics={handleSaveMetrics}
             onAddKeyword={handleAddKeyword}
@@ -191,6 +196,11 @@ const UserManagementSeoDev: React.FC = () => {
             onCloseKeywordHistory={handleCloseKeywordHistory}
             keywordHistoryData={keywordHistory}
             selectedKeyword={selectedKeyword}
+            isLoadingMetrics={isLoadingMetrics}
+            isLoadingKeywords={isLoadingKeywords}
+            isLoadingRecommend={isLoadingRecommend}
+            isLoadingCombinedHistory={isLoadingCombinedHistory}
+            isLoadingSpecificHistory={isLoadingSpecificHistory}
           />
         )}
       </Container>
