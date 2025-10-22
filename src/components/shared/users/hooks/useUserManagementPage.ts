@@ -92,14 +92,27 @@ export const useUserManagementPage = () => {
   const handleOpenUserModal = async (user?: User) => {
     if (user && user.role === Role.CUSTOMER) {
       try {
+        // 1. ดึงข้อมูล User จาก API
         const response = await axios.get(`/users/${user.id}`);
-        dispatch(openUserModal({ ...response.data } as User));
+        const apiUserData = response.data; // นี่คือข้อมูลที่มี customerProfile ซ้อนอยู่
+
+        // 2. สร้าง Object ใหม่ (Flatten) เพื่อให้ตรงกับ FormState
+        // โดยดึงข้อมูลจาก customerProfile มาไว้ที่ระดับบนสุด
+        const flattenedData = {
+          ...apiUserData, // สเปรดข้อมูลหลัก (id, name, email, role)
+          companyName: apiUserData.customerProfile?.name || "",
+          domain: apiUserData.customerProfile?.domain || "",
+          seoDevId: apiUserData.customerProfile?.seoDevId || null,
+        };
+
+        // 3. Dispatch ข้อมูลที่แปลงแล้วเข้าไปใน Redux
+        dispatch(openUserModal(flattenedData));
       } catch (err) {
         console.error("Failed to fetch customer data:", err);
-        dispatch(openUserModal(user));
+        dispatch(openUserModal(user)); // ใช้ข้อมูลเดิมถ้าดึงข้อมูลใหม่ไม่สำเร็จ
       }
     } else {
-      dispatch(openUserModal(user));
+      dispatch(openUserModal(user)); // สำหรับ User ประเภทอื่น (Admin, SEO_Dev)
     }
   };
 

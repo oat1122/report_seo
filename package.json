@@ -10,7 +10,9 @@
     "seed": "tsx prisma/seed.ts",
     "prisma:migrate:prod": "dotenv -e .env.production -- prisma migrate deploy",
     "db:seed:prod": "dotenv -e .env.production -- tsx prisma/seed.ts",
-    "deploy:prod": "npm install && npm run prisma:migrate:prod && npm run build"
+    "deploy:prod": "npm install && npm run prisma:migrate:prod && npm run build",
+    "prisma:generate": "npx prisma generate",
+    "gen:secret": "node -e \"console.log(require('crypto').randomBytes(32).toString('base64'))\""
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.0",
