@@ -10,28 +10,7 @@ export async function PUT(
     const { keywordId } = await params;
     const data = await req.json();
 
-    // 1. ค้นหา Keyword ที่มีอยู่
-    const existingKeyword = await prisma.keywordReport.findUnique({
-      where: { id: keywordId },
-    });
-
-    if (!existingKeyword) {
-      return NextResponse.json({ error: "Keyword not found" }, { status: 404 });
-    }
-
-    // 2. บันทึกข้อมูลเก่าลงในตาราง History
-    await prisma.keywordReportHistory.create({
-      data: {
-        keyword: existingKeyword.keyword,
-        position: existingKeyword.position,
-        traffic: existingKeyword.traffic,
-        kd: existingKeyword.kd,
-        isTopReport: existingKeyword.isTopReport,
-        reportId: existingKeyword.id, // เชื่อมกับ report หลัก
-      },
-    });
-
-    // 3. อัปเดตข้อมูล Keyword
+    // อัปเดตข้อมูล Keyword
     const updatedKeyword = await prisma.keywordReport.update({
       where: { id: keywordId },
       data: {

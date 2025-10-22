@@ -10,29 +10,62 @@ import {
   Alert,
 } from "@mui/material";
 import { Add } from "@mui/icons-material";
+import { useSession } from "next-auth/react";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  fetchUsers,
+  fetchSeoDevs,
+  clearUserError,
+} from "@/store/features/users/usersSlice";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { UserTable } from "./UserTable";
 import { UserModal } from "./UserModal";
 import { MetricsModal } from "./MetricsModal/MetricsModal";
 import { ConfirmAlert } from "../ConfirmAlert";
-import { useUserManagementPage } from "./hooks/useUserManagementPage";
-import {
-  setCurrentUser,
-  hideConfirmation,
-  clearUserError,
-} from "@/store/features/users/usersSlice";
+import { useUserModalLogic } from "./hooks/useUserModalLogic";
+import { useUserConfirmDialog } from "./hooks/useUserConfirmDialog";
+import { useCustomerMetricsModal } from "./hooks/useCustomerMetricsModal";
 
 const UserManagement: React.FC = () => {
-  // Call the new hook to get all state and logic
+  const { data: session } = useSession();
+  const dispatch = useAppDispatch();
+
+  // Fetch users data
   const {
     users,
     seoDevs,
     status,
-    usersError,
+    error: usersError,
+  } = useAppSelector((state) => state.users);
+
+  React.useEffect(() => {
+    if (status === "idle") {
+      dispatch(fetchUsers());
+      dispatch(fetchSeoDevs());
+    }
+  }, [status, dispatch]);
+
+  // Use specialized hooks
+  const {
     isModalOpen,
     isEditing,
     currentUser,
+    handleOpenUserModal,
+    handleCloseUserModal,
+    handleSaveUser,
+    handlePasswordUpdate,
+    handleFormChange,
+  } = useUserModalLogic();
+
+  const {
     confirmState,
+    handleDeleteUser,
+    handleRestoreUser,
+    handleConfirmAction,
+    handleCloseConfirm,
+  } = useUserConfirmDialog();
+
+  const {
     metrics,
     keywords,
     recommendKeywords,
@@ -43,13 +76,6 @@ const UserManagement: React.FC = () => {
     historyData,
     isKeywordHistoryModalOpen,
     selectedKeyword,
-    handleOpenUserModal,
-    handleCloseUserModal,
-    handleSaveUser,
-    handlePasswordUpdate,
-    handleDeleteUser,
-    handleRestoreUser,
-    handleConfirmAction,
     handleOpenMetrics,
     handleCloseMetrics,
     handleSaveMetrics,
@@ -62,8 +88,7 @@ const UserManagement: React.FC = () => {
     handleCloseHistory,
     handleOpenKeywordHistory,
     handleCloseKeywordHistory,
-    dispatch,
-  } = useUserManagementPage();
+  } = useCustomerMetricsModal(users);
 
   const loading = status === "loading";
 
@@ -142,11 +167,11 @@ const UserManagement: React.FC = () => {
             isEditing={isEditing}
             currentUser={currentUser}
             onClose={handleCloseUserModal}
-            onSave={handleSaveUser}
+            onSave={() =>
+              handleSaveUser(session?.user as { id: string; role: any })
+            }
             onSavePassword={handlePasswordUpdate}
-            onFormChange={(name, value) => {
-              dispatch(setCurrentUser({ [name]: value }));
-            }}
+            onFormChange={handleFormChange}
             seoDevs={seoDevs}
           />
         )}
@@ -179,7 +204,7 @@ const UserManagement: React.FC = () => {
 
         <ConfirmAlert
           open={confirmState.isOpen}
-          onClose={() => dispatch(hideConfirmation())}
+          onClose={handleCloseConfirm}
           onConfirm={handleConfirmAction}
           title={confirmState.title}
           message={confirmState.message}

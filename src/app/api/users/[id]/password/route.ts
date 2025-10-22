@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import bcrypt from "bcrypt";
+import { userService } from "@/services/UserService";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { Role } from "@/types/auth";
@@ -19,8 +18,6 @@ export async function PUT(
     const { id } = await params;
     const { currentPassword, newPassword, confirmPassword } = await req.json();
 
-    // Admin can change anyone's password without the current password
-    // SEO Dev can only change their own password and must provide the current one
     const isOwner = session.user.id === id;
     const isAdmin = session.user.role === Role.ADMIN;
 
@@ -35,44 +32,21 @@ export async function PUT(
       );
     }
 
-    const userToUpdate = await prisma.user.findUnique({ where: { id } });
-
-    if (!userToUpdate) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    // If not admin, verify current password
-    if (!isAdmin) {
-      if (!currentPassword || !userToUpdate.password) {
-        return NextResponse.json(
-          { error: "Current password is required" },
-          { status: 400 }
-        );
-      }
-      const isPasswordValid = await bcrypt.compare(
-        currentPassword,
-        userToUpdate.password
-      );
-      if (!isPasswordValid) {
-        return NextResponse.json(
-          { error: "Invalid current password" },
-          { status: 400 }
-        );
-      }
-    }
-
-    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-
-    await prisma.user.update({
-      where: { id },
-      data: {
-        password: hashedNewPassword,
-      },
-    });
+    await userService.updatePassword(id, currentPassword, newPassword, isAdmin);
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error("Failed to update password:", error);
+
+    const errorMessage = (error as Error).message;
+
+    if (errorMessage === "User not found") {
+      return NextResponse.json({ error: errorMessage }, { status: 404 });
+    }
+    if (errorMessage.includes("password")) {
+      return NextResponse.json({ error: errorMessage }, { status: 400 });
+    }
+
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }

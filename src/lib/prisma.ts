@@ -8,9 +8,9 @@ const prismaBase = new PrismaClient({
   log: ["query", "info", "warn", "error"],
 });
 
-// Extend Prisma Client with soft delete middleware
+// Extend Prisma Client with soft delete and history middleware
 export const prisma = prismaBase.$extends({
-  name: "softDelete",
+  name: "softDeleteAndHistory",
   query: {
     user: {
       // เปลี่ยน delete เป็น update (soft delete)
@@ -64,6 +64,74 @@ export const prisma = prismaBase.$extends({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ((args.where as any).deletedAt === undefined) {
           args.where = { ...args.where, deletedAt: null };
+        }
+        return query(args);
+      },
+    },
+
+    // --- Middleware สำหรับ OverallMetrics ---
+    overallMetrics: {
+      async update({ args, query }) {
+        const existingMetrics = await prismaBase.overallMetrics.findUnique({
+          where: args.where,
+        });
+        if (existingMetrics) {
+          await prismaBase.overallMetricsHistory.create({
+            data: {
+              domainRating: existingMetrics.domainRating,
+              healthScore: existingMetrics.healthScore,
+              ageInYears: existingMetrics.ageInYears,
+              spamScore: existingMetrics.spamScore,
+              organicTraffic: existingMetrics.organicTraffic,
+              organicKeywords: existingMetrics.organicKeywords,
+              backlinks: existingMetrics.backlinks,
+              refDomains: existingMetrics.refDomains,
+              customerId: existingMetrics.customerId,
+            },
+          });
+        }
+        return query(args);
+      },
+      async upsert({ args, query }) {
+        const existingMetrics = await prismaBase.overallMetrics.findUnique({
+          where: args.where,
+        });
+        if (existingMetrics) {
+          await prismaBase.overallMetricsHistory.create({
+            data: {
+              domainRating: existingMetrics.domainRating,
+              healthScore: existingMetrics.healthScore,
+              ageInYears: existingMetrics.ageInYears,
+              spamScore: existingMetrics.spamScore,
+              organicTraffic: existingMetrics.organicTraffic,
+              organicKeywords: existingMetrics.organicKeywords,
+              backlinks: existingMetrics.backlinks,
+              refDomains: existingMetrics.refDomains,
+              customerId: existingMetrics.customerId,
+            },
+          });
+        }
+        return query(args);
+      },
+    },
+
+    // --- Middleware สำหรับ KeywordReport ---
+    keywordReport: {
+      async update({ args, query }) {
+        const existingKeyword = await prismaBase.keywordReport.findUnique({
+          where: args.where,
+        });
+        if (existingKeyword) {
+          await prismaBase.keywordReportHistory.create({
+            data: {
+              keyword: existingKeyword.keyword,
+              position: existingKeyword.position,
+              traffic: existingKeyword.traffic,
+              kd: existingKeyword.kd,
+              isTopReport: existingKeyword.isTopReport,
+              reportId: existingKeyword.id,
+            },
+          });
         }
         return query(args);
       },

@@ -1,6 +1,7 @@
+// src/components/shared/users/UserManagementSeoDev.tsx
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import {
   Box,
   Container,
@@ -10,25 +11,64 @@ import {
   Alert,
 } from "@mui/material";
 import { Add } from "@mui/icons-material";
+import { useSession } from "next-auth/react";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  fetchUsers,
+  fetchSeoDevs,
+  clearUserError,
+} from "@/store/features/users/usersSlice";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { UserTable } from "./UserTable";
 import { UserModal } from "./UserModal";
 import { MetricsModal } from "./MetricsModal/MetricsModal";
-import { useUserManagementSeoDev } from "./hooks/useUserManagementSeoDev";
-import {
-  setCurrentUser,
-  clearUserError,
-} from "@/store/features/users/usersSlice";
+import { useUserModalLogic } from "./hooks/useUserModalLogic";
+import { useCustomerMetricsModal } from "./hooks/useCustomerMetricsModal";
+import { Role } from "@/types/auth";
+import { User } from "@/types/user";
 
 const UserManagementSeoDev: React.FC = () => {
-  // Destructure ค่าที่ถูกต้องจาก Hook ที่อัปเดตแล้ว
+  const { data: session } = useSession();
+  const dispatch = useAppDispatch();
+
+  // 1. ดึงข้อมูล Users และ SeoDevs ทั้งหมดจาก Redux
   const {
-    users: managedCustomers,
+    users: allUsers,
+    seoDevs,
     status,
-    usersError, // เปลี่ยนจาก error เป็น usersError
+    error: usersError,
+  } = useAppSelector((state) => state.users);
+
+  React.useEffect(() => {
+    if (status === "idle") {
+      dispatch(fetchUsers());
+      dispatch(fetchSeoDevs());
+    }
+  }, [status, dispatch]);
+
+  // 2. กรองข้อมูลเฉพาะลูกค้าของ SEO Dev ที่ล็อกอินอยู่
+  const currentSeoDevId = session?.user?.id;
+  const managedCustomers = useMemo(() => {
+    return allUsers.filter(
+      (user: User) =>
+        user.role === Role.CUSTOMER &&
+        user.customerProfile?.seoDevId === currentSeoDevId
+    );
+  }, [allUsers, currentSeoDevId]);
+
+  // 3. เรียกใช้ Hooks ใหม่ (เหมือนกับ UserManagement.tsx)
+  const {
     isModalOpen,
     isEditing,
     currentUser,
+    handleOpenUserModal,
+    handleCloseUserModal,
+    handleSaveUser,
+    handlePasswordUpdate,
+    handleFormChange,
+  } = useUserModalLogic();
+
+  const {
     metrics,
     keywords,
     recommendKeywords,
@@ -39,10 +79,6 @@ const UserManagementSeoDev: React.FC = () => {
     historyData,
     isKeywordHistoryModalOpen,
     selectedKeyword,
-    handleOpenUserModal,
-    handleCloseUserModal,
-    handleSaveUser,
-    handlePasswordUpdate,
     handleOpenMetrics,
     handleCloseMetrics,
     handleSaveMetrics,
@@ -55,8 +91,7 @@ const UserManagementSeoDev: React.FC = () => {
     handleCloseHistory,
     handleOpenKeywordHistory,
     handleCloseKeywordHistory,
-    dispatch,
-  } = useUserManagementSeoDev();
+  } = useCustomerMetricsModal(managedCustomers);
 
   const loading = status === "loading";
 
@@ -123,12 +158,12 @@ const UserManagementSeoDev: React.FC = () => {
             isEditing={isEditing}
             currentUser={currentUser}
             onClose={handleCloseUserModal}
-            onSave={handleSaveUser}
+            onSave={() =>
+              handleSaveUser(session?.user as { id: string; role: Role })
+            }
             onSavePassword={handlePasswordUpdate}
-            onFormChange={(name, value) => {
-              dispatch(setCurrentUser({ [name]: value }));
-            }}
-            seoDevs={[]} // Not needed for this view
+            onFormChange={handleFormChange}
+            seoDevs={[]}
             isSeoDevView={true}
           />
         )}

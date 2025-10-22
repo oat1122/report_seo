@@ -1,3 +1,4 @@
 // src/components/shared/users/hooks/index.ts
-export { useUserManagement } from "./useUserManagement";
-export { useUserManagementSeoDev } from "./useUserManagementSeoDev";
+export { useUserModalLogic } from "./useUserModalLogic";
+export { useUserConfirmDialog } from "./useUserConfirmDialog";
+export { useCustomerMetricsModal } from "./useCustomerMetricsModal";

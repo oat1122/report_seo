@@ -1,0 +1,67 @@
+// src/components/shared/users/hooks/useUserConfirmDialog.ts
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  showConfirmation,
+  hideConfirmation,
+  deleteUser,
+  restoreUser,
+} from "@/store/features/users/usersSlice";
+import { showPromiseToast } from "../../toast/lib/toastify";
+
+export const useUserConfirmDialog = () => {
+  const dispatch = useAppDispatch();
+  const { confirmState } = useAppSelector((state) => state.users);
+
+  const handleDeleteUser = (id: string) => {
+    dispatch(
+      showConfirmation({
+        title: "ยืนยันการลบ",
+        message: "คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้งานนี้?",
+        actionType: "delete",
+        targetId: id,
+      })
+    );
+  };
+
+  const handleRestoreUser = (id: string) => {
+    dispatch(
+      showConfirmation({
+        title: "ยืนยันการกู้คืน",
+        message: "คุณแน่ใจหรือไม่ว่าต้องการกู้คืนผู้ใช้งานนี้?",
+        actionType: "restore",
+        targetId: id,
+      })
+    );
+  };
+
+  const handleConfirmAction = () => {
+    if (!confirmState.actionType || !confirmState.targetId) return;
+    let promise;
+    if (confirmState.actionType === "delete") {
+      promise = dispatch(deleteUser(confirmState.targetId)).unwrap();
+      showPromiseToast(promise, {
+        pending: "กำลังลบผู้ใช้...",
+        success: "ผู้ใช้ถูกลบเรียบร้อยแล้ว",
+        error: "เกิดข้อผิดพลาดในการลบ",
+      });
+    } else if (confirmState.actionType === "restore") {
+      promise = dispatch(restoreUser(confirmState.targetId)).unwrap();
+      showPromiseToast(promise, {
+        pending: "กำลังกู้คืนผู้ใช้...",
+        success: "กู้คืนผู้ใช้สำเร็จ!",
+        error: "เกิดข้อผิดพลาดในการกู้คืน",
+      });
+    }
+    dispatch(hideConfirmation());
+  };
+
+  const handleCloseConfirm = () => dispatch(hideConfirmation());
+
+  return {
+    confirmState,
+    handleDeleteUser,
+    handleRestoreUser,
+    handleConfirmAction,
+    handleCloseConfirm,
+  };
+};

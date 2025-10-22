@@ -64,28 +64,6 @@ export async function POST(
       );
     }
 
-    // 1. ดึงข้อมูล Metrics ที่มีอยู่เดิม
-    const existingMetrics = await prisma.overallMetrics.findUnique({
-      where: { customerId: customer.id },
-    });
-
-    // 2. ถ้ามีข้อมูลเดิม ให้บันทึกลง History ก่อน
-    if (existingMetrics) {
-      await prisma.overallMetricsHistory.create({
-        data: {
-          domainRating: existingMetrics.domainRating,
-          healthScore: existingMetrics.healthScore,
-          ageInYears: existingMetrics.ageInYears,
-          spamScore: existingMetrics.spamScore,
-          organicTraffic: existingMetrics.organicTraffic,
-          organicKeywords: existingMetrics.organicKeywords,
-          backlinks: existingMetrics.backlinks,
-          refDomains: existingMetrics.refDomains,
-          customerId: customer.id,
-        },
-      });
-    }
-
     const json = await req.json();
 
     // --- Validate ข้อมูลด้วย Zod ---

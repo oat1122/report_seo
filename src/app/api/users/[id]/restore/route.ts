@@ -1,29 +1,14 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { userService } from "@/services/UserService";
 
-// PUT /api/users/[id]/restore
-// อัปเดต field `deletedAt` ให้เป็น null
+// PUT /api/users/[id]/restore - Restore ผู้ใช้ที่ถูก Soft Delete
 export async function PUT(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
-
-    // ใช้ updateMany เพื่อหลีกเลี่ยง middleware ของ findUnique
-    // และอัปเดตเฉพาะ user ที่ถูก soft-delete ไปแล้ว
-    await prisma.user.updateMany({
-      where: {
-        id: id,
-        deletedAt: {
-          not: null,
-        },
-      },
-      data: {
-        deletedAt: null,
-      },
-    });
-
+    await userService.restoreUser(id);
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error("Failed to restore user:", error);
