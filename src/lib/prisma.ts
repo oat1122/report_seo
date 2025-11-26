@@ -102,6 +102,7 @@ export const prisma = prismaBase.$extends({
               domainRating: existingMetrics.domainRating,
               healthScore: existingMetrics.healthScore,
               ageInYears: existingMetrics.ageInYears,
+              ageInMonths: existingMetrics.ageInMonths,
               spamScore: existingMetrics.spamScore,
               organicTraffic: existingMetrics.organicTraffic,
               organicKeywords: existingMetrics.organicKeywords,

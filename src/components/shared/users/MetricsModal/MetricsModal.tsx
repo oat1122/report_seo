@@ -208,21 +208,59 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
                   gap: 2,
                 }}
               >
-                {Object.keys(metrics).map((key) => (
+                {Object.keys(metrics)
+                  .filter((key) => key !== "ageInYears" && key !== "ageInMonths")
+                  .map((key) => (
+                    <TextField
+                      key={key}
+                      name={key}
+                      label={
+                        key.charAt(0).toUpperCase() +
+                        key.slice(1).replace(/([A-Z])/g, " $1")
+                      }
+                      type="number"
+                      value={metrics[key]}
+                      onChange={handleMetricsChange}
+                      fullWidth
+                      size="small"
+                    />
+                  ))}
+                
+                {/* Custom 2-column grid for Age fields */}
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 1,
+                  }}
+                >
                   <TextField
-                    key={key}
-                    name={key}
-                    label={
-                      key.charAt(0).toUpperCase() +
-                      key.slice(1).replace(/([A-Z])/g, " $1")
-                    }
+                    name="ageInYears"
+                    label="อายุโดเมน (ปี)"
                     type="number"
-                    value={metrics[key]}
+                    value={metrics.ageInYears}
                     onChange={handleMetricsChange}
                     fullWidth
                     size="small"
+                    inputProps={{ min: 0 }}
                   />
-                ))}
+                  <TextField
+                    name="ageInMonths"
+                    label="(เดือน)"
+                    type="number"
+                    value={metrics.ageInMonths}
+                    onChange={handleMetricsChange}
+                    fullWidth
+                    size="small"
+                    inputProps={{ min: 0, max: 11 }}
+                    error={Number(metrics.ageInMonths) > 11}
+                    helperText={
+                      Number(metrics.ageInMonths) > 11
+                        ? "สูงสุด 11 เดือน"
+                        : ""
+                    }
+                  />
+                </Box>
               </Box>
               <Box sx={{ mt: 3, textAlign: "right" }}>
                 <Button

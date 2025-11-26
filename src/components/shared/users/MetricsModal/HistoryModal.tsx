@@ -22,6 +22,7 @@ import {
 import { Close, TrendingUp, Assessment } from "@mui/icons-material";
 import { OverallMetricsHistory, KeywordReportHistory } from "@/types/history";
 import { TabPanel } from "@/components/shared/TabPanel";
+import { formatDuration } from "@/types/metrics";
 
 interface HistoryModalProps {
   open: boolean;
@@ -144,7 +145,9 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
                         <TableCell align="right">
                           {record.healthScore}
                         </TableCell>
-                        <TableCell align="right">{record.ageInYears}</TableCell>
+                        <TableCell align="right">
+                          {formatDuration(record.ageInYears, record.ageInMonths || 0)}
+                        </TableCell>
                         <TableCell align="right">{record.spamScore}%</TableCell>
                         <TableCell align="right">
                           {record.organicTraffic.toLocaleString()}

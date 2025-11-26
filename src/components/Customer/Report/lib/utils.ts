@@ -34,14 +34,16 @@ export const getRatingColor = (value: number): string => {
 };
 
 /**
- * ฟังก์ชันกำหนดสีสำหรับ Age
+ * ฟังก์ชันกำหนดสีสำหรับ Age (ใช้การคำนวณจากเดือนรวม)
  * @param years - อายุของโดเมนในหน่วยปี
+ * @param months - อายุของโดเมนในหน่วยเดือน (0-11)
  * @returns สีที่ใช้แสดงในกราฟ
  */
-export const getAgeColor = (years: number): string => {
-  if (years > 2) return "#2e7d32"; // Green
-  if (years >= 1) return "#ed6c02"; // Yellow
-  return "#d32f2f"; // Red
+export const getAgeColor = (years: number, months: number = 0): string => {
+  const totalMonths = (years * 12) + months;
+  if (totalMonths > 24) return "#2e7d32"; // Green (> 2 years)
+  if (totalMonths >= 12) return "#ed6c02"; // Yellow (1-2 years)
+  return "#d32f2f"; // Red (< 1 year)
 };
 
 /**

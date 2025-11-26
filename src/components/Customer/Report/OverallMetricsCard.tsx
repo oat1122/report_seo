@@ -9,7 +9,7 @@ import {
   IconButton,
   Tooltip,
 } from "@mui/material";
-import { OverallMetricsForm } from "@/types/metrics";
+import { OverallMetricsForm, formatDuration } from "@/types/metrics";
 import {
   Traffic,
   VpnKey,
@@ -74,13 +74,13 @@ const GaugeChart = ({ label, value }: { label: string; value: number }) => {
 const CustomLinearProgress = ({
   label,
   value,
+  displayValue,
   colorFunc,
-  unit = "",
 }: {
   label: string;
   value: number;
+  displayValue: string;
   colorFunc: (val: number) => string;
-  unit?: string;
 }) => {
   const color = colorFunc(value);
   return (
@@ -114,9 +114,8 @@ const CustomLinearProgress = ({
             />
           </Box>
         </Box>
-        <Typography variant="body1" fontWeight={600}>
-          {value}
-          {unit}
+        <Typography variant="body1" fontWeight={600} sx={{ whiteSpace: "nowrap" }}>
+          {displayValue}
         </Typography>
       </Box>
     </Box>
@@ -223,17 +222,17 @@ export const OverallMetricsCard: React.FC<OverallMetricsCardProps> = ({
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <CustomLinearProgress
               label="Age"
-              value={metrics.ageInYears}
-              colorFunc={getAgeColor}
-              unit="Y"
+              value={(metrics.ageInYears * 12) + (metrics.ageInMonths || 0)}
+              displayValue={formatDuration(metrics.ageInYears, metrics.ageInMonths || 0)}
+              colorFunc={(totalMonths) => getAgeColor(Math.floor(totalMonths / 12), totalMonths % 12)}
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <CustomLinearProgress
               label="Spam Score"
               value={metrics.spamScore}
+              displayValue={`${metrics.spamScore}%`}
               colorFunc={getSpamColor}
-              unit="%"
             />
           </Grid>
 

@@ -9,6 +9,7 @@ export interface OverallMetricsHistory {
   domainRating: number;
   healthScore: number;
   ageInYears: number;
+  ageInMonths: number;
   spamScore: number;
   organicTraffic: number;
   organicKeywords: number;
