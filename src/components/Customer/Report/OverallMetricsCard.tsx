@@ -189,7 +189,10 @@ export const OverallMetricsCard: React.FC<OverallMetricsCardProps> = ({
 
   return (
     <>
-      <Paper sx={{ p: 3, borderRadius: 4, mb: 4 }} elevation={0}>
+      <Paper
+        sx={{ p: 3, borderRadius: 3, border: "1px solid #E2E8F0" }}
+        elevation={0}
+      >
         {/* Header with History button */}
         <Box
           sx={{
@@ -222,7 +225,7 @@ export const OverallMetricsCard: React.FC<OverallMetricsCardProps> = ({
               label="Age"
               value={metrics.ageInYears}
               colorFunc={getAgeColor}
-              unit=" Y"
+              unit="Y"
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>

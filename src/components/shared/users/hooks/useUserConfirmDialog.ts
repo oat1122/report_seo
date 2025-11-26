@@ -11,7 +11,7 @@ export const useUserConfirmDialog = () => {
   const dispatch = useAppDispatch();
   const { confirmState } = useAppSelector((state) => state.users);
 
-  // 🆕 React Query Mutations
+  //  React Query Mutations
   const deleteUserMutation = useDeleteUser();
   const restoreUserMutation = useRestoreUser();
 
@@ -42,7 +42,7 @@ export const useUserConfirmDialog = () => {
 
     let promise;
     if (confirmState.actionType === "delete") {
-      // 🆕 Use React Query mutation
+      // Use React Query mutation
       promise = deleteUserMutation.mutateAsync(confirmState.targetId);
       showPromiseToast(promise, {
         pending: "กำลังลบผู้ใช้...",
@@ -50,7 +50,7 @@ export const useUserConfirmDialog = () => {
         error: "เกิดข้อผิดพลาดในการลบ",
       });
     } else if (confirmState.actionType === "restore") {
-      // 🆕 Use React Query mutation
+      // Use React Query mutation
       promise = restoreUserMutation.mutateAsync(confirmState.targetId);
       showPromiseToast(promise, {
         pending: "กำลังกู้คืนผู้ใช้...",

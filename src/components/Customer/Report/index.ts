@@ -2,4 +2,6 @@
 export { OverallMetricsCard } from "./OverallMetricsCard";
 export { KeywordReportTable } from "./KeywordReportTable";
 export { RecommendKeywordTable } from "./RecommendKeywordTable";
+export { SummaryStatistics } from "./SummaryStatistics";
+export { StickyNavigation } from "./StickyNavigation";
 export { default as ReportPage } from "./ReportPage";

@@ -16,6 +16,7 @@ interface DashboardCard {
   description: string;
   href: string;
   color: "primary" | "secondary" | "info" | "success" | "warning" | "error";
+  disabled?: boolean;
 }
 
 interface DashboardPageLayoutProps {
@@ -73,43 +74,72 @@ export const DashboardPageLayout: React.FC<DashboardPageLayoutProps> = ({
         <Grid container spacing={3}>
           {cards.map((card) => (
             <Grid size={{ xs: 12, md: 4 }} key={card.href}>
-              <Link
-                href={card.href}
-                passHref
-                style={{ textDecoration: "none" }}
-              >
+              {card.disabled ? (
                 <Card
                   elevation={0}
                   sx={{
                     height: "100%",
                     border: "1px solid",
-                    borderColor: `${card.color}.200`,
-                    bgcolor: `${card.color}.50`,
-                    transition: "all 0.3s ease",
-                    cursor: "pointer",
-                    "&:hover": {
-                      boxShadow: 3,
-                      borderColor: `${card.color}.main`,
-                      transform: "translateY(-2px)",
-                    },
+                    borderColor: "grey.300",
+                    bgcolor: "grey.100",
+                    opacity: 0.6,
+                    cursor: "not-allowed",
                   }}
                 >
                   <CardContent>
                     <Typography
                       variant="h5"
                       component="h3"
-                      color={`${card.color}.dark`}
+                      color="text.disabled"
                       gutterBottom
                       sx={{ fontWeight: 600 }}
                     >
                       {card.title}
                     </Typography>
-                    <Typography color={`${card.color}.dark`}>
+                    <Typography color="text.disabled">
                       {card.description}
                     </Typography>
                   </CardContent>
                 </Card>
-              </Link>
+              ) : (
+                <Link
+                  href={card.href}
+                  passHref
+                  style={{ textDecoration: "none" }}
+                >
+                  <Card
+                    elevation={0}
+                    sx={{
+                      height: "100%",
+                      border: "1px solid",
+                      borderColor: `${card.color}.200`,
+                      bgcolor: `${card.color}.50`,
+                      transition: "all 0.3s ease",
+                      cursor: "pointer",
+                      "&:hover": {
+                        boxShadow: 3,
+                        borderColor: `${card.color}.main`,
+                        transform: "translateY(-2px)",
+                      },
+                    }}
+                  >
+                    <CardContent>
+                      <Typography
+                        variant="h5"
+                        component="h3"
+                        color={`${card.color}.dark`}
+                        gutterBottom
+                        sx={{ fontWeight: 600 }}
+                      >
+                        {card.title}
+                      </Typography>
+                      <Typography color={`${card.color}.dark`}>
+                        {card.description}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Link>
+              )}
             </Grid>
           ))}
         </Grid>

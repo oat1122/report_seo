@@ -21,12 +21,14 @@ export default async function AdminDashboardPage() {
       description: "กำหนดค่าการทำงานของระบบ",
       href: "/admin/settings",
       color: "success" as const,
+      disabled: true,
     },
     {
       title: "รายงาน",
       description: "ดูสถิติและรายงานต่างๆ",
       href: "/admin/reports",
       color: "warning" as const,
+      disabled: true,
     },
   ];
 

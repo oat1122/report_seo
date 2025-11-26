@@ -151,28 +151,6 @@ export const MetricChangeIndicator: React.FC<MetricChangeIndicatorProps> = ({
           />
         </Box>
       )}
-
-      {/* Overflow indicator for extreme growth */}
-      {percentage > 100 && trend === "up" && (
-        <Box
-          sx={{
-            position: "absolute",
-            top: 8,
-            right: 8,
-            animation: "bounce 1s ease-in-out infinite",
-            "@keyframes bounce": {
-              "0%, 100%": {
-                transform: "translateY(0)",
-              },
-              "50%": {
-                transform: "translateY(-4px)",
-              },
-            },
-          }}
-        >
-          <Typography sx={{ fontSize: 20 }}>🚀</Typography>
-        </Box>
-      )}
     </Paper>
   );
 };

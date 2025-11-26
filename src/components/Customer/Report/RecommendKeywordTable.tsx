@@ -11,15 +11,18 @@ import {
   Typography,
   Chip,
   Box,
-  Avatar,
   Tooltip,
+  useMediaQuery,
+  useTheme,
+  Card,
+  CardContent,
   alpha,
 } from "@mui/material";
 import {
   Lightbulb,
   Star,
-  TipsAndUpdates,
   AutoAwesome,
+  InfoOutlined,
 } from "@mui/icons-material";
 import { KeywordRecommend } from "@/types/metrics";
 
@@ -28,7 +31,7 @@ interface RecommendKeywordTableProps {
   title?: string;
 }
 
-// Helper: Get KD styling with semantic colors
+// Helper: Get KD styling
 const getKdStyle = (kd: string) => {
   const styles = {
     EASY: {
@@ -53,105 +56,189 @@ const getKdStyle = (kd: string) => {
   return styles[kd as keyof typeof styles] || styles.MEDIUM;
 };
 
+// Mobile Card View
+const KeywordCard: React.FC<{ kw: KeywordRecommend; index: number }> = ({
+  kw,
+  index,
+}) => {
+  const kdStyle = kw.kd ? getKdStyle(kw.kd) : null;
+  const isTopReport = kw.isTopReport;
+
+  return (
+    <Card
+      elevation={0}
+      sx={{
+        border: "1px solid #E2E8F0",
+        borderRadius: 3,
+        bgcolor: isTopReport ? alpha("#FEF3C7", 0.3) : "transparent",
+        transition: "all 0.2s ease",
+        "&:hover": {
+          boxShadow: `0 4px 12px ${alpha("#9592ff", 0.15)}`,
+          transform: "translateY(-2px)",
+        },
+      }}
+    >
+      <CardContent>
+        <Box sx={{ display: "flex", alignItems: "start", gap: 2, mb: 2 }}>
+          <Box
+            sx={{
+              width: 32,
+              height: 32,
+              borderRadius: 2,
+              bgcolor: isTopReport ? "#FEF3C7" : "#F3E8FF",
+              color: isTopReport ? "#F59E0B" : "#9333EA",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {isTopReport ? (
+              <AutoAwesome sx={{ fontSize: 18 }} />
+            ) : (
+              <Lightbulb sx={{ fontSize: 18 }} />
+            )}
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="body1" fontWeight={700} sx={{ mb: 0.5 }}>
+              {kw.keyword}
+            </Typography>
+            {isTopReport && (
+              <Chip
+                icon={<Star sx={{ fontSize: 12 }} />}
+                label="Top Pick"
+                size="small"
+                sx={{
+                  height: 20,
+                  fontSize: "0.7rem",
+                  bgcolor: "#FEF3C7",
+                  color: "#92400E",
+                  fontWeight: 700,
+                  border: "1.5px solid #F59E0B",
+                }}
+              />
+            )}
+          </Box>
+          {kdStyle && (
+            <Chip
+              label={kdStyle.label}
+              size="small"
+              sx={{
+                bgcolor: kdStyle.bgcolor,
+                color: kdStyle.color,
+                fontWeight: 600,
+                borderRadius: 2,
+                minWidth: 70,
+              }}
+            />
+          )}
+        </Box>
+        {kw.note && (
+          <Box
+            sx={{
+              p: 1.5,
+              borderRadius: 2,
+              bgcolor: alpha("#9592ff", 0.05),
+              border: `1px solid ${alpha("#9592ff", 0.1)}`,
+            }}
+          >
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              fontSize="0.85rem"
+            >
+              {kw.note}
+            </Typography>
+          </Box>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
 export const RecommendKeywordTable: React.FC<RecommendKeywordTableProps> = ({
   keywords,
   title,
 }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
   if (keywords.length === 0) {
     return null;
   }
 
+  // Mobile View: Card Layout
+  if (isMobile) {
+    return (
+      <Box>
+        {title && (
+          <Typography variant="h5" fontWeight={700} sx={{ mb: 3 }}>
+            {title}
+          </Typography>
+        )}
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {keywords.map((kw, index) => (
+            <KeywordCard key={kw.id} kw={kw} index={index} />
+          ))}
+        </Box>
+      </Box>
+    );
+  }
+
+  // Desktop View: Compact Mini-Table
   return (
     <TableContainer
       component={Paper}
       elevation={0}
       sx={{
-        borderRadius: 4,
+        borderRadius: 3,
         border: "1px solid #E2E8F0",
         overflow: "hidden",
-        background: "linear-gradient(to bottom, #FFFFFF, #F8F9FA)",
+        height: "fit-content",
+        maxHeight: 600,
       }}
     >
-      {/* Enhanced Header with Gradient */}
       {title && (
         <Box
           sx={{
-            p: 3,
+            p: 2.5,
             background: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
-            position: "relative",
-            overflow: "hidden",
+            borderBottom: "1px solid rgba(255,255,255,0.1)",
           }}
         >
-          {/* Decorative Circle */}
-          <Box
-            sx={{
-              position: "absolute",
-              top: -30,
-              right: -30,
-              width: 150,
-              height: 150,
-              borderRadius: "50%",
-              background: "rgba(255,255,255,0.15)",
-            }}
-          />
-          <Box
-            sx={{
-              position: "absolute",
-              bottom: -20,
-              left: -20,
-              width: 100,
-              height: 100,
-              borderRadius: "50%",
-              background: "rgba(255,255,255,0.1)",
-            }}
-          />
-
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 2,
-              position: "relative",
-            }}
-          >
-            <TipsAndUpdates sx={{ color: "#fff", fontSize: 32 }} />
-            <Typography
-              variant="h5"
-              fontWeight={700}
-              sx={{
-                background: "linear-gradient(to right, #fff, #ffe0e6)",
-                backgroundClip: "text",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+            <Lightbulb sx={{ color: "#fff", fontSize: 24 }} />
+            <Typography variant="h6" fontWeight={700} color="#fff">
               {title}
             </Typography>
           </Box>
         </Box>
       )}
 
-      <Table>
+      <Table size="small" stickyHeader>
         <TableHead>
           <TableRow
             sx={{
-              bgcolor: "#F8F9FA",
               "& th": {
                 fontWeight: 700,
                 color: "#475569",
+                bgcolor: "#F8F9FA",
+                fontSize: "0.7rem",
                 textTransform: "uppercase",
-                fontSize: "0.75rem",
                 letterSpacing: "0.05em",
-                py: 2,
+                py: 1.5,
+                borderBottom: "2px solid #E2E8F0",
               },
             }}
           >
-            <TableCell width="60px">#</TableCell>
-            <TableCell>Recommended Keywords</TableCell>
-            <TableCell align="center" width="140px">
-              Difficulty
+            <TableCell>Keyword</TableCell>
+            <TableCell align="center" width="80px">
+              KD
             </TableCell>
-            <TableCell width="35%">Strategic Note</TableCell>
+            <TableCell align="center" width="40px">
+              <Tooltip title="Strategic Note">
+                <InfoOutlined sx={{ fontSize: 16, color: "#94A3B8" }} />
+              </Tooltip>
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -163,79 +250,41 @@ export const RecommendKeywordTable: React.FC<RecommendKeywordTableProps> = ({
               <TableRow
                 key={kw.id}
                 sx={{
-                  transition: "all 0.2s ease-in-out",
+                  bgcolor: isTopReport ? alpha("#FEF3C7", 0.2) : "transparent",
+                  transition: "all 0.15s ease",
                   "&:hover": {
-                    bgcolor: isTopReport ? alpha("#f093fb", 0.08) : "#F1F5F9",
-                    transform: "translateX(4px)",
-                    boxShadow: isTopReport
-                      ? "inset 4px 0 0 #f093fb"
-                      : "inset 4px 0 0 #9592ff",
+                    bgcolor: alpha("#9592ff", 0.08),
                   },
-                  cursor: "pointer",
-                  bgcolor: isTopReport ? alpha("#FEF3C7", 0.3) : "transparent",
                 }}
               >
-                {/* Rank Number */}
                 <TableCell>
-                  <Typography
-                    variant="body2"
-                    fontWeight={600}
-                    color="text.secondary"
-                  >
-                    {index + 1}
-                  </Typography>
-                </TableCell>
-
-                {/* Keyword with Icon and Badge */}
-                <TableCell>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                    <Avatar
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Box
                       sx={{
-                        width: 36,
-                        height: 36,
-                        bgcolor: isTopReport ? "#FEF3C7" : "#F3E8FF",
-                        color: isTopReport ? "#F59E0B" : "#9333EA",
+                        width: 6,
+                        height: 6,
+                        borderRadius: "50%",
+                        bgcolor: isTopReport ? "#F59E0B" : "#9592ff",
+                        flexShrink: 0,
                       }}
+                    />
+                    <Typography
+                      variant="body2"
+                      fontWeight={600}
+                      fontSize="0.85rem"
                     >
-                      {isTopReport ? (
-                        <AutoAwesome sx={{ fontSize: 18 }} />
-                      ) : (
-                        <Lightbulb sx={{ fontSize: 18 }} />
-                      )}
-                    </Avatar>
-                    <Box>
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                      >
-                        <Typography fontWeight={600}>{kw.keyword}</Typography>
-                        {isTopReport && (
-                          <Tooltip title="High Priority Recommendation">
-                            <Chip
-                              icon={<Star sx={{ fontSize: 14 }} />}
-                              label="Top Pick"
-                              size="small"
-                              sx={{
-                                height: 22,
-                                fontSize: "0.7rem",
-                                bgcolor: "#FEF3C7",
-                                color: "#92400E",
-                                fontWeight: 700,
-                                border: "1.5px solid #F59E0B",
-                                "& .MuiChip-icon": {
-                                  color: "#F59E0B",
-                                },
-                              }}
-                            />
-                          </Tooltip>
-                        )}
-                      </Box>
-                    </Box>
+                      {kw.keyword}
+                    </Typography>
+                    {isTopReport && (
+                      <Star
+                        sx={{ fontSize: 14, color: "#F59E0B", ml: "auto" }}
+                      />
+                    )}
                   </Box>
                 </TableCell>
 
-                {/* KD Badge with Glow Effect */}
                 <TableCell align="center">
-                  {kdStyle ? (
+                  {kdStyle && (
                     <Chip
                       label={kdStyle.label}
                       size="small"
@@ -243,62 +292,25 @@ export const RecommendKeywordTable: React.FC<RecommendKeywordTableProps> = ({
                         bgcolor: kdStyle.bgcolor,
                         color: kdStyle.color,
                         fontWeight: 600,
-                        borderRadius: 2,
-                        minWidth: 80,
-                        boxShadow: `0 0 12px ${alpha(kdStyle.glow, 0.3)}`,
-                        border: `1px solid ${alpha(kdStyle.color, 0.2)}`,
+                        fontSize: "0.7rem",
+                        height: 22,
+                        minWidth: 60,
                       }}
                     />
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      -
-                    </Typography>
                   )}
                 </TableCell>
 
-                {/* Note with Enhanced Styling */}
-                <TableCell>
-                  {kw.note ? (
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "flex-start",
-                        gap: 1,
-                        p: 1.5,
-                        borderRadius: 2,
-                        bgcolor: alpha("#9592ff", 0.05),
-                        border: `1px solid ${alpha("#9592ff", 0.1)}`,
-                      }}
-                    >
-                      <Box
+                <TableCell align="center">
+                  {kw.note && (
+                    <Tooltip title={kw.note} arrow placement="left">
+                      <InfoOutlined
                         sx={{
-                          width: 4,
-                          height: 4,
-                          borderRadius: "50%",
-                          bgcolor: "#9592ff",
-                          mt: 0.75,
-                          flexShrink: 0,
+                          fontSize: 18,
+                          color: "#9592ff",
+                          cursor: "pointer",
                         }}
                       />
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          color: "#475569",
-                          lineHeight: 1.6,
-                          fontStyle: "italic",
-                        }}
-                      >
-                        {kw.note}
-                      </Typography>
-                    </Box>
-                  ) : (
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ fontStyle: "italic" }}
-                    >
-                      No strategic note
-                    </Typography>
+                    </Tooltip>
                   )}
                 </TableCell>
               </TableRow>
@@ -307,22 +319,17 @@ export const RecommendKeywordTable: React.FC<RecommendKeywordTableProps> = ({
         </TableBody>
       </Table>
 
-      {/* Footer with Summary */}
       <Box
         sx={{
-          p: 2,
+          p: 1.5,
           bgcolor: alpha("#9592ff", 0.05),
           borderTop: "1px solid #E2E8F0",
-          display: "flex",
-          alignItems: "center",
-          gap: 1,
+          textAlign: "center",
         }}
       >
-        <Lightbulb sx={{ color: "#9592ff", fontSize: 20 }} />
-        <Typography variant="body2" color="text.secondary">
-          <strong>{keywords.length}</strong> keyword recommendations •{" "}
-          <strong>{keywords.filter((k) => k.isTopReport).length}</strong> top
-          priorities
+        <Typography variant="caption" color="text.secondary" fontWeight={600}>
+          {keywords.length} recommendations •{" "}
+          {keywords.filter((k) => k.isTopReport).length} top priorities
         </Typography>
       </Box>
     </TableContainer>
