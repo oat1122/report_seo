@@ -34,7 +34,6 @@ const UserManagementSeoDev: React.FC = () => {
   // 1. ดึงข้อมูล Users และ SeoDevs ทั้งหมดจาก Redux
   const {
     users: allUsers,
-    seoDevs,
     status,
     error: usersError,
   } = useAppSelector((state) => state.users);

@@ -45,14 +45,17 @@ const updatePassword = async ({
   id,
   currentPassword,
   newPassword,
+  confirmPassword,
 }: {
   id: string;
   currentPassword?: string;
   newPassword: string;
+  confirmPassword: string;
 }): Promise<void> => {
   await axios.patch(`/users/${id}/password`, {
     currentPassword,
     newPassword,
+    confirmPassword,
   });
 };
 
@@ -89,7 +92,7 @@ export const useAddUser = () => {
     onSuccess: () => {
       // Invalidate and refetch users
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      toast.success("เพิ่มผู้ใช้สำเร็จ");
+      // Toast notification handled by showPromiseToast in useUserModalLogic
     },
   });
 };
@@ -104,7 +107,7 @@ export const useUpdateUser = () => {
     mutationFn: updateUser,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      toast.success("อัปเดตผู้ใช้สำเร็จ");
+      // Toast notification handled by showPromiseToast in useUserModalLogic
     },
   });
 };
@@ -146,11 +149,14 @@ export const useUpdatePassword = () => {
   return useMutation<
     void,
     Error,
-    { id: string; currentPassword?: string; newPassword: string }
+    {
+      id: string;
+      currentPassword?: string;
+      newPassword: string;
+      confirmPassword: string;
+    }
   >({
     mutationFn: updatePassword,
-    onSuccess: () => {
-      toast.success("เปลี่ยนรหัสผ่านสำเร็จ");
-    },
+    // Toast notification handled by showPromiseToast in useUserModalLogic
   });
 };

@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import { SelectChangeEvent } from "@mui/material";
 import { KDLevel } from "@prisma/client";
 import {
-  OverallMetrics,
   OverallMetricsForm,
   KeywordReport,
   KeywordReportForm,

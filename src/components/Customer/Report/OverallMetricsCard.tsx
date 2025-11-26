@@ -9,7 +9,7 @@ import {
   IconButton,
   Tooltip,
 } from "@mui/material";
-import { OverallMetrics, OverallMetricsForm } from "@/types/metrics";
+import { OverallMetricsForm } from "@/types/metrics";
 import {
   Traffic,
   VpnKey,

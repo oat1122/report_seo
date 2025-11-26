@@ -14,7 +14,6 @@ import {
   Tabs,
   Tab,
   Tooltip,
-  CircularProgress,
 } from "@mui/material";
 import {
   Save,
@@ -25,7 +24,6 @@ import {
 } from "@mui/icons-material";
 import { User } from "@/types/user";
 import {
-  OverallMetrics,
   OverallMetricsForm,
   KeywordReport,
   KeywordReportForm,
@@ -100,9 +98,6 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
   onCloseKeywordHistory,
   keywordHistoryData,
   selectedKeyword,
-  isLoadingMetrics = false,
-  isLoadingKeywords = false,
-  isLoadingRecommend = false,
   isLoadingCombinedHistory = false,
   isLoadingSpecificHistory = false,
 }) => {

@@ -1,12 +1,6 @@
 // src/components/Customer/Report/hooks/useOverallMetricsCard.ts
 import { useState } from "react";
 import { useGetCombinedHistory } from "@/hooks/api/useCustomersApi";
-import { OverallMetricsHistory, KeywordReportHistory } from "@/types/history";
-
-interface HistoryData {
-  metricsHistory: OverallMetricsHistory[];
-  keywordHistory: KeywordReportHistory[];
-}
 
 /**
  * Custom Hook for OverallMetricsCard State and History Modal Logic (using React Query)
@@ -20,14 +14,10 @@ export const useOverallMetricsCard = (customerId: string) => {
     data: historyData,
     isFetching: isHistoryLoading, // ใช้ isFetching เพราะเราจะ trigger ทีหลัง
     error: historyError,
-    refetch: fetchHistory, // ฟังก์ชันสำหรับสั่งให้ query ทำงาน
   } = useGetCombinedHistory(isHistoryModalOpen ? customerId : null); // Enable query เมื่อ Modal เปิด
 
-  const handleOpenHistoryModal = async () => {
+  const handleOpenHistoryModal = () => {
     setIsHistoryModalOpen(true);
-    // ไม่ต้อง fetch เองแล้ว React Query จะทำเมื่อ enabled: true
-    // (อาจจะเรียก refetch() ถ้าต้องการโหลดใหม่ทุกครั้งที่เปิด)
-    // await fetchHistory(); // <--- Optional: ถ้าอยากให้โหลดใหม่ทุกครั้งที่เปิด
   };
 
   const handleCloseHistoryModal = () => {

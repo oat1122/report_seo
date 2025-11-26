@@ -1,5 +1,4 @@
 import { getSession } from "@/lib/auth-utils";
-import { CustomerOnly } from "@/components/Login/subcomponents/RoleGuard";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import {
   Box,
@@ -14,7 +13,6 @@ import AssessmentIcon from "@mui/icons-material/Assessment";
 import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import WavingHandIcon from "@mui/icons-material/WavingHand";
-import LockIcon from "@mui/icons-material/Lock";
 import PromotionSection from "./PromotionSection";
 
 export default async function CustomerDashboard() {

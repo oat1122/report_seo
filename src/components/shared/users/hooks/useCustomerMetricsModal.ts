@@ -45,35 +45,22 @@ export const useCustomerMetricsModal = (users: User[]) => {
     users.find((u) => u.id === selectedCustomerId) || null;
 
   // --- ใช้ React Query Hooks ---
-  const {
-    data: metricsData,
-    isLoading: isLoadingMetrics,
-    error: errorMetrics,
-  } = useGetMetrics(selectedCustomerId || "");
+  const { data: metricsData, isLoading: isLoadingMetrics } = useGetMetrics(
+    selectedCustomerId || ""
+  );
 
-  const {
-    data: keywordsData = [],
-    isLoading: isLoadingKeywords,
-    error: errorKeywords,
-  } = useGetKeywords(selectedCustomerId || "");
+  const { data: keywordsData = [], isLoading: isLoadingKeywords } =
+    useGetKeywords(selectedCustomerId || "");
 
-  const {
-    data: recommendKeywordsData = [],
-    isLoading: isLoadingRecommend,
-    error: errorRecommend,
-  } = useGetRecommendKeywords(selectedCustomerId || "");
+  const { data: recommendKeywordsData = [], isLoading: isLoadingRecommend } =
+    useGetRecommendKeywords(selectedCustomerId || "");
 
-  const {
-    data: combinedHistoryData,
-    isFetching: isLoadingCombinedHistory,
-    error: errorCombinedHistory,
-    refetch: fetchCombinedHistory,
-  } = useGetCombinedHistory(isHistoryModalOpen ? selectedCustomerId : null);
+  const { data: combinedHistoryData, isFetching: isLoadingCombinedHistory } =
+    useGetCombinedHistory(isHistoryModalOpen ? selectedCustomerId : null);
 
   const {
     data: specificKeywordHistoryData = [],
     isFetching: isLoadingSpecificHistory,
-    error: errorSpecificHistory,
   } = useGetKeywordSpecificHistory(
     isKeywordHistoryModalOpen ? selectedKeyword?.id ?? null : null
   );

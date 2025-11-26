@@ -22,7 +22,7 @@ export const useUserModalLogic = () => {
     (state) => state.users
   );
 
-  // 🆕 React Query Mutations
+  //  React Query Mutations
   const addUserMutation = useAddUser();
   const updateUserMutation = useUpdateUser();
   const updatePasswordMutation = useUpdatePassword();
@@ -65,7 +65,6 @@ export const useUserModalLogic = () => {
       infoToUpdate.seoDevId = sessionUser.id;
     }
 
-    // 🆕 Use React Query mutations
     const promise = isEditing
       ? updateUserMutation.mutateAsync({
           id: infoToUpdate.id!,
@@ -82,7 +81,7 @@ export const useUserModalLogic = () => {
     try {
       await promise;
       dispatch(closeUserModal());
-    } catch (error) {
+    } catch {
       // Error is already handled by the mutation
     }
   };
@@ -95,11 +94,12 @@ export const useUserModalLogic = () => {
       return;
     }
 
-    // 🆕 Use React Query mutation
+    //  Use React Query mutation
     const promise = updatePasswordMutation.mutateAsync({
       id: currentUser.id,
       currentPassword: currentUser.currentPassword,
       newPassword: currentUser.newPassword,
+      confirmPassword: currentUser.confirmPassword || "",
     });
 
     showPromiseToast(promise, {

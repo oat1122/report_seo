@@ -12,6 +12,7 @@ import {
 import { Add } from "@mui/icons-material";
 import { useSession } from "next-auth/react";
 import { useGetUsers, useGetSeoDevs } from "@/hooks/api/useUsersApi";
+import { Role } from "@/types/auth";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { UserTable } from "./UserTable";
 import { UserModal } from "./UserModal";
@@ -154,7 +155,7 @@ const UserManagement: React.FC = () => {
             currentUser={currentUser}
             onClose={handleCloseUserModal}
             onSave={() =>
-              handleSaveUser(session?.user as { id: string; role: any })
+              handleSaveUser(session?.user as { id: string; role: Role })
             }
             onSavePassword={handlePasswordUpdate}
             onFormChange={handleFormChange}

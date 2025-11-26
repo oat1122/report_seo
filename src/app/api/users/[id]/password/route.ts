@@ -4,8 +4,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { Role } from "@/types/auth";
 
-// PUT /api/users/[id]/password - อัปเดตรหัสผ่าน
-export async function PUT(
+// Handler function สำหรับอัปเดตรหัสผ่าน
+async function updatePasswordHandler(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -52,4 +52,20 @@ export async function PUT(
       { status: 500 }
     );
   }
+}
+
+// PUT /api/users/[id]/password - อัปเดตรหัสผ่าน
+export async function PUT(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  return updatePasswordHandler(req, { params });
+}
+
+// PATCH /api/users/[id]/password - อัปเดตรหัสผ่าน (partial update)
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  return updatePasswordHandler(req, { params });
 }
