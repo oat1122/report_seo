@@ -28,13 +28,13 @@ export async function GET(
       },
     });
 
-    // ดึงข้อมูล Keywords ปัจจุบันของ Customer
-    const keywords = await prisma.keywordReport.findMany({
+    // ดึงข้อมูล Keywords ปัจจุบันของ Customer (พร้อมข้อมูลทั้งหมด)
+    const currentKeywords = await prisma.keywordReport.findMany({
       where: { customerId: customer.id },
-      select: { id: true },
+      orderBy: { traffic: "desc" }, // เรียงตาม traffic มากไปน้อย
     });
 
-    const keywordIds = keywords.map((kw) => kw.id);
+    const keywordIds = currentKeywords.map((kw) => kw.id);
 
     // ดึงประวัติของ Keywords ทั้งหมด
     const keywordHistory = await prisma.keywordReportHistory.findMany({
@@ -51,6 +51,7 @@ export async function GET(
     return NextResponse.json({
       metricsHistory,
       keywordHistory,
+      currentKeywords, // เพิ่มข้อมูล Keywords ปัจจุบัน
     });
   } catch (error) {
     console.error("Failed to fetch metrics history:", error);

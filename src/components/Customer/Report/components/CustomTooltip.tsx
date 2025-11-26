@@ -38,7 +38,7 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
   // Format the date label
   const dateLabel: string = label
     ? formatChartDate(String(label))
-    : (payload[0]?.payload?.dateLabel ?? "");
+    : payload[0]?.payload?.dateLabel ?? "";
 
   // Default value formatter
   const defaultFormatValue = (value: number, dataKey: string): string => {

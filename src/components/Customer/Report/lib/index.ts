@@ -10,8 +10,13 @@ export {
   DEFAULT_PERIOD,
   METRICS_CHART_SERIES,
   TOOLTIP_STYLES,
+  DOMAIN_METRICS_SERIES,
+  MAX_SELECTED_KEYWORDS,
+  KEYWORD_COLORS,
+  POSITION_Y_AXIS_TICKS,
+  getKeywordColor,
 } from "./chartConfig";
-export type { PeriodOption } from "./chartConfig";
+export type { PeriodOption, MetricSeriesConfig } from "./chartConfig";
 
 // History calculations and chart data transformations
 export {
@@ -27,10 +32,14 @@ export {
   transformKeywordForRecharts,
   getUniqueKeywords,
   hasEnoughDataForChart,
+  sortKeywordsByTraffic,
+  transformMultiKeywordForRecharts,
+  createKeywordDataKey,
 } from "./historyCalculations";
 export type {
   MetricTrend,
   TrafficChangeData,
   MetricsChartDataPoint,
   KeywordChartDataPoint,
+  MultiKeywordChartDataPoint,
 } from "./historyCalculations";

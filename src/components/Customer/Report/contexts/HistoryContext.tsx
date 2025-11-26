@@ -2,13 +2,17 @@
 "use client";
 
 import React, { createContext, useContext, ReactNode } from "react";
-import { useGetCombinedHistory } from "@/hooks/api/useCustomersApi";
+import {
+  useGetCombinedHistory,
+  CurrentKeyword,
+} from "@/hooks/api/useCustomersApi";
 import { OverallMetricsHistory, KeywordReportHistory } from "@/types/history";
 
 // --- Types ---
 interface HistoryContextValue {
   metricsHistory: OverallMetricsHistory[];
   keywordHistory: KeywordReportHistory[];
+  currentKeywords: CurrentKeyword[]; // Keywords ปัจจุบัน (เรียงตาม traffic)
   isLoading: boolean;
   error: Error | null;
 }
@@ -34,6 +38,7 @@ export const HistoryProvider: React.FC<HistoryProviderProps> = ({
   const value: HistoryContextValue = {
     metricsHistory: data?.metricsHistory || [],
     keywordHistory: data?.keywordHistory || [],
+    currentKeywords: data?.currentKeywords || [],
     isLoading,
     error: error as Error | null,
   };

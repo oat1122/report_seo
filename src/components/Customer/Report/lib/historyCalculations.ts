@@ -323,3 +323,140 @@ export const getUniqueKeywords = (
 export const hasEnoughDataForChart = (dataPoints: number): boolean => {
   return dataPoints >= 2;
 };
+
+// ============================================================
+// Multi-Keyword Chart Functions
+// ============================================================
+
+/**
+ * Data point format for multi-keyword Recharts
+ * Contains dynamic keys: `{keyword}_position` and `{keyword}_traffic`
+ */
+export interface MultiKeywordChartDataPoint {
+  date: string;
+  dateLabel: string;
+  [key: string]: string | number | null; // Dynamic keys for each keyword
+}
+
+/**
+ * Sort keywords by their average traffic (highest first)
+ * @param history - Array of keyword history records
+ * @param keywords - Array of keyword names to sort
+ * @returns Sorted array of keyword names
+ */
+export const sortKeywordsByTraffic = (
+  history: KeywordReportHistory[],
+  keywords: string[]
+): string[] => {
+  // Calculate average traffic for each keyword
+  const trafficMap = new Map<string, number>();
+
+  keywords.forEach((keyword) => {
+    const keywordRecords = history.filter((h) => h.keyword === keyword);
+    if (keywordRecords.length > 0) {
+      const avgTraffic =
+        keywordRecords.reduce((sum, r) => sum + r.traffic, 0) /
+        keywordRecords.length;
+      trafficMap.set(keyword, avgTraffic);
+    } else {
+      trafficMap.set(keyword, 0);
+    }
+  });
+
+  // Sort by traffic descending
+  return [...keywords].sort((a, b) => {
+    const trafficA = trafficMap.get(a) || 0;
+    const trafficB = trafficMap.get(b) || 0;
+    return trafficB - trafficA;
+  });
+};
+
+/**
+ * Transform KeywordReportHistory for multiple keywords to chart format
+ * Merges data by date, creating columns for each keyword's position and traffic
+ * Also includes current keyword data as the latest data point
+ * @param history - Array of keyword history records
+ * @param keywords - Array of keyword names to include
+ * @param days - Period filter (default: 30)
+ * @param currentKeywords - Optional array of current keyword data
+ * @returns Array of chart data points with dynamic keys
+ */
+export const transformMultiKeywordForRecharts = (
+  history: KeywordReportHistory[],
+  keywords: string[],
+  days: number = 30,
+  currentKeywords?: Array<{
+    keyword: string;
+    position: number | null;
+    traffic: number;
+    dateRecorded: string | Date;
+  }>
+): MultiKeywordChartDataPoint[] => {
+  // Filter by period first
+  const filteredHistory = filterHistoryByPeriod(history, days);
+
+  // Group by date
+  const dateMap = new Map<string, MultiKeywordChartDataPoint>();
+
+  // Add history records
+  filteredHistory.forEach((record) => {
+    if (!keywords.includes(record.keyword)) return;
+
+    const dateKey = new Date(record.dateRecorded).toISOString().split("T")[0]; // YYYY-MM-DD
+
+    if (!dateMap.has(dateKey)) {
+      dateMap.set(dateKey, {
+        date: new Date(record.dateRecorded).toISOString(),
+        dateLabel: formatChartDate(record.dateRecorded),
+      });
+    }
+
+    const dataPoint = dateMap.get(dateKey)!;
+    // Create sanitized key (replace spaces with underscores)
+    const safeKeyword = record.keyword.replace(/\s+/g, "_");
+    dataPoint[`${safeKeyword}_position`] = record.position;
+    dataPoint[`${safeKeyword}_traffic`] = record.traffic;
+  });
+
+  // Add current keyword data as the latest data point (if provided)
+  if (currentKeywords && currentKeywords.length > 0) {
+    currentKeywords.forEach((kw) => {
+      if (!keywords.includes(kw.keyword)) return;
+
+      const dateKey = new Date(kw.dateRecorded).toISOString().split("T")[0];
+
+      if (!dateMap.has(dateKey)) {
+        dateMap.set(dateKey, {
+          date: new Date(kw.dateRecorded).toISOString(),
+          dateLabel: formatChartDate(kw.dateRecorded),
+        });
+      }
+
+      const dataPoint = dateMap.get(dateKey)!;
+      const safeKeyword = kw.keyword.replace(/\s+/g, "_");
+      // Only set if not already set (history takes priority for same date)
+      if (dataPoint[`${safeKeyword}_position`] === undefined) {
+        dataPoint[`${safeKeyword}_position`] = kw.position;
+        dataPoint[`${safeKeyword}_traffic`] = kw.traffic;
+      }
+    });
+  }
+
+  // Convert to array and sort by date ascending
+  return Array.from(dateMap.values()).sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+};
+
+/**
+ * Create a safe dataKey from keyword name
+ * @param keyword - Original keyword name
+ * @param suffix - Suffix to append (e.g., "position", "traffic")
+ * @returns Safe dataKey string
+ */
+export const createKeywordDataKey = (
+  keyword: string,
+  suffix: "position" | "traffic"
+): string => {
+  return `${keyword.replace(/\s+/g, "_")}_${suffix}`;
+};

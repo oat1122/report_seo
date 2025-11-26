@@ -38,6 +38,19 @@ interface RecommendKeywordFormData {
 interface CombinedHistoryData {
   metricsHistory: OverallMetricsHistory[];
   keywordHistory: KeywordReportHistory[];
+  currentKeywords: CurrentKeyword[]; // Keywords ปัจจุบัน
+}
+
+// Type สำหรับ Keyword ปัจจุบัน
+export interface CurrentKeyword {
+  id: string;
+  keyword: string;
+  position: number | null;
+  traffic: number;
+  kd: string;
+  isTopReport: boolean;
+  dateRecorded: string;
+  customerId: string;
 }
 
 // --- API Functions ---
