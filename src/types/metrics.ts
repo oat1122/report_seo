@@ -49,3 +49,14 @@ export type KeywordRecommendForm = Omit<
   KeywordRecommend,
   "id" | "createdAt" | "customerId"
 >;
+
+// --- Traffic Change Tracking Types ---
+export type MetricTrend = "up" | "down" | "neutral" | "new";
+
+export interface TrafficChangeData {
+  percentage: number;
+  trend: MetricTrend;
+  hasHistory: boolean;
+  previousValue?: number;
+  currentValue: number;
+}

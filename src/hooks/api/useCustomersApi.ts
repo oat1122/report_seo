@@ -324,8 +324,7 @@ export const useGetCombinedHistory = (customerId: string | null) => {
     queryKey: ["history", customerId],
     queryFn: () => fetchCombinedHistory(customerId!),
     enabled: !!customerId,
-    // อาจเพิ่ม staleTime หรือ cacheTime ตามต้องการ
-    // staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
   });
 };
 

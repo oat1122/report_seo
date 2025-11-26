@@ -20,36 +20,13 @@ import {
 import { HistoryModal } from "@/components/shared/users/MetricsModal/HistoryModal";
 import { useOverallMetricsCard } from "./hooks/useOverallMetricsCard";
 import { getRatingColor, getAgeColor, getSpamColor } from "./lib/utils";
+import { useHistoryContext } from "./contexts/HistoryContext";
+import { calculateMetricChange } from "./lib/historyCalculations";
+import { MetricChangeIndicator } from "./components/MetricChangeIndicator";
 
 // --- Helper Components ---
 
-// 1. MetricItem สำหรับตัวเลขธรรมดา
-const MetricItem = ({
-  icon,
-  label,
-  value,
-  color,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string | number;
-  color?: string;
-}) => (
-  <Paper
-    variant="outlined"
-    sx={{ p: 2, textAlign: "center", borderRadius: 3, height: "100%" }}
-  >
-    <Box sx={{ color: color || "text.secondary", mb: 1 }}>{icon}</Box>
-    <Typography variant="h6" fontWeight={700}>
-      {value}
-    </Typography>
-    <Typography variant="body2" color="text.secondary">
-      {label}
-    </Typography>
-  </Paper>
-);
-
-// 2. Gauge Chart Component ใหม่ (ใช้แทน CircularProgress แบบเดิม)
+// Gauge Chart Component (ใช้แทน CircularProgress แบบเดิม)
 const GaugeChart = ({ label, value }: { label: string; value: number }) => {
   const color = getRatingColor(value);
   return (
@@ -168,6 +145,9 @@ export const OverallMetricsCard: React.FC<OverallMetricsCardProps> = ({
     handleCloseHistoryModal,
   } = useOverallMetricsCard(customerId);
 
+  // Get history data from context
+  const { metricsHistory } = useHistoryContext();
+
   if (!metrics) {
     return (
       <Paper
@@ -184,6 +164,28 @@ export const OverallMetricsCard: React.FC<OverallMetricsCardProps> = ({
       </Paper>
     );
   }
+
+  // Calculate changes for each metric
+  const trafficChange = calculateMetricChange(
+    metrics.organicTraffic,
+    metricsHistory,
+    "organicTraffic"
+  );
+  const keywordsChange = calculateMetricChange(
+    metrics.organicKeywords,
+    metricsHistory,
+    "organicKeywords"
+  );
+  const backlinksChange = calculateMetricChange(
+    metrics.backlinks,
+    metricsHistory,
+    "backlinks"
+  );
+  const refDomainsChange = calculateMetricChange(
+    metrics.refDomains,
+    metricsHistory,
+    "refDomains"
+  );
 
   return (
     <>
@@ -232,35 +234,39 @@ export const OverallMetricsCard: React.FC<OverallMetricsCardProps> = ({
             />
           </Grid>
 
-          {/* Other metrics (ใช้ MetricItem เดิม) */}
+          {/* Other metrics (ใช้ MetricChangeIndicator แทน MetricItem) */}
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <MetricItem
+            <MetricChangeIndicator
               icon={<Traffic />}
               label="Organic Traffic"
               value={metrics.organicTraffic.toLocaleString()}
+              changeData={trafficChange}
               color="#31fb4c"
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <MetricItem
+            <MetricChangeIndicator
               icon={<VpnKey />}
               label="Organic Keywords"
               value={metrics.organicKeywords.toLocaleString()}
+              changeData={keywordsChange}
               color="#9592ff"
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <MetricItem
+            <MetricChangeIndicator
               icon={<LinkIcon />}
               label="Backlink"
               value={metrics.backlinks.toLocaleString()}
+              changeData={backlinksChange}
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <MetricItem
+            <MetricChangeIndicator
               icon={<Language />}
               label="Ref.Domains"
               value={metrics.refDomains.toLocaleString()}
+              changeData={refDomainsChange}
             />
           </Grid>
         </Grid>

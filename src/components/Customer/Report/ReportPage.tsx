@@ -13,6 +13,7 @@ import { OverallMetricsCard } from "./OverallMetricsCard";
 import { KeywordReportTable } from "./KeywordReportTable";
 import { RecommendKeywordTable } from "./RecommendKeywordTable"; // Import component ใหม่
 import { useReportPage } from "./hooks/useReportPage";
+import { HistoryProvider } from "./contexts/HistoryContext";
 
 interface ReportPageProps {
   customerId: string;
@@ -44,36 +45,38 @@ const ReportPage: React.FC<ReportPageProps> = ({ customerId }) => {
   const domain = reportData?.domain || "N/A";
 
   return (
-    <Container maxWidth="lg">
-      <Typography variant="h2" component="h1" gutterBottom>
-        SEO Report for {customerName}
-      </Typography>
-      <Typography variant="h5" color="text.secondary" sx={{ mb: 4 }}>
-        {domain}
-      </Typography>
+    <HistoryProvider customerId={customerId}>
+      <Container maxWidth="lg">
+        <Typography variant="h2" component="h1" gutterBottom>
+          SEO Report for {customerName}
+        </Typography>
+        <Typography variant="h5" color="text.secondary" sx={{ mb: 4 }}>
+          {domain}
+        </Typography>
 
-      <OverallMetricsCard
-        metrics={reportData?.metrics || null}
-        customerId={customerId}
-        customerName={customerName}
-      />
+        <OverallMetricsCard
+          metrics={reportData?.metrics || null}
+          customerId={customerId}
+          customerName={customerName}
+        />
 
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 4, mt: 4 }}>
-        <KeywordReportTable
-          title="Top Keywords Report"
-          keywords={reportData?.topKeywords || []}
-        />
-        {/* เพิ่มตาราง Keyword ที่แนะนำที่นี่ */}
-        <RecommendKeywordTable
-          title="Recommended Keywords"
-          keywords={reportData?.recommendations || []}
-        />
-        <KeywordReportTable
-          title="Other Keywords"
-          keywords={reportData?.otherKeywords || []}
-        />
-      </Box>
-    </Container>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 4, mt: 4 }}>
+          <KeywordReportTable
+            title="Top Keywords Report"
+            keywords={reportData?.topKeywords || []}
+          />
+          {/* เพิ่มตาราง Keyword ที่แนะนำที่นี่ */}
+          <RecommendKeywordTable
+            title="Recommended Keywords"
+            keywords={reportData?.recommendations || []}
+          />
+          <KeywordReportTable
+            title="Other Keywords"
+            keywords={reportData?.otherKeywords || []}
+          />
+        </Box>
+      </Container>
+    </HistoryProvider>
   );
 };
 

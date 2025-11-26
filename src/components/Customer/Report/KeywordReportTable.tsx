@@ -11,17 +11,14 @@ import {
   Typography,
   Chip,
   Box,
-  LinearProgress,
   Avatar,
   Tooltip,
 } from "@mui/material";
-import {
-  TrendingUp,
-  EmojiEvents,
-  Search,
-  LocalFireDepartment,
-} from "@mui/icons-material";
+import { EmojiEvents, Search, LocalFireDepartment } from "@mui/icons-material";
 import { KeywordReport } from "@/types/metrics";
+import { useHistoryContext } from "./contexts/HistoryContext";
+import { calculateTrafficChange } from "./lib/historyCalculations";
+import { TrafficProgressBar } from "./components/TrafficProgressBar";
 
 interface KeywordReportTableProps {
   keywords: KeywordReport[];
@@ -45,11 +42,6 @@ const getPositionBadge = (position: number | null, rank: number) => {
   return null;
 };
 
-// Helper: Calculate traffic percentage for visualization
-const getTrafficPercentage = (traffic: number, maxTraffic: number) => {
-  return maxTraffic > 0 ? (traffic / maxTraffic) * 100 : 0;
-};
-
 // Helper: Get KD styling with semantic colors
 const getKdStyle = (kd: string) => {
   const styles = {
@@ -64,12 +56,12 @@ export const KeywordReportTable: React.FC<KeywordReportTableProps> = ({
   keywords,
   title,
 }) => {
+  // Get history data from context
+  const { keywordHistory } = useHistoryContext();
+
   if (keywords.length === 0) {
     return null;
   }
-
-  // Calculate max traffic for relative visualization
-  const maxTraffic = Math.max(...keywords.map((kw) => kw.traffic));
 
   return (
     <TableContainer
@@ -150,8 +142,14 @@ export const KeywordReportTable: React.FC<KeywordReportTableProps> = ({
         <TableBody>
           {keywords.map((kw, index) => {
             const positionBadge = getPositionBadge(kw.position, index);
-            const trafficPercent = getTrafficPercentage(kw.traffic, maxTraffic);
             const kdStyle = getKdStyle(kw.kd);
+
+            // Calculate traffic change from history
+            const trafficChangeData = calculateTrafficChange(
+              kw.traffic,
+              keywordHistory,
+              kw.id
+            );
 
             return (
               <TableRow
@@ -247,41 +245,7 @@ export const KeywordReportTable: React.FC<KeywordReportTableProps> = ({
 
                 {/* Traffic with Visual Bar */}
                 <TableCell>
-                  <Box>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        mb: 0.5,
-                      }}
-                    >
-                      <Typography variant="body2" fontWeight={600}>
-                        {kw.traffic.toLocaleString()}
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
-                      >
-                        <TrendingUp sx={{ fontSize: 14 }} />
-                        {trafficPercent.toFixed(0)}%
-                      </Typography>
-                    </Box>
-                    <LinearProgress
-                      variant="determinate"
-                      value={trafficPercent}
-                      sx={{
-                        height: 8,
-                        borderRadius: 4,
-                        bgcolor: "#E2E8F0",
-                        "& .MuiLinearProgress-bar": {
-                          borderRadius: 4,
-                          background:
-                            "linear-gradient(90deg, #31fb4c 0%, #00d4aa 100%)",
-                        },
-                      }}
-                    />
-                  </Box>
+                  <TrafficProgressBar changeData={trafficChangeData} />
                 </TableCell>
 
                 {/* KD Badge */}
