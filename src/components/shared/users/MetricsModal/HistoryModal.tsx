@@ -146,7 +146,10 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
                           {record.healthScore}
                         </TableCell>
                         <TableCell align="right">
-                          {formatDuration(record.ageInYears, record.ageInMonths || 0)}
+                          {formatDuration(
+                            record.ageInYears,
+                            record.ageInMonths || 0
+                          )}
                         </TableCell>
                         <TableCell align="right">{record.spamScore}%</TableCell>
                         <TableCell align="right">

@@ -209,7 +209,9 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
                 }}
               >
                 {Object.keys(metrics)
-                  .filter((key) => key !== "ageInYears" && key !== "ageInMonths")
+                  .filter(
+                    (key) => key !== "ageInYears" && key !== "ageInMonths"
+                  )
                   .map((key) => (
                     <TextField
                       key={key}
@@ -225,7 +227,7 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
                       size="small"
                     />
                   ))}
-                
+
                 {/* Custom 2-column grid for Age fields */}
                 <Box
                   sx={{
@@ -255,9 +257,7 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
                     inputProps={{ min: 0, max: 11 }}
                     error={Number(metrics.ageInMonths) > 11}
                     helperText={
-                      Number(metrics.ageInMonths) > 11
-                        ? "สูงสุด 11 เดือน"
-                        : ""
+                      Number(metrics.ageInMonths) > 11 ? "สูงสุด 11 เดือน" : ""
                     }
                   />
                 </Box>

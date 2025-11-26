@@ -22,7 +22,7 @@ export interface OverallMetrics {
  * @returns Total months
  */
 export const calculateTotalMonths = (years: number, months: number): number => {
-  return (years * 12) + months;
+  return years * 12 + months;
 };
 
 /**

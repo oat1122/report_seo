@@ -40,7 +40,7 @@ export const getRatingColor = (value: number): string => {
  * @returns สีที่ใช้แสดงในกราฟ
  */
 export const getAgeColor = (years: number, months: number = 0): string => {
-  const totalMonths = (years * 12) + months;
+  const totalMonths = years * 12 + months;
   if (totalMonths > 24) return "#2e7d32"; // Green (> 2 years)
   if (totalMonths >= 12) return "#ed6c02"; // Yellow (1-2 years)
   return "#d32f2f"; // Red (< 1 year)

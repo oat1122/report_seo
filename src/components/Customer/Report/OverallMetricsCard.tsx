@@ -114,7 +114,11 @@ const CustomLinearProgress = ({
             />
           </Box>
         </Box>
-        <Typography variant="body1" fontWeight={600} sx={{ whiteSpace: "nowrap" }}>
+        <Typography
+          variant="body1"
+          fontWeight={600}
+          sx={{ whiteSpace: "nowrap" }}
+        >
           {displayValue}
         </Typography>
       </Box>
@@ -222,9 +226,14 @@ export const OverallMetricsCard: React.FC<OverallMetricsCardProps> = ({
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <CustomLinearProgress
               label="Age"
-              value={(metrics.ageInYears * 12) + (metrics.ageInMonths || 0)}
-              displayValue={formatDuration(metrics.ageInYears, metrics.ageInMonths || 0)}
-              colorFunc={(totalMonths) => getAgeColor(Math.floor(totalMonths / 12), totalMonths % 12)}
+              value={metrics.ageInYears * 12 + (metrics.ageInMonths || 0)}
+              displayValue={formatDuration(
+                metrics.ageInYears,
+                metrics.ageInMonths || 0
+              )}
+              colorFunc={(totalMonths) =>
+                getAgeColor(Math.floor(totalMonths / 12), totalMonths % 12)
+              }
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
