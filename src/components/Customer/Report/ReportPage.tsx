@@ -14,6 +14,8 @@ import { OverallMetricsCard } from "./OverallMetricsCard";
 import { KeywordReportTable } from "./KeywordReportTable";
 import { RecommendKeywordTable } from "./RecommendKeywordTable";
 import { SummaryStatistics } from "./SummaryStatistics";
+import { TrendChartsSection } from "./TrendChartsSection";
+import { KeywordTrendChart } from "./KeywordTrendChart";
 import { useReportPage } from "./hooks/useReportPage";
 import { HistoryProvider } from "./contexts/HistoryContext";
 
@@ -99,6 +101,16 @@ const ReportPage: React.FC<ReportPageProps> = ({ customerId }) => {
             />
           </Grid>
         </Grid>
+
+        {/* Trend Charts Section: Domain Metrics History */}
+        <Box sx={{ mb: 4 }}>
+          <TrendChartsSection title="แนวโน้ม Domain Metrics" />
+        </Box>
+
+        {/* Keyword Trend Chart */}
+        <Box sx={{ mb: 4 }}>
+          <KeywordTrendChart title="แนวโน้ม Keyword" />
+        </Box>
 
         {/* Keyword Tables */}
         <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>

@@ -159,3 +159,167 @@ export const formatPercentage = (
   }
   return absPercentage.toFixed(decimals);
 };
+
+// ============================================================
+// Chart Data Transformation Functions
+// ============================================================
+
+/**
+ * Data point format for Recharts
+ */
+export interface MetricsChartDataPoint {
+  date: string; // ISO date string for X-axis
+  dateLabel: string; // Formatted label for display
+  domainRating: number;
+  healthScore: number;
+  organicTraffic: number;
+  organicKeywords: number;
+  backlinks: number;
+  refDomains: number;
+  spamScore: number;
+}
+
+export interface KeywordChartDataPoint {
+  date: string;
+  dateLabel: string;
+  position: number | null;
+  traffic: number;
+  keyword: string;
+}
+
+/**
+ * Filter history records by period (number of days)
+ * @param history - Array of history records
+ * @param days - Number of days to include (7, 30, or 90)
+ * @returns Filtered array sorted by date ascending
+ */
+export const filterHistoryByPeriod = <
+  T extends { dateRecorded: Date | string }
+>(
+  history: T[],
+  days: number
+): T[] => {
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - days);
+
+  return history
+    .filter((record) => new Date(record.dateRecorded) >= cutoffDate)
+    .sort(
+      (a, b) =>
+        new Date(a.dateRecorded).getTime() - new Date(b.dateRecorded).getTime()
+    );
+};
+
+/**
+ * Format date for chart display (Thai locale)
+ * @param date - Date to format
+ * @returns Formatted string like "26 พ.ย."
+ */
+export const formatChartDate = (date: Date | string): string => {
+  const d = new Date(date);
+  return d.toLocaleDateString("th-TH", { day: "2-digit", month: "short" });
+};
+
+/**
+ * Transform OverallMetricsHistory array to Recharts-compatible format
+ * @param history - Array of metrics history records
+ * @param days - Period filter (default: 30)
+ * @returns Array of chart data points sorted by date ascending
+ */
+export const transformMetricsForRecharts = (
+  history: OverallMetricsHistory[],
+  days: number = 30
+): MetricsChartDataPoint[] => {
+  // Filter and sort by period
+  const filteredHistory = filterHistoryByPeriod(history, days);
+
+  // Transform to chart format
+  return filteredHistory.map((record) => ({
+    date: new Date(record.dateRecorded).toISOString(),
+    dateLabel: formatChartDate(record.dateRecorded),
+    domainRating: record.domainRating,
+    healthScore: record.healthScore,
+    organicTraffic: record.organicTraffic,
+    organicKeywords: record.organicKeywords,
+    backlinks: record.backlinks,
+    refDomains: record.refDomains,
+    spamScore: record.spamScore,
+  }));
+};
+
+/**
+ * Group keyword history by keyword name
+ * @param history - Array of keyword history records
+ * @returns Map of keyword name to array of history records
+ */
+export const groupKeywordHistory = (
+  history: KeywordReportHistory[]
+): Map<string, KeywordReportHistory[]> => {
+  const grouped = new Map<string, KeywordReportHistory[]>();
+
+  history.forEach((record) => {
+    const existing = grouped.get(record.keyword) || [];
+    existing.push(record);
+    grouped.set(record.keyword, existing);
+  });
+
+  // Sort each group by date ascending
+  grouped.forEach((records, keyword) => {
+    grouped.set(
+      keyword,
+      records.sort(
+        (a, b) =>
+          new Date(a.dateRecorded).getTime() -
+          new Date(b.dateRecorded).getTime()
+      )
+    );
+  });
+
+  return grouped;
+};
+
+/**
+ * Transform KeywordReportHistory for a specific keyword to chart format
+ * @param history - Array of keyword history records
+ * @param keyword - Keyword name to filter
+ * @param days - Period filter (default: 30)
+ * @returns Array of chart data points
+ */
+export const transformKeywordForRecharts = (
+  history: KeywordReportHistory[],
+  keyword: string,
+  days: number = 30
+): KeywordChartDataPoint[] => {
+  // Filter by keyword and period
+  const keywordHistory = history.filter((h) => h.keyword === keyword);
+  const filteredHistory = filterHistoryByPeriod(keywordHistory, days);
+
+  // Transform to chart format
+  return filteredHistory.map((record) => ({
+    date: new Date(record.dateRecorded).toISOString(),
+    dateLabel: formatChartDate(record.dateRecorded),
+    position: record.position,
+    traffic: record.traffic,
+    keyword: record.keyword,
+  }));
+};
+
+/**
+ * Get unique keyword names from history
+ * @param history - Array of keyword history records
+ * @returns Array of unique keyword names
+ */
+export const getUniqueKeywords = (
+  history: KeywordReportHistory[]
+): string[] => {
+  return [...new Set(history.map((h) => h.keyword))];
+};
+
+/**
+ * Check if there's enough data to display a chart
+ * @param dataPoints - Number of data points
+ * @returns true if >= 2 points (minimum for a line)
+ */
+export const hasEnoughDataForChart = (dataPoints: number): boolean => {
+  return dataPoints >= 2;
+};
