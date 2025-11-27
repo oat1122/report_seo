@@ -12,12 +12,7 @@ import {
 } from "@mui/material";
 import { Add } from "@mui/icons-material";
 import { useSession } from "next-auth/react";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import {
-  fetchUsers,
-  fetchSeoDevs,
-  clearUserError,
-} from "@/store/features/users/usersSlice";
+import { useGetUsers } from "@/hooks/api/useUsersApi";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { UserTable } from "./UserTable";
 import { UserModal } from "./UserModal";
@@ -29,21 +24,13 @@ import { User } from "@/types/user";
 
 const UserManagementSeoDev: React.FC = () => {
   const { data: session } = useSession();
-  const dispatch = useAppDispatch();
 
-  // 1. ดึงข้อมูล Users และ SeoDevs ทั้งหมดจาก Redux
+  // 🆕 React Query: Fetch users
   const {
-    users: allUsers,
-    status,
+    data: allUsers = [],
+    isLoading: loading,
     error: usersError,
-  } = useAppSelector((state) => state.users);
-
-  React.useEffect(() => {
-    if (status === "idle") {
-      dispatch(fetchUsers());
-      dispatch(fetchSeoDevs());
-    }
-  }, [status, dispatch]);
+  } = useGetUsers(true);
 
   // 2. กรองข้อมูลเฉพาะลูกค้าของ SEO Dev ที่ล็อกอินอยู่
   const currentSeoDevId = session?.user?.id;
@@ -97,8 +84,6 @@ const UserManagementSeoDev: React.FC = () => {
     handleCloseKeywordHistory,
   } = useCustomerMetricsModal(managedCustomers);
 
-  const loading = status === "loading";
-
   return (
     <DashboardLayout>
       <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -132,12 +117,8 @@ const UserManagementSeoDev: React.FC = () => {
         </Box>
 
         {usersError && (
-          <Alert
-            severity="error"
-            onClose={() => dispatch(clearUserError())}
-            sx={{ mb: 3 }}
-          >
-            {usersError}
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {usersError.message || "เกิดข้อผิดพลาดในการโหลดข้อมูล"}
           </Alert>
         )}
 
