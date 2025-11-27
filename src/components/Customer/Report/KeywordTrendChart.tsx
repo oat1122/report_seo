@@ -226,19 +226,6 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
     return [1, 5, 10, POSITION_CLIP_THRESHOLD];
   }, []);
 
-  // Check if any position exceeds the clip threshold (for showing indicator)
-  const hasClippedPositions = useMemo(() => {
-    if (chartData.length === 0) return false;
-
-    return selectedKeywords.some((keyword) => {
-      const dataKey = createKeywordDataKey(keyword, "position");
-      return chartData.some((point) => {
-        const val = point[dataKey];
-        return typeof val === "number" && val > POSITION_CLIP_THRESHOLD;
-      });
-    });
-  }, [chartData, selectedKeywords]);
-
   if (isLoading) {
     return (
       <Paper

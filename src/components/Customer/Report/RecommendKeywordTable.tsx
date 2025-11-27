@@ -57,10 +57,7 @@ const getKdStyle = (kd: string) => {
 };
 
 // Mobile Card View
-const KeywordCard: React.FC<{ kw: KeywordRecommend; index: number }> = ({
-  kw,
-  index,
-}) => {
+const KeywordCard: React.FC<{ kw: KeywordRecommend }> = ({ kw }) => {
   const kdStyle = kw.kd ? getKdStyle(kw.kd) : null;
   const isTopReport = kw.isTopReport;
 
@@ -176,8 +173,8 @@ export const RecommendKeywordTable: React.FC<RecommendKeywordTableProps> = ({
           </Typography>
         )}
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          {keywords.map((kw, index) => (
-            <KeywordCard key={kw.id} kw={kw} index={index} />
+          {keywords.map((kw) => (
+            <KeywordCard key={kw.id} kw={kw} />
           ))}
         </Box>
       </Box>
@@ -242,7 +239,7 @@ export const RecommendKeywordTable: React.FC<RecommendKeywordTableProps> = ({
           </TableRow>
         </TableHead>
         <TableBody>
-          {keywords.map((kw, index) => {
+          {keywords.map((kw) => {
             const kdStyle = kw.kd ? getKdStyle(kw.kd) : null;
             const isTopReport = kw.isTopReport;
 
