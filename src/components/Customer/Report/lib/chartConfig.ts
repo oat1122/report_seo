@@ -29,23 +29,38 @@ export const CHART_COLORS = {
 } as const;
 
 // --- Common Recharts Props ---
+// Base props without syncId (for independent tooltip behavior)
 export const COMMON_CHART_PROPS = {
-  syncId: "seo-dashboard-sync", // Key for synchronizing tooltips across charts
   margin: { top: 10, right: 30, left: 0, bottom: 0 },
 } as const;
 
-// --- Layout Classes (Tailwind) ---
+// Props for Domain Metrics charts (synchronized within this section)
+export const DOMAIN_METRICS_CHART_PROPS = {
+  ...COMMON_CHART_PROPS,
+  syncId: "domain-metrics-sync",
+} as const;
+
+// Props for Keyword charts (synchronized within this section)
+export const KEYWORD_CHART_PROPS = {
+  ...COMMON_CHART_PROPS,
+  syncId: "keyword-chart-sync",
+} as const;
+
+// --- Layout Classes (Tailwind) - Light Theme Only ---
 export const CHART_LAYOUT = {
   // Combined chart: taller height for single chart view
   containerHeight: "w-full h-80 sm:h-96",
-  // Card styling matching existing theme
-  cardBase:
-    "bg-white p-4 rounded-xl shadow-sm border border-gray-100 dark:bg-gray-800 dark:border-gray-700",
+  // Card styling - Light theme (unified across all charts)
+  cardBase: "bg-white p-4 rounded-xl shadow-sm border border-gray-100",
   // Section header
-  header: "text-sm font-semibold text-gray-600 dark:text-gray-300 mb-2",
+  header: "text-sm font-semibold text-gray-600 mb-2",
   // Section title (larger)
-  sectionTitle: "text-lg font-bold text-gray-800 dark:text-gray-100",
+  sectionTitle: "text-lg font-bold text-gray-800",
 } as const;
+
+// --- Position Chart Clipping ---
+// Positions beyond this threshold will be clamped and shown with label
+export const POSITION_CLIP_THRESHOLD = 20;
 
 // --- Period Options ---
 export type PeriodOption = 7 | 30 | 90;
@@ -65,6 +80,7 @@ export interface MetricSeriesConfig {
   color: string;
   unit?: string;
   defaultVisible: boolean;
+  axisType: "score" | "volume"; // score: 0-100 scale (left axis), volume: dynamic scale (right axis)
 }
 
 export const DOMAIN_METRICS_SERIES: MetricSeriesConfig[] = [
@@ -74,6 +90,7 @@ export const DOMAIN_METRICS_SERIES: MetricSeriesConfig[] = [
     color: CHART_COLORS.primary,
     unit: "",
     defaultVisible: true,
+    axisType: "score", // 0-100 scale
   },
   {
     dataKey: "healthScore",
@@ -81,6 +98,7 @@ export const DOMAIN_METRICS_SERIES: MetricSeriesConfig[] = [
     color: CHART_COLORS.healthScore,
     unit: "",
     defaultVisible: true,
+    axisType: "score", // 0-100 scale
   },
   {
     dataKey: "organicTraffic",
@@ -88,6 +106,7 @@ export const DOMAIN_METRICS_SERIES: MetricSeriesConfig[] = [
     color: CHART_COLORS.traffic,
     unit: "",
     defaultVisible: true,
+    axisType: "volume", // Dynamic scale (thousands/millions)
   },
   {
     dataKey: "organicKeywords",
@@ -95,6 +114,7 @@ export const DOMAIN_METRICS_SERIES: MetricSeriesConfig[] = [
     color: CHART_COLORS.keywords,
     unit: "",
     defaultVisible: false,
+    axisType: "volume", // Dynamic scale
   },
   {
     dataKey: "backlinks",
@@ -102,6 +122,7 @@ export const DOMAIN_METRICS_SERIES: MetricSeriesConfig[] = [
     color: CHART_COLORS.backlinks,
     unit: "",
     defaultVisible: false,
+    axisType: "volume", // Dynamic scale
   },
   {
     dataKey: "refDomains",
@@ -109,6 +130,7 @@ export const DOMAIN_METRICS_SERIES: MetricSeriesConfig[] = [
     color: CHART_COLORS.refDomains,
     unit: "",
     defaultVisible: false,
+    axisType: "volume", // Dynamic scale
   },
   {
     dataKey: "spamScore",
@@ -116,6 +138,7 @@ export const DOMAIN_METRICS_SERIES: MetricSeriesConfig[] = [
     color: CHART_COLORS.spamScore,
     unit: "%",
     defaultVisible: false,
+    axisType: "score", // 0-100 scale (percentage)
   },
 ];
 
@@ -193,12 +216,11 @@ export const METRICS_CHART_SERIES = {
   },
 } as const;
 
-// --- Tooltip Styling ---
+// --- Tooltip Styling - Light Theme Only ---
 export const TOOLTIP_STYLES = {
-  container:
-    "bg-white p-3 border border-gray-100 shadow-lg rounded-lg text-sm dark:bg-gray-800 dark:border-gray-700",
-  label: "font-bold text-gray-700 dark:text-gray-200 mb-2",
-  value: "text-gray-600 dark:text-gray-300",
+  container: "bg-white p-3 border border-gray-100 shadow-lg rounded-lg text-sm",
+  label: "font-bold text-gray-700 mb-2",
+  value: "text-gray-600",
 } as const;
 
 // --- Keyword Chart Configuration ---

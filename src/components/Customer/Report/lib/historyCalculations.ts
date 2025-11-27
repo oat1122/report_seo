@@ -1,5 +1,6 @@
 // src/components/Customer/Report/lib/historyCalculations.ts
 import { KeywordReportHistory, OverallMetricsHistory } from "@/types/history";
+import { POSITION_CLIP_THRESHOLD } from "./chartConfig";
 
 // --- Types ---
 export type MetricTrend = "up" | "down" | "neutral" | "new";
@@ -375,6 +376,11 @@ export const sortKeywordsByTraffic = (
  * Transform KeywordReportHistory for multiple keywords to chart format
  * Merges data by date, creating columns for each keyword's position and traffic
  * Also includes current keyword data as the latest data point
+ *
+ * For position data, creates two fields per keyword:
+ * - `{keyword}_position`: Display value (clamped to POSITION_CLIP_THRESHOLD for charting)
+ * - `{keyword}_position_real`: Actual value (for tooltip/label display)
+ *
  * @param history - Array of keyword history records
  * @param keywords - Array of keyword names to include
  * @param days - Period filter (default: 30)
@@ -398,6 +404,12 @@ export const transformMultiKeywordForRecharts = (
   // Group by date
   const dateMap = new Map<string, MultiKeywordChartDataPoint>();
 
+  // Helper function to clamp position for display
+  const clampPosition = (position: number | null): number | null => {
+    if (position === null) return null;
+    return Math.min(position, POSITION_CLIP_THRESHOLD);
+  };
+
   // Add history records
   filteredHistory.forEach((record) => {
     if (!keywords.includes(record.keyword)) return;
@@ -414,7 +426,10 @@ export const transformMultiKeywordForRecharts = (
     const dataPoint = dateMap.get(dateKey)!;
     // Create sanitized key (replace spaces with underscores)
     const safeKeyword = record.keyword.replace(/\s+/g, "_");
-    dataPoint[`${safeKeyword}_position`] = record.position;
+    // Store clamped position for charting (won't go below threshold line)
+    dataPoint[`${safeKeyword}_position`] = clampPosition(record.position);
+    // Store real position for tooltip display
+    dataPoint[`${safeKeyword}_position_real`] = record.position;
     dataPoint[`${safeKeyword}_traffic`] = record.traffic;
   });
 
@@ -436,7 +451,8 @@ export const transformMultiKeywordForRecharts = (
       const safeKeyword = kw.keyword.replace(/\s+/g, "_");
       // Only set if not already set (history takes priority for same date)
       if (dataPoint[`${safeKeyword}_position`] === undefined) {
-        dataPoint[`${safeKeyword}_position`] = kw.position;
+        dataPoint[`${safeKeyword}_position`] = clampPosition(kw.position);
+        dataPoint[`${safeKeyword}_position_real`] = kw.position;
         dataPoint[`${safeKeyword}_traffic`] = kw.traffic;
       }
     });
