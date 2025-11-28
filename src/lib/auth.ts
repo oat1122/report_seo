@@ -85,6 +85,5 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
   },
   secret: process.env.NEXTAUTH_SECRET,
-  trustHost: true,
   debug: true,
 };
