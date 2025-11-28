@@ -4,14 +4,17 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
     "seed": "tsx prisma/seed.ts",
     "prisma:migrate:prod": "dotenv -e .env.production -- prisma migrate deploy",
+    "prisma:migrate:deploy": "npx prisma migrate deploy",
     "db:seed:prod": "dotenv -e .env.production -- tsx prisma/seed.ts",
     "deploy:prod": "npm install && npm run prisma:migrate:prod && npm run build",
     "prisma:generate": "npx prisma generate",
+    "prisma:push": "npx prisma db push",
+    "postinstall": "prisma generate",
     "gen:secret": "node -e \"console.log(require('crypto').randomBytes(32).toString('base64'))\""
   },
   "dependencies": {

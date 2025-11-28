@@ -1,7 +1,7 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
-import { prisma } from "./prisma";
+import { prismaBase } from "./prisma";
 import { Role } from "@/types/auth";
 
 export const authOptions: NextAuthOptions = {
@@ -26,10 +26,11 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          // Find user in database
-          const user = await prisma.user.findUnique({
+          // Find user in database (use prismaBase to bypass soft delete middleware)
+          const user = await prismaBase.user.findUnique({
             where: {
               email: credentials.email,
+              deletedAt: null, // Only allow non-deleted users to login
             },
           });
 
@@ -84,5 +85,5 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
   },
   secret: process.env.NEXTAUTH_SECRET,
-  debug: process.env.NODE_ENV === "development",
+  debug: true,
 };
