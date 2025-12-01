@@ -1,3 +1,4 @@
+// Note: Ensure prisma/schema.prisma has @@map("table_name") if your database uses lowercase table names (e.g. from a dump).
 import { PrismaClient } from "@prisma/client";
 import { randomUUID } from "crypto"; // ใช้ในกรณีที่อยาก set UUID เอง
 import bcrypt from "bcrypt";
@@ -5,12 +6,12 @@ import bcrypt from "bcrypt";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("▶️ เริ่มต้น Seed ข้อมูล...");
+  console.log("▶ เริ่มต้น Seed ข้อมูล...");
 
   // Hash password สำหรับทุก user
   const hashedPassword = await bcrypt.hash("password123", 10);
 
-  // 1️⃣ สร้าง ADMIN User
+  // 1️ สร้าง ADMIN User
   const adminUser = await prisma.user.upsert({
     where: { email: "admin@report.com" },
     update: {
@@ -27,7 +28,7 @@ async function main() {
     },
   });
 
-  // 2️⃣ สร้าง SEO_DEV User
+  // 2️ สร้าง SEO_DEV User
   const seoDevUser = await prisma.user.upsert({
     where: { email: "seo.dev@report.com" },
     update: {
@@ -44,7 +45,7 @@ async function main() {
     },
   });
 
-  // 3️⃣ สร้าง CUSTOMER User
+  // 3️ สร้าง CUSTOMER User
   const customerUser = await prisma.user.upsert({
     where: { email: "customer@report.com" },
     update: {
@@ -61,7 +62,7 @@ async function main() {
     },
   });
 
-  // 4️⃣ สร้าง Customer Profile และเชื่อมโยงกับ SEO_DEV + CUSTOMER
+  // 4⃣ สร้าง Customer Profile และเชื่อมโยงกับ SEO_DEV + CUSTOMER
   const customerProfile = await prisma.customer.upsert({
     where: { domain: "www.my-domain-report.com" },
     update: {},

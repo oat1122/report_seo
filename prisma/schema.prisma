@@ -58,6 +58,8 @@ model User {
   // NextAuth.js relations
   accounts Account[]
   sessions Session[]
+
+  @@map("user")
 }
 
 // 2. ข้อมูลลูกค้า (เจ้าของโดเมน)
@@ -80,6 +82,8 @@ model Customer {
   metricsHistory  OverallMetricsHistory[] @relation("MetricsHistory") // ประวัติการเปลี่ยนแปลง Metrics
   payments        PaymentProof[]      // ลูกค้า 1 คน มีประวัติการชำระเงินได้หลายครั้ง
   recommendations KeywordRecommend[]  // ลูกค้า 1 คน มี Keyword แนะนำได้หลายรายการ
+
+  @@map("customer")
 }
 
 // 3. ข้อมูลสถิติโดยรวมของโดเมน (Overall Metrics)
@@ -100,6 +104,8 @@ model OverallMetrics {
   // ความสัมพันธ์: ข้อมูลนี้เป็นของลูกค้าคนไหน
   customerId String   @unique
   customer   Customer @relation(fields: [customerId], references: [id])
+
+  @@map("overallmetrics")
 }
 
 // 3.1 ประวัติการเปลี่ยนแปลง Overall Metrics
@@ -123,6 +129,8 @@ model OverallMetricsHistory {
 
   @@index([customerId])
   @@index([dateRecorded])
+
+  @@map("overallmetricshistory")
 }
 
 // 4. รายงาน Keyword และ Position
@@ -142,6 +150,8 @@ model KeywordReport {
   
   // ความสัมพันธ์กับประวัติ
   history    KeywordReportHistory[] // ประวัติการเปลี่ยนแปลง
+
+  @@map("keywordreport")
 }
 
 // 4.1 ประวัติการเปลี่ยนแปลง Keyword Report
@@ -161,6 +171,8 @@ model KeywordReportHistory {
 
   @@index([reportId])
   @@index([dateRecorded])
+
+  @@map("keywordreporthistory")
 }
 
 // 5. หลักฐานการโอนเงิน
@@ -174,6 +186,8 @@ model PaymentProof {
   // ความสัมพันธ์: ข้อมูลนี้เป็นของลูกค้าคนไหน
   customerId String
   customer   Customer @relation(fields: [customerId], references: [id])
+
+  @@map("paymentproof")
 }
 
 // 6. Keyword แนะนำสำหรับลูกค้า
@@ -191,6 +205,8 @@ model KeywordRecommend {
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
   @@index([customerId])
+
+  @@map("keywordrecommend")
 }
 
 // ----------------------------------------------------
@@ -214,6 +230,8 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+
+  @@map("account")
 }
 
 model Session {
@@ -222,6 +240,8 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session")
 }
 
 model VerificationToken {
@@ -230,4 +250,6 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+
+  @@map("verificationtoken")
 }
