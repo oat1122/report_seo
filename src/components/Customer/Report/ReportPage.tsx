@@ -18,6 +18,7 @@ import { TrendChartsSection } from "./TrendChartsSection";
 import { KeywordTrendChart } from "./KeywordTrendChart";
 import { useReportPage } from "./hooks/useReportPage";
 import { HistoryProvider } from "./contexts/HistoryContext";
+import { AiOverviewCard } from "./AiOverviewCard";
 
 interface ReportPageProps {
   customerId: string;
@@ -111,6 +112,13 @@ const ReportPage: React.FC<ReportPageProps> = ({ customerId }) => {
         <Box sx={{ mb: 4 }}>
           <KeywordTrendChart title="แนวโน้ม Keyword" />
         </Box>
+
+        {/* AI Overview Section */}
+        {(reportData?.aiOverviews?.length ?? 0) > 0 && (
+          <Box sx={{ mb: 4 }}>
+            <AiOverviewCard aiOverviews={reportData?.aiOverviews || []} />
+          </Box>
+        )}
 
         {/* Keyword Tables */}
         <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>

@@ -6,6 +6,7 @@ import {
   OverallMetricsForm,
   KeywordReport,
   KeywordRecommend,
+  AiOverview,
 } from "@/types/metrics";
 import { OverallMetricsHistory, KeywordReportHistory } from "@/types/history";
 
@@ -15,6 +16,7 @@ interface CustomerReportData {
   topKeywords: KeywordReport[];
   otherKeywords: KeywordReport[];
   recommendations: KeywordRecommend[];
+  aiOverviews: AiOverview[];
   customerName: string | null;
   domain: string | null;
 }
@@ -349,5 +351,99 @@ export const useGetKeywordSpecificHistory = (keywordId: string | null) => {
     queryKey: ["keywordHistory", keywordId],
     queryFn: () => fetchKeywordSpecificHistory(keywordId!),
     enabled: !!keywordId,
+  });
+};
+
+// --- AI Overview API Functions ---
+const fetchAiOverviews = async (
+  customerId: string
+): Promise<AiOverview[]> => {
+  const { data } = await axios.get(`/customers/${customerId}/ai-overview`);
+  return data;
+};
+
+const addAiOverview = async ({
+  customerId,
+  formData,
+}: {
+  customerId: string;
+  formData: FormData;
+}): Promise<AiOverview> => {
+  const { data } = await axios.post(
+    `/customers/${customerId}/ai-overview`,
+    formData,
+    { headers: { "Content-Type": "multipart/form-data" } }
+  );
+  return data;
+};
+
+const deleteAiOverview = async ({
+  customerId,
+  aiOverviewId,
+}: {
+  customerId: string;
+  aiOverviewId: string;
+}): Promise<void> => {
+  await axios.delete(`/customers/${customerId}/ai-overview/${aiOverviewId}`);
+};
+
+// --- AI Overview React Query Hooks ---
+
+/**
+ * Hook to fetch AI Overviews for a customer
+ */
+export const useGetAiOverviews = (customerId: string | null) => {
+  return useQuery<AiOverview[], Error>({
+    queryKey: ["aiOverviews", customerId],
+    queryFn: () => fetchAiOverviews(customerId!),
+    enabled: !!customerId,
+  });
+};
+
+/**
+ * Hook to add a new AI Overview (with image upload)
+ */
+export const useAddAiOverview = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    AiOverview,
+    Error,
+    { customerId: string; formData: FormData }
+  >({
+    mutationFn: addAiOverview,
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["aiOverviews", variables.customerId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["customerReport", variables.customerId],
+      });
+      toast.success("เพิ่ม AI Overview สำเร็จ");
+    },
+  });
+};
+
+/**
+ * Hook to delete an AI Overview
+ */
+export const useDeleteAiOverview = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    void,
+    Error,
+    { customerId: string; aiOverviewId: string }
+  >({
+    mutationFn: deleteAiOverview,
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["aiOverviews", variables.customerId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["customerReport", variables.customerId],
+      });
+      toast.success("ลบ AI Overview สำเร็จ");
+    },
   });
 };

@@ -4,6 +4,7 @@ import { SessionProvider } from "next-auth/react";
 import { ReactNode, useState } from "react";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
+import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
 import { theme } from "@/theme/theme";
 import { Provider as ReduxProvider } from "react-redux";
 import { store } from "@/store/store";
@@ -23,10 +24,12 @@ export function Providers({ children }: ProvidersProps) {
     <SessionProvider>
       <ReduxProvider store={store}>
         <QueryClientProvider client={queryClient}>
-          <ThemeProvider theme={theme}>
-            <CssBaseline />
-            {children}
-          </ThemeProvider>
+          <AppRouterCacheProvider>
+            <ThemeProvider theme={theme}>
+              <CssBaseline />
+              {children}
+            </ThemeProvider>
+          </AppRouterCacheProvider>
         </QueryClientProvider>
       </ReduxProvider>
     </SessionProvider>

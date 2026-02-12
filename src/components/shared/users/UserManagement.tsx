@@ -77,6 +77,10 @@ const UserManagement: React.FC = () => {
     handleUpdateKeyword,
     handleAddRecommendKeyword,
     handleDeleteRecommendKeyword,
+    aiOverviews,
+    isLoadingAiOverviews,
+    handleAddAiOverview,
+    handleDeleteAiOverview,
     handleOpenHistory,
     handleCloseHistory,
     handleOpenKeywordHistory,
@@ -191,6 +195,10 @@ const UserManagement: React.FC = () => {
             isLoadingRecommend={isLoadingRecommend}
             isLoadingCombinedHistory={isLoadingCombinedHistory}
             isLoadingSpecificHistory={isLoadingSpecificHistory}
+            aiOverviews={aiOverviews}
+            isLoadingAiOverviews={isLoadingAiOverviews}
+            onAddAiOverview={handleAddAiOverview}
+            onDeleteAiOverview={handleDeleteAiOverview}
           />
         )}
 

@@ -82,6 +82,7 @@ model Customer {
   metricsHistory  OverallMetricsHistory[] @relation("MetricsHistory") // ประวัติการเปลี่ยนแปลง Metrics
   payments        PaymentProof[]      // ลูกค้า 1 คน มีประวัติการชำระเงินได้หลายครั้ง
   recommendations KeywordRecommend[]  // ลูกค้า 1 คน มี Keyword แนะนำได้หลายรายการ
+  aiOverviews     AiOverview[]        // ลูกค้า 1 คน มี AI Overview ได้หลายรายการ
 
   @@map("customer")
 }
@@ -207,6 +208,41 @@ model KeywordRecommend {
   @@index([customerId])
 
   @@map("keywordrecommend")
+}
+
+// 7. AI Overview Report
+//    - เก็บข้อมูล AI Overview ที่แสดงให้ลูกค้าเห็นว่ามีการติด AI Overview
+model AiOverview {
+  id         String   @id @default(uuid())
+  title      String   // ชื่อหัวข้อ AI Overview
+  createdAt  DateTime @default(now())
+
+  // ความสัมพันธ์: ข้อมูลนี้เป็นของลูกค้าคนไหน
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  // ความสัมพันธ์กับรูปภาพ
+  images     AiOverviewImage[]
+
+  @@index([customerId])
+
+  @@map("aioverview")
+}
+
+// 7.1 รูปภาพประกอบ AI Overview
+//     - เก็บรูปภาพหลักฐานการติด AI Overview (1-3 รูปต่อ 1 AI Overview)
+model AiOverviewImage {
+  id           String   @id @default(uuid())
+  imageUrl     String   // URL ของรูปภาพ
+  createdAt    DateTime @default(now())
+
+  // ความสัมพันธ์: รูปนี้เป็นของ AI Overview ไหน
+  aiOverviewId String
+  aiOverview   AiOverview @relation(fields: [aiOverviewId], references: [id], onDelete: Cascade)
+
+  @@index([aiOverviewId])
+
+  @@map("aioverviewimage")
 }
 
 // ----------------------------------------------------

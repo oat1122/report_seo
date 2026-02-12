@@ -21,6 +21,7 @@ import {
   AssessmentOutlined,
   RecommendOutlined,
   AccessTime,
+  AutoAwesomeOutlined,
 } from "@mui/icons-material";
 import { User } from "@/types/user";
 import {
@@ -29,6 +30,7 @@ import {
   KeywordReportForm,
   KeywordRecommend,
   KeywordRecommendForm,
+  AiOverview,
 } from "@/types";
 import { OverallMetricsHistory, KeywordReportHistory } from "@/types/history";
 import { KeywordReportSection } from "./KeywordReportSection";
@@ -37,6 +39,7 @@ import { useMetricsModal } from "./hook/useMetricsModal";
 import { HistoryModal } from "./HistoryModal";
 import { KeywordHistoryModal } from "./KeywordHistoryModal";
 import { TabPanel } from "@/components/shared/TabPanel";
+import { AiOverviewSection } from "./AiOverviewSection";
 
 interface MetricsModalProps {
   open: boolean;
@@ -74,6 +77,11 @@ interface MetricsModalProps {
   isLoadingRecommend?: boolean;
   isLoadingCombinedHistory?: boolean;
   isLoadingSpecificHistory?: boolean;
+  // AI Overview
+  aiOverviews?: AiOverview[];
+  isLoadingAiOverviews?: boolean;
+  onAddAiOverview?: (formData: FormData) => Promise<void>;
+  onDeleteAiOverview?: (aiOverviewId: string) => Promise<void>;
 }
 
 export const MetricsModal: React.FC<MetricsModalProps> = ({
@@ -100,6 +108,10 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
   selectedKeyword,
   isLoadingCombinedHistory = false,
   isLoadingSpecificHistory = false,
+  aiOverviews = [],
+  isLoadingAiOverviews = false,
+  onAddAiOverview,
+  onDeleteAiOverview,
 }) => {
   const [tabIndex, setTabIndex] = useState(0);
   const {
@@ -296,6 +308,11 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
                   icon={<RecommendOutlined />}
                   iconPosition="start"
                 />
+                <Tab
+                  label="AI Overview"
+                  icon={<AutoAwesomeOutlined />}
+                  iconPosition="start"
+                />
               </Tabs>
             </Box>
 
@@ -324,6 +341,16 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
                   onRecommendSelectChange={handleRecommendSelectChange}
                   onAddRecommend={handleAddRecommend}
                   onDeleteRecommendKeyword={onDeleteRecommendKeyword}
+                />
+              </Box>
+            </TabPanel>
+            <TabPanel value={tabIndex} index={2} prefix="simple-tabpanel">
+              <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
+                <AiOverviewSection
+                  aiOverviews={aiOverviews}
+                  isLoading={isLoadingAiOverviews}
+                  onAdd={onAddAiOverview || (async () => {})}
+                  onDelete={onDeleteAiOverview || (async () => {})}
                 />
               </Box>
             </TabPanel>

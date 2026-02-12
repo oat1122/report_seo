@@ -75,6 +75,22 @@ export type KeywordRecommendForm = Omit<
   "id" | "createdAt" | "customerId"
 >;
 
+// --- AI Overview Types ---
+export interface AiOverviewImage {
+  id: string;
+  imageUrl: string;
+  createdAt: string;
+  aiOverviewId: string;
+}
+
+export interface AiOverview {
+  id: string;
+  title: string;
+  createdAt: string;
+  customerId: string;
+  images: AiOverviewImage[];
+}
+
 // --- Traffic Change Tracking Types ---
 export type MetricTrend = "up" | "down" | "neutral" | "new";
 

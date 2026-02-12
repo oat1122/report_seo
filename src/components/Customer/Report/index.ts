@@ -9,3 +9,6 @@ export { default as ReportPage } from "./ReportPage";
 // Trend Charts
 export { TrendChartsSection } from "./TrendChartsSection";
 export { KeywordTrendChart } from "./KeywordTrendChart";
+
+// AI Overview
+export { AiOverviewCard } from "./AiOverviewCard";

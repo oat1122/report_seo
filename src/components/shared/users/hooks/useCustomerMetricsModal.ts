@@ -21,6 +21,9 @@ import {
   useDeleteRecommendKeyword,
   useGetCombinedHistory,
   useGetKeywordSpecificHistory,
+  useGetAiOverviews,
+  useAddAiOverview,
+  useDeleteAiOverview,
 } from "@/hooks/api/useCustomersApi";
 import { showPromiseToast } from "../../toast/lib/toastify";
 import {
@@ -55,6 +58,9 @@ export const useCustomerMetricsModal = (users: User[]) => {
   const { data: recommendKeywordsData = [], isLoading: isLoadingRecommend } =
     useGetRecommendKeywords(selectedCustomerId || "");
 
+  const { data: aiOverviewsData = [], isLoading: isLoadingAiOverviews } =
+    useGetAiOverviews(selectedCustomerId || "");
+
   const { data: combinedHistoryData, isFetching: isLoadingCombinedHistory } =
     useGetCombinedHistory(isHistoryModalOpen ? selectedCustomerId : null);
 
@@ -72,6 +78,8 @@ export const useCustomerMetricsModal = (users: User[]) => {
   const deleteKeywordMutation = useDeleteKeyword();
   const addRecommendKeywordMutation = useAddRecommendKeyword();
   const deleteRecommendKeywordMutation = useDeleteRecommendKeyword();
+  const addAiOverviewMutation = useAddAiOverview();
+  const deleteAiOverviewMutation = useDeleteAiOverview();
 
   // --- แก้ไข Handler Functions ---
   const handleOpenMetrics = (user: User) => {
@@ -153,6 +161,32 @@ export const useCustomerMetricsModal = (users: User[]) => {
     });
   };
 
+  const handleAddAiOverview = async (formData: FormData) => {
+    if (!selectedCustomerId) return;
+    const promise = addAiOverviewMutation.mutateAsync({
+      customerId: selectedCustomerId,
+      formData,
+    });
+    showPromiseToast(promise, {
+      pending: "กำลังอัปโหลด AI Overview...",
+      success: "เพิ่ม AI Overview สำเร็จ!",
+      error: "ไม่สามารถเพิ่ม AI Overview ได้",
+    });
+  };
+
+  const handleDeleteAiOverview = async (aiOverviewId: string) => {
+    if (!selectedCustomerId) return;
+    const promise = deleteAiOverviewMutation.mutateAsync({
+      customerId: selectedCustomerId,
+      aiOverviewId,
+    });
+    showPromiseToast(promise, {
+      pending: "กำลังลบ AI Overview...",
+      success: "ลบ AI Overview สำเร็จ!",
+      error: "ไม่สามารถลบ AI Overview ได้",
+    });
+  };
+
   const handleOpenHistory = () => {
     dispatch(openHistoryModal());
     // ไม่ต้อง dispatch(fetch...) แล้ว
@@ -183,6 +217,9 @@ export const useCustomerMetricsModal = (users: User[]) => {
     },
     isKeywordHistoryModalOpen,
     selectedKeyword,
+    // AI Overview
+    aiOverviews: aiOverviewsData,
+    isLoadingAiOverviews,
     // Loading States (Optional: ส่งให้ Component จัดการ)
     isLoadingMetrics,
     isLoadingKeywords,
@@ -198,6 +235,8 @@ export const useCustomerMetricsModal = (users: User[]) => {
     handleUpdateKeyword,
     handleAddRecommendKeyword,
     handleDeleteRecommendKeyword,
+    handleAddAiOverview,
+    handleDeleteAiOverview,
     handleOpenHistory,
     handleCloseHistory,
     handleOpenKeywordHistory,

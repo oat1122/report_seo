@@ -42,24 +42,29 @@ export async function GET(
         metrics: null,
         topKeywords: [],
         otherKeywords: [],
-        recommendations: [], // เพิ่ม recommendations ในกรณีไม่พบลูกค้าด้วย
+        recommendations: [],
+        aiOverviews: [],
         customerName: null,
         domain: null,
       });
     }
 
     // 2. ดึงข้อมูล Metrics, Keywords และ Recommendations พร้อมกัน
-    const [metrics, keywords, recommendations] = await Promise.all([
+    const [metrics, keywords, recommendations, aiOverviews] = await Promise.all([
       prisma.overallMetrics.findUnique({
         where: { customerId: customer.id },
       }),
       prisma.keywordReport.findMany({
         where: { customerId: customer.id },
-        orderBy: [{ isTopReport: "desc" }, { position: "asc" }], // จัดเรียงตาม isTopReport ก่อน แล้วตาม position
+        orderBy: [{ isTopReport: "desc" }, { position: "asc" }],
       }),
-      // ดึงข้อมูล KeywordRecommend เพิ่ม
       prisma.keywordRecommend.findMany({
         where: { customerId: customer.id },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.aiOverview.findMany({
+        where: { customerId: customer.id },
+        include: { images: true },
         orderBy: { createdAt: "desc" },
       }),
     ]);
@@ -72,7 +77,8 @@ export async function GET(
       metrics,
       topKeywords,
       otherKeywords,
-      recommendations, // ส่ง recommendations กลับไปด้วย
+      recommendations,
+      aiOverviews,
       customerName: customer.user.name,
       domain: customer.domain,
     });
