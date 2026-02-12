@@ -86,6 +86,7 @@ export interface AiOverviewImage {
 export interface AiOverview {
   id: string;
   title: string;
+  displayDate: string;
   createdAt: string;
   customerId: string;
   images: AiOverviewImage[];

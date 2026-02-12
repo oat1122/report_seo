@@ -23,6 +23,7 @@ import {
   ArrowBack,
   ArrowForward,
   Visibility,
+  CalendarToday,
 } from "@mui/icons-material";
 import { AiOverview } from "@/types/metrics";
 
@@ -61,13 +62,13 @@ export const AiOverviewCard: React.FC<AiOverviewCardProps> = ({
 
   const handlePrev = () => {
     setLightboxIndex((prev) =>
-      prev > 0 ? prev - 1 : lightboxImages.length - 1
+      prev > 0 ? prev - 1 : lightboxImages.length - 1,
     );
   };
 
   const handleNext = () => {
     setLightboxIndex((prev) =>
-      prev < lightboxImages.length - 1 ? prev + 1 : 0
+      prev < lightboxImages.length - 1 ? prev + 1 : 0,
     );
   };
 
@@ -130,9 +131,7 @@ export const AiOverviewCard: React.FC<AiOverviewCardProps> = ({
                 py: 1.5,
                 px: 3,
                 borderBottom:
-                  index < aiOverviews.length - 1
-                    ? "1px solid #E2E8F0"
-                    : "none",
+                  index < aiOverviews.length - 1 ? "1px solid #E2E8F0" : "none",
                 transition: "all 0.2s ease-in-out",
                 "&:hover": {
                   bgcolor: "#F1F5F9",
@@ -144,7 +143,16 @@ export const AiOverviewCard: React.FC<AiOverviewCardProps> = ({
               <ListItemText
                 primary={item.title}
                 primaryTypographyProps={{ fontWeight: 600 }}
-                secondary={`${item.images.length} รูปภาพ`}
+                secondary={
+                  <>
+                    {`${item.images.length} รูปภาพ • `}
+                    {new Date(item.displayDate).toLocaleDateString("th-TH", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </>
+                }
                 secondaryTypographyProps={{
                   variant: "caption",
                   color: "text.secondary",
@@ -182,17 +190,45 @@ export const AiOverviewCard: React.FC<AiOverviewCardProps> = ({
               sx={{
                 display: "flex",
                 justifyContent: "space-between",
-                alignItems: "center",
-                pb: 1,
+                alignItems: "flex-start",
+                pb: 2,
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                color: "white",
               }}
             >
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <AutoAwesomeOutlined color="primary" fontSize="small" />
-                <Typography variant="h6" fontWeight={600}>
-                  {dialogItem.title}
-                </Typography>
+              <Stack spacing={1}>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <AutoAwesomeOutlined fontSize="small" />
+                  <Typography variant="h6" fontWeight={600}>
+                    {dialogItem.title}
+                  </Typography>
+                </Stack>
+                <Chip
+                  icon={<CalendarToday sx={{ fontSize: 14 }} />}
+                  label={new Date(dialogItem.displayDate).toLocaleDateString(
+                    "th-TH",
+                    {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    },
+                  )}
+                  size="small"
+                  sx={{
+                    bgcolor: "rgba(255,255,255,0.2)",
+                    color: "white",
+                    width: "fit-content",
+                    "& .MuiChip-icon": {
+                      color: "white",
+                    },
+                  }}
+                />
               </Stack>
-              <IconButton size="small" onClick={handleCloseDialog}>
+              <IconButton
+                size="small"
+                onClick={handleCloseDialog}
+                sx={{ color: "white" }}
+              >
                 <Close />
               </IconButton>
             </DialogTitle>
@@ -207,7 +243,7 @@ export const AiOverviewCard: React.FC<AiOverviewCardProps> = ({
                     onClick={() =>
                       handleOpenLightbox(
                         dialogItem.images.map((i) => i.imageUrl),
-                        imgIndex
+                        imgIndex,
                       )
                     }
                     sx={{

@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `aioverview` ADD COLUMN `displayDate` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3);

@@ -213,9 +213,10 @@ model KeywordRecommend {
 // 7. AI Overview Report
 //    - เก็บข้อมูล AI Overview ที่แสดงให้ลูกค้าเห็นว่ามีการติด AI Overview
 model AiOverview {
-  id         String   @id @default(uuid())
-  title      String   // ชื่อหัวข้อ AI Overview
-  createdAt  DateTime @default(now())
+  id          String   @id @default(uuid())
+  title       String   // ชื่อหัวข้อ AI Overview
+  displayDate DateTime @default(now()) // วันที่แสดงผล (กำหนดเองได้)
+  createdAt   DateTime @default(now())
 
   // ความสัมพันธ์: ข้อมูลนี้เป็นของลูกค้าคนไหน
   customerId String

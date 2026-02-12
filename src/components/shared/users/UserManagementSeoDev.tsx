@@ -38,7 +38,7 @@ const UserManagementSeoDev: React.FC = () => {
     return allUsers.filter(
       (user: User) =>
         user.role === Role.CUSTOMER &&
-        user.customerProfile?.seoDevId === currentSeoDevId
+        user.customerProfile?.seoDevId === currentSeoDevId,
     );
   }, [allUsers, currentSeoDevId]);
 
@@ -81,6 +81,7 @@ const UserManagementSeoDev: React.FC = () => {
     aiOverviews,
     isLoadingAiOverviews,
     handleAddAiOverview,
+    handleUpdateAiOverview,
     handleDeleteAiOverview,
     handleOpenHistory,
     handleCloseHistory,
@@ -188,6 +189,7 @@ const UserManagementSeoDev: React.FC = () => {
             aiOverviews={aiOverviews}
             isLoadingAiOverviews={isLoadingAiOverviews}
             onAddAiOverview={handleAddAiOverview}
+            onUpdateAiOverview={handleUpdateAiOverview}
             onDeleteAiOverview={handleDeleteAiOverview}
           />
         )}

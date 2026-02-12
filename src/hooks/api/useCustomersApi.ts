@@ -57,14 +57,14 @@ export interface CurrentKeyword {
 
 // --- API Functions ---
 const fetchCustomerReport = async (
-  customerId: string
+  customerId: string,
 ): Promise<CustomerReportData> => {
   const { data } = await axios.get(`/customers/${customerId}/report`);
   return data;
 };
 
 const fetchMetrics = async (
-  customerId: string
+  customerId: string,
 ): Promise<OverallMetricsForm | null> => {
   const { data } = await axios.get(`/customers/${customerId}/metrics`);
   return data;
@@ -79,7 +79,7 @@ const saveMetrics = async ({
 }): Promise<OverallMetricsForm> => {
   const { data } = await axios.post(
     `/customers/${customerId}/metrics`,
-    metrics
+    metrics,
   );
   return data;
 };
@@ -98,7 +98,7 @@ const addKeyword = async ({
 }): Promise<KeywordReport> => {
   const { data } = await axios.post(
     `/customers/${customerId}/keywords`,
-    keyword
+    keyword,
   );
   return data;
 };
@@ -119,10 +119,10 @@ const deleteKeyword = async (keywordId: string): Promise<void> => {
 };
 
 const fetchRecommendKeywords = async (
-  customerId: string
+  customerId: string,
 ): Promise<KeywordRecommend[]> => {
   const { data } = await axios.get(
-    `/customers/${customerId}/recommend-keywords`
+    `/customers/${customerId}/recommend-keywords`,
   );
   return data;
 };
@@ -136,7 +136,7 @@ const addRecommendKeyword = async ({
 }): Promise<KeywordRecommend> => {
   const { data } = await axios.post(
     `/customers/${customerId}/recommend-keywords`,
-    keyword
+    keyword,
   );
   return data;
 };
@@ -147,7 +147,7 @@ const deleteRecommendKeyword = async (recommendId: string): Promise<void> => {
 
 // เพิ่ม API Function สำหรับ Combined History
 const fetchCombinedHistory = async (
-  customerId: string
+  customerId: string,
 ): Promise<CombinedHistoryData> => {
   const { data } = await axios.get(`/customers/${customerId}/metrics/history`);
   return data;
@@ -155,7 +155,7 @@ const fetchCombinedHistory = async (
 
 // เพิ่ม API Function สำหรับ Keyword History (เฉพาะ Keyword)
 const fetchKeywordSpecificHistory = async (
-  keywordId: string
+  keywordId: string,
 ): Promise<KeywordReportHistory[]> => {
   const { data } = await axios.get(`/customers/keywords/${keywordId}/history`);
   return data;
@@ -355,9 +355,7 @@ export const useGetKeywordSpecificHistory = (keywordId: string | null) => {
 };
 
 // --- AI Overview API Functions ---
-const fetchAiOverviews = async (
-  customerId: string
-): Promise<AiOverview[]> => {
+const fetchAiOverviews = async (customerId: string): Promise<AiOverview[]> => {
   const { data } = await axios.get(`/customers/${customerId}/ai-overview`);
   return data;
 };
@@ -372,7 +370,24 @@ const addAiOverview = async ({
   const { data } = await axios.post(
     `/customers/${customerId}/ai-overview`,
     formData,
-    { headers: { "Content-Type": "multipart/form-data" } }
+    { headers: { "Content-Type": "multipart/form-data" } },
+  );
+  return data;
+};
+
+const updateAiOverview = async ({
+  customerId,
+  id,
+  formData,
+}: {
+  customerId: string;
+  id: string;
+  formData: FormData;
+}): Promise<AiOverview> => {
+  const { data } = await axios.put(
+    `/customers/${customerId}/ai-overview/${id}`,
+    formData,
+    { headers: { "Content-Type": "multipart/form-data" } },
   );
   return data;
 };
@@ -425,17 +440,17 @@ export const useAddAiOverview = () => {
 };
 
 /**
- * Hook to delete an AI Overview
+ * Hook to update an AI Overview (with optional image upload)
  */
-export const useDeleteAiOverview = () => {
+export const useUpdateAiOverview = () => {
   const queryClient = useQueryClient();
 
   return useMutation<
-    void,
+    AiOverview,
     Error,
-    { customerId: string; aiOverviewId: string }
+    { customerId: string; id: string; formData: FormData }
   >({
-    mutationFn: deleteAiOverview,
+    mutationFn: updateAiOverview,
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["aiOverviews", variables.customerId],
@@ -443,7 +458,29 @@ export const useDeleteAiOverview = () => {
       queryClient.invalidateQueries({
         queryKey: ["customerReport", variables.customerId],
       });
-      toast.success("ลบ AI Overview สำเร็จ");
+      toast.success("อัปเดท AI Overview สำเร็จ");
     },
   });
+};
+
+/**
+ * Hook to delete an AI Overview
+ */
+export const useDeleteAiOverview = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, { customerId: string; aiOverviewId: string }>(
+    {
+      mutationFn: deleteAiOverview,
+      onSuccess: (_, variables) => {
+        queryClient.invalidateQueries({
+          queryKey: ["aiOverviews", variables.customerId],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["customerReport", variables.customerId],
+        });
+        toast.success("ลบ AI Overview สำเร็จ");
+      },
+    },
+  );
 };

@@ -52,7 +52,7 @@ interface MetricsModalProps {
   onDeleteKeyword: (id: string) => Promise<void>;
   onUpdateKeyword: (
     keywordId: string,
-    data: KeywordReportForm
+    data: KeywordReportForm,
   ) => Promise<void>;
   recommendKeywordsData: KeywordRecommend[];
   onAddRecommendKeyword: (data: KeywordRecommendForm) => Promise<void>;
@@ -81,6 +81,7 @@ interface MetricsModalProps {
   aiOverviews?: AiOverview[];
   isLoadingAiOverviews?: boolean;
   onAddAiOverview?: (formData: FormData) => Promise<void>;
+  onUpdateAiOverview?: (id: string, formData: FormData) => Promise<void>;
   onDeleteAiOverview?: (aiOverviewId: string) => Promise<void>;
 }
 
@@ -111,6 +112,7 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
   aiOverviews = [],
   isLoadingAiOverviews = false,
   onAddAiOverview,
+  onUpdateAiOverview,
   onDeleteAiOverview,
 }) => {
   const [tabIndex, setTabIndex] = useState(0);
@@ -222,7 +224,7 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
               >
                 {Object.keys(metrics)
                   .filter(
-                    (key) => key !== "ageInYears" && key !== "ageInMonths"
+                    (key) => key !== "ageInYears" && key !== "ageInMonths",
                   )
                   .map((key) => (
                     <TextField
@@ -350,6 +352,7 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
                   aiOverviews={aiOverviews}
                   isLoading={isLoadingAiOverviews}
                   onAdd={onAddAiOverview || (async () => {})}
+                  onUpdate={onUpdateAiOverview || (async () => {})}
                   onDelete={onDeleteAiOverview || (async () => {})}
                 />
               </Box>

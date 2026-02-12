@@ -23,6 +23,7 @@ import {
   useGetKeywordSpecificHistory,
   useGetAiOverviews,
   useAddAiOverview,
+  useUpdateAiOverview,
   useDeleteAiOverview,
 } from "@/hooks/api/useCustomersApi";
 import { showPromiseToast } from "../../toast/lib/toastify";
@@ -49,7 +50,7 @@ export const useCustomerMetricsModal = (users: User[]) => {
 
   // --- ใช้ React Query Hooks ---
   const { data: metricsData, isLoading: isLoadingMetrics } = useGetMetrics(
-    selectedCustomerId || ""
+    selectedCustomerId || "",
   );
 
   const { data: keywordsData = [], isLoading: isLoadingKeywords } =
@@ -68,7 +69,7 @@ export const useCustomerMetricsModal = (users: User[]) => {
     data: specificKeywordHistoryData = [],
     isFetching: isLoadingSpecificHistory,
   } = useGetKeywordSpecificHistory(
-    isKeywordHistoryModalOpen ? selectedKeyword?.id ?? null : null
+    isKeywordHistoryModalOpen ? (selectedKeyword?.id ?? null) : null,
   );
 
   // --- ใช้ React Query Mutations ---
@@ -79,6 +80,7 @@ export const useCustomerMetricsModal = (users: User[]) => {
   const addRecommendKeywordMutation = useAddRecommendKeyword();
   const deleteRecommendKeywordMutation = useDeleteRecommendKeyword();
   const addAiOverviewMutation = useAddAiOverview();
+  const updateAiOverviewMutation = useUpdateAiOverview();
   const deleteAiOverviewMutation = useDeleteAiOverview();
 
   // --- แก้ไข Handler Functions ---
@@ -126,7 +128,7 @@ export const useCustomerMetricsModal = (users: User[]) => {
 
   const handleUpdateKeyword = async (
     keywordId: string,
-    data: KeywordReportForm
+    data: KeywordReportForm,
   ) => {
     const promise = updateKeywordMutation.mutateAsync({
       keywordId: keywordId,
@@ -171,6 +173,20 @@ export const useCustomerMetricsModal = (users: User[]) => {
       pending: "กำลังอัปโหลด AI Overview...",
       success: "เพิ่ม AI Overview สำเร็จ!",
       error: "ไม่สามารถเพิ่ม AI Overview ได้",
+    });
+  };
+
+  const handleUpdateAiOverview = async (id: string, formData: FormData) => {
+    if (!selectedCustomerId) return;
+    const promise = updateAiOverviewMutation.mutateAsync({
+      customerId: selectedCustomerId,
+      id,
+      formData,
+    });
+    showPromiseToast(promise, {
+      pending: "กำลังอัปเดท AI Overview...",
+      success: "อัปเดท AI Overview สำเร็จ!",
+      error: "ไม่สามารถอัปเดท AI Overview ได้",
     });
   };
 
@@ -236,6 +252,7 @@ export const useCustomerMetricsModal = (users: User[]) => {
     handleAddRecommendKeyword,
     handleDeleteRecommendKeyword,
     handleAddAiOverview,
+    handleUpdateAiOverview,
     handleDeleteAiOverview,
     handleOpenHistory,
     handleCloseHistory,

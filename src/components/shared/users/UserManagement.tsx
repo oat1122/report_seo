@@ -80,6 +80,7 @@ const UserManagement: React.FC = () => {
     aiOverviews,
     isLoadingAiOverviews,
     handleAddAiOverview,
+    handleUpdateAiOverview,
     handleDeleteAiOverview,
     handleOpenHistory,
     handleCloseHistory,
@@ -198,6 +199,7 @@ const UserManagement: React.FC = () => {
             aiOverviews={aiOverviews}
             isLoadingAiOverviews={isLoadingAiOverviews}
             onAddAiOverview={handleAddAiOverview}
+            onUpdateAiOverview={handleUpdateAiOverview}
             onDeleteAiOverview={handleDeleteAiOverview}
           />
         )}
