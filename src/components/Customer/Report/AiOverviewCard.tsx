@@ -16,6 +16,7 @@ import {
   ListItem,
   ListItemText,
   ListItemSecondaryAction,
+  Chip,
 } from "@mui/material";
 import {
   AutoAwesomeOutlined,
