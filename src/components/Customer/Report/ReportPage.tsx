@@ -113,25 +113,26 @@ const ReportPage: React.FC<ReportPageProps> = ({ customerId }) => {
           <KeywordTrendChart title="แนวโน้ม Keyword" />
         </Box>
 
-        {/* AI Overview Section */}
-        {(reportData?.aiOverviews?.length ?? 0) > 0 && (
-          <Box sx={{ mb: 4 }}>
-            <AiOverviewCard aiOverviews={reportData?.aiOverviews || []} />
-          </Box>
-        )}
-
-        {/* Keyword Tables */}
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        {/* Top Keywords Table */}
+        <Box sx={{ mb: 4 }}>
           <KeywordReportTable
             title="Top Keywords Report"
             keywords={reportData?.topKeywords || []}
           />
-
-          <KeywordReportTable
-            title="Other Keywords"
-            keywords={reportData?.otherKeywords || []}
-          />
         </Box>
+
+        {/* Other Keywords (60%) + AI Overview (40%) */}
+        <Grid container spacing={3}>
+          <Grid size={{ xs: 12, lg: 7 }}>
+            <KeywordReportTable
+              title="Other Keywords"
+              keywords={reportData?.otherKeywords || []}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, lg: 5 }}>
+            <AiOverviewCard aiOverviews={reportData?.aiOverviews || []} />
+          </Grid>
+        </Grid>
       </Container>
     </HistoryProvider>
   );
