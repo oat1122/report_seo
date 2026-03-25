@@ -123,7 +123,7 @@ class CustomerService {
       throw new Error(
         `Invalid data: ${validationResult.error.issues
           .map((i) => i.message)
-          .join(", ")}`
+          .join(", ")}`,
       );
     }
 
@@ -177,7 +177,7 @@ class CustomerService {
       throw new Error(
         `Invalid data: ${validationResult.error.issues
           .map((i) => i.message)
-          .join(", ")}`
+          .join(", ")}`,
       );
     }
 
@@ -208,7 +208,7 @@ class CustomerService {
   public async updateKeyword(
     keywordId: string,
     customerId: string,
-    data: unknown
+    data: unknown,
   ) {
     // ตรวจสอบว่า keyword นี้เป็นของ customer หรือไม่
     const existingKeyword = await prisma.keywordReport.findUnique({
@@ -234,7 +234,7 @@ class CustomerService {
       throw new Error(
         `Invalid data: ${validationResult.error.issues
           .map((i) => i.message)
-          .join(", ")}`
+          .join(", ")}`,
       );
     }
 
@@ -322,7 +322,7 @@ class CustomerService {
       throw new Error(
         `Invalid data: ${validationResult.error.issues
           .map((i) => i.message)
-          .join(", ")}`
+          .join(", ")}`,
       );
     }
 
@@ -345,7 +345,7 @@ class CustomerService {
   public async updateRecommendKeyword(
     recommendId: string,
     customerId: string,
-    data: unknown
+    data: unknown,
   ) {
     const existingRecommend = await prisma.keywordRecommend.findUnique({
       where: { id: recommendId },
@@ -362,7 +362,7 @@ class CustomerService {
 
     if (existingRecommend.customer.userId !== customerId) {
       throw new Error(
-        "Forbidden: This recommend keyword does not belong to you"
+        "Forbidden: This recommend keyword does not belong to you",
       );
     }
 
@@ -371,7 +371,7 @@ class CustomerService {
       throw new Error(
         `Invalid data: ${validationResult.error.issues
           .map((i) => i.message)
-          .join(", ")}`
+          .join(", ")}`,
       );
     }
 
@@ -408,7 +408,7 @@ class CustomerService {
 
     if (existingRecommend.customer.userId !== customerId) {
       throw new Error(
-        "Forbidden: This recommend keyword does not belong to you"
+        "Forbidden: This recommend keyword does not belong to you",
       );
     }
 

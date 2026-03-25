@@ -20,7 +20,7 @@ interface PromiseToastMessages {
  */
 export const showPromiseToast = (
   promise: Promise<unknown>,
-  messages: PromiseToastMessages
+  messages: PromiseToastMessages,
 ): Promise<unknown> => {
   return toast.promise(promise, {
     pending: {

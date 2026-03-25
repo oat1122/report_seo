@@ -13,7 +13,7 @@ const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads", "ai-overview");
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: Promise<{ customerId: string; id: string }> }
+  { params }: { params: Promise<{ customerId: string; id: string }> },
 ) {
   try {
     const { customerId, id } = await params;
@@ -39,7 +39,7 @@ export async function PUT(
     if (!aiOverview) {
       return NextResponse.json(
         { error: "เนเธกเนเธเธเธเนเธญเธกเธนเธฅ AI Overview" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -52,7 +52,7 @@ export async function PUT(
     if (!title || !title.trim()) {
       return NextResponse.json(
         { error: "เธเธฃเธธเธ“เธฒเธฃเธฐเธเธธเธซเธฑเธงเธเนเธญ AI Overview" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -61,21 +61,27 @@ export async function PUT(
       : [];
 
     const remainingImages = aiOverview.images.filter(
-      (img) => !imagesToDelete.includes(img.id)
+      (img) => !imagesToDelete.includes(img.id),
     ).length;
     const totalImages = remainingImages + files.length;
 
     if (totalImages === 0) {
       return NextResponse.json(
-        { error: "เธ•เนเธญเธเธกเธตเธฃเธนเธเธ เธฒเธเธญเธขเนเธฒเธเธเนเธญเธข 1 เธฃเธนเธ" },
-        { status: 400 }
+        {
+          error:
+            "เธ•เนเธญเธเธกเธตเธฃเธนเธเธ เธฒเธเธญเธขเนเธฒเธเธเนเธญเธข 1 เธฃเธนเธ",
+        },
+        { status: 400 },
       );
     }
 
     if (totalImages > 3) {
       return NextResponse.json(
-        { error: "เธญเธฑเธเนเธซเธฅเธ”เธฃเธนเธเธ เธฒเธเนเธ”เนเธชเธนเธเธชเธธเธ” 3 เธฃเธนเธ" },
-        { status: 400 }
+        {
+          error:
+            "เธญเธฑเธเนเธซเธฅเธ”เธฃเธนเธเธ เธฒเธเนเธ”เนเธชเธนเธเธชเธธเธ” 3 เธฃเธนเธ",
+        },
+        { status: 400 },
       );
     }
 
@@ -104,8 +110,12 @@ export async function PUT(
         const validationResult = await validateUploadFile(file);
         if (!validationResult.isValid || !validationResult.validatedFile) {
           return NextResponse.json(
-            { error: validationResult.error || "เนเธเธฅเนเนเธกเนเธเนเธฒเธเธเธฒเธฃเธ•เธฃเธงเธเธชเธญเธ" },
-            { status: 400 }
+            {
+              error:
+                validationResult.error ||
+                "เนเธเธฅเนเนเธกเนเธเนเธฒเธเธเธฒเธฃเธ•เธฃเธงเธเธชเธญเธ",
+            },
+            { status: 400 },
           );
         }
 
@@ -138,15 +148,18 @@ export async function PUT(
   } catch (error) {
     console.error("Failed to update AI Overview:", error);
     return NextResponse.json(
-      { error: "เน€เธเธดเธ”เธเนเธญเธเธดเธ”เธเธฅเธฒเธ”เนเธเธเธฒเธฃเธญเธฑเธเน€เธ”เธ— AI Overview" },
-      { status: 500 }
+      {
+        error:
+          "เน€เธเธดเธ”เธเนเธญเธเธดเธ”เธเธฅเธฒเธ”เนเธเธเธฒเธฃเธญเธฑเธเน€เธ”เธ— AI Overview",
+      },
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   req: Request,
-  { params }: { params: Promise<{ customerId: string; id: string }> }
+  { params }: { params: Promise<{ customerId: string; id: string }> },
 ) {
   try {
     const { customerId, id } = await params;
@@ -172,7 +185,7 @@ export async function DELETE(
     if (!aiOverview) {
       return NextResponse.json(
         { error: "เนเธกเนเธเธเธเนเธญเธกเธนเธฅ AI Overview" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -198,8 +211,11 @@ export async function DELETE(
   } catch (error) {
     console.error("Failed to delete AI Overview:", error);
     return NextResponse.json(
-      { error: "เน€เธเธดเธ”เธเนเธญเธเธดเธ”เธเธฅเธฒเธ”เนเธเธเธฒเธฃเธฅเธ AI Overview" },
-      { status: 500 }
+      {
+        error:
+          "เน€เธเธดเธ”เธเนเธญเธเธดเธ”เธเธฅเธฒเธ”เนเธเธเธฒเธฃเธฅเธ AI Overview",
+      },
+      { status: 500 },
     );
   }
 }

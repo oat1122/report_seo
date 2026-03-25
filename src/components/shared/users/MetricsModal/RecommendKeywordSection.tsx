@@ -71,7 +71,8 @@ export const RecommendKeywordSection: React.FC<
         <Stack spacing={2}>
           {editingRecommendId && (
             <Alert severity="info">
-              กำลังแก้ไข Keyword Recommend รายการเดิม สามารถปรับข้อมูลแล้วกดบันทึกการแก้ไขได้ทันที
+              กำลังแก้ไข Keyword Recommend รายการเดิม
+              สามารถปรับข้อมูลแล้วกดบันทึกการแก้ไขได้ทันที
             </Alert>
           )}
 
@@ -173,9 +174,7 @@ export const RecommendKeywordSection: React.FC<
               size="medium"
               disabled={!newRecommend.keyword.trim()}
             >
-              {editingRecommendId
-                ? "บันทึกการแก้ไข"
-                : "เพิ่ม Keyword แนะนำ"}
+              {editingRecommendId ? "บันทึกการแก้ไข" : "เพิ่ม Keyword แนะนำ"}
             </Button>
           </Stack>
         </Stack>

@@ -14,7 +14,7 @@ const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads", "ai-overview");
 
 export async function GET(
   req: Request,
-  { params }: { params: Promise<{ customerId: string }> }
+  { params }: { params: Promise<{ customerId: string }> },
 ) {
   try {
     const { customerId } = await params;
@@ -40,14 +40,14 @@ export async function GET(
     console.error("Failed to fetch AI Overview:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ customerId: string }> }
+  { params }: { params: Promise<{ customerId: string }> },
 ) {
   try {
     const { customerId } = await params;
@@ -70,21 +70,27 @@ export async function POST(
     if (!title || !title.trim()) {
       return NextResponse.json(
         { error: "เธเธฃเธธเธ“เธฒเธฃเธฐเธเธธเธซเธฑเธงเธเนเธญ AI Overview" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (files.length === 0) {
       return NextResponse.json(
-        { error: "เธเธฃเธธเธ“เธฒเธญเธฑเธเนเธซเธฅเธ”เธฃเธนเธเธ เธฒเธเธญเธขเนเธฒเธเธเนเธญเธข 1 เธฃเธนเธ" },
-        { status: 400 }
+        {
+          error:
+            "เธเธฃเธธเธ“เธฒเธญเธฑเธเนเธซเธฅเธ”เธฃเธนเธเธ เธฒเธเธญเธขเนเธฒเธเธเนเธญเธข 1 เธฃเธนเธ",
+        },
+        { status: 400 },
       );
     }
 
     if (files.length > 3) {
       return NextResponse.json(
-        { error: "เธญเธฑเธเนเธซเธฅเธ”เธฃเธนเธเธ เธฒเธเนเธ”เนเธชเธนเธเธชเธธเธ” 3 เธฃเธนเธ" },
-        { status: 400 }
+        {
+          error:
+            "เธญเธฑเธเนเธซเธฅเธ”เธฃเธนเธเธ เธฒเธเนเธ”เนเธชเธนเธเธชเธธเธ” 3 เธฃเธนเธ",
+        },
+        { status: 400 },
       );
     }
 
@@ -97,8 +103,12 @@ export async function POST(
       const validationResult = await validateUploadFile(file);
       if (!validationResult.isValid || !validationResult.validatedFile) {
         return NextResponse.json(
-          { error: validationResult.error || "เนเธเธฅเนเนเธกเนเธเนเธฒเธเธเธฒเธฃเธ•เธฃเธงเธเธชเธญเธ" },
-          { status: 400 }
+          {
+            error:
+              validationResult.error ||
+              "เนเธเธฅเนเนเธกเนเธเนเธฒเธเธเธฒเธฃเธ•เธฃเธงเธเธชเธญเธ",
+          },
+          { status: 400 },
         );
       }
 
@@ -126,8 +136,11 @@ export async function POST(
   } catch (error) {
     console.error("Failed to create AI Overview:", error);
     return NextResponse.json(
-      { error: "เน€เธเธดเธ”เธเนเธญเธเธดเธ”เธเธฅเธฒเธ”เนเธเธเธฒเธฃเธชเธฃเนเธฒเธ AI Overview" },
-      { status: 500 }
+      {
+        error:
+          "เน€เธเธดเธ”เธเนเธญเธเธดเธ”เธเธฅเธฒเธ”เนเธเธเธฒเธฃเธชเธฃเนเธฒเธ AI Overview",
+      },
+      { status: 500 },
     );
   }
 }

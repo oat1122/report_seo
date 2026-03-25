@@ -80,7 +80,7 @@ export const DashboardHeader: React.FC = () => {
     try {
       const userId = session.user.id;
       const response = await axios.get<CombinedHistoryData>(
-        `/customers/${userId}/metrics/history`
+        `/customers/${userId}/metrics/history`,
       );
       setHistoryData(response.data);
       setIsHistoryModalOpen(true);

@@ -56,18 +56,24 @@ export const KeywordReportSection: React.FC<KeywordReportSectionProps> = ({
           Keyword Report
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          เพิ่มคีย์เวิร์ดหลักที่ต้องการติดตาม พร้อมอันดับ ทราฟฟิก และระดับความยาก
+          เพิ่มคีย์เวิร์ดหลักที่ต้องการติดตาม พร้อมอันดับ ทราฟฟิก
+          และระดับความยาก
         </Typography>
       </Box>
 
       <Paper
         variant="outlined"
-        sx={{ p: 2, borderRadius: 2.5, bgcolor: editingKeywordId ? "warning.50" : "grey.50" }}
+        sx={{
+          p: 2,
+          borderRadius: 2.5,
+          bgcolor: editingKeywordId ? "warning.50" : "grey.50",
+        }}
       >
         <Stack spacing={2}>
           {editingKeywordId && (
             <Alert severity="info">
-              กำลังแก้ไขคีย์เวิร์ดรายการเดิม สามารถปรับข้อมูลแล้วกดบันทึกการแก้ไขได้ทันที
+              กำลังแก้ไขคีย์เวิร์ดรายการเดิม
+              สามารถปรับข้อมูลแล้วกดบันทึกการแก้ไขได้ทันที
             </Alert>
           )}
 
@@ -153,7 +159,11 @@ export const KeywordReportSection: React.FC<KeywordReportSectionProps> = ({
             </Box>
           </Box>
 
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} justifyContent="flex-end">
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={1.5}
+            justifyContent="flex-end"
+          >
             {editingKeywordId && (
               <Button onClick={onClearEditing} size="medium">
                 ยกเลิก
@@ -194,24 +204,40 @@ export const KeywordReportSection: React.FC<KeywordReportSectionProps> = ({
 
         <List dense disablePadding>
           {keywordsData.length === 0 ? (
-            <Paper variant="outlined" sx={{ p: 3, borderRadius: 2.5, textAlign: "center" }}>
+            <Paper
+              variant="outlined"
+              sx={{ p: 3, borderRadius: 2.5, textAlign: "center" }}
+            >
               <Typography variant="body2" color="text.secondary">
                 ยังไม่มีข้อมูลคีย์เวิร์ดในรายงาน
               </Typography>
             </Paper>
           ) : (
             keywordsData.map((kw) => (
-              <Paper key={kw.id} variant="outlined" sx={{ mb: 1.5, borderRadius: 2.5 }}>
+              <Paper
+                key={kw.id}
+                variant="outlined"
+                sx={{ mb: 1.5, borderRadius: 2.5 }}
+              >
                 <ListItem
                   secondaryAction={
                     <Stack direction="row" spacing={0.5}>
-                      <TooltipIconButton label="ดูประวัติ" onClick={() => onViewHistory(kw)}>
+                      <TooltipIconButton
+                        label="ดูประวัติ"
+                        onClick={() => onViewHistory(kw)}
+                      >
                         <History />
                       </TooltipIconButton>
-                      <TooltipIconButton label="แก้ไข" onClick={() => onSetEditing(kw)}>
+                      <TooltipIconButton
+                        label="แก้ไข"
+                        onClick={() => onSetEditing(kw)}
+                      >
                         <Edit />
                       </TooltipIconButton>
-                      <TooltipIconButton label="ลบ" onClick={() => onDeleteKeyword(kw.id)}>
+                      <TooltipIconButton
+                        label="ลบ"
+                        onClick={() => onDeleteKeyword(kw.id)}
+                      >
                         <Delete color="error" />
                       </TooltipIconButton>
                     </Stack>
@@ -220,12 +246,22 @@ export const KeywordReportSection: React.FC<KeywordReportSectionProps> = ({
                 >
                   <ListItemText
                     primary={
-                      <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        alignItems="center"
+                        flexWrap="wrap"
+                      >
                         <Typography variant="subtitle2" fontWeight={700}>
                           {kw.keyword}
                         </Typography>
                         {kw.isTopReport && (
-                          <Chip label="Top Report" size="small" color="warning" variant="outlined" />
+                          <Chip
+                            label="Top Report"
+                            size="small"
+                            color="warning"
+                            variant="outlined"
+                          />
                         )}
                       </Stack>
                     }

@@ -61,7 +61,7 @@ const ReportPage: React.FC<ReportPageProps> = ({ customerId }) => {
         allKeywords.filter((kw) => kw.position).length
       : null;
   const top3Count = allKeywords.filter(
-    (kw) => kw.position && kw.position <= 3
+    (kw) => kw.position && kw.position <= 3,
   ).length;
   const recommendationsCount = reportData?.recommendations?.length || 0;
 

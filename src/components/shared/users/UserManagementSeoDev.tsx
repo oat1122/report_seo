@@ -83,8 +83,7 @@ const UserManagementSeoDev: React.FC = () => {
 
         {usersError && (
           <Alert severity="error" sx={{ mb: 3 }}>
-            {usersError.message ||
-              "เกิดข้อผิดพลาดในการโหลดข้อมูล"}
+            {usersError.message || "เกิดข้อผิดพลาดในการโหลดข้อมูล"}
           </Alert>
         )}
 
@@ -95,9 +94,9 @@ const UserManagementSeoDev: React.FC = () => {
         ) : (
           <UserTable
             users={managedCustomers}
-            onEdit={() => { }}
-            onDelete={() => { }}
-            onRestore={() => { }}
+            onEdit={() => {}}
+            onDelete={() => {}}
+            onRestore={() => {}}
             onOpenMetrics={handleOpenMetrics}
             isSeoDevView={true}
           />

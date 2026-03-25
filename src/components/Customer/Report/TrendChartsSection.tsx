@@ -92,7 +92,7 @@ export const TrendChartsSection: React.FC<TrendChartsSectionProps> = ({
     if (chartData.length < 2) return null;
 
     const visibleSeriesList = DOMAIN_METRICS_SERIES.filter((s) =>
-      visibleSeries.has(s.dataKey)
+      visibleSeries.has(s.dataKey),
     );
 
     // Check each visible series for variance

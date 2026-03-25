@@ -39,7 +39,7 @@ const usersSlice = createSlice({
   reducers: {
     openUserModal: (
       state,
-      action: PayloadAction<Partial<UserFormState> | undefined>
+      action: PayloadAction<Partial<UserFormState> | undefined>,
     ) => {
       state.isModalOpen = true;
       state.isEditing = !!action.payload?.id;
@@ -68,7 +68,7 @@ const usersSlice = createSlice({
         message: string;
         actionType: "delete" | "restore";
         targetId: string;
-      }>
+      }>,
     ) => {
       state.confirmState = {
         isOpen: true,

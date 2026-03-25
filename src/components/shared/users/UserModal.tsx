@@ -64,7 +64,7 @@ export const UserModal: React.FC<UserModalProps> = ({
   };
 
   const handleFormChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value, type } = event.target;
     const checked = (event.target as HTMLInputElement).checked;

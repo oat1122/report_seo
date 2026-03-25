@@ -395,11 +395,18 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
                 <Typography variant="h5" fontWeight={700}>
                   จัดการข้อมูล Domain
                 </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mt: 0.5 }}
+                >
                   กรอกข้อมูลทีละส่วนเพื่อให้ตรวจทานและบันทึกได้ง่ายขึ้น
                 </Typography>
                 <Typography variant="body1" sx={{ mt: 1 }}>
-                  ลูกค้า: <Box component="span" sx={{ fontWeight: 700 }}>{customer.name}</Box>
+                  ลูกค้า:{" "}
+                  <Box component="span" sx={{ fontWeight: 700 }}>
+                    {customer.name}
+                  </Box>
                 </Typography>
               </Box>
               <Stack direction="row" spacing={1} alignItems="center">
@@ -449,7 +456,12 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
                     bgcolor: "grey.50",
                   }}
                 >
-                  <Stack direction="row" alignItems="center" spacing={1.5} mb={2}>
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1.5}
+                    mb={2}
+                  >
                     <AssessmentOutlined color="secondary" />
                     <Typography variant="h6" fontWeight={700}>
                       ภาพรวมค่าที่สำคัญ
@@ -474,7 +486,11 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
                         <Typography variant="caption" color="text.secondary">
                           {item.label}
                         </Typography>
-                        <Typography variant="h6" fontWeight={700} sx={{ mt: 0.5 }}>
+                        <Typography
+                          variant="h6"
+                          fontWeight={700}
+                          sx={{ mt: 0.5 }}
+                        >
                           {item.value}
                         </Typography>
                       </Card>
@@ -483,8 +499,17 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
                 </Paper>
 
                 {metricSections.map((section) => (
-                  <Paper key={section.title} variant="outlined" sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
-                    <Stack direction="row" spacing={1.5} alignItems="flex-start" mb={2.5}>
+                  <Paper
+                    key={section.title}
+                    variant="outlined"
+                    sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}
+                  >
+                    <Stack
+                      direction="row"
+                      spacing={1.5}
+                      alignItems="flex-start"
+                      mb={2.5}
+                    >
                       {section.icon}
                       <Box>
                         <Typography variant="h6" fontWeight={700}>
@@ -523,7 +548,9 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
                             max: field.max,
                           }}
                           error={Boolean(validationErrors[field.key])}
-                          helperText={validationErrors[field.key] || field.helperText}
+                          helperText={
+                            validationErrors[field.key] || field.helperText
+                          }
                         />
                       ))}
                     </Box>
@@ -534,15 +561,24 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
 
             {activeStep === 1 && (
               <Stack spacing={3}>
-                <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
-                  <Stack direction="row" spacing={1.5} alignItems="center" mb={1}>
+                <Paper
+                  variant="outlined"
+                  sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}
+                >
+                  <Stack
+                    direction="row"
+                    spacing={1.5}
+                    alignItems="center"
+                    mb={1}
+                  >
                     <RecommendOutlined color="secondary" />
                     <Typography variant="h6" fontWeight={700}>
                       Keyword Data
                     </Typography>
                   </Stack>
                   <Typography variant="body2" color="text.secondary">
-                    จัดการคีย์เวิร์ดหลักและคีย์เวิร์ดแนะนำแยกเป็นคนละส่วน เพื่อให้กรอกและทบทวนได้เร็วขึ้น
+                    จัดการคีย์เวิร์ดหลักและคีย์เวิร์ดแนะนำแยกเป็นคนละส่วน
+                    เพื่อให้กรอกและทบทวนได้เร็วขึ้น
                   </Typography>
                 </Paper>
 
@@ -575,15 +611,24 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
 
             {activeStep === 2 && (
               <Stack spacing={3}>
-                <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
-                  <Stack direction="row" spacing={1.5} alignItems="center" mb={1}>
+                <Paper
+                  variant="outlined"
+                  sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}
+                >
+                  <Stack
+                    direction="row"
+                    spacing={1.5}
+                    alignItems="center"
+                    mb={1}
+                  >
                     <AutoAwesomeOutlined color="secondary" />
                     <Typography variant="h6" fontWeight={700}>
                       AI Overview
                     </Typography>
                   </Stack>
                   <Typography variant="body2" color="text.secondary">
-                    อัปโหลดภาพประกอบและหัวข้อที่ต้องการแสดงผลในรายงาน โดยรองรับสูงสุด 3 รูปต่อรายการ
+                    อัปโหลดภาพประกอบและหัวข้อที่ต้องการแสดงผลในรายงาน
+                    โดยรองรับสูงสุด 3 รูปต่อรายการ
                   </Typography>
                 </Paper>
 
@@ -630,7 +675,9 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
                     variant="contained"
                     color="secondary"
                     startIcon={<Save />}
-                    onClick={() => onSaveMetrics(normalizeMetricsForSave(metrics))}
+                    onClick={() =>
+                      onSaveMetrics(normalizeMetricsForSave(metrics))
+                    }
                     disabled={!isMetricsValid}
                   >
                     บันทึก Metrics
@@ -643,7 +690,10 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
                     color="secondary"
                     startIcon={<Save />}
                     onClick={() => aiOverviewRef.current?.submit()}
-                    disabled={!aiOverviewDraftState.canSubmit || aiOverviewDraftState.isSubmitting}
+                    disabled={
+                      !aiOverviewDraftState.canSubmit ||
+                      aiOverviewDraftState.isSubmitting
+                    }
                   >
                     บันทึก AI Overview
                   </Button>

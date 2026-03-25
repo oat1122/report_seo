@@ -98,7 +98,7 @@ class UserService {
 
       if (existingCustomer) {
         throw new Error(
-          `Domain "${domain}" is already registered to another customer.`
+          `Domain "${domain}" is already registered to another customer.`,
         );
       }
 
@@ -156,7 +156,7 @@ class UserService {
 
         if (existingCustomerWithDomain) {
           throw new Error(
-            `Domain "${domain}" is already registered to another customer.`
+            `Domain "${domain}" is already registered to another customer.`,
           );
         }
       }
@@ -241,7 +241,7 @@ class UserService {
     id: string,
     currentPassword: string | undefined,
     newPassword: string,
-    isAdmin: boolean
+    isAdmin: boolean,
   ) {
     const userToUpdate = await prisma.user.findUnique({ where: { id } });
 
@@ -255,7 +255,7 @@ class UserService {
       }
       const isPasswordValid = await bcrypt.compare(
         currentPassword,
-        userToUpdate.password
+        userToUpdate.password,
       );
       if (!isPasswordValid) {
         throw new Error("Invalid current password");

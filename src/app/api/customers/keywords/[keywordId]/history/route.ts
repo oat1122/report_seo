@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(
   req: Request,
-  { params }: { params: Promise<{ keywordId: string }> }
+  { params }: { params: Promise<{ keywordId: string }> },
 ) {
   try {
     const { keywordId } = await params;
@@ -33,7 +33,7 @@ export async function GET(
     console.error("Failed to fetch keyword history:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

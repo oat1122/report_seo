@@ -7,7 +7,7 @@ import { customerService } from "@/services/CustomerService";
 
 export async function PUT(
   req: Request,
-  { params }: { params: Promise<{ recommendId: string }> }
+  { params }: { params: Promise<{ recommendId: string }> },
 ) {
   try {
     const { recommendId } = await params;
@@ -26,7 +26,7 @@ export async function PUT(
     const updatedRecommend = await customerService.updateRecommendKeyword(
       recommendId,
       access.context.customer.userId,
-      body
+      body,
     );
 
     return NextResponse.json(updatedRecommend);
@@ -37,7 +37,10 @@ export async function PUT(
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    if (error instanceof Error && error.message === "Recommend keyword not found") {
+    if (
+      error instanceof Error &&
+      error.message === "Recommend keyword not found"
+    ) {
       return NextResponse.json({ error: error.message }, { status: 404 });
     }
 
@@ -47,17 +50,16 @@ export async function PUT(
 
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Internal Server Error",
+        error: error instanceof Error ? error.message : "Internal Server Error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   req: Request,
-  { params }: { params: Promise<{ recommendId: string }> }
+  { params }: { params: Promise<{ recommendId: string }> },
 ) {
   try {
     const { recommendId } = await params;
@@ -74,13 +76,16 @@ export async function DELETE(
 
     await customerService.deleteRecommendKeyword(
       recommendId,
-      access.context.customer.userId
+      access.context.customer.userId,
     );
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error("Error deleting recommend keyword:", error);
 
-    if (error instanceof Error && error.message === "Recommend keyword not found") {
+    if (
+      error instanceof Error &&
+      error.message === "Recommend keyword not found"
+    ) {
       return NextResponse.json({ error: error.message }, { status: 404 });
     }
 
@@ -90,7 +95,7 @@ export async function DELETE(
 
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

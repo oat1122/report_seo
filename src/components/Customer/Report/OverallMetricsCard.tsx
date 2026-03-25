@@ -172,22 +172,22 @@ export const OverallMetricsCard: React.FC<OverallMetricsCardProps> = ({
   const trafficChange = calculateMetricChange(
     metrics.organicTraffic,
     metricsHistory,
-    "organicTraffic"
+    "organicTraffic",
   );
   const keywordsChange = calculateMetricChange(
     metrics.organicKeywords,
     metricsHistory,
-    "organicKeywords"
+    "organicKeywords",
   );
   const backlinksChange = calculateMetricChange(
     metrics.backlinks,
     metricsHistory,
-    "backlinks"
+    "backlinks",
   );
   const refDomainsChange = calculateMetricChange(
     metrics.refDomains,
     metricsHistory,
-    "refDomains"
+    "refDomains",
   );
 
   return (
@@ -229,7 +229,7 @@ export const OverallMetricsCard: React.FC<OverallMetricsCardProps> = ({
               value={metrics.ageInYears * 12 + (metrics.ageInMonths || 0)}
               displayValue={formatDuration(
                 metrics.ageInYears,
-                metrics.ageInMonths || 0
+                metrics.ageInMonths || 0,
               )}
               colorFunc={(totalMonths) =>
                 getAgeColor(Math.floor(totalMonths / 12), totalMonths % 12)

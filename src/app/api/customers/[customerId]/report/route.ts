@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(
   req: Request,
-  { params }: { params: Promise<{ customerId: string }> }
+  { params }: { params: Promise<{ customerId: string }> },
 ) {
   try {
     const { customerId } = await params;
@@ -32,27 +32,32 @@ export async function GET(
     });
 
     if (!customer) {
-      return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Customer not found" },
+        { status: 404 },
+      );
     }
 
-    const [metrics, keywords, recommendations, aiOverviews] = await Promise.all([
-      prisma.overallMetrics.findUnique({
-        where: { customerId: customer.id },
-      }),
-      prisma.keywordReport.findMany({
-        where: { customerId: customer.id },
-        orderBy: [{ isTopReport: "desc" }, { position: "asc" }],
-      }),
-      prisma.keywordRecommend.findMany({
-        where: { customerId: customer.id },
-        orderBy: { createdAt: "desc" },
-      }),
-      prisma.aiOverview.findMany({
-        where: { customerId: customer.id },
-        include: { images: true },
-        orderBy: { createdAt: "desc" },
-      }),
-    ]);
+    const [metrics, keywords, recommendations, aiOverviews] = await Promise.all(
+      [
+        prisma.overallMetrics.findUnique({
+          where: { customerId: customer.id },
+        }),
+        prisma.keywordReport.findMany({
+          where: { customerId: customer.id },
+          orderBy: [{ isTopReport: "desc" }, { position: "asc" }],
+        }),
+        prisma.keywordRecommend.findMany({
+          where: { customerId: customer.id },
+          orderBy: { createdAt: "desc" },
+        }),
+        prisma.aiOverview.findMany({
+          where: { customerId: customer.id },
+          include: { images: true },
+          orderBy: { createdAt: "desc" },
+        }),
+      ],
+    );
 
     const topKeywords = keywords.filter((kw) => kw.isTopReport);
     const otherKeywords = keywords.filter((kw) => !kw.isTopReport);
@@ -70,7 +75,7 @@ export async function GET(
     console.error("Failed to fetch customer report data:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

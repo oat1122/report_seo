@@ -71,7 +71,10 @@ const saveMetrics = async ({
   customerId: string;
   metrics: OverallMetricsForm;
 }): Promise<OverallMetricsForm> => {
-  const { data } = await axios.post(`/customers/${customerId}/metrics`, metrics);
+  const { data } = await axios.post(
+    `/customers/${customerId}/metrics`,
+    metrics,
+  );
   return data;
 };
 
@@ -87,7 +90,10 @@ const addKeyword = async ({
   customerId: string;
   keyword: KeywordFormData;
 }): Promise<KeywordReport> => {
-  const { data } = await axios.post(`/customers/${customerId}/keywords`, keyword);
+  const { data } = await axios.post(
+    `/customers/${customerId}/keywords`,
+    keyword,
+  );
   return data;
 };
 

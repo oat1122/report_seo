@@ -15,7 +15,9 @@ export async function GET() {
       return roleError;
     }
 
-    const customers = await userService.getManagedCustomers(auth.session.user.id);
+    const customers = await userService.getManagedCustomers(
+      auth.session.user.id,
+    );
     return NextResponse.json(customers);
   } catch (error) {
     console.error("Failed to fetch managed customers:", error);

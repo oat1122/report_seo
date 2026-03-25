@@ -22,7 +22,7 @@ export const useUserConfirmDialog = () => {
         message: "คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้งานนี้?",
         actionType: "delete",
         targetId: id,
-      })
+      }),
     );
   };
 
@@ -33,7 +33,7 @@ export const useUserConfirmDialog = () => {
         message: "คุณแน่ใจหรือไม่ว่าต้องการกู้คืนผู้ใช้งานนี้?",
         actionType: "restore",
         targetId: id,
-      })
+      }),
     );
   };
 

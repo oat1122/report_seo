@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     console.error("Failed to fetch users:", error);
     return NextResponse.json(
       { error: (error as Error).message || "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -72,18 +72,18 @@ export async function POST(request: Request) {
       if (meta?.target?.includes("email")) {
         return NextResponse.json(
           { error: "Email already exists." },
-          { status: 409 }
+          { status: 409 },
         );
       }
       return NextResponse.json(
         { error: "Duplicate data found." },
-        { status: 409 }
+        { status: 409 },
       );
     }
 
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

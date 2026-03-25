@@ -86,11 +86,14 @@ export const AiOverviewSection = forwardRef<
   const [editDisplayDate, setEditDisplayDate] = useState<Dayjs | null>(null);
   const [editFiles, setEditFiles] = useState<File[]>([]);
   const [editPreviews, setEditPreviews] = useState<string[]>([]);
-  const [existingImages, setExistingImages] = useState<AiOverview["images"]>([]);
+  const [existingImages, setExistingImages] = useState<AiOverview["images"]>(
+    [],
+  );
   const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
   const editFileInputRef = useRef<HTMLInputElement>(null);
 
-  const canSubmit = title.trim().length > 0 && files.length > 0 && !isSubmitting;
+  const canSubmit =
+    title.trim().length > 0 && files.length > 0 && !isSubmitting;
 
   useEffect(() => {
     onStateChange?.({
@@ -182,7 +185,8 @@ export const AiOverviewSection = forwardRef<
   const handleEditFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
     const remainingImages = existingImages.length - imagesToDelete.length;
-    const totalImages = remainingImages + editFiles.length + selectedFiles.length;
+    const totalImages =
+      remainingImages + editFiles.length + selectedFiles.length;
 
     if (totalImages > 3) {
       alert("อัปโหลดรูปภาพได้สูงสุด 3 รูป");
@@ -250,7 +254,8 @@ export const AiOverviewSection = forwardRef<
               เพิ่ม AI Overview
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              เพิ่มหัวข้อและภาพประกอบสำหรับรายงาน AI Overview โดยอัปโหลดได้สูงสุด 3 รูป
+              เพิ่มหัวข้อและภาพประกอบสำหรับรายงาน AI Overview
+              โดยอัปโหลดได้สูงสุด 3 รูป
             </Typography>
           </Box>
 
@@ -408,7 +413,8 @@ export const AiOverviewSection = forwardRef<
                         {item.title}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        วันที่แสดงผล {dayjs(item.displayDate).format("DD/MM/YYYY")}
+                        วันที่แสดงผล{" "}
+                        {dayjs(item.displayDate).format("DD/MM/YYYY")}
                       </Typography>
                     </Box>
                   </Stack>
@@ -523,7 +529,10 @@ export const AiOverviewSection = forwardRef<
                 fullWidth
               />
 
-              <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="th">
+              <LocalizationProvider
+                dateAdapter={AdapterDayjs}
+                adapterLocale="th"
+              >
                 <DatePicker
                   label="วันที่แสดงผล"
                   value={editDisplayDate}
@@ -545,7 +554,9 @@ export const AiOverviewSection = forwardRef<
                   </Typography>
                   <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
                     {existingImages.map((img) => {
-                      const isMarkedForDeletion = imagesToDelete.includes(img.id);
+                      const isMarkedForDeletion = imagesToDelete.includes(
+                        img.id,
+                      );
                       return (
                         <Box
                           key={img.id}
@@ -635,13 +646,17 @@ export const AiOverviewSection = forwardRef<
                     startIcon={<CloudUpload />}
                     onClick={() => editFileInputRef.current?.click()}
                     disabled={
-                      existingImages.length - imagesToDelete.length + editFiles.length >=
+                      existingImages.length -
+                        imagesToDelete.length +
+                        editFiles.length >=
                       3
                     }
                     size="small"
                   >
                     เพิ่มรูปภาพใหม่ (
-                    {existingImages.length - imagesToDelete.length + editFiles.length}
+                    {existingImages.length -
+                      imagesToDelete.length +
+                      editFiles.length}
                     /3)
                   </Button>
                   <Typography variant="body2" color="text.secondary">
@@ -706,7 +721,9 @@ export const AiOverviewSection = forwardRef<
                   onClick={handleEditSubmit}
                   disabled={
                     !editTitle.trim() ||
-                    existingImages.length - imagesToDelete.length + editFiles.length ===
+                    existingImages.length -
+                      imagesToDelete.length +
+                      editFiles.length ===
                       0 ||
                     isSubmitting
                   }

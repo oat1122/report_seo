@@ -55,7 +55,7 @@ export default withAuth(
       // ถ้า return false ผู้ใช้จะถูก redirect ไปยังหน้า signIn ใน authOptions
       authorized: ({ token }) => !!token,
     },
-  }
+  },
 );
 
 // --- Matcher Configuration ---

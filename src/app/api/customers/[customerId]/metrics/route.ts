@@ -8,7 +8,7 @@ import { customerService } from "@/services/CustomerService";
 
 export async function GET(
   req: Request,
-  { params }: { params: Promise<{ customerId: string }> }
+  { params }: { params: Promise<{ customerId: string }> },
 ) {
   try {
     const { customerId } = await params;
@@ -29,14 +29,14 @@ export async function GET(
     console.error("Error fetching metrics:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function POST(
   req: Request,
-  { params }: { params: Promise<{ customerId: string }> }
+  { params }: { params: Promise<{ customerId: string }> },
 ) {
   try {
     const { customerId } = await params;
@@ -67,7 +67,7 @@ export async function POST(
 
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

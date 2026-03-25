@@ -24,7 +24,7 @@ interface HistoryProviderProps {
 
 // --- Context ---
 const HistoryContext = createContext<HistoryContextValue | undefined>(
-  undefined
+  undefined,
 );
 
 // --- Provider Component ---

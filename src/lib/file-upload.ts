@@ -43,7 +43,7 @@ export function validateExtension(filename: string): FileValidationResult {
     return {
       isValid: false,
       error: `ไฟล์ประเภท ${ext} ไม่ได้รับอนุญาต อนุญาตเฉพาะ ${ALLOWED_EXTENSIONS.join(
-        ", "
+        ", ",
       )}`,
     };
   }
@@ -57,13 +57,13 @@ export function validateExtension(filename: string): FileValidationResult {
 export function validateMimeType(mimeType: string): FileValidationResult {
   if (
     !ALLOWED_MIME_TYPES.includes(
-      mimeType as (typeof ALLOWED_MIME_TYPES)[number]
+      mimeType as (typeof ALLOWED_MIME_TYPES)[number],
     )
   ) {
     return {
       isValid: false,
       error: `MIME type ${mimeType} ไม่ได้รับอนุญาต อนุญาตเฉพาะ ${ALLOWED_MIME_TYPES.join(
-        ", "
+        ", ",
       )}`,
     };
   }
@@ -92,7 +92,7 @@ export function validateFileSize(size: number): FileValidationResult {
  */
 export function validateMagicBytes(
   buffer: Buffer,
-  expectedMimeType: string
+  expectedMimeType: string,
 ): FileValidationResult {
   const expectedBytes = MAGIC_BYTES[expectedMimeType];
 
@@ -106,7 +106,7 @@ export function validateMagicBytes(
   // ตรวจสอบว่า bytes แรกตรงกับ signature หรือไม่
   const fileStartBytes = Array.from(buffer.slice(0, expectedBytes.length));
   const isMatch = expectedBytes.every(
-    (byte, index) => fileStartBytes[index] === byte
+    (byte, index) => fileStartBytes[index] === byte,
   );
 
   if (!isMatch) {
@@ -141,7 +141,7 @@ export function sanitizeFilename(filename: string): string {
  * ตรวจสอบไฟล์ upload ทั้งหมด (รวมทุก validation)
  */
 export async function validateUploadFile(
-  file: File
+  file: File,
 ): Promise<FileValidationResult & { validatedFile?: ValidatedFile }> {
   // 1. ตรวจสอบว่ามีไฟล์หรือไม่
   if (!file || !file.name) {
@@ -188,7 +188,7 @@ export async function validateUploadFile(
 export function validateUploadBuffer(
   buffer: Buffer,
   filename: string,
-  mimeType: string
+  mimeType: string,
 ): FileValidationResult & { validatedFile?: ValidatedFile } {
   // 1. ตรวจสอบ extension
   const extResult = validateExtension(filename);

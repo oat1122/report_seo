@@ -148,7 +148,7 @@ export const KeywordReportTable: React.FC<KeywordReportTableProps> = ({
             const trafficChangeData = calculateTrafficChange(
               kw.traffic,
               keywordHistory,
-              kw.id
+              kw.id,
             );
 
             return (

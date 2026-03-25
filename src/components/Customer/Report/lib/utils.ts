@@ -7,7 +7,7 @@ import { KDLevel } from "@prisma/client";
  * @returns สีที่ใช้แสดงใน MUI Chip component
  */
 export const getKdColor = (
-  kd: KDLevel
+  kd: KDLevel,
 ): "error" | "warning" | "success" | "default" => {
   switch (kd) {
     case KDLevel.HARD:

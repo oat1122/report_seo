@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(
   req: Request,
-  { params }: { params: Promise<{ customerId: string }> }
+  { params }: { params: Promise<{ customerId: string }> },
 ) {
   try {
     const { customerId } = await params;
@@ -56,7 +56,7 @@ export async function GET(
     console.error("Failed to fetch metrics history:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

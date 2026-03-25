@@ -11,7 +11,7 @@ const sanitizeSelfUpdate = (body: Record<string, unknown>) => ({
 // GET /api/users/[id] - ดึงผู้ใช้รายบุคคล
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const auth = await requireSession();
@@ -38,7 +38,7 @@ export async function GET(
     console.error("Failed to fetch user:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -46,7 +46,7 @@ export async function GET(
 // PUT /api/users/[id] - อัปเดตผู้ใช้
 export async function PUT(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const auth = await requireSession();
@@ -82,7 +82,7 @@ export async function PUT(
 
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -90,7 +90,7 @@ export async function PUT(
 // DELETE /api/users/[id] - ลบผู้ใช้ (จะถูกเปลี่ยนเป็น Soft Delete โดย Middleware)
 export async function DELETE(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const auth = await requireSession();
@@ -110,7 +110,7 @@ export async function DELETE(
     console.error("Failed to delete user:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

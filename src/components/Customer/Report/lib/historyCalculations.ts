@@ -23,7 +23,7 @@ export interface TrafficChangeData {
  */
 export const calculatePercentageChange = (
   current: number,
-  previous: number
+  previous: number,
 ): number => {
   if (previous === 0) {
     // If previous was 0 and current is positive, it's infinite growth
@@ -41,7 +41,7 @@ export const calculatePercentageChange = (
  */
 export const determineTrend = (
   percentage: number,
-  hasHistory: boolean
+  hasHistory: boolean,
 ): MetricTrend => {
   if (!hasHistory) return "neutral";
   if (percentage === Infinity) return "new";
@@ -60,14 +60,14 @@ export const determineTrend = (
 export const calculateTrafficChange = (
   currentTraffic: number,
   keywordHistory: KeywordReportHistory[],
-  reportId: string
+  reportId: string,
 ): TrafficChangeData => {
   // Filter history for this specific keyword
   const keywordHistoryRecords = keywordHistory
     .filter((h) => h.reportId === reportId)
     .sort(
       (a, b) =>
-        new Date(b.dateRecorded).getTime() - new Date(a.dateRecorded).getTime()
+        new Date(b.dateRecorded).getTime() - new Date(a.dateRecorded).getTime(),
     );
 
   // If no history exists, it's a new keyword
@@ -110,12 +110,12 @@ export const calculateMetricChange = (
   metricKey: keyof Omit<
     OverallMetricsHistory,
     "id" | "dateRecorded" | "customerId"
-  >
+  >,
 ): TrafficChangeData => {
   // Sort history by date (most recent first)
   const sortedHistory = [...metricsHistory].sort(
     (a, b) =>
-      new Date(b.dateRecorded).getTime() - new Date(a.dateRecorded).getTime()
+      new Date(b.dateRecorded).getTime() - new Date(a.dateRecorded).getTime(),
   );
 
   // If no history exists
@@ -152,7 +152,7 @@ export const calculateMetricChange = (
  */
 export const formatPercentage = (
   percentage: number,
-  decimals: number = 0
+  decimals: number = 0,
 ): string => {
   const absPercentage = Math.abs(percentage);
   if (absPercentage >= 1000) {
@@ -195,10 +195,10 @@ export interface KeywordChartDataPoint {
  * @returns Filtered array sorted by date ascending
  */
 export const filterHistoryByPeriod = <
-  T extends { dateRecorded: Date | string }
+  T extends { dateRecorded: Date | string },
 >(
   history: T[],
-  days: number
+  days: number,
 ): T[] => {
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - days);
@@ -207,7 +207,7 @@ export const filterHistoryByPeriod = <
     .filter((record) => new Date(record.dateRecorded) >= cutoffDate)
     .sort(
       (a, b) =>
-        new Date(a.dateRecorded).getTime() - new Date(b.dateRecorded).getTime()
+        new Date(a.dateRecorded).getTime() - new Date(b.dateRecorded).getTime(),
     );
 };
 
@@ -229,7 +229,7 @@ export const formatChartDate = (date: Date | string): string => {
  */
 export const transformMetricsForRecharts = (
   history: OverallMetricsHistory[],
-  days: number = 30
+  days: number = 30,
 ): MetricsChartDataPoint[] => {
   // Filter and sort by period
   const filteredHistory = filterHistoryByPeriod(history, days);
@@ -254,7 +254,7 @@ export const transformMetricsForRecharts = (
  * @returns Map of keyword name to array of history records
  */
 export const groupKeywordHistory = (
-  history: KeywordReportHistory[]
+  history: KeywordReportHistory[],
 ): Map<string, KeywordReportHistory[]> => {
   const grouped = new Map<string, KeywordReportHistory[]>();
 
@@ -271,8 +271,8 @@ export const groupKeywordHistory = (
       records.sort(
         (a, b) =>
           new Date(a.dateRecorded).getTime() -
-          new Date(b.dateRecorded).getTime()
-      )
+          new Date(b.dateRecorded).getTime(),
+      ),
     );
   });
 
@@ -289,7 +289,7 @@ export const groupKeywordHistory = (
 export const transformKeywordForRecharts = (
   history: KeywordReportHistory[],
   keyword: string,
-  days: number = 30
+  days: number = 30,
 ): KeywordChartDataPoint[] => {
   // Filter by keyword and period
   const keywordHistory = history.filter((h) => h.keyword === keyword);
@@ -311,7 +311,7 @@ export const transformKeywordForRecharts = (
  * @returns Array of unique keyword names
  */
 export const getUniqueKeywords = (
-  history: KeywordReportHistory[]
+  history: KeywordReportHistory[],
 ): string[] => {
   return [...new Set(history.map((h) => h.keyword))];
 };
@@ -347,7 +347,7 @@ export interface MultiKeywordChartDataPoint {
  */
 export const sortKeywordsByTraffic = (
   history: KeywordReportHistory[],
-  keywords: string[]
+  keywords: string[],
 ): string[] => {
   // Calculate average traffic for each keyword
   const trafficMap = new Map<string, number>();
@@ -396,7 +396,7 @@ export const transformMultiKeywordForRecharts = (
     position: number | null;
     traffic: number;
     dateRecorded: string | Date;
-  }>
+  }>,
 ): MultiKeywordChartDataPoint[] => {
   // Filter by period first
   const filteredHistory = filterHistoryByPeriod(history, days);
@@ -460,7 +460,7 @@ export const transformMultiKeywordForRecharts = (
 
   // Convert to array and sort by date ascending
   return Array.from(dateMap.values()).sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
   );
 };
 
@@ -472,7 +472,7 @@ export const transformMultiKeywordForRecharts = (
  */
 export const createKeywordDataKey = (
   keyword: string,
-  suffix: "position" | "traffic"
+  suffix: "position" | "traffic",
 ): string => {
   return `${keyword.replace(/\s+/g, "_")}_${suffix}`;
 };

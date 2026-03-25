@@ -21,7 +21,7 @@ export const getRoleIcon = (role: Role) => {
 };
 
 export const getRoleColor = (
-  role: Role
+  role: Role,
 ): "error" | "info" | "secondary" | "default" => {
   switch (role) {
     case Role.ADMIN:

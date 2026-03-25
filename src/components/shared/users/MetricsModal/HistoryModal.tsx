@@ -48,13 +48,16 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
   };
 
   // Group keyword history by keyword name
-  const groupedKeywordHistory = keywordHistory.reduce((acc, record) => {
-    if (!acc[record.keyword]) {
-      acc[record.keyword] = [];
-    }
-    acc[record.keyword].push(record);
-    return acc;
-  }, {} as Record<string, KeywordReportHistory[]>);
+  const groupedKeywordHistory = keywordHistory.reduce(
+    (acc, record) => {
+      if (!acc[record.keyword]) {
+        acc[record.keyword] = [];
+      }
+      acc[record.keyword].push(record);
+      return acc;
+    },
+    {} as Record<string, KeywordReportHistory[]>,
+  );
 
   return (
     <Modal open={open} onClose={onClose}>
@@ -136,7 +139,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
                       <TableRow key={record.id}>
                         <TableCell>
                           {new Date(record.dateRecorded).toLocaleString(
-                            "th-TH"
+                            "th-TH",
                           )}
                         </TableCell>
                         <TableCell align="right">
@@ -148,7 +151,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
                         <TableCell align="right">
                           {formatDuration(
                             record.ageInYears,
-                            record.ageInMonths || 0
+                            record.ageInMonths || 0,
                           )}
                         </TableCell>
                         <TableCell align="right">{record.spamScore}%</TableCell>
@@ -213,13 +216,13 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
                         .sort(
                           (a, b) =>
                             new Date(b.dateRecorded).getTime() -
-                            new Date(a.dateRecorded).getTime()
+                            new Date(a.dateRecorded).getTime(),
                         )
                         .map((record) => (
                           <TableRow key={record.id}>
                             <TableCell>
                               {new Date(record.dateRecorded).toLocaleString(
-                                "th-TH"
+                                "th-TH",
                               )}
                             </TableCell>
                             <TableCell align="center">

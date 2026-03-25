@@ -7,7 +7,7 @@ import { Role } from "@/types/auth";
 // Handler function สำหรับอัปเดตรหัสผ่าน
 async function updatePasswordHandler(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -28,7 +28,7 @@ async function updatePasswordHandler(
     if (newPassword !== confirmPassword) {
       return NextResponse.json(
         { error: "New passwords do not match" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -49,7 +49,7 @@ async function updatePasswordHandler(
 
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -57,7 +57,7 @@ async function updatePasswordHandler(
 // PUT /api/users/[id]/password - อัปเดตรหัสผ่าน
 export async function PUT(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   return updatePasswordHandler(req, { params });
 }
@@ -65,7 +65,7 @@ export async function PUT(
 // PATCH /api/users/[id]/password - อัปเดตรหัสผ่าน (partial update)
 export async function PATCH(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   return updatePasswordHandler(req, { params });
 }

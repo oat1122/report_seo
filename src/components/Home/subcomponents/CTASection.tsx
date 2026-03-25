@@ -5,12 +5,7 @@ export const CTASection: React.FC = () => {
   return (
     <Box component="section" sx={{ py: 8, textAlign: "center" }}>
       <Container maxWidth="md">
-        <Typography
-          variant="h2"
-          component="h2"
-          color="primary"
-          gutterBottom
-        >
+        <Typography variant="h2" component="h2" color="primary" gutterBottom>
           บริการ SEO ช่วยอะไร?
         </Typography>
         <Typography variant="h6" color="text.secondary" sx={{ mb: 4 }}>

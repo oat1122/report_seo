@@ -171,7 +171,7 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
       keywordHistory,
       selectedKeywords,
       period,
-      currentKeywords
+      currentKeywords,
     );
   }, [keywordHistory, selectedKeywords, period, currentKeywords]);
 
@@ -184,20 +184,20 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
       if (newValue.length === 0) return;
       setSelectedKeywords(newValue.map((k) => k.keyword));
     },
-    []
+    [],
   );
 
   // Get selected keyword options for Autocomplete value
   const selectedOptions = useMemo(() => {
     return keywordOptions.filter((opt) =>
-      selectedKeywords.includes(opt.keyword)
+      selectedKeywords.includes(opt.keyword),
     );
   }, [keywordOptions, selectedKeywords]);
 
   // Prepare data for Donut Chart
   const donutData: DonutDataItem[] = useMemo(() => {
     const selectedData = keywordOptions.filter((opt) =>
-      selectedKeywords.includes(opt.keyword)
+      selectedKeywords.includes(opt.keyword),
     );
     const total = selectedData.reduce((sum, k) => sum + k.traffic, 0);
 
@@ -554,16 +554,16 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
                       keywordColorMap.get(keyword) || CHART_COLORS.primary;
                     const positionDataKey = createKeywordDataKey(
                       keyword,
-                      "position"
+                      "position",
                     );
                     // Real position data key for showing actual values when clipped
                     const positionRealDataKey = `${keyword.replace(
                       /\s+/g,
-                      "_"
+                      "_",
                     )}_position_real`;
                     const trafficDataKey = createKeywordDataKey(
                       keyword,
-                      "traffic"
+                      "traffic",
                     );
 
                     return (

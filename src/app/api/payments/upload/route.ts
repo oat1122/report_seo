@@ -23,15 +23,18 @@ export async function POST(request: NextRequest) {
 
     if (!file) {
       return NextResponse.json(
-        { error: "เธเธฃเธธเธ“เธฒเน€เธฅเธทเธญเธเนเธเธฅเนเธ—เธตเนเธ•เนเธญเธเธเธฒเธฃเธญเธฑเธเนเธซเธฅเธ”" },
-        { status: 400 }
+        {
+          error:
+            "เธเธฃเธธเธ“เธฒเน€เธฅเธทเธญเธเนเธเธฅเนเธ—เธตเนเธ•เนเธญเธเธเธฒเธฃเธญเธฑเธเนเธซเธฅเธ”",
+        },
+        { status: 400 },
       );
     }
 
     if (!customerId) {
       return NextResponse.json(
         { error: "เธเธฃเธธเธ“เธฒเธฃเธฐเธเธธ customerId" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -45,7 +48,10 @@ export async function POST(request: NextRequest) {
     });
 
     if (!customer) {
-      return NextResponse.json({ error: "เนเธกเนเธเธเธเนเธญเธกเธนเธฅเธฅเธนเธเธเนเธฒ" }, { status: 404 });
+      return NextResponse.json(
+        { error: "เนเธกเนเธเธเธเนเธญเธกเธนเธฅเธฅเธนเธเธเนเธฒ" },
+        { status: 404 },
+      );
     }
 
     const isAdmin = auth.session.user.role === Role.ADMIN;
@@ -62,8 +68,12 @@ export async function POST(request: NextRequest) {
 
     if (!validationResult.isValid || !validationResult.validatedFile) {
       return NextResponse.json(
-        { error: validationResult.error || "เนเธเธฅเนเนเธกเนเธเนเธฒเธเธเธฒเธฃเธ•เธฃเธงเธเธชเธญเธ" },
-        { status: 400 }
+        {
+          error:
+            validationResult.error ||
+            "เนเธเธฅเนเนเธกเนเธเนเธฒเธเธเธฒเธฃเธ•เธฃเธงเธเธชเธญเธ",
+        },
+        { status: 400 },
       );
     }
 
@@ -99,8 +109,11 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Upload error:", error);
     return NextResponse.json(
-      { error: "เน€เธเธดเธ”เธเนเธญเธเธดเธ”เธเธฅเธฒเธ”เนเธเธเธฒเธฃเธญเธฑเธเนเธซเธฅเธ”เนเธเธฅเน" },
-      { status: 500 }
+      {
+        error:
+          "เน€เธเธดเธ”เธเนเธญเธเธดเธ”เธเธฅเธฒเธ”เนเธเธเธฒเธฃเธญเธฑเธเนเธซเธฅเธ”เนเธเธฅเน",
+      },
+      { status: 500 },
     );
   }
 }
@@ -117,7 +130,7 @@ export async function GET(request: NextRequest) {
     if (userRole !== Role.ADMIN && userRole !== Role.SEO_DEV) {
       return NextResponse.json(
         { error: "เนเธกเนเธกเธตเธชเธดเธ—เธเธดเนเน€เธเนเธฒเธ–เธถเธ" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -171,6 +184,9 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Get payments error:", error);
-    return NextResponse.json({ error: "เน€เธเธดเธ”เธเนเธญเธเธดเธ”เธเธฅเธฒเธ”" }, { status: 500 });
+    return NextResponse.json(
+      { error: "เน€เธเธดเธ”เธเนเธญเธเธดเธ”เธเธฅเธฒเธ”" },
+      { status: 500 },
+    );
   }
 }

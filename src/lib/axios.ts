@@ -37,7 +37,7 @@ axiosInstance.interceptors.response.use(
 
     // Reject the promise so that Redux Thunk's .rejected case is triggered
     return Promise.reject(error);
-  }
+  },
 );
 
 export default axiosInstance;

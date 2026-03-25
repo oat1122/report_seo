@@ -19,7 +19,7 @@ import { Role } from "@/types/auth";
 export const useUserModalLogic = () => {
   const dispatch = useAppDispatch();
   const { isModalOpen, isEditing, currentUser } = useAppSelector(
-    (state) => state.users
+    (state) => state.users,
   );
 
   //  React Query Mutations

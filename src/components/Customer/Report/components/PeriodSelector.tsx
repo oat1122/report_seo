@@ -22,7 +22,7 @@ export const PeriodSelector: React.FC<PeriodSelectorProps> = ({
 }) => {
   const handleChange = (
     _event: React.MouseEvent<HTMLElement>,
-    newValue: PeriodOption | null
+    newValue: PeriodOption | null,
   ) => {
     // Don't allow deselecting (null)
     if (newValue !== null) {

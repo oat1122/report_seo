@@ -126,9 +126,7 @@ export async function getCustomerAccessByUserId(
   };
 }
 
-export async function getKeywordAccessContext(
-  keywordId: string,
-): Promise<
+export async function getKeywordAccessContext(keywordId: string): Promise<
   | {
       response: NextResponse;
       context: null;
@@ -166,9 +164,7 @@ export async function getKeywordAccessContext(
   };
 }
 
-export async function getRecommendAccessContext(
-  recommendId: string,
-): Promise<
+export async function getRecommendAccessContext(recommendId: string): Promise<
   | {
       response: NextResponse;
       context: null;
@@ -209,9 +205,7 @@ export async function getRecommendAccessContext(
   };
 }
 
-export async function getAiOverviewAccessContext(
-  aiOverviewId: string,
-): Promise<
+export async function getAiOverviewAccessContext(aiOverviewId: string): Promise<
   | {
       response: NextResponse;
       context: null;

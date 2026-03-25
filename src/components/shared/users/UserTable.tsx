@@ -177,11 +177,7 @@ export const UserTable: React.FC<UserTableProps> = ({
                     >
                       {isDeleted ? (
                         !isSeoDevView && (
-                          <Tooltip
-                            title={
-                              "กู้คืน"
-                            }
-                          >
+                          <Tooltip title={"กู้คืน"}>
                             <IconButton
                               onClick={() => onRestore(user.id)}
                               size="small"
@@ -194,11 +190,7 @@ export const UserTable: React.FC<UserTableProps> = ({
                       ) : (
                         <>
                           {user.role === Role.CUSTOMER && canViewReport && (
-                            <Tooltip
-                              title={
-                                "ดูรายงานของลูกค้า"
-                              }
-                            >
+                            <Tooltip title={"ดูรายงานของลูกค้า"}>
                               <IconButton
                                 component={Link}
                                 href={`/customer/${user.id}/report`}
@@ -212,11 +204,7 @@ export const UserTable: React.FC<UserTableProps> = ({
                             </Tooltip>
                           )}
                           {user.role === Role.CUSTOMER && (
-                            <Tooltip
-                              title={
-                                "จัดการข้อมูล Domain"
-                              }
-                            >
+                            <Tooltip title={"จัดการข้อมูล Domain"}>
                               <IconButton
                                 onClick={() => onOpenMetrics(user)}
                                 size="small"
@@ -232,11 +220,7 @@ export const UserTable: React.FC<UserTableProps> = ({
                             </Tooltip>
                           )}
                           {!isSeoDevView && (
-                            <Tooltip
-                              title={
-                                "แก้ไข"
-                              }
-                            >
+                            <Tooltip title={"แก้ไข"}>
                               <IconButton
                                 onClick={() => onEdit(user)}
                                 size="small"
@@ -252,11 +236,7 @@ export const UserTable: React.FC<UserTableProps> = ({
                             </Tooltip>
                           )}
                           {!isSeoDevView && (
-                            <Tooltip
-                              title={
-                                "ลบ"
-                              }
-                            >
+                            <Tooltip title={"ลบ"}>
                               <IconButton
                                 onClick={() => onDelete(user.id)}
                                 size="small"

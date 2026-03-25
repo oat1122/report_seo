@@ -7,7 +7,7 @@ import { customerService } from "@/services/CustomerService";
 
 export async function PUT(
   req: Request,
-  { params }: { params: Promise<{ keywordId: string }> }
+  { params }: { params: Promise<{ keywordId: string }> },
 ) {
   try {
     const { keywordId } = await params;
@@ -26,7 +26,7 @@ export async function PUT(
     const updatedKeyword = await customerService.updateKeyword(
       keywordId,
       access.context.customer.userId,
-      data
+      data,
     );
 
     return NextResponse.json(updatedKeyword);
@@ -47,14 +47,14 @@ export async function PUT(
 
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   req: Request,
-  { params }: { params: Promise<{ keywordId: string }> }
+  { params }: { params: Promise<{ keywordId: string }> },
 ) {
   try {
     const { keywordId } = await params;
@@ -69,7 +69,10 @@ export async function DELETE(
       return permissionError;
     }
 
-    await customerService.deleteKeyword(keywordId, access.context.customer.userId);
+    await customerService.deleteKeyword(
+      keywordId,
+      access.context.customer.userId,
+    );
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error("Error deleting keyword:", error);
@@ -84,7 +87,7 @@ export async function DELETE(
 
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

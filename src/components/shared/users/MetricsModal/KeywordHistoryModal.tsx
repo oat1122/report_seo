@@ -38,7 +38,7 @@ export const KeywordHistoryModal: React.FC<KeywordHistoryModalProps> = ({
   // เรียงลำดับข้อมูลก่อนแสดงผล - ล่าสุดขึ้นก่อน
   const sortedHistory = [...history].sort(
     (a, b) =>
-      new Date(b.dateRecorded).getTime() - new Date(a.dateRecorded).getTime()
+      new Date(b.dateRecorded).getTime() - new Date(a.dateRecorded).getTime(),
   );
 
   return (

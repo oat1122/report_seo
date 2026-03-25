@@ -4,7 +4,7 @@ import { userService } from "@/services/UserService";
 
 async function restoreHandler(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const auth = await requireSession();
@@ -24,21 +24,21 @@ async function restoreHandler(
     console.error("Failed to restore user:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function PUT(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   return restoreHandler(req, { params });
 }
 
 export async function PATCH(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   return restoreHandler(req, { params });
 }
