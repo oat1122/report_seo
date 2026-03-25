@@ -1,0 +1,10 @@
+# Ignore artifacts:
+build
+coverage
+
+.env
+.env.local
+.env.production
+
+server.js
+.next

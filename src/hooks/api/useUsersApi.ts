@@ -17,6 +17,11 @@ const fetchSeoDevs = async (): Promise<User[]> => {
   return data;
 };
 
+const fetchManagedCustomers = async (): Promise<User[]> => {
+  const { data } = await axios.get("/users/managed-customers");
+  return data;
+};
+
 const addUser = async (newUser: UserFormState): Promise<User> => {
   const { data } = await axios.post("/users", newUser);
   return data;
@@ -78,6 +83,13 @@ export const useGetSeoDevs = () => {
   return useQuery<User[], Error>({
     queryKey: ["seoDevs"],
     queryFn: fetchSeoDevs,
+  });
+};
+
+export const useGetManagedCustomers = () => {
+  return useQuery<User[], Error>({
+    queryKey: ["managedCustomers"],
+    queryFn: fetchManagedCustomers,
   });
 };
 

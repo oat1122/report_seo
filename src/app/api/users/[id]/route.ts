@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server";
+import { requireAdminOnly, requireSession } from "@/lib/api-auth";
+import { Role } from "@/types/auth";
 import { userService } from "@/services/UserService";
+
+const sanitizeSelfUpdate = (body: Record<string, unknown>) => ({
+  name: typeof body.name === "string" ? body.name : undefined,
+  email: typeof body.email === "string" ? body.email : undefined,
+});
 
 // GET /api/users/[id] - ดึงผู้ใช้รายบุคคล
 export async function GET(
@@ -7,7 +14,21 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireSession();
+    if (auth.response || !auth.session) {
+      return auth.response;
+    }
+
     const { id } = await params;
+    const isOwner = auth.session.user.id === id;
+
+    if (!isOwner) {
+      const roleError = requireAdminOnly(auth.session);
+      if (roleError) {
+        return roleError;
+      }
+    }
+
     const user = await userService.getUserById(id);
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -28,10 +49,24 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
-    const body = await request.json();
+    const auth = await requireSession();
+    if (auth.response || !auth.session) {
+      return auth.response;
+    }
 
-    const updatedUser = await userService.updateUser(id, body);
+    const { id } = await params;
+    const body = (await request.json()) as Record<string, unknown>;
+    const isOwner = auth.session.user.id === id;
+    const isAdmin = auth.session.user.role === Role.ADMIN;
+
+    if (!isOwner && !isAdmin) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const updatedUser = await userService.updateUser(
+      id,
+      isAdmin ? body : sanitizeSelfUpdate(body),
+    );
     return NextResponse.json(updatedUser);
   } catch (error) {
     console.error("Failed to update user:", error);
@@ -58,6 +93,16 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireSession();
+    if (auth.response || !auth.session) {
+      return auth.response;
+    }
+
+    const roleError = requireAdminOnly(auth.session);
+    if (roleError) {
+      return roleError;
+    }
+
     const { id } = await params;
     await userService.deleteUser(id);
     return new NextResponse(null, { status: 204 });

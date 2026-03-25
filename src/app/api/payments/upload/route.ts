@@ -1,91 +1,83 @@
-/**
- * Payment Proof Upload API
- * POST /api/payments/upload
- *
- * อัปโหลดสลิปโอนเงินพร้อมการตรวจสอบความปลอดภัย
- * - ตรวจสอบ session (ต้อง login)
- * - รับเฉพาะไฟล์ .jpg, .jpeg, .png
- * - ตรวจสอบ MIME type และ magic bytes
- * - จำกัดขนาดไม่เกิน 5MB
- */
-
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { Role } from "@/types/auth";
 import { validateUploadFile } from "@/lib/file-upload";
 import { writeFile, mkdir } from "fs/promises";
 import { existsSync } from "fs";
 import path from "path";
 import prisma from "@/lib/prisma";
+import { requireSession } from "@/lib/api-auth";
 
-// โฟลเดอร์สำหรับเก็บไฟล์
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads", "payments");
 
 export async function POST(request: NextRequest) {
   try {
-    // 1. ตรวจสอบ session
-    const session = await getServerSession(authOptions);
+    const auth = await requireSession();
 
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: "กรุณาเข้าสู่ระบบก่อนอัปโหลดไฟล์" },
-        { status: 401 }
-      );
+    if (auth.response || !auth.session) {
+      return auth.response;
     }
 
-    // 2. รับ FormData
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
     const customerId = formData.get("customerId") as string | null;
 
     if (!file) {
       return NextResponse.json(
-        { error: "กรุณาเลือกไฟล์ที่ต้องการอัปโหลด" },
+        { error: "เธเธฃเธธเธ“เธฒเน€เธฅเธทเธญเธเนเธเธฅเนเธ—เธตเนเธ•เนเธญเธเธเธฒเธฃเธญเธฑเธเนเธซเธฅเธ”" },
         { status: 400 }
       );
     }
 
     if (!customerId) {
       return NextResponse.json(
-        { error: "กรุณาระบุ customerId" },
+        { error: "เธเธฃเธธเธ“เธฒเธฃเธฐเธเธธ customerId" },
         { status: 400 }
       );
     }
 
-    // 3. ตรวจสอบว่า customer มีอยู่จริง
     const customer = await prisma.customer.findUnique({
       where: { id: customerId },
+      select: {
+        id: true,
+        userId: true,
+        seoDevId: true,
+      },
     });
 
     if (!customer) {
-      return NextResponse.json({ error: "ไม่พบข้อมูลลูกค้า" }, { status: 404 });
+      return NextResponse.json({ error: "เนเธกเนเธเธเธเนเธญเธกเธนเธฅเธฅเธนเธเธเนเธฒ" }, { status: 404 });
     }
 
-    // 4. Validate file (extension, MIME type, size, magic bytes)
+    const isAdmin = auth.session.user.role === Role.ADMIN;
+    const isOwner = auth.session.user.id === customer.userId;
+    const isAssignedSeoDev =
+      auth.session.user.role === Role.SEO_DEV &&
+      auth.session.user.id === customer.seoDevId;
+
+    if (!isAdmin && !isOwner && !isAssignedSeoDev) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const validationResult = await validateUploadFile(file);
 
     if (!validationResult.isValid || !validationResult.validatedFile) {
       return NextResponse.json(
-        { error: validationResult.error || "ไฟล์ไม่ผ่านการตรวจสอบ" },
+        { error: validationResult.error || "เนเธเธฅเนเนเธกเนเธเนเธฒเธเธเธฒเธฃเธ•เธฃเธงเธเธชเธญเธ" },
         { status: 400 }
       );
     }
 
     const { validatedFile } = validationResult;
 
-    // 5. สร้างโฟลเดอร์ถ้ายังไม่มี
     if (!existsSync(UPLOAD_DIR)) {
       await mkdir(UPLOAD_DIR, { recursive: true });
     }
 
-    // 6. บันทึกไฟล์
     const filePath = path.join(UPLOAD_DIR, validatedFile.filename);
     await writeFile(filePath, validatedFile.buffer);
 
-    // 7. สร้าง URL สำหรับเข้าถึงไฟล์
     const uploadUrl = `/uploads/payments/${validatedFile.filename}`;
 
-    // 8. สร้าง PaymentProof record ในฐานข้อมูล
     const paymentProof = await prisma.paymentProof.create({
       data: {
         uploadUrl,
@@ -94,10 +86,9 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // 9. ส่ง response กลับ
     return NextResponse.json({
       success: true,
-      message: "อัปโหลดสลิปสำเร็จ",
+      message: "เธญเธฑเธเนเธซเธฅเธ”เธชเธฅเธดเธเธชเธณเน€เธฃเนเธ",
       data: {
         id: paymentProof.id,
         uploadUrl,
@@ -108,26 +99,24 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Upload error:", error);
     return NextResponse.json(
-      { error: "เกิดข้อผิดพลาดในการอัปโหลดไฟล์" },
+      { error: "เน€เธเธดเธ”เธเนเธญเธเธดเธ”เธเธฅเธฒเธ”เนเธเธเธฒเธฃเธญเธฑเธเนเธซเธฅเธ”เนเธเธฅเน" },
       { status: 500 }
     );
   }
 }
 
-// GET - ดึงรายการ PaymentProof ทั้งหมด (สำหรับ Admin/SEO_DEV)
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const auth = await requireSession();
 
-    if (!session?.user) {
-      return NextResponse.json({ error: "กรุณาเข้าสู่ระบบ" }, { status: 401 });
+    if (auth.response || !auth.session) {
+      return auth.response;
     }
 
-    // ตรวจสอบสิทธิ์ - เฉพาะ ADMIN และ SEO_DEV
-    const user = session.user as { role?: string };
-    if (user.role !== "ADMIN" && user.role !== "SEO_DEV") {
+    const userRole = auth.session.user.role;
+    if (userRole !== Role.ADMIN && userRole !== Role.SEO_DEV) {
       return NextResponse.json(
-        { error: "ไม่มีสิทธิ์เข้าถึง" },
+        { error: "เนเธกเนเธกเธตเธชเธดเธ—เธเธดเนเน€เธเนเธฒเธ–เธถเธ" },
         { status: 403 }
       );
     }
@@ -136,10 +125,29 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status");
     const customerId = searchParams.get("customerId");
 
-    // สร้าง filter
+    if (customerId && userRole === Role.SEO_DEV) {
+      const customer = await prisma.customer.findUnique({
+        where: { id: customerId },
+        select: {
+          seoDevId: true,
+        },
+      });
+
+      if (!customer || customer.seoDevId !== auth.session.user.id) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    }
+
     const where: Record<string, unknown> = {};
     if (status) where.status = status;
     if (customerId) where.customerId = customerId;
+    if (userRole === Role.SEO_DEV) {
+      where.customer = {
+        is: {
+          seoDevId: auth.session.user.id,
+        },
+      };
+    }
 
     const paymentProofs = await prisma.paymentProof.findMany({
       where,
@@ -163,6 +171,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Get payments error:", error);
-    return NextResponse.json({ error: "เกิดข้อผิดพลาด" }, { status: 500 });
+    return NextResponse.json({ error: "เน€เธเธดเธ”เธเนเธญเธเธดเธ”เธเธฅเธฒเธ”" }, { status: 500 });
   }
 }

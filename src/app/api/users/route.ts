@@ -1,9 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireAdminOnly, requireSession } from "@/lib/api-auth";
 import { userService } from "@/services/UserService";
 
 // GET /api/users - ดึงผู้ใช้ทั้งหมด
 export async function GET(request: NextRequest) {
   try {
+    const auth = await requireSession();
+    if (auth.response || !auth.session) {
+      return auth.response;
+    }
+
+    const roleError = requireAdminOnly(auth.session);
+    if (roleError) {
+      return roleError;
+    }
+
     const { searchParams } = new URL(request.url);
     const includeDeleted = searchParams.get("includeDeleted") === "true";
 
@@ -22,6 +33,16 @@ export async function GET(request: NextRequest) {
 // POST /api/users - สร้างผู้ใช้ใหม่
 export async function POST(request: Request) {
   try {
+    const auth = await requireSession();
+    if (auth.response || !auth.session) {
+      return auth.response;
+    }
+
+    const roleError = requireAdminOnly(auth.session);
+    if (roleError) {
+      return roleError;
+    }
+
     const body = await request.json();
 
     const newUser = await userService.createUser(body);

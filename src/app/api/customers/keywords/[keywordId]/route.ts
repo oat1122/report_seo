@@ -1,62 +1,50 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getSession } from "@/lib/auth-utils";
-import { Role } from "@/types/auth";
+import {
+  enforceCustomerManageAccess,
+  getKeywordAccessContext,
+} from "@/lib/api-auth";
+import { customerService } from "@/services/CustomerService";
 
-// PUT /api/customers/keywords/[keywordId] - อัปเดต Keyword
 export async function PUT(
   req: Request,
   { params }: { params: Promise<{ keywordId: string }> }
 ) {
   try {
-    // 🔒 Authorization: ตรวจสอบ session
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { keywordId } = await params;
+    const access = await getKeywordAccessContext(keywordId);
 
-    // 🔒 Authorization: ดึงข้อมูล keyword เพื่อตรวจสอบเจ้าของ
-    const existingKeyword = await prisma.keywordReport.findUnique({
-      where: { id: keywordId },
-      include: {
-        customer: {
-          select: { userId: true },
-        },
-      },
-    });
-
-    if (!existingKeyword) {
-      return NextResponse.json({ error: "Keyword not found" }, { status: 404 });
+    if (access.response || !access.context) {
+      return access.response;
     }
 
-    // 🔒 Authorization: ตรวจสอบสิทธิ์
-    const isOwner = session.user.id === existingKeyword.customer.userId;
-    const isAdmin = session.user.role === Role.ADMIN;
-    const isSeoDev = session.user.role === Role.SEO_DEV;
-
-    if (!isOwner && !isAdmin && !isSeoDev) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    const permissionError = enforceCustomerManageAccess(access.context);
+    if (permissionError) {
+      return permissionError;
     }
 
     const data = await req.json();
-
-    // อัปเดตข้อมูล Keyword
-    const updatedKeyword = await prisma.keywordReport.update({
-      where: { id: keywordId },
-      data: {
-        keyword: data.keyword,
-        position: data.position ? parseInt(data.position, 10) : null,
-        traffic: parseInt(data.traffic, 10),
-        kd: data.kd,
-        isTopReport: data.isTopReport,
-      },
-    });
+    const updatedKeyword = await customerService.updateKeyword(
+      keywordId,
+      access.context.customer.userId,
+      data
+    );
 
     return NextResponse.json(updatedKeyword);
   } catch (error) {
     console.error("Error updating keyword:", error);
+
+    if (error instanceof Error && error.message.startsWith("Invalid data:")) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    if (error instanceof Error && error.message === "Keyword not found") {
+      return NextResponse.json({ error: error.message }, { status: 404 });
+    }
+
+    if (error instanceof Error && error.message.startsWith("Forbidden")) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
@@ -64,49 +52,36 @@ export async function PUT(
   }
 }
 
-// DELETE /api/customers/keywords/[keywordId] - ลบ Keyword
 export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ keywordId: string }> }
 ) {
   try {
-    // 🔒 Authorization: ตรวจสอบ session
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { keywordId } = await params;
+    const access = await getKeywordAccessContext(keywordId);
 
-    // 🔒 Authorization: ดึงข้อมูล keyword เพื่อตรวจสอบเจ้าของ
-    const existingKeyword = await prisma.keywordReport.findUnique({
-      where: { id: keywordId },
-      include: {
-        customer: {
-          select: { userId: true },
-        },
-      },
-    });
-
-    if (!existingKeyword) {
-      return NextResponse.json({ error: "Keyword not found" }, { status: 404 });
+    if (access.response || !access.context) {
+      return access.response;
     }
 
-    // 🔒 Authorization: ตรวจสอบสิทธิ์
-    const isOwner = session.user.id === existingKeyword.customer.userId;
-    const isAdmin = session.user.role === Role.ADMIN;
-    const isSeoDev = session.user.role === Role.SEO_DEV;
-
-    if (!isOwner && !isAdmin && !isSeoDev) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    const permissionError = enforceCustomerManageAccess(access.context);
+    if (permissionError) {
+      return permissionError;
     }
 
-    await prisma.keywordReport.delete({
-      where: { id: keywordId },
-    });
+    await customerService.deleteKeyword(keywordId, access.context.customer.userId);
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error("Error deleting keyword:", error);
+
+    if (error instanceof Error && error.message === "Keyword not found") {
+      return NextResponse.json({ error: error.message }, { status: 404 });
+    }
+
+    if (error instanceof Error && error.message.startsWith("Forbidden")) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }

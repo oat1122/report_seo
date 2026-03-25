@@ -1,58 +1,26 @@
 // src/components/shared/users/UserManagementSeoDev.tsx
 "use client";
 
-import React, { useMemo } from "react";
+import React from "react";
 import {
+  Alert,
   Box,
+  CircularProgress,
   Container,
   Typography,
-  Button,
-  CircularProgress,
-  Alert,
 } from "@mui/material";
-import { Add } from "@mui/icons-material";
-import { useSession } from "next-auth/react";
-import { useGetUsers } from "@/hooks/api/useUsersApi";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
-import { UserTable } from "./UserTable";
-import { UserModal } from "./UserModal";
+import { useGetManagedCustomers } from "@/hooks/api/useUsersApi";
 import { MetricsModal } from "./MetricsModal/MetricsModal";
-import { useUserModalLogic } from "./hooks/useUserModalLogic";
+import { UserTable } from "./UserTable";
 import { useCustomerMetricsModal } from "./hooks/useCustomerMetricsModal";
-import { Role } from "@/types/auth";
-import { User } from "@/types/user";
 
 const UserManagementSeoDev: React.FC = () => {
-  const { data: session } = useSession();
-
-  // 🆕 React Query: Fetch users
   const {
-    data: allUsers = [],
+    data: managedCustomers = [],
     isLoading: loading,
     error: usersError,
-  } = useGetUsers(true);
-
-  // 2. กรองข้อมูลเฉพาะลูกค้าของ SEO Dev ที่ล็อกอินอยู่
-  const currentSeoDevId = session?.user?.id;
-  const managedCustomers = useMemo(() => {
-    return allUsers.filter(
-      (user: User) =>
-        user.role === Role.CUSTOMER &&
-        user.customerProfile?.seoDevId === currentSeoDevId,
-    );
-  }, [allUsers, currentSeoDevId]);
-
-  // 3. เรียกใช้ Hooks ใหม่ (เหมือนกับ UserManagement.tsx)
-  const {
-    isModalOpen,
-    isEditing,
-    currentUser,
-    handleOpenUserModal,
-    handleCloseUserModal,
-    handleSaveUser,
-    handlePasswordUpdate,
-    handleFormChange,
-  } = useUserModalLogic();
+  } = useGetManagedCustomers();
 
   const {
     metrics,
@@ -105,26 +73,18 @@ const UserManagementSeoDev: React.FC = () => {
         >
           <Box>
             <Typography variant="h2" component="h1" gutterBottom>
-              Customer Management
+              customer management
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              Manage all customer accounts assigned to you.
+              customer management
             </Typography>
           </Box>
-          <Button
-            variant="contained"
-            color="secondary"
-            size="large"
-            startIcon={<Add />}
-            onClick={() => handleOpenUserModal()}
-          >
-            Add Customer
-          </Button>
         </Box>
 
         {usersError && (
           <Alert severity="error" sx={{ mb: 3 }}>
-            {usersError.message || "เกิดข้อผิดพลาดในการโหลดข้อมูล"}
+            {usersError.message ||
+              "เกิดข้อผิดพลาดในการโหลดข้อมูล"}
           </Alert>
         )}
 
@@ -135,26 +95,10 @@ const UserManagementSeoDev: React.FC = () => {
         ) : (
           <UserTable
             users={managedCustomers}
-            onEdit={handleOpenUserModal}
-            onDelete={() => {}} // Disabled for SEO Dev
-            onRestore={() => {}} // Disabled for SEO Dev
+            onEdit={() => { }}
+            onDelete={() => { }}
+            onRestore={() => { }}
             onOpenMetrics={handleOpenMetrics}
-            isSeoDevView={true} // Pass a prop to hide delete/restore
-          />
-        )}
-
-        {isModalOpen && currentUser && (
-          <UserModal
-            open={isModalOpen}
-            isEditing={isEditing}
-            currentUser={currentUser}
-            onClose={handleCloseUserModal}
-            onSave={() =>
-              handleSaveUser(session?.user as { id: string; role: Role })
-            }
-            onSavePassword={handlePasswordUpdate}
-            onFormChange={handleFormChange}
-            seoDevs={[]}
             isSeoDevView={true}
           />
         )}

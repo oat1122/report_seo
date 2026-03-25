@@ -4,6 +4,22 @@ import { Role } from "@/types/auth";
 import { UserFormState } from "@/types/user";
 import bcrypt from "bcrypt";
 
+const publicUserSelect = {
+  id: true,
+  name: true,
+  email: true,
+  role: true,
+  createdAt: true,
+  deletedAt: true,
+  customerProfile: {
+    select: {
+      name: true,
+      domain: true,
+      seoDevId: true,
+    },
+  },
+} as const;
+
 class UserService {
   /**
    * ดึงผู้ใช้ทั้งหมด
@@ -13,7 +29,7 @@ class UserService {
     return (prisma as any).user.findMany({
       includeDeleted: includeDeleted,
       orderBy: { createdAt: "desc" },
-      include: { customerProfile: { select: { seoDevId: true } } },
+      select: publicUserSelect,
     });
   }
 
@@ -23,15 +39,7 @@ class UserService {
   public async getUserById(id: string) {
     return prisma.user.findUnique({
       where: { id },
-      include: {
-        customerProfile: {
-          select: {
-            name: true,
-            domain: true,
-            seoDevId: true,
-          },
-        },
-      },
+      select: publicUserSelect,
     });
   }
 
@@ -43,8 +51,26 @@ class UserService {
       where: {
         role: Role.SEO_DEV,
       },
+      select: publicUserSelect,
       orderBy: {
         name: "asc",
+      },
+    });
+  }
+
+  public async getManagedCustomers(seoDevId: string) {
+    return prisma.user.findMany({
+      where: {
+        role: Role.CUSTOMER,
+        customerProfile: {
+          is: {
+            seoDevId,
+          },
+        },
+      },
+      select: publicUserSelect,
+      orderBy: {
+        createdAt: "desc",
       },
     });
   }
@@ -92,7 +118,7 @@ class UserService {
 
         const userWithProfile = await tx.user.findUnique({
           where: { id: newUser.id },
-          include: { customerProfile: { select: { seoDevId: true } } },
+          select: publicUserSelect,
         });
         return userWithProfile;
       });
@@ -100,6 +126,7 @@ class UserService {
 
     return prisma.user.create({
       data: { name, email, password: hashedPassword, role: role as Role },
+      select: publicUserSelect,
     });
   }
 
@@ -138,6 +165,7 @@ class UserService {
         const user = await tx.user.update({
           where: { id },
           data: { name, email, role },
+          select: publicUserSelect,
         });
 
         const customerData: {
@@ -175,6 +203,7 @@ class UserService {
       return prisma.user.update({
         where: { id },
         data: { name, email, role },
+        select: publicUserSelect,
       });
     }
   }

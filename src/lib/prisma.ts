@@ -5,7 +5,10 @@ const globalForPrisma = global as unknown as {
 };
 
 export const prismaBase = new PrismaClient({
-  log: ["query", "info", "warn", "error"],
+  log:
+    process.env.NODE_ENV === "production"
+      ? ["error"]
+      : ["query", "info", "warn", "error"],
 });
 
 // Extend Prisma Client with soft delete and history middleware

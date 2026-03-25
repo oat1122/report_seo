@@ -1,4 +1,8 @@
 import { NextResponse } from "next/server";
+import {
+  enforceCustomerReadAccess,
+  getCustomerAccessByUserId,
+} from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(
@@ -7,36 +11,31 @@ export async function GET(
 ) {
   try {
     const { customerId } = await params;
+    const access = await getCustomerAccessByUserId(customerId);
 
-    // ค้นหา Customer จาก userId
-    const customer = await prisma.customer.findUnique({
-      where: { userId: customerId },
-    });
-
-    if (!customer) {
-      return NextResponse.json(
-        { error: "Customer not found" },
-        { status: 404 }
-      );
+    if (access.response || !access.context) {
+      return access.response;
     }
 
-    // ดึงข้อมูลประวัติ Overall Metrics เรียงจากใหม่ไปเก่า
+    const permissionError = enforceCustomerReadAccess(access.context);
+    if (permissionError) {
+      return permissionError;
+    }
+
     const metricsHistory = await prisma.overallMetricsHistory.findMany({
-      where: { customerId: customer.id },
+      where: { customerId: access.context.customer.id },
       orderBy: {
         dateRecorded: "desc",
       },
     });
 
-    // ดึงข้อมูล Keywords ปัจจุบันของ Customer (พร้อมข้อมูลทั้งหมด)
     const currentKeywords = await prisma.keywordReport.findMany({
-      where: { customerId: customer.id },
-      orderBy: { traffic: "desc" }, // เรียงตาม traffic มากไปน้อย
+      where: { customerId: access.context.customer.id },
+      orderBy: { traffic: "desc" },
     });
 
     const keywordIds = currentKeywords.map((kw) => kw.id);
 
-    // ดึงประวัติของ Keywords ทั้งหมด
     const keywordHistory = await prisma.keywordReportHistory.findMany({
       where: {
         reportId: {
@@ -51,7 +50,7 @@ export async function GET(
     return NextResponse.json({
       metricsHistory,
       keywordHistory,
-      currentKeywords, // เพิ่มข้อมูล Keywords ปัจจุบัน
+      currentKeywords,
     });
   } catch (error) {
     console.error("Failed to fetch metrics history:", error);

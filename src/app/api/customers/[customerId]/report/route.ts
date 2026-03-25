@@ -1,34 +1,29 @@
 import { NextResponse } from "next/server";
+import {
+  enforceCustomerReadAccess,
+  getCustomerAccessByUserId,
+} from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
-import { getSession } from "@/lib/auth-utils";
-import { Role } from "@/types/auth";
 
-// GET /api/customers/[customerId]/report
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ customerId: string }> }
 ) {
   try {
-    // 🔒 Authorization: ตรวจสอบ session
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { customerId } = await params;
+    const access = await getCustomerAccessByUserId(customerId);
 
-    // 🔒 Authorization: ตรวจสอบสิทธิ์
-    const isOwner = session.user.id === customerId;
-    const isAdmin = session.user.role === Role.ADMIN;
-    const isSeoDev = session.user.role === Role.SEO_DEV;
-
-    if (!isOwner && !isAdmin && !isSeoDev) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (access.response || !access.context) {
+      return access.response;
     }
 
-    // 1. ค้นหา Customer Profile โดยใช้ userId พร้อมกับข้อมูล User
+    const permissionError = enforceCustomerReadAccess(access.context);
+    if (permissionError) {
+      return permissionError;
+    }
+
     const customer = await prisma.customer.findUnique({
-      where: { userId: customerId },
+      where: { id: access.context.customer.id },
       include: {
         user: {
           select: { name: true },
@@ -37,19 +32,9 @@ export async function GET(
     });
 
     if (!customer) {
-      // ถ้าไม่พบลูกค้า ให้ส่งค่าว่างกลับไป
-      return NextResponse.json({
-        metrics: null,
-        topKeywords: [],
-        otherKeywords: [],
-        recommendations: [],
-        aiOverviews: [],
-        customerName: null,
-        domain: null,
-      });
+      return NextResponse.json({ error: "Customer not found" }, { status: 404 });
     }
 
-    // 2. ดึงข้อมูล Metrics, Keywords และ Recommendations พร้อมกัน
     const [metrics, keywords, recommendations, aiOverviews] = await Promise.all([
       prisma.overallMetrics.findUnique({
         where: { customerId: customer.id },
@@ -69,7 +54,6 @@ export async function GET(
       }),
     ]);
 
-    // 3. แยกประเภท Keywords
     const topKeywords = keywords.filter((kw) => kw.isTopReport);
     const otherKeywords = keywords.filter((kw) => !kw.isTopReport);
 

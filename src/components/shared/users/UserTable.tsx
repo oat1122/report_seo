@@ -47,7 +47,6 @@ export const UserTable: React.FC<UserTableProps> = ({
 }) => {
   const { data: session } = useSession();
 
-  // Check if the viewer can see the report link
   const canViewReport =
     session?.user?.role === Role.ADMIN || session?.user?.role === Role.SEO_DEV;
 
@@ -132,7 +131,6 @@ export const UserTable: React.FC<UserTableProps> = ({
                       bgcolor: "rgba(49, 251, 76, 0.04)",
                     },
                     transition: "background-color 0.2s",
-                    // ทำให้แถวที่ถูกลบเป็นสีเทาและจางลง
                     bgcolor: isDeleted
                       ? "action.disabledBackground"
                       : "inherit",
@@ -160,7 +158,7 @@ export const UserTable: React.FC<UserTableProps> = ({
                       sx={{
                         fontWeight: 600,
                         borderRadius: "8px",
-                        opacity: isDeleted ? 0.6 : 1, // ทำให้ Chip จางลง
+                        opacity: isDeleted ? 0.6 : 1,
                       }}
                     />
                   </TableCell>
@@ -178,9 +176,12 @@ export const UserTable: React.FC<UserTableProps> = ({
                       sx={{ display: "flex", gap: 1, justifyContent: "center" }}
                     >
                       {isDeleted ? (
-                        // ถ้าถูกลบแล้ว ให้แสดงปุ่ม Restore (ซ่อนสำหรับ SEO Dev)
                         !isSeoDevView && (
-                          <Tooltip title="กู้คืน">
+                          <Tooltip
+                            title={
+                              "กู้คืน"
+                            }
+                          >
                             <IconButton
                               onClick={() => onRestore(user.id)}
                               size="small"
@@ -191,10 +192,13 @@ export const UserTable: React.FC<UserTableProps> = ({
                           </Tooltip>
                         )
                       ) : (
-                        // ถ้ายังไม่ถูกลบ ให้แสดงปุ่มปกติ
                         <>
                           {user.role === Role.CUSTOMER && canViewReport && (
-                            <Tooltip title="ดูหน้ารายงานของลูกค้า">
+                            <Tooltip
+                              title={
+                                "ดูรายงานของลูกค้า"
+                              }
+                            >
                               <IconButton
                                 component={Link}
                                 href={`/customer/${user.id}/report`}
@@ -208,7 +212,11 @@ export const UserTable: React.FC<UserTableProps> = ({
                             </Tooltip>
                           )}
                           {user.role === Role.CUSTOMER && (
-                            <Tooltip title="จัดการข้อมูล Domain">
+                            <Tooltip
+                              title={
+                                "จัดการข้อมูล Domain"
+                              }
+                            >
                               <IconButton
                                 onClick={() => onOpenMetrics(user)}
                                 size="small"
@@ -223,22 +231,32 @@ export const UserTable: React.FC<UserTableProps> = ({
                               </IconButton>
                             </Tooltip>
                           )}
-                          <Tooltip title="แก้ไข">
-                            <IconButton
-                              onClick={() => onEdit(user)}
-                              size="small"
-                              sx={{
-                                color: "info.main",
-                                "&:hover": {
-                                  bgcolor: "rgba(149, 146, 255, 0.1)",
-                                },
-                              }}
-                            >
-                              <Edit fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
                           {!isSeoDevView && (
-                            <Tooltip title="ลบ">
+                            <Tooltip
+                              title={
+                                "แก้ไข"
+                              }
+                            >
+                              <IconButton
+                                onClick={() => onEdit(user)}
+                                size="small"
+                                sx={{
+                                  color: "info.main",
+                                  "&:hover": {
+                                    bgcolor: "rgba(149, 146, 255, 0.1)",
+                                  },
+                                }}
+                              >
+                                <Edit fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                          {!isSeoDevView && (
+                            <Tooltip
+                              title={
+                                "ลบ"
+                              }
+                            >
                               <IconButton
                                 onClick={() => onDelete(user.id)}
                                 size="small"

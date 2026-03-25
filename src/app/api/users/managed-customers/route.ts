@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { requireAdminOnly, requireSession } from "@/lib/api-auth";
+import { requireRole, requireSession } from "@/lib/api-auth";
 import { userService } from "@/services/UserService";
+import { Role } from "@/types/auth";
 
-// GET /api/users/seodevs - ดึงผู้ใช้ที่เป็น SEO_DEV ทั้งหมด
 export async function GET() {
   try {
     const auth = await requireSession();
@@ -10,18 +10,18 @@ export async function GET() {
       return auth.response;
     }
 
-    const roleError = requireAdminOnly(auth.session);
+    const roleError = requireRole(auth.session, [Role.SEO_DEV]);
     if (roleError) {
       return roleError;
     }
 
-    const seoDevs = await userService.getSeoDevs();
-    return NextResponse.json(seoDevs);
+    const customers = await userService.getManagedCustomers(auth.session.user.id);
+    return NextResponse.json(customers);
   } catch (error) {
-    console.error("Failed to fetch SEO Devs:", error);
+    console.error("Failed to fetch managed customers:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
