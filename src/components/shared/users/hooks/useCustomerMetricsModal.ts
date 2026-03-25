@@ -18,6 +18,7 @@ import {
   useUpdateKeyword,
   useDeleteKeyword,
   useAddRecommendKeyword,
+  useUpdateRecommendKeyword,
   useDeleteRecommendKeyword,
   useGetCombinedHistory,
   useGetKeywordSpecificHistory,
@@ -78,6 +79,7 @@ export const useCustomerMetricsModal = (users: User[]) => {
   const updateKeywordMutation = useUpdateKeyword();
   const deleteKeywordMutation = useDeleteKeyword();
   const addRecommendKeywordMutation = useAddRecommendKeyword();
+  const updateRecommendKeywordMutation = useUpdateRecommendKeyword();
   const deleteRecommendKeywordMutation = useDeleteRecommendKeyword();
   const addAiOverviewMutation = useAddAiOverview();
   const updateAiOverviewMutation = useUpdateAiOverview();
@@ -160,6 +162,21 @@ export const useCustomerMetricsModal = (users: User[]) => {
       pending: "กำลังลบ Recommend Keyword...",
       success: "ลบ Recommend Keyword สำเร็จ!",
       error: "ไม่สามารถลบ Recommend Keyword ได้",
+    });
+  };
+
+  const handleUpdateRecommendKeyword = async (
+    recommendId: string,
+    data: KeywordRecommendForm,
+  ) => {
+    const promise = updateRecommendKeywordMutation.mutateAsync({
+      recommendId,
+      keyword: data,
+    });
+    showPromiseToast(promise, {
+      pending: "กำลังอัปเดต Recommend Keyword...",
+      success: "อัปเดต Recommend Keyword สำเร็จ!",
+      error: "ไม่สามารถอัปเดต Recommend Keyword ได้",
     });
   };
 
@@ -250,6 +267,7 @@ export const useCustomerMetricsModal = (users: User[]) => {
     handleDeleteKeyword,
     handleUpdateKeyword,
     handleAddRecommendKeyword,
+    handleUpdateRecommendKeyword,
     handleDeleteRecommendKeyword,
     handleAddAiOverview,
     handleUpdateAiOverview,

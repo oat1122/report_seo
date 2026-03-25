@@ -1,7 +1,5 @@
-// src/hooks/api/useCustomersApi.ts
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "@/lib/axios";
-import { toast } from "react-toastify";
 import {
   OverallMetricsForm,
   KeywordReport,
@@ -10,7 +8,6 @@ import {
 } from "@/types/metrics";
 import { OverallMetricsHistory, KeywordReportHistory } from "@/types/history";
 
-// --- Types ---
 interface CustomerReportData {
   metrics: OverallMetricsForm | null;
   topKeywords: KeywordReport[];
@@ -36,14 +33,12 @@ interface RecommendKeywordFormData {
   note?: string | null;
 }
 
-// เพิ่ม Type สำหรับ Combined History
 interface CombinedHistoryData {
   metricsHistory: OverallMetricsHistory[];
   keywordHistory: KeywordReportHistory[];
-  currentKeywords: CurrentKeyword[]; // Keywords ปัจจุบัน
+  currentKeywords: CurrentKeyword[];
 }
 
-// Type สำหรับ Keyword ปัจจุบัน
 export interface CurrentKeyword {
   id: string;
   keyword: string;
@@ -55,7 +50,6 @@ export interface CurrentKeyword {
   customerId: string;
 }
 
-// --- API Functions ---
 const fetchCustomerReport = async (
   customerId: string,
 ): Promise<CustomerReportData> => {
@@ -77,10 +71,7 @@ const saveMetrics = async ({
   customerId: string;
   metrics: OverallMetricsForm;
 }): Promise<OverallMetricsForm> => {
-  const { data } = await axios.post(
-    `/customers/${customerId}/metrics`,
-    metrics,
-  );
+  const { data } = await axios.post(`/customers/${customerId}/metrics`, metrics);
   return data;
 };
 
@@ -96,10 +87,7 @@ const addKeyword = async ({
   customerId: string;
   keyword: KeywordFormData;
 }): Promise<KeywordReport> => {
-  const { data } = await axios.post(
-    `/customers/${customerId}/keywords`,
-    keyword,
-  );
+  const { data } = await axios.post(`/customers/${customerId}/keywords`, keyword);
   return data;
 };
 
@@ -141,11 +129,24 @@ const addRecommendKeyword = async ({
   return data;
 };
 
+const updateRecommendKeyword = async ({
+  recommendId,
+  keyword,
+}: {
+  recommendId: string;
+  keyword: RecommendKeywordFormData;
+}): Promise<KeywordRecommend> => {
+  const { data } = await axios.put(
+    `/customers/recommend-keywords/${recommendId}`,
+    keyword,
+  );
+  return data;
+};
+
 const deleteRecommendKeyword = async (recommendId: string): Promise<void> => {
   await axios.delete(`/customers/recommend-keywords/${recommendId}`);
 };
 
-// เพิ่ม API Function สำหรับ Combined History
 const fetchCombinedHistory = async (
   customerId: string,
 ): Promise<CombinedHistoryData> => {
@@ -153,7 +154,6 @@ const fetchCombinedHistory = async (
   return data;
 };
 
-// เพิ่ม API Function สำหรับ Keyword History (เฉพาะ Keyword)
 const fetchKeywordSpecificHistory = async (
   keywordId: string,
 ): Promise<KeywordReportHistory[]> => {
@@ -161,11 +161,6 @@ const fetchKeywordSpecificHistory = async (
   return data;
 };
 
-// --- React Query Hooks ---
-
-/**
- * Hook to fetch complete customer report (metrics + keywords + recommendations)
- */
 export const useGetCustomerReport = (customerId: string) => {
   return useQuery<CustomerReportData, Error>({
     queryKey: ["customerReport", customerId],
@@ -174,9 +169,6 @@ export const useGetCustomerReport = (customerId: string) => {
   });
 };
 
-/**
- * Hook to fetch customer metrics only
- */
 export const useGetMetrics = (customerId: string) => {
   return useQuery<OverallMetricsForm | null, Error>({
     queryKey: ["metrics", customerId],
@@ -185,9 +177,6 @@ export const useGetMetrics = (customerId: string) => {
   });
 };
 
-/**
- * Hook to save/update metrics
- */
 export const useSaveMetrics = () => {
   const queryClient = useQueryClient();
 
@@ -204,14 +193,10 @@ export const useSaveMetrics = () => {
       queryClient.invalidateQueries({
         queryKey: ["customerReport", variables.customerId],
       });
-      toast.success("บันทึก Metrics สำเร็จ");
     },
   });
 };
 
-/**
- * Hook to fetch keywords for a customer
- */
 export const useGetKeywords = (customerId: string) => {
   return useQuery<KeywordReport[], Error>({
     queryKey: ["keywords", customerId],
@@ -220,9 +205,6 @@ export const useGetKeywords = (customerId: string) => {
   });
 };
 
-/**
- * Hook to add a new keyword
- */
 export const useAddKeyword = () => {
   const queryClient = useQueryClient();
 
@@ -239,14 +221,10 @@ export const useAddKeyword = () => {
       queryClient.invalidateQueries({
         queryKey: ["customerReport", variables.customerId],
       });
-      toast.success("เพิ่ม Keyword สำเร็จ");
     },
   });
 };
 
-/**
- * Hook to update a keyword
- */
 export const useUpdateKeyword = () => {
   const queryClient = useQueryClient();
 
@@ -259,14 +237,10 @@ export const useUpdateKeyword = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["keywords"] });
       queryClient.invalidateQueries({ queryKey: ["customerReport"] });
-      toast.success("อัปเดต Keyword สำเร็จ");
     },
   });
 };
 
-/**
- * Hook to delete a keyword
- */
 export const useDeleteKeyword = () => {
   const queryClient = useQueryClient();
 
@@ -275,14 +249,10 @@ export const useDeleteKeyword = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["keywords"] });
       queryClient.invalidateQueries({ queryKey: ["customerReport"] });
-      toast.success("ลบ Keyword สำเร็จ");
     },
   });
 };
 
-/**
- * Hook to fetch recommend keywords
- */
 export const useGetRecommendKeywords = (customerId: string) => {
   return useQuery<KeywordRecommend[], Error>({
     queryKey: ["recommendKeywords", customerId],
@@ -291,9 +261,6 @@ export const useGetRecommendKeywords = (customerId: string) => {
   });
 };
 
-/**
- * Hook to add a new recommend keyword
- */
 export const useAddRecommendKeyword = () => {
   const queryClient = useQueryClient();
 
@@ -310,14 +277,26 @@ export const useAddRecommendKeyword = () => {
       queryClient.invalidateQueries({
         queryKey: ["customerReport", variables.customerId],
       });
-      toast.success("เพิ่ม Keyword แนะนำสำเร็จ");
     },
   });
 };
 
-/**
- * Hook to delete a recommend keyword
- */
+export const useUpdateRecommendKeyword = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    KeywordRecommend,
+    Error,
+    { recommendId: string; keyword: RecommendKeywordFormData }
+  >({
+    mutationFn: updateRecommendKeyword,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["recommendKeywords"] });
+      queryClient.invalidateQueries({ queryKey: ["customerReport"] });
+    },
+  });
+};
+
 export const useDeleteRecommendKeyword = () => {
   const queryClient = useQueryClient();
 
@@ -326,26 +305,19 @@ export const useDeleteRecommendKeyword = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["recommendKeywords"] });
       queryClient.invalidateQueries({ queryKey: ["customerReport"] });
-      toast.success("ลบ Keyword แนะนำสำเร็จ");
     },
   });
 };
 
-/**
- * Hook to fetch combined metrics and keyword history for a customer
- */
 export const useGetCombinedHistory = (customerId: string | null) => {
   return useQuery<CombinedHistoryData, Error>({
     queryKey: ["history", customerId],
     queryFn: () => fetchCombinedHistory(customerId!),
     enabled: !!customerId,
-    staleTime: 5 * 60 * 1000, // 5 minutes cache
+    staleTime: 5 * 60 * 1000,
   });
 };
 
-/**
- * Hook to fetch history for a specific keyword
- */
 export const useGetKeywordSpecificHistory = (keywordId: string | null) => {
   return useQuery<KeywordReportHistory[], Error>({
     queryKey: ["keywordHistory", keywordId],
@@ -354,7 +326,6 @@ export const useGetKeywordSpecificHistory = (keywordId: string | null) => {
   });
 };
 
-// --- AI Overview API Functions ---
 const fetchAiOverviews = async (customerId: string): Promise<AiOverview[]> => {
   const { data } = await axios.get(`/customers/${customerId}/ai-overview`);
   return data;
@@ -402,11 +373,6 @@ const deleteAiOverview = async ({
   await axios.delete(`/customers/${customerId}/ai-overview/${aiOverviewId}`);
 };
 
-// --- AI Overview React Query Hooks ---
-
-/**
- * Hook to fetch AI Overviews for a customer
- */
 export const useGetAiOverviews = (customerId: string | null) => {
   return useQuery<AiOverview[], Error>({
     queryKey: ["aiOverviews", customerId],
@@ -415,9 +381,6 @@ export const useGetAiOverviews = (customerId: string | null) => {
   });
 };
 
-/**
- * Hook to add a new AI Overview (with image upload)
- */
 export const useAddAiOverview = () => {
   const queryClient = useQueryClient();
 
@@ -434,14 +397,10 @@ export const useAddAiOverview = () => {
       queryClient.invalidateQueries({
         queryKey: ["customerReport", variables.customerId],
       });
-      toast.success("เพิ่ม AI Overview สำเร็จ");
     },
   });
 };
 
-/**
- * Hook to update an AI Overview (with optional image upload)
- */
 export const useUpdateAiOverview = () => {
   const queryClient = useQueryClient();
 
@@ -458,14 +417,10 @@ export const useUpdateAiOverview = () => {
       queryClient.invalidateQueries({
         queryKey: ["customerReport", variables.customerId],
       });
-      toast.success("อัปเดท AI Overview สำเร็จ");
     },
   });
 };
 
-/**
- * Hook to delete an AI Overview
- */
 export const useDeleteAiOverview = () => {
   const queryClient = useQueryClient();
 
@@ -479,7 +434,6 @@ export const useDeleteAiOverview = () => {
         queryClient.invalidateQueries({
           queryKey: ["customerReport", variables.customerId],
         });
-        toast.success("ลบ AI Overview สำเร็จ");
       },
     },
   );

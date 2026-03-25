@@ -342,6 +342,55 @@ class CustomerService {
   /**
    * ลบ Recommend Keyword
    */
+  public async updateRecommendKeyword(
+    recommendId: string,
+    customerId: string,
+    data: unknown
+  ) {
+    const existingRecommend = await prisma.keywordRecommend.findUnique({
+      where: { id: recommendId },
+      include: {
+        customer: {
+          select: { userId: true },
+        },
+      },
+    });
+
+    if (!existingRecommend) {
+      throw new Error("Recommend keyword not found");
+    }
+
+    if (existingRecommend.customer.userId !== customerId) {
+      throw new Error(
+        "Forbidden: This recommend keyword does not belong to you"
+      );
+    }
+
+    const validationResult = recommendKeywordSchema.safeParse(data);
+    if (!validationResult.success) {
+      throw new Error(
+        `Invalid data: ${validationResult.error.issues
+          .map((i) => i.message)
+          .join(", ")}`
+      );
+    }
+
+    const validated = validationResult.data;
+
+    return prisma.keywordRecommend.update({
+      where: { id: recommendId },
+      data: {
+        keyword: validated.keyword,
+        note: validated.note,
+        kd: validated.kd || null,
+        isTopReport: validated.isTopReport || false,
+      },
+    });
+  }
+
+  /**
+   * ลบ Recommend Keyword
+   */
   public async deleteRecommendKeyword(recommendId: string, customerId: string) {
     // ตรวจสอบว่า recommend keyword นี้เป็นของ customer หรือไม่
     const existingRecommend = await prisma.keywordRecommend.findUnique({

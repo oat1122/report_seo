@@ -5,12 +5,80 @@ import {
   OverallMetricsForm,
   KeywordReport,
   KeywordReportForm,
+  KeywordRecommend,
   KeywordRecommendForm,
 } from "@/types/metrics";
 
-// Hook สำหรับจัดการ Logic ของ MetricsModal
+type MetricsField = keyof OverallMetricsForm;
+type MetricsState = Record<MetricsField, string | number>;
+type ValidationErrors = Partial<Record<MetricsField, string>>;
+
+const createDefaultMetrics = (): MetricsState => ({
+  domainRating: "",
+  healthScore: "",
+  ageInYears: "",
+  ageInMonths: 0,
+  spamScore: "",
+  organicTraffic: "",
+  organicKeywords: "",
+  backlinks: "",
+  refDomains: "",
+});
+
+const sanitizeNumericValue = (value: string) => {
+  if (value === "") return "";
+  const normalized = Number(value);
+  return Number.isNaN(normalized) ? value : normalized;
+};
+
+const validateMetrics = (metrics: MetricsState): ValidationErrors => {
+  const errors: ValidationErrors = {};
+
+  const validateMinZero = (field: MetricsField, label: string) => {
+    const value = metrics[field];
+    if (value === "") return;
+
+    if (Number(value) < 0) {
+      errors[field] = `${label} ต้องเป็น 0 หรือมากกว่า`;
+    }
+  };
+
+  validateMinZero("domainRating", "Domain Rating");
+  validateMinZero("healthScore", "Health Score");
+  validateMinZero("ageInYears", "อายุโดเมน (ปี)");
+  validateMinZero("ageInMonths", "อายุโดเมน (เดือน)");
+  validateMinZero("spamScore", "Spam Score");
+  validateMinZero("organicTraffic", "Organic Traffic");
+  validateMinZero("organicKeywords", "Organic Keywords");
+  validateMinZero("backlinks", "Backlinks");
+  validateMinZero("refDomains", "Referring Domains");
+
+  if (
+    metrics.healthScore !== "" &&
+    (Number(metrics.healthScore) < 0 || Number(metrics.healthScore) > 100)
+  ) {
+    errors.healthScore = "Health Score ต้องอยู่ระหว่าง 0-100";
+  }
+
+  if (
+    metrics.spamScore !== "" &&
+    (Number(metrics.spamScore) < 0 || Number(metrics.spamScore) > 100)
+  ) {
+    errors.spamScore = "Spam Score ต้องอยู่ระหว่าง 0-100";
+  }
+
+  if (
+    metrics.ageInMonths !== "" &&
+    (Number(metrics.ageInMonths) < 0 || Number(metrics.ageInMonths) > 11)
+  ) {
+    errors.ageInMonths = "เดือนต้องอยู่ระหว่าง 0-11";
+  }
+
+  return errors;
+};
+
 export const useMetricsModal = (metricsData: OverallMetricsForm | null) => {
-  const [metrics, setMetrics] = useState<Record<string, string | number>>({});
+  const [metrics, setMetrics] = useState<MetricsState>(createDefaultMetrics());
   const [newKeyword, setNewKeyword] = useState<KeywordReportForm>({
     keyword: "",
     position: 0,
@@ -25,8 +93,10 @@ export const useMetricsModal = (metricsData: OverallMetricsForm | null) => {
     note: "",
   });
   const [editingKeywordId, setEditingKeywordId] = useState<string | null>(null);
+  const [editingRecommendId, setEditingRecommendId] = useState<string | null>(
+    null,
+  );
 
-  // Effect สำหรับ Sync ข้อมูล Metrics เมื่อมีการเปลี่ยนแปลง
   useEffect(() => {
     if (metricsData) {
       setMetrics({
@@ -40,28 +110,21 @@ export const useMetricsModal = (metricsData: OverallMetricsForm | null) => {
         backlinks: metricsData.backlinks || "",
         refDomains: metricsData.refDomains || "",
       });
-    } else {
-      // Reset form ถ้าไม่มีข้อมูล
-      setMetrics({
-        domainRating: "",
-        healthScore: "",
-        ageInYears: "",
-        ageInMonths: 0,
-        spamScore: "",
-        organicTraffic: "",
-        organicKeywords: "",
-        backlinks: "",
-        refDomains: "",
-      });
+      return;
     }
+
+    setMetrics(createDefaultMetrics());
   }, [metricsData]);
 
-  // Handlers สำหรับฟอร์มต่างๆ
   const handleMetricsChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      setMetrics((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+      const field = e.target.name as MetricsField;
+      setMetrics((prev) => ({
+        ...prev,
+        [field]: sanitizeNumericValue(e.target.value),
+      }));
     },
-    []
+    [],
   );
 
   const handleKeywordChange = useCallback(
@@ -69,10 +132,15 @@ export const useMetricsModal = (metricsData: OverallMetricsForm | null) => {
       const { name, value, type, checked } = e.target;
       setNewKeyword((prev) => ({
         ...prev,
-        [name]: type === "checkbox" ? checked : value,
+        [name]:
+          type === "checkbox"
+            ? checked
+            : name === "position" || name === "traffic"
+              ? sanitizeNumericValue(value)
+              : value,
       }));
     },
-    []
+    [],
   );
 
   const handleKeywordSelectChange = useCallback(
@@ -82,7 +150,7 @@ export const useMetricsModal = (metricsData: OverallMetricsForm | null) => {
         kd: e.target.value as KDLevel,
       }));
     },
-    []
+    [],
   );
 
   const handleRecommendChange = useCallback(
@@ -93,7 +161,7 @@ export const useMetricsModal = (metricsData: OverallMetricsForm | null) => {
         [name]: type === "checkbox" ? checked : value === "" ? null : value,
       }));
     },
-    []
+    [],
   );
 
   const handleRecommendSelectChange = useCallback(
@@ -103,10 +171,9 @@ export const useMetricsModal = (metricsData: OverallMetricsForm | null) => {
         kd: e.target.value === "" ? null : (e.target.value as KDLevel),
       }));
     },
-    []
+    [],
   );
 
-  // Function สำหรับ Reset ฟอร์ม Keyword
   const resetKeywordForm = () => {
     setNewKeyword({
       keyword: "",
@@ -117,7 +184,6 @@ export const useMetricsModal = (metricsData: OverallMetricsForm | null) => {
     });
   };
 
-  // Function สำหรับ Reset ฟอร์ม Recommend Keyword
   const resetRecommendForm = () => {
     setNewRecommend({
       keyword: "",
@@ -127,7 +193,6 @@ export const useMetricsModal = (metricsData: OverallMetricsForm | null) => {
     });
   };
 
-  // Function to set the form for editing a keyword
   const handleSetEditingKeyword = (keyword: KeywordReport) => {
     setEditingKeywordId(keyword.id);
     setNewKeyword({
@@ -139,17 +204,37 @@ export const useMetricsModal = (metricsData: OverallMetricsForm | null) => {
     });
   };
 
-  // Function to clear the editing state
   const clearEditing = () => {
     setEditingKeywordId(null);
     resetKeywordForm();
   };
+
+  const handleSetEditingRecommend = (keyword: KeywordRecommend) => {
+    setEditingRecommendId(keyword.id);
+    setNewRecommend({
+      keyword: keyword.keyword,
+      kd: keyword.kd,
+      isTopReport: keyword.isTopReport,
+      note: keyword.note || "",
+    });
+  };
+
+  const clearRecommendEditing = () => {
+    setEditingRecommendId(null);
+    resetRecommendForm();
+  };
+
+  const validationErrors = validateMetrics(metrics);
+  const isMetricsValid = Object.keys(validationErrors).length === 0;
 
   return {
     metrics,
     newKeyword,
     newRecommend,
     editingKeywordId,
+    editingRecommendId,
+    validationErrors,
+    isMetricsValid,
     handleMetricsChange,
     handleKeywordChange,
     handleKeywordSelectChange,
@@ -158,6 +243,8 @@ export const useMetricsModal = (metricsData: OverallMetricsForm | null) => {
     resetKeywordForm,
     resetRecommendForm,
     handleSetEditingKeyword,
+    handleSetEditingRecommend,
     clearEditing,
+    clearRecommendEditing,
   };
 };

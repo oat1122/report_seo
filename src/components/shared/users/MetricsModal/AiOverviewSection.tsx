@@ -1,20 +1,28 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import {
-  TextField,
-  Button,
-  IconButton,
-  Divider,
-  Stack,
-  Typography,
   Box,
+  Button,
   Card,
-  CardMedia,
-  CardContent,
   CardActions,
+  CardContent,
+  CardMedia,
   Chip,
   CircularProgress,
+  Divider,
+  IconButton,
+  Paper,
+  Stack,
+  TextField,
+  Typography,
 } from "@mui/material";
 import {
   Add,
@@ -23,6 +31,7 @@ import {
   Close,
   ImageOutlined,
   Edit,
+  Save,
 } from "@mui/icons-material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -37,16 +46,34 @@ interface AiOverviewSectionProps {
   onAdd: (formData: FormData) => Promise<void>;
   onUpdate: (id: string, formData: FormData) => Promise<void>;
   onDelete: (aiOverviewId: string) => Promise<void>;
+  showSubmitButton?: boolean;
+  onStateChange?: (state: {
+    canSubmit: boolean;
+    isSubmitting: boolean;
+  }) => void;
 }
 
-export const AiOverviewSection: React.FC<AiOverviewSectionProps> = ({
-  aiOverviews,
-  isLoading,
-  onAdd,
-  onUpdate,
-  onDelete,
-}) => {
-  // Add form state
+export interface AiOverviewSectionHandle {
+  submit: () => Promise<void>;
+  canSubmit: boolean;
+  isSubmitting: boolean;
+}
+
+export const AiOverviewSection = forwardRef<
+  AiOverviewSectionHandle,
+  AiOverviewSectionProps
+>(function AiOverviewSection(
+  {
+    aiOverviews,
+    isLoading,
+    onAdd,
+    onUpdate,
+    onDelete,
+    showSubmitButton = true,
+    onStateChange,
+  },
+  ref,
+) {
   const [title, setTitle] = useState("");
   const [displayDate, setDisplayDate] = useState<Dayjs | null>(dayjs());
   const [files, setFiles] = useState<File[]>([]);
@@ -54,17 +81,23 @@ export const AiOverviewSection: React.FC<AiOverviewSectionProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Edit form state
   const [editingItem, setEditingItem] = useState<AiOverview | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editDisplayDate, setEditDisplayDate] = useState<Dayjs | null>(null);
   const [editFiles, setEditFiles] = useState<File[]>([]);
   const [editPreviews, setEditPreviews] = useState<string[]>([]);
-  const [existingImages, setExistingImages] = useState<AiOverview["images"]>(
-    [],
-  );
+  const [existingImages, setExistingImages] = useState<AiOverview["images"]>([]);
   const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
   const editFileInputRef = useRef<HTMLInputElement>(null);
+
+  const canSubmit = title.trim().length > 0 && files.length > 0 && !isSubmitting;
+
+  useEffect(() => {
+    onStateChange?.({
+      canSubmit,
+      isSubmitting,
+    });
+  }, [canSubmit, isSubmitting, onStateChange]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
@@ -75,14 +108,10 @@ export const AiOverviewSection: React.FC<AiOverviewSectionProps> = ({
       return;
     }
 
-    const newFiles = [...files, ...selectedFiles];
-    setFiles(newFiles);
-
-    // สร้าง preview URLs
+    setFiles((prev) => [...prev, ...selectedFiles]);
     const newPreviews = selectedFiles.map((file) => URL.createObjectURL(file));
     setPreviews((prev) => [...prev, ...newPreviews]);
 
-    // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -94,8 +123,8 @@ export const AiOverviewSection: React.FC<AiOverviewSectionProps> = ({
     setPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = async () => {
-    if (!title.trim() || files.length === 0) return;
+  const handleSubmit = useCallback(async () => {
+    if (!title.trim() || files.length === 0 || isSubmitting) return;
 
     setIsSubmitting(true);
     try {
@@ -109,7 +138,6 @@ export const AiOverviewSection: React.FC<AiOverviewSectionProps> = ({
 
       await onAdd(formData);
 
-      // Reset form
       setTitle("");
       setDisplayDate(dayjs());
       setFiles([]);
@@ -118,9 +146,18 @@ export const AiOverviewSection: React.FC<AiOverviewSectionProps> = ({
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [displayDate, files, isSubmitting, onAdd, previews, title]);
 
-  // Edit handlers
+  useImperativeHandle(
+    ref,
+    () => ({
+      submit: handleSubmit,
+      canSubmit,
+      isSubmitting,
+    }),
+    [canSubmit, handleSubmit, isSubmitting],
+  );
+
   const handleEdit = (item: AiOverview) => {
     setEditingItem(item);
     setEditTitle(item.title);
@@ -145,17 +182,14 @@ export const AiOverviewSection: React.FC<AiOverviewSectionProps> = ({
   const handleEditFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
     const remainingImages = existingImages.length - imagesToDelete.length;
-    const totalImages =
-      remainingImages + editFiles.length + selectedFiles.length;
+    const totalImages = remainingImages + editFiles.length + selectedFiles.length;
 
     if (totalImages > 3) {
       alert("อัปโหลดรูปภาพได้สูงสุด 3 รูป");
       return;
     }
 
-    const newFiles = [...editFiles, ...selectedFiles];
-    setEditFiles(newFiles);
-
+    setEditFiles((prev) => [...prev, ...selectedFiles]);
     const newPreviews = selectedFiles.map((file) => URL.createObjectURL(file));
     setEditPreviews((prev) => [...prev, ...newPreviews]);
 
@@ -209,141 +243,174 @@ export const AiOverviewSection: React.FC<AiOverviewSectionProps> = ({
 
   return (
     <>
-      {/* Add AI Overview Form */}
-      <Stack spacing={2}>
-        <TextField
-          label="หัวข้อ AI Overview"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          size="small"
-          fullWidth
-          placeholder="เช่น คีย์เวิร์ด xxx ติด AI Overview"
-        />
+      <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
+        <Stack spacing={2}>
+          <Box>
+            <Typography variant="h6" fontWeight={700}>
+              เพิ่ม AI Overview
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              เพิ่มหัวข้อและภาพประกอบสำหรับรายงาน AI Overview โดยอัปโหลดได้สูงสุด 3 รูป
+            </Typography>
+          </Box>
 
-        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="th">
-          <DatePicker
-            label="วันที่แสดงผล"
-            value={displayDate}
-            onChange={(newValue) => setDisplayDate(newValue)}
-            format="DD/MM/YYYY"
-            slotProps={{
-              textField: {
-                size: "small",
-                fullWidth: true,
-              },
-            }}
-          />
-        </LocalizationProvider>
-
-        {/* File Upload Area */}
-        <Box>
-          <input
-            type="file"
-            ref={fileInputRef}
-            accept="image/jpeg,image/png"
-            multiple
-            onChange={handleFileChange}
-            style={{ display: "none" }}
-          />
-          <Button
-            variant="outlined"
-            startIcon={<CloudUpload />}
-            onClick={() => fileInputRef.current?.click()}
-            disabled={files.length >= 3}
+          <TextField
+            label="หัวข้อ AI Overview"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
             size="small"
-          >
-            เลือกรูปภาพ ({files.length}/3)
-          </Button>
+            fullWidth
+            placeholder="เช่น คีย์เวิร์ด SEO ติด AI Overview แล้ว"
+          />
 
-          {/* Preview Selected Files */}
-          {previews.length > 0 && (
-            <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: "wrap" }}>
-              {previews.map((preview, index) => (
-                <Box
-                  key={index}
-                  sx={{
-                    position: "relative",
-                    width: 100,
-                    height: 100,
-                    borderRadius: 1,
-                    overflow: "hidden",
-                    border: "1px solid",
-                    borderColor: "divider",
-                  }}
-                >
+          <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="th">
+            <DatePicker
+              label="วันที่แสดงผล"
+              value={displayDate}
+              onChange={(newValue) => setDisplayDate(newValue)}
+              format="DD/MM/YYYY"
+              slotProps={{
+                textField: {
+                  size: "small",
+                  fullWidth: true,
+                },
+              }}
+            />
+          </LocalizationProvider>
+
+          <Box>
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/jpeg,image/png"
+              multiple
+              onChange={handleFileChange}
+              style={{ display: "none" }}
+            />
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={1.5}
+              alignItems={{ xs: "stretch", sm: "center" }}
+            >
+              <Button
+                variant="outlined"
+                startIcon={<CloudUpload />}
+                onClick={() => fileInputRef.current?.click()}
+                disabled={files.length >= 3}
+                size="small"
+              >
+                เลือกรูปภาพ ({files.length}/3)
+              </Button>
+              <Typography variant="body2" color="text.secondary">
+                รองรับไฟล์ JPG และ PNG
+              </Typography>
+            </Stack>
+
+            {previews.length > 0 && (
+              <Stack
+                direction="row"
+                spacing={1}
+                sx={{ mt: 1.5, flexWrap: "wrap" }}
+              >
+                {previews.map((preview, index) => (
                   <Box
-                    component="img"
-                    src={preview}
-                    alt={`preview-${index}`}
+                    key={index}
                     sx={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                    }}
-                  />
-                  <IconButton
-                    size="small"
-                    onClick={() => handleRemoveFile(index)}
-                    sx={{
-                      position: "absolute",
-                      top: 2,
-                      right: 2,
-                      bgcolor: "rgba(0,0,0,0.5)",
-                      color: "white",
-                      p: 0.3,
-                      "&:hover": { bgcolor: "rgba(0,0,0,0.7)" },
+                      position: "relative",
+                      width: 108,
+                      height: 108,
+                      borderRadius: 2,
+                      overflow: "hidden",
+                      border: "1px solid",
+                      borderColor: "divider",
                     }}
                   >
-                    <Close sx={{ fontSize: 14 }} />
-                  </IconButton>
-                </Box>
-              ))}
+                    <Box
+                      component="img"
+                      src={preview}
+                      alt={`preview-${index}`}
+                      sx={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+                    <IconButton
+                      size="small"
+                      onClick={() => handleRemoveFile(index)}
+                      sx={{
+                        position: "absolute",
+                        top: 4,
+                        right: 4,
+                        bgcolor: "rgba(0,0,0,0.55)",
+                        color: "white",
+                        p: 0.4,
+                        "&:hover": { bgcolor: "rgba(0,0,0,0.7)" },
+                      }}
+                    >
+                      <Close sx={{ fontSize: 14 }} />
+                    </IconButton>
+                  </Box>
+                ))}
+              </Stack>
+            )}
+          </Box>
+
+          {showSubmitButton && (
+            <Stack direction="row" justifyContent="flex-end">
+              <Button
+                startIcon={
+                  isSubmitting ? <CircularProgress size={16} /> : <Save />
+                }
+                variant="contained"
+                color="secondary"
+                onClick={handleSubmit}
+                disabled={!canSubmit}
+                size="medium"
+              >
+                {isSubmitting ? "กำลังอัปโหลด..." : "บันทึก AI Overview"}
+              </Button>
             </Stack>
           )}
-        </Box>
+        </Stack>
+      </Paper>
 
-        <Button
-          startIcon={isSubmitting ? <CircularProgress size={16} /> : <Add />}
-          variant="contained"
-          color="secondary"
-          onClick={handleSubmit}
-          disabled={!title.trim() || files.length === 0 || isSubmitting}
-          size="medium"
-        >
-          {isSubmitting ? "กำลังอัปโหลด..." : "เพิ่ม AI Overview"}
-        </Button>
-      </Stack>
+      <Divider sx={{ my: 3 }} />
 
-      <Divider sx={{ my: 2 }} />
-
-      {/* AI Overview List */}
       {isLoading ? (
         <Box sx={{ textAlign: "center", py: 3 }}>
           <CircularProgress size={32} />
         </Box>
       ) : aiOverviews.length === 0 ? (
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          sx={{ textAlign: "center", py: 2 }}
+        <Paper
+          variant="outlined"
+          sx={{ p: 3, borderRadius: 3, textAlign: "center" }}
         >
-          ยังไม่มี AI Overview
-        </Typography>
+          <Typography variant="body2" color="text.secondary">
+            ยังไม่มี AI Overview
+          </Typography>
+        </Paper>
       ) : (
         <Stack spacing={2}>
           {aiOverviews.map((item) => (
-            <Card key={item.id} variant="outlined" sx={{ borderRadius: 2 }}>
-              <CardContent sx={{ pb: 1 }}>
+            <Card key={item.id} variant="outlined" sx={{ borderRadius: 3 }}>
+              <CardContent sx={{ pb: 1.5 }}>
                 <Stack
-                  direction="row"
+                  direction={{ xs: "column", sm: "row" }}
                   justifyContent="space-between"
-                  alignItems="center"
+                  alignItems={{ xs: "flex-start", sm: "center" }}
+                  spacing={1}
                 >
                   <Stack direction="row" alignItems="center" spacing={1}>
                     <ImageOutlined color="primary" fontSize="small" />
-                    <Typography variant="subtitle2" fontWeight={600}>
-                      {item.title}
-                    </Typography>
+                    <Box>
+                      <Typography variant="subtitle2" fontWeight={700}>
+                        {item.title}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        วันที่แสดงผล {dayjs(item.displayDate).format("DD/MM/YYYY")}
+                      </Typography>
+                    </Box>
                   </Stack>
                   <Chip
                     label={`${item.images.length} รูป`}
@@ -354,12 +421,11 @@ export const AiOverviewSection: React.FC<AiOverviewSectionProps> = ({
                 </Stack>
               </CardContent>
 
-              {/* Image Thumbnails */}
               {item.images.length > 0 && (
                 <Stack
                   direction="row"
                   spacing={1}
-                  sx={{ px: 2, pb: 1, flexWrap: "wrap" }}
+                  sx={{ px: 2, pb: 1.5, flexWrap: "wrap" }}
                 >
                   {item.images.map((img) => (
                     <CardMedia
@@ -368,10 +434,10 @@ export const AiOverviewSection: React.FC<AiOverviewSectionProps> = ({
                       image={img.imageUrl}
                       alt={item.title}
                       sx={{
-                        width: 120,
-                        height: 80,
+                        width: 128,
+                        height: 88,
                         objectFit: "cover",
-                        borderRadius: 1,
+                        borderRadius: 1.5,
                         border: "1px solid",
                         borderColor: "divider",
                       }}
@@ -380,53 +446,53 @@ export const AiOverviewSection: React.FC<AiOverviewSectionProps> = ({
                 </Stack>
               )}
 
-              <CardActions sx={{ justifyContent: "flex-end", pt: 0 }}>
-                <IconButton
+              <CardActions
+                sx={{ justifyContent: "flex-end", pt: 0, px: 2, pb: 2 }}
+              >
+                <Button
                   size="small"
-                  color="primary"
+                  startIcon={<Edit fontSize="small" />}
                   onClick={() => handleEdit(item)}
                 >
-                  <Edit fontSize="small" />
-                </IconButton>
-                <IconButton
+                  แก้ไข
+                </Button>
+                <Button
                   size="small"
                   color="error"
+                  startIcon={<Delete fontSize="small" />}
                   onClick={() => onDelete(item.id)}
                 >
-                  <Delete fontSize="small" />
-                </IconButton>
+                  ลบ
+                </Button>
               </CardActions>
             </Card>
           ))}
         </Stack>
       )}
 
-      {/* Edit Dialog */}
       {editingItem && (
         <Box
           sx={{
             position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            bgcolor: "rgba(0,0,0,0.5)",
+            inset: 0,
+            bgcolor: "rgba(15, 23, 42, 0.45)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             zIndex: 1300,
+            px: 2,
           }}
           onClick={handleCloseEdit}
         >
-          <Box
+          <Paper
+            elevation={0}
             sx={{
-              bgcolor: "background.paper",
-              borderRadius: 2,
-              p: 3,
-              maxWidth: 600,
-              width: "90%",
+              width: "100%",
+              maxWidth: 640,
               maxHeight: "90vh",
               overflow: "auto",
+              borderRadius: 3,
+              p: { xs: 2, sm: 3 },
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -436,9 +502,14 @@ export const AiOverviewSection: React.FC<AiOverviewSectionProps> = ({
                 justifyContent="space-between"
                 alignItems="center"
               >
-                <Typography variant="h6" fontWeight={600}>
-                  แก้ไข AI Overview
-                </Typography>
+                <Box>
+                  <Typography variant="h6" fontWeight={700}>
+                    แก้ไข AI Overview
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    ปรับหัวข้อ วันที่แสดงผล และจัดการรูปภาพได้ในหน้าต่างนี้
+                  </Typography>
+                </Box>
                 <IconButton size="small" onClick={handleCloseEdit}>
                   <Close />
                 </IconButton>
@@ -452,10 +523,7 @@ export const AiOverviewSection: React.FC<AiOverviewSectionProps> = ({
                 fullWidth
               />
 
-              <LocalizationProvider
-                dateAdapter={AdapterDayjs}
-                adapterLocale="th"
-              >
+              <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="th">
                 <DatePicker
                   label="วันที่แสดงผล"
                   value={editDisplayDate}
@@ -470,7 +538,6 @@ export const AiOverviewSection: React.FC<AiOverviewSectionProps> = ({
                 />
               </LocalizationProvider>
 
-              {/* Existing Images */}
               {existingImages.length > 0 && (
                 <Box>
                   <Typography variant="subtitle2" gutterBottom>
@@ -478,23 +545,21 @@ export const AiOverviewSection: React.FC<AiOverviewSectionProps> = ({
                   </Typography>
                   <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
                     {existingImages.map((img) => {
-                      const isMarkedForDeletion = imagesToDelete.includes(
-                        img.id,
-                      );
+                      const isMarkedForDeletion = imagesToDelete.includes(img.id);
                       return (
                         <Box
                           key={img.id}
                           sx={{
                             position: "relative",
-                            width: 100,
-                            height: 100,
-                            borderRadius: 1,
+                            width: 108,
+                            height: 108,
+                            borderRadius: 2,
                             overflow: "hidden",
                             border: "1px solid",
                             borderColor: isMarkedForDeletion
                               ? "error.main"
                               : "divider",
-                            opacity: isMarkedForDeletion ? 0.5 : 1,
+                            opacity: isMarkedForDeletion ? 0.45 : 1,
                           }}
                         >
                           <Box
@@ -513,12 +578,14 @@ export const AiOverviewSection: React.FC<AiOverviewSectionProps> = ({
                               onClick={() => handleRestoreExistingImage(img.id)}
                               sx={{
                                 position: "absolute",
-                                top: 2,
-                                right: 2,
-                                bgcolor: "rgba(76,175,80,0.8)",
+                                top: 4,
+                                right: 4,
+                                bgcolor: "rgba(76, 175, 80, 0.9)",
                                 color: "white",
-                                p: 0.3,
-                                "&:hover": { bgcolor: "rgba(76,175,80,1)" },
+                                p: 0.4,
+                                "&:hover": {
+                                  bgcolor: "rgba(76, 175, 80, 1)",
+                                },
                               }}
                             >
                               <Add sx={{ fontSize: 14 }} />
@@ -529,12 +596,14 @@ export const AiOverviewSection: React.FC<AiOverviewSectionProps> = ({
                               onClick={() => handleRemoveExistingImage(img.id)}
                               sx={{
                                 position: "absolute",
-                                top: 2,
-                                right: 2,
-                                bgcolor: "rgba(244,67,54,0.8)",
+                                top: 4,
+                                right: 4,
+                                bgcolor: "rgba(244, 67, 54, 0.9)",
                                 color: "white",
-                                p: 0.3,
-                                "&:hover": { bgcolor: "rgba(244,67,54,1)" },
+                                p: 0.4,
+                                "&:hover": {
+                                  bgcolor: "rgba(244, 67, 54, 1)",
+                                },
                               }}
                             >
                               <Close sx={{ fontSize: 14 }} />
@@ -547,7 +616,6 @@ export const AiOverviewSection: React.FC<AiOverviewSectionProps> = ({
                 </Box>
               )}
 
-              {/* New Images */}
               <Box>
                 <input
                   type="file"
@@ -557,39 +625,44 @@ export const AiOverviewSection: React.FC<AiOverviewSectionProps> = ({
                   onChange={handleEditFileChange}
                   style={{ display: "none" }}
                 />
-                <Button
-                  variant="outlined"
-                  startIcon={<CloudUpload />}
-                  onClick={() => editFileInputRef.current?.click()}
-                  disabled={
-                    existingImages.length -
-                      imagesToDelete.length +
-                      editFiles.length >=
-                    3
-                  }
-                  size="small"
+                <Stack
+                  direction={{ xs: "column", sm: "row" }}
+                  spacing={1.5}
+                  alignItems={{ xs: "stretch", sm: "center" }}
                 >
-                  เพิ่มรูปภาพใหม่ (
-                  {existingImages.length -
-                    imagesToDelete.length +
-                    editFiles.length}
-                  /3)
-                </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<CloudUpload />}
+                    onClick={() => editFileInputRef.current?.click()}
+                    disabled={
+                      existingImages.length - imagesToDelete.length + editFiles.length >=
+                      3
+                    }
+                    size="small"
+                  >
+                    เพิ่มรูปภาพใหม่ (
+                    {existingImages.length - imagesToDelete.length + editFiles.length}
+                    /3)
+                  </Button>
+                  <Typography variant="body2" color="text.secondary">
+                    รวมรูปเดิมและรูปใหม่ได้สูงสุด 3 รูป
+                  </Typography>
+                </Stack>
 
                 {editPreviews.length > 0 && (
                   <Stack
                     direction="row"
                     spacing={1}
-                    sx={{ mt: 1, flexWrap: "wrap" }}
+                    sx={{ mt: 1.5, flexWrap: "wrap" }}
                   >
                     {editPreviews.map((preview, index) => (
                       <Box
                         key={index}
                         sx={{
                           position: "relative",
-                          width: 100,
-                          height: 100,
-                          borderRadius: 1,
+                          width: 108,
+                          height: 108,
+                          borderRadius: 2,
                           overflow: "hidden",
                           border: "1px solid",
                           borderColor: "divider",
@@ -610,11 +683,11 @@ export const AiOverviewSection: React.FC<AiOverviewSectionProps> = ({
                           onClick={() => handleRemoveEditFile(index)}
                           sx={{
                             position: "absolute",
-                            top: 2,
-                            right: 2,
-                            bgcolor: "rgba(0,0,0,0.5)",
+                            top: 4,
+                            right: 4,
+                            bgcolor: "rgba(0,0,0,0.55)",
                             color: "white",
-                            p: 0.3,
+                            p: 0.4,
                             "&:hover": { bgcolor: "rgba(0,0,0,0.7)" },
                           }}
                         >
@@ -626,27 +699,25 @@ export const AiOverviewSection: React.FC<AiOverviewSectionProps> = ({
                 )}
               </Box>
 
-              <Stack direction="row" spacing={2} justifyContent="flex-end">
+              <Stack direction="row" spacing={1.5} justifyContent="flex-end">
                 <Button onClick={handleCloseEdit}>ยกเลิก</Button>
                 <Button
                   variant="contained"
                   onClick={handleEditSubmit}
                   disabled={
                     !editTitle.trim() ||
-                    existingImages.length -
-                      imagesToDelete.length +
-                      editFiles.length ===
+                    existingImages.length - imagesToDelete.length + editFiles.length ===
                       0 ||
                     isSubmitting
                   }
                 >
-                  {isSubmitting ? "กำลังบันทึก..." : "บันทึก"}
+                  {isSubmitting ? "กำลังบันทึก..." : "บันทึกการแก้ไข"}
                 </Button>
               </Stack>
             </Stack>
-          </Box>
+          </Paper>
         </Box>
       )}
     </>
   );
-};
+});

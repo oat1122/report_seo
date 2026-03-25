@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Modal,
   Box,
@@ -11,9 +11,12 @@ import {
   IconButton,
   Divider,
   Stack,
-  Tabs,
-  Tab,
   Tooltip,
+  Card,
+  Chip,
+  Step,
+  StepLabel,
+  Stepper,
 } from "@mui/material";
 import {
   Save,
@@ -22,6 +25,11 @@ import {
   RecommendOutlined,
   AccessTime,
   AutoAwesomeOutlined,
+  ArrowBackIosNew,
+  ArrowForwardIos,
+  Language,
+  InsightsOutlined,
+  PublicOutlined,
 } from "@mui/icons-material";
 import { User } from "@/types/user";
 import {
@@ -38,8 +46,10 @@ import { RecommendKeywordSection } from "./RecommendKeywordSection";
 import { useMetricsModal } from "./hook/useMetricsModal";
 import { HistoryModal } from "./HistoryModal";
 import { KeywordHistoryModal } from "./KeywordHistoryModal";
-import { TabPanel } from "@/components/shared/TabPanel";
-import { AiOverviewSection } from "./AiOverviewSection";
+import {
+  AiOverviewSection,
+  AiOverviewSectionHandle,
+} from "./AiOverviewSection";
 
 interface MetricsModalProps {
   open: boolean;
@@ -56,8 +66,11 @@ interface MetricsModalProps {
   ) => Promise<void>;
   recommendKeywordsData: KeywordRecommend[];
   onAddRecommendKeyword: (data: KeywordRecommendForm) => Promise<void>;
+  onUpdateRecommendKeyword: (
+    recommendId: string,
+    data: KeywordRecommendForm,
+  ) => Promise<void>;
   onDeleteRecommendKeyword: (id: string) => Promise<void>;
-  // เพิ่ม props ใหม่สำหรับ History Modal
   onOpenHistory: () => void;
   isHistoryOpen: boolean;
   onCloseHistory: () => void;
@@ -65,25 +78,164 @@ interface MetricsModalProps {
     metricsHistory: OverallMetricsHistory[];
     keywordHistory: KeywordReportHistory[];
   };
-  // Props ใหม่สำหรับ Keyword History
   isKeywordHistoryOpen: boolean;
   onOpenKeywordHistory: (keyword: KeywordReport) => void;
   onCloseKeywordHistory: () => void;
   keywordHistoryData: KeywordReportHistory[];
   selectedKeyword: KeywordReport | null;
-  // Loading states
   isLoadingMetrics?: boolean;
   isLoadingKeywords?: boolean;
   isLoadingRecommend?: boolean;
   isLoadingCombinedHistory?: boolean;
   isLoadingSpecificHistory?: boolean;
-  // AI Overview
   aiOverviews?: AiOverview[];
   isLoadingAiOverviews?: boolean;
   onAddAiOverview?: (formData: FormData) => Promise<void>;
   onUpdateAiOverview?: (id: string, formData: FormData) => Promise<void>;
   onDeleteAiOverview?: (aiOverviewId: string) => Promise<void>;
 }
+
+type MetricsFieldKey = keyof OverallMetricsForm;
+type MetricsStep = 0 | 1 | 2;
+
+interface MetricFieldConfig {
+  key: MetricsFieldKey;
+  label: string;
+  placeholder: string;
+  helperText: string;
+  min?: number;
+  max?: number;
+}
+
+interface MetricSectionConfig {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  fields: MetricFieldConfig[];
+  columns?: {
+    xs: string;
+    sm: string;
+    md: string;
+  };
+}
+
+const normalizeMetricsForSave = (
+  metrics: Record<MetricsFieldKey, string | number>,
+): Partial<OverallMetricsForm> =>
+  Object.entries(metrics).reduce((acc, [key, value]) => {
+    if (value === "") return acc;
+    return {
+      ...acc,
+      [key]: Number(value),
+    };
+  }, {} as Partial<OverallMetricsForm>);
+
+const stepLabels = ["Domain Metrics", "Keyword Data", "AI Overview"];
+
+const metricSections: MetricSectionConfig[] = [
+  {
+    title: "Authority",
+    description: "กรอกค่าความน่าเชื่อถือและคุณภาพล่าสุดของโดเมน",
+    icon: <InsightsOutlined color="secondary" />,
+    fields: [
+      {
+        key: "domainRating",
+        label: "Domain Rating",
+        placeholder: "เช่น 42",
+        helperText: "ค่าความแข็งแรงของโดเมน",
+        min: 0,
+      },
+      {
+        key: "healthScore",
+        label: "Health Score",
+        placeholder: "0-100",
+        helperText: "คะแนนสุขภาพเว็บไซต์",
+        min: 0,
+        max: 100,
+      },
+      {
+        key: "spamScore",
+        label: "Spam Score",
+        placeholder: "0-100",
+        helperText: "คะแนนความเสี่ยงของโดเมน",
+        min: 0,
+        max: 100,
+      },
+    ],
+    columns: {
+      xs: "repeat(1, 1fr)",
+      sm: "repeat(2, 1fr)",
+      md: "repeat(3, 1fr)",
+    },
+  },
+  {
+    title: "Visibility",
+    description: "ใส่ตัวเลขล่าสุดที่ใช้ประเมินการมองเห็นของโดเมน",
+    icon: <PublicOutlined color="secondary" />,
+    fields: [
+      {
+        key: "organicTraffic",
+        label: "Organic Traffic",
+        placeholder: "เช่น 1200",
+        helperText: "จำนวนทราฟฟิกจากการค้นหา",
+        min: 0,
+      },
+      {
+        key: "organicKeywords",
+        label: "Organic Keywords",
+        placeholder: "เช่น 350",
+        helperText: "จำนวนคีย์เวิร์ดที่ติดอันดับ",
+        min: 0,
+      },
+      {
+        key: "backlinks",
+        label: "Backlinks",
+        placeholder: "เช่น 980",
+        helperText: "จำนวนลิงก์ย้อนกลับทั้งหมด",
+        min: 0,
+      },
+      {
+        key: "refDomains",
+        label: "Referring Domains",
+        placeholder: "เช่น 120",
+        helperText: "จำนวนโดเมนที่ลิงก์กลับมา",
+        min: 0,
+      },
+    ],
+    columns: {
+      xs: "repeat(1, 1fr)",
+      sm: "repeat(2, 1fr)",
+      md: "repeat(2, 1fr)",
+    },
+  },
+  {
+    title: "Domain Age",
+    description: "ระบุอายุโดเมนเป็นปีและเดือน โดยเดือนต้องอยู่ระหว่าง 0-11",
+    icon: <Language color="secondary" />,
+    fields: [
+      {
+        key: "ageInYears",
+        label: "อายุโดเมน (ปี)",
+        placeholder: "เช่น 2",
+        helperText: "จำนวนปีเต็ม",
+        min: 0,
+      },
+      {
+        key: "ageInMonths",
+        label: "อายุโดเมน (เดือน)",
+        placeholder: "0-11",
+        helperText: "เดือนเพิ่มเติมจากจำนวนปี",
+        min: 0,
+        max: 11,
+      },
+    ],
+    columns: {
+      xs: "repeat(1, 1fr)",
+      sm: "repeat(2, 1fr)",
+      md: "repeat(2, 1fr)",
+    },
+  },
+];
 
 export const MetricsModal: React.FC<MetricsModalProps> = ({
   open,
@@ -97,6 +249,7 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
   onUpdateKeyword,
   recommendKeywordsData,
   onAddRecommendKeyword,
+  onUpdateRecommendKeyword,
   onDeleteRecommendKeyword,
   onOpenHistory,
   isHistoryOpen,
@@ -115,48 +268,95 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
   onUpdateAiOverview,
   onDeleteAiOverview,
 }) => {
-  const [tabIndex, setTabIndex] = useState(0);
+  const [activeStep, setActiveStep] = useState<MetricsStep>(0);
+  const [aiOverviewDraftState, setAiOverviewDraftState] = useState({
+    canSubmit: false,
+    isSubmitting: false,
+  });
+  const aiOverviewRef = useRef<AiOverviewSectionHandle>(null);
   const {
     metrics,
     newKeyword,
     newRecommend,
     editingKeywordId,
+    editingRecommendId,
+    validationErrors,
+    isMetricsValid,
     handleMetricsChange,
     handleKeywordChange,
     handleKeywordSelectChange,
     handleRecommendChange,
     handleRecommendSelectChange,
-    resetRecommendForm,
     handleSetEditingKeyword,
+    handleSetEditingRecommend,
     clearEditing,
+    clearRecommendEditing,
   } = useMetricsModal(metricsData);
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setTabIndex(newValue);
-  };
+  useEffect(() => {
+    if (!open) {
+      setActiveStep(0);
+    }
+  }, [open]);
 
-  // Handler ที่จะตัดสินใจว่าจะ Add หรือ Update
+  const metricSummary = useMemo(
+    () => [
+      {
+        label: "DR",
+        value: metrics.domainRating === "" ? "-" : metrics.domainRating,
+      },
+      {
+        label: "Health",
+        value: metrics.healthScore === "" ? "-" : metrics.healthScore,
+      },
+      {
+        label: "Traffic",
+        value: metrics.organicTraffic === "" ? "-" : metrics.organicTraffic,
+      },
+      {
+        label: "Ref Domains",
+        value: metrics.refDomains === "" ? "-" : metrics.refDomains,
+      },
+    ],
+    [metrics],
+  );
+
   const handleAddOrUpdateKeyword = async () => {
-    if (!newKeyword.keyword) return;
+    if (!newKeyword.keyword.trim()) return;
     if (editingKeywordId) {
       await onUpdateKeyword(editingKeywordId, newKeyword);
     } else {
       await onAddKeyword(newKeyword);
     }
-    clearEditing(); // Reset ฟอร์มและ edit state
+    clearEditing();
   };
 
   const handleAddRecommend = async () => {
-    if (!newRecommend.keyword) return;
-    await onAddRecommendKeyword(newRecommend);
-    resetRecommendForm();
+    if (!newRecommend.keyword.trim()) return;
+    if (editingRecommendId) {
+      await onUpdateRecommendKeyword(editingRecommendId, newRecommend);
+    } else {
+      await onAddRecommendKeyword(newRecommend);
+    }
+    clearRecommendEditing();
+  };
+
+  const handleNextStep = () => {
+    setActiveStep((prev) => Math.min(prev + 1, 2) as MetricsStep);
+  };
+
+  const handlePrevStep = () => {
+    setActiveStep((prev) => Math.max(prev - 1, 0) as MetricsStep);
+  };
+
+  const handleStepChange = (step: number) => {
+    setActiveStep(step as MetricsStep);
   };
 
   if (!customer) return null;
 
   return (
     <>
-      {/* Metrics Modal หลัก */}
       <Modal open={open} onClose={onClose} sx={{ backdropFilter: "blur(5px)" }}>
         <Paper
           sx={{
@@ -164,162 +364,188 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: { xs: "95%", md: 950 },
-            maxHeight: "90vh",
-            overflowY: "auto",
+            width: { xs: "96%", md: 980 },
+            maxHeight: "92vh",
+            overflow: "hidden",
             borderRadius: 4,
-            boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+            boxShadow: "0 18px 40px rgba(15, 23, 42, 0.18)",
+            display: "flex",
+            flexDirection: "column",
           }}
         >
           <Box
             sx={{
-              p: 3,
+              position: "sticky",
+              top: 0,
+              zIndex: 2,
+              px: { xs: 2, sm: 3 },
+              py: 2.5,
               borderBottom: 1,
               borderColor: "divider",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
+              bgcolor: "background.paper",
             }}
           >
-            <Box>
-              <Typography variant="h5" fontWeight={700}>
-                จัดการข้อมูล Domain
-              </Typography>
-              <Typography variant="body1" color="text.secondary">
-                ลูกค้า: <span style={{ fontWeight: 600 }}>{customer.name}</span>
-              </Typography>
-            </Box>
-            <Tooltip title="ปิด">
-              <IconButton onClick={onClose}>
-                <Close />
-              </IconButton>
-            </Tooltip>
-          </Box>
-
-          {/* Overall Metrics Form */}
-          <Box p={3}>
-            <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
-              <Stack direction="row" alignItems="center" spacing={1.5} mb={2.5}>
-                <AssessmentOutlined color="secondary" />
-                <Typography variant="h6" fontWeight={600}>
-                  คุณภาพ Domain (Overall Metrics)
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              justifyContent="space-between"
+              alignItems={{ xs: "flex-start", sm: "center" }}
+              spacing={2}
+            >
+              <Box>
+                <Typography variant="h5" fontWeight={700}>
+                  จัดการข้อมูล Domain
                 </Typography>
-                {/* เพิ่มปุ่มดูประวัติ */}
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                  กรอกข้อมูลทีละส่วนเพื่อให้ตรวจทานและบันทึกได้ง่ายขึ้น
+                </Typography>
+                <Typography variant="body1" sx={{ mt: 1 }}>
+                  ลูกค้า: <Box component="span" sx={{ fontWeight: 700 }}>{customer.name}</Box>
+                </Typography>
+              </Box>
+              <Stack direction="row" spacing={1} alignItems="center">
                 <Tooltip title="ดูประวัติการเปลี่ยนแปลง">
-                  <IconButton onClick={onOpenHistory} size="small">
+                  <IconButton onClick={onOpenHistory}>
                     <AccessTime />
                   </IconButton>
                 </Tooltip>
+                <Tooltip title="ปิด">
+                  <IconButton onClick={onClose}>
+                    <Close />
+                  </IconButton>
+                </Tooltip>
               </Stack>
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: {
-                    xs: "repeat(1, 1fr)",
-                    sm: "repeat(2, 1fr)",
-                    md: "repeat(4, 1fr)",
-                  },
-                  gap: 2,
-                }}
-              >
-                {Object.keys(metrics)
-                  .filter(
-                    (key) => key !== "ageInYears" && key !== "ageInMonths",
-                  )
-                  .map((key) => (
-                    <TextField
-                      key={key}
-                      name={key}
-                      label={
-                        key.charAt(0).toUpperCase() +
-                        key.slice(1).replace(/([A-Z])/g, " $1")
-                      }
-                      type="number"
-                      value={metrics[key]}
-                      onChange={handleMetricsChange}
-                      fullWidth
-                      size="small"
-                    />
-                  ))}
+            </Stack>
 
-                {/* Custom 2-column grid for Age fields */}
-                <Box
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: 1,
-                  }}
-                >
-                  <TextField
-                    name="ageInYears"
-                    label="อายุโดเมน (ปี)"
-                    type="number"
-                    value={metrics.ageInYears}
-                    onChange={handleMetricsChange}
-                    fullWidth
-                    size="small"
-                    inputProps={{ min: 0 }}
-                  />
-                  <TextField
-                    name="ageInMonths"
-                    label="(เดือน)"
-                    type="number"
-                    value={metrics.ageInMonths}
-                    onChange={handleMetricsChange}
-                    fullWidth
-                    size="small"
-                    inputProps={{ min: 0, max: 11 }}
-                    error={Number(metrics.ageInMonths) > 11}
-                    helperText={
-                      Number(metrics.ageInMonths) > 11 ? "สูงสุด 11 เดือน" : ""
-                    }
-                  />
-                </Box>
-              </Box>
-              <Box sx={{ mt: 3, textAlign: "right" }}>
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  startIcon={<Save />}
-                  onClick={() => onSaveMetrics(metrics)}
-                >
-                  บันทึก Metrics
-                </Button>
-              </Box>
-            </Paper>
+            <Stepper activeStep={activeStep} alternativeLabel sx={{ mt: 3 }}>
+              {stepLabels.map((label, index) => (
+                <Step key={label}>
+                  <StepLabel
+                    onClick={() => handleStepChange(index)}
+                    sx={{
+                      cursor: "pointer",
+                      "& .MuiStepLabel-label": {
+                        cursor: "pointer",
+                      },
+                      "& .MuiStepLabel-iconContainer": {
+                        cursor: "pointer",
+                      },
+                    }}
+                  >
+                    {label}
+                  </StepLabel>
+                </Step>
+              ))}
+            </Stepper>
           </Box>
 
-          <Divider />
+          <Box sx={{ flex: 1, overflowY: "auto", px: { xs: 2, sm: 3 }, py: 3 }}>
+            {activeStep === 0 && (
+              <Stack spacing={3}>
+                <Paper
+                  variant="outlined"
+                  sx={{
+                    p: { xs: 2, sm: 2.5 },
+                    borderRadius: 3,
+                    bgcolor: "grey.50",
+                  }}
+                >
+                  <Stack direction="row" alignItems="center" spacing={1.5} mb={2}>
+                    <AssessmentOutlined color="secondary" />
+                    <Typography variant="h6" fontWeight={700}>
+                      ภาพรวมค่าที่สำคัญ
+                    </Typography>
+                  </Stack>
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gap: 1.5,
+                      gridTemplateColumns: {
+                        xs: "repeat(2, 1fr)",
+                        md: "repeat(4, 1fr)",
+                      },
+                    }}
+                  >
+                    {metricSummary.map((item) => (
+                      <Card
+                        key={item.label}
+                        variant="outlined"
+                        sx={{ p: 2, borderRadius: 2.5, boxShadow: "none" }}
+                      >
+                        <Typography variant="caption" color="text.secondary">
+                          {item.label}
+                        </Typography>
+                        <Typography variant="h6" fontWeight={700} sx={{ mt: 0.5 }}>
+                          {item.value}
+                        </Typography>
+                      </Card>
+                    ))}
+                  </Box>
+                </Paper>
 
-          {/* Keyword Report & Recommend Section */}
-          <Box>
-            <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-              <Tabs
-                value={tabIndex}
-                onChange={handleTabChange}
-                aria-label="Keyword sections"
-                variant="fullWidth"
-              >
-                <Tab
-                  label="รายงานคีย์เวิร์ด"
-                  icon={<AssessmentOutlined />}
-                  iconPosition="start"
-                />
-                <Tab
-                  label="Keyword แนะนำ"
-                  icon={<RecommendOutlined />}
-                  iconPosition="start"
-                />
-                <Tab
-                  label="AI Overview"
-                  icon={<AutoAwesomeOutlined />}
-                  iconPosition="start"
-                />
-              </Tabs>
-            </Box>
+                {metricSections.map((section) => (
+                  <Paper key={section.title} variant="outlined" sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
+                    <Stack direction="row" spacing={1.5} alignItems="flex-start" mb={2.5}>
+                      {section.icon}
+                      <Box>
+                        <Typography variant="h6" fontWeight={700}>
+                          {section.title}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {section.description}
+                        </Typography>
+                      </Box>
+                    </Stack>
 
-            <TabPanel value={tabIndex} index={0} prefix="simple-tabpanel">
-              <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gap: 2,
+                        gridTemplateColumns: {
+                          xs: section.columns?.xs ?? "repeat(1, 1fr)",
+                          sm: section.columns?.sm ?? "repeat(2, 1fr)",
+                          md: section.columns?.md ?? "repeat(3, 1fr)",
+                        },
+                      }}
+                    >
+                      {section.fields.map((field) => (
+                        <TextField
+                          key={field.key}
+                          name={field.key}
+                          label={field.label}
+                          placeholder={field.placeholder}
+                          type="number"
+                          value={metrics[field.key]}
+                          onChange={handleMetricsChange}
+                          fullWidth
+                          size="small"
+                          inputProps={{
+                            min: field.min,
+                            max: field.max,
+                          }}
+                          error={Boolean(validationErrors[field.key])}
+                          helperText={validationErrors[field.key] || field.helperText}
+                        />
+                      ))}
+                    </Box>
+                  </Paper>
+                ))}
+              </Stack>
+            )}
+
+            {activeStep === 1 && (
+              <Stack spacing={3}>
+                <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
+                  <Stack direction="row" spacing={1.5} alignItems="center" mb={1}>
+                    <RecommendOutlined color="secondary" />
+                    <Typography variant="h6" fontWeight={700}>
+                      Keyword Data
+                    </Typography>
+                  </Stack>
+                  <Typography variant="body2" color="text.secondary">
+                    จัดการคีย์เวิร์ดหลักและคีย์เวิร์ดแนะนำแยกเป็นคนละส่วน เพื่อให้กรอกและทบทวนได้เร็วขึ้น
+                  </Typography>
+                </Paper>
+
                 <KeywordReportSection
                   newKeyword={newKeyword}
                   keywordsData={keywordsData}
@@ -332,36 +558,119 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
                   onClearEditing={clearEditing}
                   onViewHistory={onOpenKeywordHistory}
                 />
-              </Box>
-            </TabPanel>
-            <TabPanel value={tabIndex} index={1} prefix="simple-tabpanel">
-              <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
+
                 <RecommendKeywordSection
                   newRecommend={newRecommend}
                   recommendKeywordsData={recommendKeywordsData}
+                  editingRecommendId={editingRecommendId}
                   onRecommendChange={handleRecommendChange}
                   onRecommendSelectChange={handleRecommendSelectChange}
                   onAddRecommend={handleAddRecommend}
+                  onSetEditingRecommend={handleSetEditingRecommend}
+                  onClearEditingRecommend={clearRecommendEditing}
                   onDeleteRecommendKeyword={onDeleteRecommendKeyword}
                 />
-              </Box>
-            </TabPanel>
-            <TabPanel value={tabIndex} index={2} prefix="simple-tabpanel">
-              <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
+              </Stack>
+            )}
+
+            {activeStep === 2 && (
+              <Stack spacing={3}>
+                <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
+                  <Stack direction="row" spacing={1.5} alignItems="center" mb={1}>
+                    <AutoAwesomeOutlined color="secondary" />
+                    <Typography variant="h6" fontWeight={700}>
+                      AI Overview
+                    </Typography>
+                  </Stack>
+                  <Typography variant="body2" color="text.secondary">
+                    อัปโหลดภาพประกอบและหัวข้อที่ต้องการแสดงผลในรายงาน โดยรองรับสูงสุด 3 รูปต่อรายการ
+                  </Typography>
+                </Paper>
+
                 <AiOverviewSection
+                  ref={aiOverviewRef}
                   aiOverviews={aiOverviews}
                   isLoading={isLoadingAiOverviews}
                   onAdd={onAddAiOverview || (async () => {})}
                   onUpdate={onUpdateAiOverview || (async () => {})}
                   onDelete={onDeleteAiOverview || (async () => {})}
+                  showSubmitButton={false}
+                  onStateChange={setAiOverviewDraftState}
                 />
-              </Box>
-            </TabPanel>
+              </Stack>
+            )}
+          </Box>
+
+          <Divider />
+
+          <Box
+            sx={{
+              px: { xs: 2, sm: 3 },
+              py: 2,
+              bgcolor: "background.paper",
+            }}
+          >
+            <Stack
+              direction={{ xs: "column-reverse", sm: "row" }}
+              justifyContent="space-between"
+              spacing={1.5}
+            >
+              <Button
+                variant="text"
+                startIcon={<ArrowBackIosNew />}
+                onClick={handlePrevStep}
+                disabled={activeStep === 0}
+              >
+                ย้อนกลับ
+              </Button>
+
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+                {activeStep === 0 && (
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    startIcon={<Save />}
+                    onClick={() => onSaveMetrics(normalizeMetricsForSave(metrics))}
+                    disabled={!isMetricsValid}
+                  >
+                    บันทึก Metrics
+                  </Button>
+                )}
+
+                {activeStep === 2 && (
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    startIcon={<Save />}
+                    onClick={() => aiOverviewRef.current?.submit()}
+                    disabled={!aiOverviewDraftState.canSubmit || aiOverviewDraftState.isSubmitting}
+                  >
+                    บันทึก AI Overview
+                  </Button>
+                )}
+
+                {activeStep < 2 && (
+                  <Button
+                    variant="outlined"
+                    endIcon={<ArrowForwardIos />}
+                    onClick={handleNextStep}
+                  >
+                    ถัดไป
+                  </Button>
+                )}
+
+                <Chip
+                  label={stepLabels[activeStep]}
+                  color="info"
+                  variant="outlined"
+                  sx={{ alignSelf: "center" }}
+                />
+              </Stack>
+            </Stack>
           </Box>
         </Paper>
       </Modal>
 
-      {/* History Modal ที่เพิ่มเข้ามา */}
       <HistoryModal
         open={isHistoryOpen}
         onClose={onCloseHistory}
@@ -371,7 +680,6 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
         isLoading={isLoadingCombinedHistory}
       />
 
-      {/* Keyword History Modal */}
       {selectedKeyword && (
         <KeywordHistoryModal
           open={isKeywordHistoryOpen}

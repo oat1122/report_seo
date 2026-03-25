@@ -77,6 +77,7 @@ const UserManagementSeoDev: React.FC = () => {
     handleDeleteKeyword,
     handleUpdateKeyword,
     handleAddRecommendKeyword,
+    handleUpdateRecommendKeyword,
     handleDeleteRecommendKeyword,
     aiOverviews,
     isLoadingAiOverviews,
@@ -171,6 +172,7 @@ const UserManagementSeoDev: React.FC = () => {
             onUpdateKeyword={handleUpdateKeyword}
             recommendKeywordsData={recommendKeywords}
             onAddRecommendKeyword={handleAddRecommendKeyword}
+            onUpdateRecommendKeyword={handleUpdateRecommendKeyword}
             onDeleteRecommendKeyword={handleDeleteRecommendKeyword}
             onOpenHistory={handleOpenHistory}
             isHistoryOpen={isHistoryModalOpen}
