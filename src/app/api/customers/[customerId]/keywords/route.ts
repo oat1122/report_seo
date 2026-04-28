@@ -4,10 +4,11 @@ import {
   enforceCustomerReadAccess,
   getCustomerAccessByUserId,
 } from "@/lib/api-auth";
+import { toErrorResponse } from "@/lib/http";
 import { customerService } from "@/services/CustomerService";
 
 export async function GET(
-  req: Request,
+  _req: Request,
   { params }: { params: Promise<{ customerId: string }> },
 ) {
   try {
@@ -23,14 +24,12 @@ export async function GET(
       return permissionError;
     }
 
-    const keywords = await customerService.getKeywords(customerId);
+    const keywords = await customerService.getKeywords(
+      access.context.customer.id,
+    );
     return NextResponse.json(keywords);
   } catch (error) {
-    console.error("Error fetching keywords:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    return toErrorResponse(error);
   }
 }
 
@@ -52,22 +51,12 @@ export async function POST(
     }
 
     const body = await req.json();
-    const newKeyword = await customerService.addKeyword(customerId, body);
+    const newKeyword = await customerService.addKeyword(
+      access.context.customer.id,
+      body,
+    );
     return NextResponse.json(newKeyword, { status: 201 });
   } catch (error) {
-    console.error("Error adding keyword:", error);
-
-    if (error instanceof Error && error.message.startsWith("Invalid data:")) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    if (error instanceof Error && error.message === "Customer not found") {
-      return NextResponse.json({ error: error.message }, { status: 404 });
-    }
-
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    return toErrorResponse(error);
   }
 }

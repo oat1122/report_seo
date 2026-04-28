@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { Role } from "@/types/auth";
 import {
   Box,
   Card,
@@ -56,13 +57,13 @@ export default function LoginForm({ className = "" }: LoginFormProps) {
         if (session?.user?.role) {
           // Redirect based on role
           switch (session.user.role) {
-            case "ADMIN":
+            case Role.ADMIN:
               router.push("/admin");
               break;
-            case "SEO_DEV":
+            case Role.SEO_DEV:
               router.push("/seo");
               break;
-            case "CUSTOMER":
+            case Role.CUSTOMER:
               router.push("/customer");
               break;
             default:

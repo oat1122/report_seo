@@ -4,11 +4,7 @@ import { toErrorResponse } from "@/lib/http";
 import { ForbiddenError, NotFoundError } from "@/lib/errors";
 import { Role } from "@/types/auth";
 import { userService } from "@/services/UserService";
-
-const sanitizeSelfUpdate = (body: Record<string, unknown>) => ({
-  name: typeof body.name === "string" ? body.name : undefined,
-  email: typeof body.email === "string" ? body.email : undefined,
-});
+import { userSelfUpdateSchema, userUpdateSchema } from "@/schemas/user";
 
 // GET /api/users/[id]
 export async function GET(
@@ -23,15 +19,18 @@ export async function GET(
 
     const { id } = await params;
     const isOwner = auth.session.user.id === id;
+    const isAdmin = auth.session.user.role === Role.ADMIN;
 
-    if (!isOwner) {
+    if (!isOwner && !isAdmin) {
       const roleError = requireAdminOnly(auth.session);
       if (roleError) {
         return roleError;
       }
     }
 
-    const user = await userService.getUserById(id);
+    const user = await userService.getUserById(id, {
+      includeAdminFields: isAdmin,
+    });
     if (!user) {
       throw new NotFoundError("User not found");
     }
@@ -53,7 +52,7 @@ export async function PUT(
     }
 
     const { id } = await params;
-    const body = (await request.json()) as Record<string, unknown>;
+    const body = await request.json();
     const isOwner = auth.session.user.id === id;
     const isAdmin = auth.session.user.role === Role.ADMIN;
 
@@ -61,10 +60,10 @@ export async function PUT(
       throw new ForbiddenError();
     }
 
-    const updatedUser = await userService.updateUser(
-      id,
-      isAdmin ? body : sanitizeSelfUpdate(body),
-    );
+    const input = isAdmin
+      ? userUpdateSchema.parse(body)
+      : userSelfUpdateSchema.parse(body);
+    const updatedUser = await userService.updateUser(id, input);
     return NextResponse.json(updatedUser);
   } catch (error) {
     return toErrorResponse(error);

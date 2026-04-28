@@ -1,7 +1,11 @@
 // src/services/UserService.ts
 import { prisma, prismaBase } from "@/lib/prisma";
 import { Role } from "@/types/auth";
-import { UserFormState } from "@/types/user";
+import {
+  UserCreateInput,
+  UserUpdateInput,
+  UserSelfUpdateInput,
+} from "@/schemas/user";
 import {
   BadRequestError,
   ConflictError,
@@ -9,7 +13,8 @@ import {
 } from "@/lib/errors";
 import bcrypt from "bcrypt";
 
-const publicUserSelect = {
+// select สำหรับ admin/staff — เห็น seoDevId ของลูกค้า
+const adminUserSelect = {
   id: true,
   name: true,
   email: true,
@@ -25,26 +30,47 @@ const publicUserSelect = {
   },
 } as const;
 
+// select สำหรับ caller ที่ไม่ใช่ admin — ไม่เปิดเผย seoDevId
+const publicUserSelect = {
+  id: true,
+  name: true,
+  email: true,
+  role: true,
+  createdAt: true,
+  deletedAt: true,
+  customerProfile: {
+    select: {
+      name: true,
+      domain: true,
+    },
+  },
+} as const;
+
 class UserService {
   /**
-   * ดึงผู้ใช้ทั้งหมด
+   * ดึงผู้ใช้ทั้งหมด (admin only — เห็น seoDevId)
    * ถ้า includeDeleted=true ใช้ prismaBase เพื่อ bypass extension ที่กรอง deletedAt: null
    */
   public async getUsers(includeDeleted: boolean) {
     const client = includeDeleted ? prismaBase : prisma;
     return client.user.findMany({
       orderBy: { createdAt: "desc" },
-      select: publicUserSelect,
+      select: adminUserSelect,
     });
   }
 
   /**
    * ดึงผู้ใช้รายบุคคล
+   * - includeAdminFields=true → เห็น seoDevId (สำหรับ admin)
+   * - false → ปกติ (สำหรับ user เอง / caller ไม่มีสิทธิ์เห็นการ assign)
    */
-  public async getUserById(id: string) {
+  public async getUserById(
+    id: string,
+    options: { includeAdminFields: boolean } = { includeAdminFields: false },
+  ) {
     return prisma.user.findUnique({
       where: { id },
-      select: publicUserSelect,
+      select: options.includeAdminFields ? adminUserSelect : publicUserSelect,
     });
   }
 
@@ -56,7 +82,7 @@ class UserService {
       where: {
         role: Role.SEO_DEV,
       },
-      select: publicUserSelect,
+      select: adminUserSelect,
       orderBy: {
         name: "asc",
       },
@@ -73,7 +99,7 @@ class UserService {
           },
         },
       },
-      select: publicUserSelect,
+      select: adminUserSelect,
       orderBy: {
         createdAt: "desc",
       },
@@ -81,20 +107,10 @@ class UserService {
   }
 
   /**
-   * สร้างผู้ใช้ใหม่
+   * สร้างผู้ใช้ใหม่ — payload ผ่าน Zod แล้ว (UserCreateInput)
    */
-  public async createUser(data: UserFormState) {
+  public async createUser(data: UserCreateInput) {
     const { name, email, password, role, companyName, domain, seoDevId } = data;
-
-    if (!name || !email || !password || !role) {
-      throw new BadRequestError("Missing required user fields");
-    }
-
-    if (role === Role.CUSTOMER && (!companyName || !domain)) {
-      throw new BadRequestError(
-        "Company Name and Domain are required for CUSTOMER role",
-      );
-    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -111,7 +127,7 @@ class UserService {
 
       return prisma.$transaction(async (tx) => {
         const newUser = await tx.user.create({
-          data: { name, email, password: hashedPassword, role: role as Role },
+          data: { name, email, password: hashedPassword, role },
         });
 
         await tx.customer.create({
@@ -125,23 +141,28 @@ class UserService {
 
         const userWithProfile = await tx.user.findUnique({
           where: { id: newUser.id },
-          select: publicUserSelect,
+          select: adminUserSelect,
         });
         return userWithProfile;
       });
     }
 
     return prisma.user.create({
-      data: { name, email, password: hashedPassword, role: role as Role },
-      select: publicUserSelect,
+      data: { name, email, password: hashedPassword, role },
+      select: adminUserSelect,
     });
   }
 
   /**
-   * อัปเดตผู้ใช้
+   * อัปเดตผู้ใช้ — payload ผ่าน Zod (.strict()) แล้ว
+   * รับได้ทั้ง full update (admin) หรือ partial self-update
    */
-  public async updateUser(id: string, data: UserFormState) {
-    const { name, email, role, companyName, domain, seoDevId } = data;
+  public async updateUser(
+    id: string,
+    data: UserUpdateInput | UserSelfUpdateInput,
+  ) {
+    const fullData = data as UserUpdateInput;
+    const { name, email, role, companyName, domain, seoDevId } = fullData;
 
     const existingUser = await prisma.user.findUnique({
       where: { id },
@@ -172,7 +193,7 @@ class UserService {
         const user = await tx.user.update({
           where: { id },
           data: { name, email, role },
-          select: publicUserSelect,
+          select: adminUserSelect,
         });
 
         const customerData: {
@@ -210,7 +231,7 @@ class UserService {
       return prisma.user.update({
         where: { id },
         data: { name, email, role },
-        select: publicUserSelect,
+        select: adminUserSelect,
       });
     }
   }

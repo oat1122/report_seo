@@ -60,14 +60,16 @@ const ReportPage: React.FC<ReportPageProps> = ({ customerId, initialData }) => {
     ...(reportData?.otherKeywords || []),
   ];
   const totalKeywords = allKeywords.length;
+  const positionedKeywords = allKeywords.filter(
+    (kw): kw is typeof kw & { position: number } =>
+      kw.position != null && kw.position > 0,
+  );
   const avgPosition =
-    allKeywords.length > 0
-      ? allKeywords.reduce((sum, kw) => sum + (kw.position || 0), 0) /
-        allKeywords.filter((kw) => kw.position).length
+    positionedKeywords.length > 0
+      ? positionedKeywords.reduce((sum, kw) => sum + kw.position, 0) /
+        positionedKeywords.length
       : null;
-  const top3Count = allKeywords.filter(
-    (kw) => kw.position && kw.position <= 3,
-  ).length;
+  const top3Count = positionedKeywords.filter((kw) => kw.position <= 3).length;
   const recommendationsCount = reportData?.recommendations?.length || 0;
 
   return (

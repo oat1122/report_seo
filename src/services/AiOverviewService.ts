@@ -20,6 +20,28 @@ import {
 
 const UPLOAD_DIR = getUploadDir("ai-overview");
 
+type AiOverviewWithImagesRaw = {
+  id: string;
+  title: string;
+  displayDate: Date;
+  createdAt: Date;
+  customerId: string;
+  images: { id: string; imageUrl: string; createdAt: Date; aiOverviewId: string }[];
+};
+
+// Serialize Date → ISO string ก่อน return ให้ตรงกับ wire format ที่ React Query consume
+function serializeAiOverview(row: AiOverviewWithImagesRaw) {
+  return {
+    ...row,
+    displayDate: row.displayDate.toISOString(),
+    createdAt: row.createdAt.toISOString(),
+    images: row.images.map((img) => ({
+      ...img,
+      createdAt: img.createdAt.toISOString(),
+    })),
+  };
+}
+
 async function ensureUploadDir() {
   if (!existsSync(UPLOAD_DIR)) {
     await mkdir(UPLOAD_DIR, { recursive: true });
@@ -65,11 +87,12 @@ async function safeUnlink(absolutePath: string) {
 
 class AiOverviewService {
   async getByCustomerId(customerId: string) {
-    return prisma.aiOverview.findMany({
+    const rows = await prisma.aiOverview.findMany({
       where: { customerId },
       include: { images: true },
       orderBy: { createdAt: "desc" },
     });
+    return rows.map(serializeAiOverview);
   }
 
   /**
@@ -93,7 +116,7 @@ class AiOverviewService {
     const { urls, absolutePaths } = await writeFiles(validated);
 
     try {
-      return await prisma.aiOverview.create({
+      const created = await prisma.aiOverview.create({
         data: {
           title: input.title,
           displayDate: input.displayDate ?? new Date(),
@@ -104,6 +127,7 @@ class AiOverviewService {
         },
         include: { images: true },
       });
+      return serializeAiOverview(created);
     } catch (error) {
       await Promise.all(absolutePaths.map(safeUnlink));
       throw error;
@@ -189,7 +213,7 @@ class AiOverviewService {
         }
       }
 
-      return result;
+      return serializeAiOverview(result);
     } catch (error) {
       // DB rollback เกิดขึ้นแล้ว — unlink ไฟล์ใหม่ที่เพิ่งเขียน
       await Promise.all(absolutePaths.map(safeUnlink));

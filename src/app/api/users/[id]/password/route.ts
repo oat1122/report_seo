@@ -37,16 +37,5 @@ async function updatePasswordHandler(
   }
 }
 
-export async function PUT(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  return updatePasswordHandler(req, { params });
-}
-
-export async function PATCH(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  return updatePasswordHandler(req, { params });
-}
+export const PUT = updatePasswordHandler;
+export const PATCH = updatePasswordHandler;

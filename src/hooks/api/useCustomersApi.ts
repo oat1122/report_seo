@@ -57,13 +57,6 @@ const fetchCustomerReport = async (
   return data;
 };
 
-const fetchMetrics = async (
-  customerId: string,
-): Promise<OverallMetricsForm | null> => {
-  const { data } = await axios.get(`/customers/${customerId}/metrics`);
-  return data;
-};
-
 const saveMetrics = async ({
   customerId,
   metrics,
@@ -188,14 +181,6 @@ export const useGetCustomerReport = (
     queryFn: () => fetchCustomerReport(customerId),
     enabled: !!customerId,
     initialData,
-  });
-};
-
-export const useGetMetrics = (customerId: string) => {
-  return useQuery<OverallMetricsForm | null, Error>({
-    queryKey: ["metrics", customerId],
-    queryFn: () => fetchMetrics(customerId),
-    enabled: !!customerId,
   });
 };
 

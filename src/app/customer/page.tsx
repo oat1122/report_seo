@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/auth-utils";
+import { requireCustomer } from "@/lib/auth-utils";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import {
   Box,
@@ -16,12 +16,7 @@ import WavingHandIcon from "@mui/icons-material/WavingHand";
 import PromotionSection from "./PromotionSection";
 
 export default async function CustomerDashboard() {
-  // ดึงข้อมูล session โดยตรง ไม่ต้อง redirect แล้ว
-  const session = await getSession();
-
-  if (!session) {
-    return null;
-  }
+  const session = await requireCustomer();
 
   return (
     <DashboardLayout>

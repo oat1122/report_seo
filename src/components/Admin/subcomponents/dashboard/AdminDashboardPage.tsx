@@ -1,13 +1,9 @@
-import { getSession } from "@/lib/auth-utils";
+import { requireAdmin } from "@/lib/auth-utils";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { DashboardPageLayout } from "@/components/shared/DashboardPageLayout";
 
 export default async function AdminDashboardPage() {
-  const session = await getSession();
-
-  if (!session) {
-    return null;
-  }
+  const session = await requireAdmin();
 
   const adminCards = [
     {

@@ -26,27 +26,22 @@ import {
   ExpandMore,
 } from "@mui/icons-material";
 import { HistoryModal } from "@/components/shared/users/MetricsModal/HistoryModal";
-import { Role, OverallMetricsHistory, KeywordReportHistory } from "@/types";
-import axios from "@/lib/axios";
+import { Role } from "@/types";
+import { useGetCombinedHistory } from "@/hooks/api/useCustomersApi";
 import { showPromiseToast } from "@/components/shared/toast/lib/toastify";
-
-// Define a type for the combined history data
-interface CombinedHistoryData {
-  metricsHistory: OverallMetricsHistory[];
-  keywordHistory: KeywordReportHistory[];
-}
 
 export const DashboardHeader: React.FC = () => {
   const { data: session, status } = useSession(); // เพิ่ม status เพื่อเช็ค loading
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
-  // State สำหรับ History Modal
+  // State สำหรับ History Modal — fetch ผ่าน React Query เมื่อเปิด
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
-  const [historyData, setHistoryData] = useState<CombinedHistoryData>({
-    metricsHistory: [],
-    keywordHistory: [],
-  });
+  const customerId =
+    session?.user?.role === Role.CUSTOMER ? session.user.id : null;
+  const { data: historyData } = useGetCombinedHistory(
+    isHistoryModalOpen ? customerId : null,
+  );
 
   // เปิด/ปิด เมนู user
   const handleUserMenuClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -65,9 +60,8 @@ export const DashboardHeader: React.FC = () => {
     });
   };
 
-  // ฟังก์ชันเปิด History Modal
-  const handleOpenHistoryModal = async () => {
-    // ตรวจสอบว่าเป็น Customer เท่านั้น
+  // ฟังก์ชันเปิด History Modal — React Query จะ fetch อัตโนมัติเมื่อ enable
+  const handleOpenHistoryModal = () => {
     if (session?.user?.role !== Role.CUSTOMER) {
       showPromiseToast(Promise.reject(), {
         pending: "",
@@ -76,27 +70,11 @@ export const DashboardHeader: React.FC = () => {
       });
       return;
     }
-
-    try {
-      const userId = session.user.id;
-      const response = await axios.get<CombinedHistoryData>(
-        `/customers/${userId}/metrics/history`,
-      );
-      setHistoryData(response.data);
-      setIsHistoryModalOpen(true);
-    } catch (err) {
-      console.error("Failed to fetch metrics history", err);
-      showPromiseToast(Promise.reject(err), {
-        pending: "",
-        success: "",
-        error: "ไม่สามารถโหลดข้อมูลประวัติได้",
-      });
-    }
+    setIsHistoryModalOpen(true);
   };
 
   const handleCloseHistoryModal = () => {
     setIsHistoryModalOpen(false);
-    setHistoryData({ metricsHistory: [], keywordHistory: [] });
   };
 
   // ดึงข้อมูลจาก session โดยตรง
@@ -242,8 +220,8 @@ export const DashboardHeader: React.FC = () => {
       <HistoryModal
         open={isHistoryModalOpen}
         onClose={handleCloseHistoryModal}
-        history={historyData.metricsHistory}
-        keywordHistory={historyData.keywordHistory}
+        history={historyData?.metricsHistory ?? []}
+        keywordHistory={historyData?.keywordHistory ?? []}
         customerName={userName}
       />
     </AppBar>

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdminOnly, requireSession } from "@/lib/api-auth";
 import { toErrorResponse } from "@/lib/http";
 import { userService } from "@/services/UserService";
+import { userCreateSchema } from "@/schemas/user";
 
 export async function GET(request: NextRequest) {
   try {
@@ -39,7 +40,8 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const newUser = await userService.createUser(body);
+    const input = userCreateSchema.parse(body);
+    const newUser = await userService.createUser(input);
 
     return NextResponse.json(newUser, { status: 201 });
   } catch (error) {

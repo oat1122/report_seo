@@ -4,10 +4,11 @@ import {
   enforceCustomerReadAccess,
   getCustomerAccessByUserId,
 } from "@/lib/api-auth";
+import { toErrorResponse } from "@/lib/http";
 import { customerService } from "@/services/CustomerService";
 
 export async function GET(
-  req: Request,
+  _req: Request,
   { params }: { params: Promise<{ customerId: string }> },
 ) {
   try {
@@ -23,14 +24,12 @@ export async function GET(
       return permissionError;
     }
 
-    const metrics = await customerService.getMetrics(customerId);
+    const metrics = await customerService.getMetrics(
+      access.context.customer.id,
+    );
     return NextResponse.json(metrics);
   } catch (error) {
-    console.error("Error fetching metrics:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    return toErrorResponse(error);
   }
 }
 
@@ -52,22 +51,12 @@ export async function POST(
     }
 
     const json = await req.json();
-    const metrics = await customerService.saveMetrics(customerId, json);
+    const metrics = await customerService.saveMetrics(
+      access.context.customer.id,
+      json,
+    );
     return NextResponse.json(metrics, { status: 201 });
   } catch (error) {
-    console.error("Error saving metrics:", error);
-
-    if (error instanceof Error && error.message.startsWith("Invalid data:")) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    if (error instanceof Error && error.message === "Customer not found") {
-      return NextResponse.json({ error: error.message }, { status: 404 });
-    }
-
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    return toErrorResponse(error);
   }
 }

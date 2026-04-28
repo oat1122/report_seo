@@ -1,5 +1,6 @@
 // src/components/shared/DashboardPageLayout.tsx
 import React from "react";
+import { Role } from "@/types/auth";
 import {
   Box,
   Container,
@@ -23,7 +24,7 @@ interface DashboardPageLayoutProps {
   user: {
     name?: string | null;
     email?: string | null;
-    role?: string;
+    role?: Role;
   };
   title: string;
   cards: DashboardCard[];

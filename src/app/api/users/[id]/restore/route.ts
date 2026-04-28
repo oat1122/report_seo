@@ -26,16 +26,5 @@ async function restoreHandler(
   }
 }
 
-export async function PUT(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  return restoreHandler(req, { params });
-}
-
-export async function PATCH(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  return restoreHandler(req, { params });
-}
+export const PUT = restoreHandler;
+export const PATCH = restoreHandler;

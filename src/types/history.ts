@@ -15,7 +15,7 @@ export interface OverallMetricsHistory {
   organicKeywords: number;
   backlinks: number;
   refDomains: number;
-  dateRecorded: Date;
+  dateRecorded: string;
   customerId: string;
 }
 

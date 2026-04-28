@@ -10,7 +10,7 @@ import {
 } from "@/store/features/metrics/metricsSlice";
 import { User } from "@/types/user";
 import {
-  useGetMetrics,
+  useGetCustomerReport,
   useGetKeywords,
   useGetRecommendKeywords,
   useSaveMetrics,
@@ -50,9 +50,10 @@ export const useCustomerMetricsModal = (users: User[]) => {
     users.find((u) => u.id === selectedCustomerId) || null;
 
   // --- ใช้ React Query Hooks ---
-  const { data: metricsData, isLoading: isLoadingMetrics } = useGetMetrics(
-    selectedCustomerId || "",
-  );
+  // ใช้ customerReport เป็น source ของ metrics (cache shared กับ ReportPage)
+  const { data: customerReport, isLoading: isLoadingMetrics } =
+    useGetCustomerReport(selectedCustomerId || "");
+  const metricsData = customerReport?.metrics ?? null;
 
   const { data: keywordsData = [], isLoading: isLoadingKeywords } =
     useGetKeywords(selectedCustomerId || "");
