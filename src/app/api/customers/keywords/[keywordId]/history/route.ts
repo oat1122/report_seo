@@ -3,10 +3,11 @@ import {
   enforceCustomerReadAccess,
   getKeywordAccessContext,
 } from "@/lib/api-auth";
-import { prisma } from "@/lib/prisma";
+import { toErrorResponse } from "@/lib/http";
+import { customerService } from "@/services/CustomerService";
 
 export async function GET(
-  req: Request,
+  _req: Request,
   { params }: { params: Promise<{ keywordId: string }> },
 ) {
   try {
@@ -22,18 +23,9 @@ export async function GET(
       return permissionError;
     }
 
-    const history = await prisma.keywordReportHistory.findMany({
-      where: { reportId: keywordId },
-      orderBy: {
-        dateRecorded: "desc",
-      },
-    });
+    const history = await customerService.getKeywordHistory(keywordId);
     return NextResponse.json(history);
   } catch (error) {
-    console.error("Failed to fetch keyword history:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    return toErrorResponse(error);
   }
 }

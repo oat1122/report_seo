@@ -43,7 +43,7 @@ import {
 import { OverallMetricsHistory, KeywordReportHistory } from "@/types/history";
 import { KeywordReportSection } from "./KeywordReportSection";
 import { RecommendKeywordSection } from "./RecommendKeywordSection";
-import { useMetricsModal } from "./hook/useMetricsModal";
+import { useMetricsModal } from "@/hooks/ui/useMetricsModal";
 import { HistoryModal } from "./HistoryModal";
 import { KeywordHistoryModal } from "./KeywordHistoryModal";
 import {

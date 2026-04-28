@@ -13,7 +13,7 @@ import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { useGetManagedCustomers } from "@/hooks/api/useUsersApi";
 import { MetricsModal } from "./MetricsModal/MetricsModal";
 import { UserTable } from "./UserTable";
-import { useCustomerMetricsModal } from "./hooks/useCustomerMetricsModal";
+import { useCustomerMetricsModal } from "@/hooks/ui/useCustomerMetricsModal";
 
 const UserManagementSeoDev: React.FC = () => {
   const {

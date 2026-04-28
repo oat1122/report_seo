@@ -11,7 +11,8 @@ import {
   IconButton,
   Tooltip,
 } from "@mui/material";
-import { OverallMetricsForm, formatDuration } from "@/types/metrics";
+import { OverallMetricsForm } from "@/types/metrics";
+import { formatDuration } from "@/lib/duration";
 import {
   Traffic,
   VpnKey,
@@ -20,7 +21,7 @@ import {
   History,
 } from "@mui/icons-material";
 import { HistoryModal } from "@/components/shared/users/MetricsModal/HistoryModal";
-import { useOverallMetricsCard } from "./hooks/useOverallMetricsCard";
+import { useOverallMetricsCard } from "@/hooks/ui/useOverallMetricsCard";
 import { getRatingColor, getAgeColor, getSpamColor } from "./lib/utils";
 import { useHistoryContext } from "./contexts/HistoryContext";
 import { calculateMetricChange } from "./lib/historyCalculations";

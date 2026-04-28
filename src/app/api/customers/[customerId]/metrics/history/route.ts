@@ -3,10 +3,11 @@ import {
   enforceCustomerReadAccess,
   getCustomerAccessByUserId,
 } from "@/lib/api-auth";
-import { prisma } from "@/lib/prisma";
+import { toErrorResponse } from "@/lib/http";
+import { customerService } from "@/services/CustomerService";
 
 export async function GET(
-  req: Request,
+  _req: Request,
   { params }: { params: Promise<{ customerId: string }> },
 ) {
   try {
@@ -22,41 +23,11 @@ export async function GET(
       return permissionError;
     }
 
-    const metricsHistory = await prisma.overallMetricsHistory.findMany({
-      where: { customerId: access.context.customer.id },
-      orderBy: {
-        dateRecorded: "desc",
-      },
-    });
-
-    const currentKeywords = await prisma.keywordReport.findMany({
-      where: { customerId: access.context.customer.id },
-      orderBy: { traffic: "desc" },
-    });
-
-    const keywordIds = currentKeywords.map((kw) => kw.id);
-
-    const keywordHistory = await prisma.keywordReportHistory.findMany({
-      where: {
-        reportId: {
-          in: keywordIds,
-        },
-      },
-      orderBy: {
-        dateRecorded: "desc",
-      },
-    });
-
-    return NextResponse.json({
-      metricsHistory,
-      keywordHistory,
-      currentKeywords,
-    });
-  } catch (error) {
-    console.error("Failed to fetch metrics history:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
+    const history = await customerService.getMetricsHistory(
+      access.context.customer.id,
     );
+    return NextResponse.json(history);
+  } catch (error) {
+    return toErrorResponse(error);
   }
 }

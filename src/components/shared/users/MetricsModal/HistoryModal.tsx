@@ -22,7 +22,7 @@ import {
 import { Close, TrendingUp, Assessment } from "@mui/icons-material";
 import { OverallMetricsHistory, KeywordReportHistory } from "@/types/history";
 import { TabPanel } from "@/components/shared/TabPanel";
-import { formatDuration } from "@/types/metrics";
+import { formatDuration } from "@/lib/duration";
 
 interface HistoryModalProps {
   open: boolean;

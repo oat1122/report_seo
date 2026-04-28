@@ -18,9 +18,9 @@ import { UserTable } from "./UserTable";
 import { UserModal } from "./UserModal";
 import { MetricsModal } from "./MetricsModal/MetricsModal";
 import { ConfirmAlert } from "../ConfirmAlert";
-import { useUserModalLogic } from "./hooks/useUserModalLogic";
-import { useUserConfirmDialog } from "./hooks/useUserConfirmDialog";
-import { useCustomerMetricsModal } from "./hooks/useCustomerMetricsModal";
+import { useUserModalLogic } from "@/hooks/ui/useUserModalLogic";
+import { useUserConfirmDialog } from "@/hooks/ui/useUserConfirmDialog";
+import { useCustomerMetricsModal } from "@/hooks/ui/useCustomerMetricsModal";
 
 const UserManagement: React.FC = () => {
   const { data: session } = useSession();

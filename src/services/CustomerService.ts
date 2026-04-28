@@ -1,43 +1,12 @@
 // src/services/CustomerService.ts
 import { prisma } from "@/lib/prisma";
-import { z } from "zod";
-import { KDLevel } from "@prisma/client";
 import { BadRequestError } from "@/lib/errors";
-
-// --- Zod Schema สำหรับ Validation ---
-const metricsSchema = z.object({
-  domainRating: z.coerce.number().int().min(0).max(100),
-  healthScore: z.coerce.number().int().min(0).max(100),
-  ageInYears: z.coerce.number().int().min(0),
-  ageInMonths: z.coerce.number().int().min(0).max(11).default(0),
-  spamScore: z.coerce.number().int().min(0).max(100),
-  organicTraffic: z.coerce.number().int().min(0),
-  organicKeywords: z.coerce.number().int().min(0),
-  backlinks: z.coerce.number().int().min(0),
-  refDomains: z.coerce.number().int().min(0),
-});
-
-const keywordSchema = z.object({
-  keyword: z.string().min(1, "Keyword is required"),
-  position: z.coerce.number().int().min(0).nullable().optional(),
-  traffic: z.coerce.number().int().min(0),
-  kd: z.enum(KDLevel),
-  isTopReport: z.boolean(),
-});
-
-const recommendKeywordSchema = z.object({
-  keyword: z.string().min(1, "Keyword is required"),
-  kd: z.enum(KDLevel).nullable().optional(),
-  isTopReport: z.boolean().optional(),
-  note: z.string().nullable().optional(),
-});
-
-// แปลง note ที่ user ส่งมา → null (รองรับทั้ง undefined, "", "  ")
-function normalizeNote(note: string | null | undefined): string | null {
-  if (note == null) return null;
-  const trimmed = note.trim();
-  return trimmed === "" ? null : trimmed;
-}
+import { metricsSchema } from "@/schemas/metrics";
+import { keywordSchema } from "@/schemas/keyword";
+import {
+  recommendKeywordSchema,
+  normalizeNote,
+} from "@/schemas/recommendKeyword";
 
 class CustomerService {
   /**
@@ -282,6 +251,41 @@ class CustomerService {
   public async deleteRecommendKeyword(recommendId: string) {
     return prisma.keywordRecommend.delete({
       where: { id: recommendId },
+    });
+  }
+
+  /**
+   * ดึงประวัติ Metrics + Keyword ของลูกค้า — รับ Customer.id (internal) ตรง
+   */
+  public async getMetricsHistory(customerInternalId: string) {
+    const [metricsHistory, currentKeywords] = await Promise.all([
+      prisma.overallMetricsHistory.findMany({
+        where: { customerId: customerInternalId },
+        orderBy: { dateRecorded: "desc" },
+      }),
+      prisma.keywordReport.findMany({
+        where: { customerId: customerInternalId },
+        orderBy: { traffic: "desc" },
+      }),
+    ]);
+
+    const keywordIds = currentKeywords.map((kw) => kw.id);
+
+    const keywordHistory = await prisma.keywordReportHistory.findMany({
+      where: { reportId: { in: keywordIds } },
+      orderBy: { dateRecorded: "desc" },
+    });
+
+    return { metricsHistory, keywordHistory, currentKeywords };
+  }
+
+  /**
+   * ดึงประวัติของ Keyword หนึ่งตัว — caller ต้องตรวจ access แล้ว
+   */
+  public async getKeywordHistory(keywordId: string) {
+    return prisma.keywordReportHistory.findMany({
+      where: { reportId: keywordId },
+      orderBy: { dateRecorded: "desc" },
     });
   }
 }

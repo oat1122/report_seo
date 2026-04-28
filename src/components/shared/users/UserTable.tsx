@@ -26,7 +26,7 @@ import {
 import { useSession } from "next-auth/react";
 import { User } from "@/types/user";
 import { Role } from "@/types/auth";
-import { getRoleIcon, getRoleColor, getRoleLabel } from "./lib/userUtils";
+import { getRoleIcon, getRoleColor, getRoleLabel } from "@/lib/role-display";
 
 interface UserTableProps {
   users: User[];

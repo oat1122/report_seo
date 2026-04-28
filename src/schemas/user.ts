@@ -1,15 +1,15 @@
-import { Role } from "@prisma/client";
 import { z } from "zod";
+import { Role } from "@/types/auth";
 
 export const userCreateSchema = z
   .object({
     name: z.string().trim().min(1, "Name is required"),
-    email: z.string().email("Invalid email"),
+    email: z.email("Invalid email"),
     password: z.string().min(6, "Password must be at least 6 characters"),
     role: z.enum(Role),
     companyName: z.string().trim().min(1).optional(),
     domain: z.string().trim().min(1).optional(),
-    seoDevId: z.string().uuid().nullable().optional(),
+    seoDevId: z.uuid().nullable().optional(),
   })
   .strict()
   .refine(
@@ -35,11 +35,11 @@ export type UserCreateInput = z.infer<typeof userCreateSchema>;
 export const userUpdateSchema = z
   .object({
     name: z.string().trim().min(1).optional(),
-    email: z.string().email().optional(),
+    email: z.email().optional(),
     role: z.enum(Role).optional(),
     companyName: z.string().trim().min(1).optional(),
     domain: z.string().trim().min(1).optional(),
-    seoDevId: z.string().uuid().nullable().optional(),
+    seoDevId: z.uuid().nullable().optional(),
   })
   .strict();
 
@@ -49,7 +49,7 @@ export type UserUpdateInput = z.infer<typeof userUpdateSchema>;
 export const userSelfUpdateSchema = z
   .object({
     name: z.string().trim().min(1).optional(),
-    email: z.string().email().optional(),
+    email: z.email().optional(),
   })
   .strict();
 

@@ -1,6 +1,6 @@
 // src/app/customer/report/page.tsx
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
-import { ReportPage } from "@/components/Customer/Report";
+import ReportPage from "@/components/Customer/Report/ReportPage";
 import { requireCustomer } from "@/lib/auth-utils";
 import { customerService } from "@/services/CustomerService";
 import type { CustomerReportData } from "@/hooks/api/useCustomersApi";

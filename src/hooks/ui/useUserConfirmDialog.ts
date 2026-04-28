@@ -5,7 +5,7 @@ import {
   hideConfirmation,
 } from "@/store/features/users/usersSlice";
 import { useDeleteUser, useRestoreUser } from "@/hooks/api/useUsersApi";
-import { showPromiseToast } from "../../toast/lib/toastify";
+import { showPromiseToast } from "@/components/shared/toast/lib/toastify";
 
 export const useUserConfirmDialog = () => {
   const dispatch = useAppDispatch();

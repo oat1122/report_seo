@@ -27,7 +27,7 @@ import {
   useUpdateAiOverview,
   useDeleteAiOverview,
 } from "@/hooks/api/useCustomersApi";
-import { showPromiseToast } from "../../toast/lib/toastify";
+import { showPromiseToast } from "@/components/shared/toast/lib/toastify";
 import {
   KeywordReport,
   KeywordReportForm,

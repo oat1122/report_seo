@@ -2,13 +2,13 @@
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
-import { ReportPage } from "@/components/Customer/Report";
+import ReportPage from "@/components/Customer/Report/ReportPage";
 import { requireRole } from "@/lib/auth-utils";
 import { customerService } from "@/services/CustomerService";
 import { Role } from "@/types/auth";
 import type { CustomerReportData } from "@/hooks/api/useCustomersApi";
 
-const userIdSchema = z.string().uuid();
+const userIdSchema = z.uuid();
 
 export default async function AdminViewCustomerReportPage({
   params,

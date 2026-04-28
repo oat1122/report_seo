@@ -14,6 +14,6 @@ export const aiOverviewUpdateSchema = z.object({
 
 export type AiOverviewUpdateInput = z.infer<typeof aiOverviewUpdateSchema>;
 
-export const imagesToDeleteSchema = z.array(z.string().uuid());
+export const imagesToDeleteSchema = z.array(z.uuid());
 
 export const MAX_AI_OVERVIEW_IMAGES = 3;

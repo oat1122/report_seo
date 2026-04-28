@@ -16,7 +16,7 @@ import { RecommendKeywordTable } from "./RecommendKeywordTable";
 import { SummaryStatistics } from "./SummaryStatistics";
 import { TrendChartsSection } from "./TrendChartsSection";
 import { KeywordTrendChart } from "./KeywordTrendChart";
-import { useReportPage } from "./hooks/useReportPage";
+import { useReportPage } from "@/hooks/ui/useReportPage";
 import { HistoryProvider } from "./contexts/HistoryContext";
 import { AiOverviewCard } from "./AiOverviewCard";
 import type { CustomerReportData } from "@/hooks/api/useCustomersApi";

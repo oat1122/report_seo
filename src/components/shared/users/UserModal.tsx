@@ -20,7 +20,7 @@ import {
 } from "@mui/material";
 import { Role } from "@/types/auth";
 import { User, UserFormState } from "@/types/user";
-import { getRoleLabel } from "./lib/userUtils";
+import { getRoleLabel } from "@/lib/role-display";
 import { useSession } from "next-auth/react";
 import {
   Visibility,

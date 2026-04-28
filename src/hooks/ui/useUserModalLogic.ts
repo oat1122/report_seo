@@ -11,7 +11,7 @@ import {
   useUpdatePassword,
 } from "@/hooks/api/useUsersApi";
 import { User } from "@/types/user";
-import { showPromiseToast } from "../../toast/lib/toastify";
+import { showPromiseToast } from "@/components/shared/toast/lib/toastify";
 import axios from "@/lib/axios";
 import { toast } from "react-toastify";
 import { Role } from "@/types/auth";
