@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdminOnly, requireSession } from "@/lib/api-auth";
+import { toErrorResponse } from "@/lib/http";
+import { ForbiddenError, NotFoundError } from "@/lib/errors";
 import { Role } from "@/types/auth";
 import { userService } from "@/services/UserService";
 
@@ -8,9 +10,9 @@ const sanitizeSelfUpdate = (body: Record<string, unknown>) => ({
   email: typeof body.email === "string" ? body.email : undefined,
 });
 
-// GET /api/users/[id] - ดึงผู้ใช้รายบุคคล
+// GET /api/users/[id]
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
@@ -31,19 +33,15 @@ export async function GET(
 
     const user = await userService.getUserById(id);
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      throw new NotFoundError("User not found");
     }
     return NextResponse.json(user);
   } catch (error) {
-    console.error("Failed to fetch user:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    return toErrorResponse(error);
   }
 }
 
-// PUT /api/users/[id] - อัปเดตผู้ใช้
+// PUT /api/users/[id]
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -60,7 +58,7 @@ export async function PUT(
     const isAdmin = auth.session.user.role === Role.ADMIN;
 
     if (!isOwner && !isAdmin) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      throw new ForbiddenError();
     }
 
     const updatedUser = await userService.updateUser(
@@ -69,27 +67,13 @@ export async function PUT(
     );
     return NextResponse.json(updatedUser);
   } catch (error) {
-    console.error("Failed to update user:", error);
-
-    const errorMessage = (error as Error).message;
-
-    if (errorMessage === "User not found") {
-      return NextResponse.json({ error: errorMessage }, { status: 404 });
-    }
-    if (errorMessage.includes("Domain")) {
-      return NextResponse.json({ error: errorMessage }, { status: 409 });
-    }
-
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    return toErrorResponse(error);
   }
 }
 
-// DELETE /api/users/[id] - ลบผู้ใช้ (จะถูกเปลี่ยนเป็น Soft Delete โดย Middleware)
+// DELETE /api/users/[id]
 export async function DELETE(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
@@ -107,10 +91,6 @@ export async function DELETE(
     await userService.deleteUser(id);
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error("Failed to delete user:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    return toErrorResponse(error);
   }
 }

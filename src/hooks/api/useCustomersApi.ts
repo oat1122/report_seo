@@ -8,7 +8,7 @@ import {
 } from "@/types/metrics";
 import { OverallMetricsHistory, KeywordReportHistory } from "@/types/history";
 
-interface CustomerReportData {
+export interface CustomerReportData {
   metrics: OverallMetricsForm | null;
   topKeywords: KeywordReport[];
   otherKeywords: KeywordReport[];
@@ -101,6 +101,7 @@ const updateKeyword = async ({
   keywordId,
   keyword,
 }: {
+  customerId: string;
   keywordId: string;
   keyword: KeywordFormData;
 }): Promise<KeywordReport> => {
@@ -108,7 +109,12 @@ const updateKeyword = async ({
   return data;
 };
 
-const deleteKeyword = async (keywordId: string): Promise<void> => {
+const deleteKeyword = async ({
+  keywordId,
+}: {
+  customerId: string;
+  keywordId: string;
+}): Promise<void> => {
   await axios.delete(`/customers/keywords/${keywordId}`);
 };
 
@@ -139,6 +145,7 @@ const updateRecommendKeyword = async ({
   recommendId,
   keyword,
 }: {
+  customerId: string;
   recommendId: string;
   keyword: RecommendKeywordFormData;
 }): Promise<KeywordRecommend> => {
@@ -149,7 +156,12 @@ const updateRecommendKeyword = async ({
   return data;
 };
 
-const deleteRecommendKeyword = async (recommendId: string): Promise<void> => {
+const deleteRecommendKeyword = async ({
+  recommendId,
+}: {
+  customerId: string;
+  recommendId: string;
+}): Promise<void> => {
   await axios.delete(`/customers/recommend-keywords/${recommendId}`);
 };
 
@@ -167,11 +179,15 @@ const fetchKeywordSpecificHistory = async (
   return data;
 };
 
-export const useGetCustomerReport = (customerId: string) => {
+export const useGetCustomerReport = (
+  customerId: string,
+  initialData?: CustomerReportData,
+) => {
   return useQuery<CustomerReportData, Error>({
     queryKey: ["customerReport", customerId],
     queryFn: () => fetchCustomerReport(customerId),
     enabled: !!customerId,
+    initialData,
   });
 };
 
@@ -198,6 +214,9 @@ export const useSaveMetrics = () => {
       });
       queryClient.invalidateQueries({
         queryKey: ["customerReport", variables.customerId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["history", variables.customerId],
       });
     },
   });
@@ -237,12 +256,22 @@ export const useUpdateKeyword = () => {
   return useMutation<
     KeywordReport,
     Error,
-    { keywordId: string; keyword: KeywordFormData }
+    { customerId: string; keywordId: string; keyword: KeywordFormData }
   >({
     mutationFn: updateKeyword,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["keywords"] });
-      queryClient.invalidateQueries({ queryKey: ["customerReport"] });
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["keywords", variables.customerId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["customerReport", variables.customerId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["history", variables.customerId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["keywordHistory", variables.keywordId],
+      });
     },
   });
 };
@@ -250,11 +279,19 @@ export const useUpdateKeyword = () => {
 export const useDeleteKeyword = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<void, Error, string>({
+  return useMutation<
+    void,
+    Error,
+    { customerId: string; keywordId: string }
+  >({
     mutationFn: deleteKeyword,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["keywords"] });
-      queryClient.invalidateQueries({ queryKey: ["customerReport"] });
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["keywords", variables.customerId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["customerReport", variables.customerId],
+      });
     },
   });
 };
@@ -293,12 +330,20 @@ export const useUpdateRecommendKeyword = () => {
   return useMutation<
     KeywordRecommend,
     Error,
-    { recommendId: string; keyword: RecommendKeywordFormData }
+    {
+      customerId: string;
+      recommendId: string;
+      keyword: RecommendKeywordFormData;
+    }
   >({
     mutationFn: updateRecommendKeyword,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["recommendKeywords"] });
-      queryClient.invalidateQueries({ queryKey: ["customerReport"] });
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["recommendKeywords", variables.customerId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["customerReport", variables.customerId],
+      });
     },
   });
 };
@@ -306,11 +351,19 @@ export const useUpdateRecommendKeyword = () => {
 export const useDeleteRecommendKeyword = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<void, Error, string>({
+  return useMutation<
+    void,
+    Error,
+    { customerId: string; recommendId: string }
+  >({
     mutationFn: deleteRecommendKeyword,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["recommendKeywords"] });
-      queryClient.invalidateQueries({ queryKey: ["customerReport"] });
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["recommendKeywords", variables.customerId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["customerReport", variables.customerId],
+      });
     },
   });
 };

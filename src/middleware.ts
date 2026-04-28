@@ -31,7 +31,11 @@ export default withAuth(
       if (isPath("/admin")) {
         return NextResponse.redirect(new URL("/unauthorized", request.url));
       }
-      // แต่สามารถเข้าหน้าอื่น ๆ ที่ไม่ใช่ของ Customer ได้ (เช่น /seo)
+      // SEO_DEV เปิดรายงานของลูกค้าที่ตัวเองดูแลได้
+      if (/^\/customer\/[^/]+\/report(\/|$)/.test(pathname)) {
+        return NextResponse.next();
+      }
+      // เข้าหน้าอื่น ๆ ที่ไม่ใช่ของ Customer ได้ (เช่น /seo)
       if (!isPath("/customer")) {
         return NextResponse.next();
       }

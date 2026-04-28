@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { requireAdminOnly, requireSession } from "@/lib/api-auth";
+import { toErrorResponse } from "@/lib/http";
 import { userService } from "@/services/UserService";
 
 async function restoreHandler(
-  req: Request,
+  _req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
@@ -21,11 +22,7 @@ async function restoreHandler(
     await userService.restoreUser(id);
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error("Failed to restore user:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    return toErrorResponse(error);
   }
 }
 

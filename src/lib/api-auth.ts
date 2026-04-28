@@ -126,6 +126,42 @@ export async function getCustomerAccessByUserId(
   };
 }
 
+export async function getCustomerAccessByCustomerId(
+  customerId: string,
+): Promise<
+  | {
+      response: NextResponse;
+      context: null;
+    }
+  | {
+      response: null;
+      context: CustomerAccessContext;
+    }
+> {
+  const auth = await requireSession();
+  if (auth.response || !auth.session) {
+    return { response: auth.response, context: null };
+  }
+
+  const customer = await prisma.customer.findUnique({
+    where: { id: customerId },
+    select: {
+      id: true,
+      userId: true,
+      seoDevId: true,
+    },
+  });
+
+  if (!customer) {
+    return { response: notFound("Customer not found"), context: null };
+  }
+
+  return {
+    response: null,
+    context: buildCustomerAccessContext(auth.session, customer),
+  };
+}
+
 export async function getKeywordAccessContext(keywordId: string): Promise<
   | {
       response: NextResponse;

@@ -120,7 +120,11 @@ export const useCustomerMetricsModal = (users: User[]) => {
   };
 
   const handleDeleteKeyword = async (keywordId: string) => {
-    const promise = deleteKeywordMutation.mutateAsync(keywordId);
+    if (!selectedCustomerId) return;
+    const promise = deleteKeywordMutation.mutateAsync({
+      customerId: selectedCustomerId,
+      keywordId,
+    });
     showPromiseToast(promise, {
       pending: "กำลังลบ Keyword...",
       success: "ลบ Keyword สำเร็จ!",
@@ -132,8 +136,10 @@ export const useCustomerMetricsModal = (users: User[]) => {
     keywordId: string,
     data: KeywordReportForm,
   ) => {
+    if (!selectedCustomerId) return;
     const promise = updateKeywordMutation.mutateAsync({
-      keywordId: keywordId,
+      customerId: selectedCustomerId,
+      keywordId,
       keyword: data,
     });
     showPromiseToast(promise, {
@@ -157,7 +163,11 @@ export const useCustomerMetricsModal = (users: User[]) => {
   };
 
   const handleDeleteRecommendKeyword = async (recommendId: string) => {
-    const promise = deleteRecommendKeywordMutation.mutateAsync(recommendId);
+    if (!selectedCustomerId) return;
+    const promise = deleteRecommendKeywordMutation.mutateAsync({
+      customerId: selectedCustomerId,
+      recommendId,
+    });
     showPromiseToast(promise, {
       pending: "กำลังลบ Recommend Keyword...",
       success: "ลบ Recommend Keyword สำเร็จ!",
@@ -169,7 +179,9 @@ export const useCustomerMetricsModal = (users: User[]) => {
     recommendId: string,
     data: KeywordRecommendForm,
   ) => {
+    if (!selectedCustomerId) return;
     const promise = updateRecommendKeywordMutation.mutateAsync({
+      customerId: selectedCustomerId,
       recommendId,
       keyword: data,
     });

@@ -1,4 +1,6 @@
 // src/components/Customer/Report/hooks/useOverallMetricsCard.ts
+"use client";
+
 import { useState } from "react";
 import { useGetCombinedHistory } from "@/hooks/api/useCustomersApi";
 

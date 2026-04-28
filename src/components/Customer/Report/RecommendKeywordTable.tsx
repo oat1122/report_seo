@@ -1,4 +1,6 @@
 // src/components/Customer/Report/RecommendKeywordTable.tsx
+"use client";
+
 import React from "react";
 import {
   Table,

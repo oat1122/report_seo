@@ -4,16 +4,13 @@
  * อนุญาตเฉพาะไฟล์รูปภาพ .jpg, .jpeg, .png เท่านั้น
  */
 
+import { fileTypeFromBuffer } from "file-type";
+import crypto from "crypto";
+
 // ===== Configuration =====
 const ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png"] as const;
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png"] as const;
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-
-// Magic bytes (file signatures) สำหรับตรวจสอบชนิดไฟล์จริง
-const MAGIC_BYTES: Record<string, number[]> = {
-  "image/jpeg": [0xff, 0xd8, 0xff], // JPEG signature
-  "image/png": [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a], // PNG signature
-};
 
 // ===== Types =====
 export interface FileValidationResult {
@@ -87,32 +84,37 @@ export function validateFileSize(size: number): FileValidationResult {
 }
 
 /**
- * ตรวจสอบ magic bytes (file signature)
- * ป้องกันการปลอม extension เช่น เปลี่ยน .php เป็น .jpg
+ * ตรวจสอบ magic bytes (file signature) ผ่าน file-type
+ * sniff ทั้ง container ไม่ใช่แค่ 3 byte แรก ป้องกัน polyglot
  */
-export function validateMagicBytes(
+export async function validateMagicBytes(
   buffer: Buffer,
   expectedMimeType: string,
-): FileValidationResult {
-  const expectedBytes = MAGIC_BYTES[expectedMimeType];
+): Promise<FileValidationResult> {
+  const detected = await fileTypeFromBuffer(buffer);
 
-  if (!expectedBytes) {
+  if (!detected) {
     return {
       isValid: false,
       error: "ไม่สามารถตรวจสอบประเภทไฟล์ได้",
     };
   }
 
-  // ตรวจสอบว่า bytes แรกตรงกับ signature หรือไม่
-  const fileStartBytes = Array.from(buffer.slice(0, expectedBytes.length));
-  const isMatch = expectedBytes.every(
-    (byte, index) => fileStartBytes[index] === byte,
-  );
-
-  if (!isMatch) {
+  if (detected.mime !== expectedMimeType) {
     return {
       isValid: false,
-      error: "ไฟล์ไม่ตรงกับประเภทที่ระบุ (อาจมีการปลอมแปลงนามสกุลไฟล์)",
+      error: `ไฟล์ไม่ตรงกับประเภทที่ระบุ (พบ ${detected.mime} แต่ต้องการ ${expectedMimeType})`,
+    };
+  }
+
+  if (
+    !ALLOWED_MIME_TYPES.includes(
+      detected.mime as (typeof ALLOWED_MIME_TYPES)[number],
+    )
+  ) {
+    return {
+      isValid: false,
+      error: `ประเภทไฟล์จริง ${detected.mime} ไม่ได้รับอนุญาต`,
     };
   }
 
@@ -121,6 +123,7 @@ export function validateMagicBytes(
 
 /**
  * Sanitize filename เพื่อป้องกัน path traversal และ special characters
+ * ต่อท้ายด้วย timestamp + uuid เพื่อกัน collision ใน ms เดียวกัน
  */
 export function sanitizeFilename(filename: string): string {
   // ลบ path traversal characters
@@ -129,12 +132,12 @@ export function sanitizeFilename(filename: string): string {
   // เก็บเฉพาะตัวอักษร ตัวเลข - _ และ .
   sanitized = sanitized.replace(/[^a-zA-Z0-9._-]/g, "_");
 
-  // เพิ่ม timestamp เพื่อป้องกันชื่อซ้ำ
   const ext = sanitized.slice(sanitized.lastIndexOf("."));
   const name = sanitized.slice(0, sanitized.lastIndexOf("."));
   const timestamp = Date.now();
+  const unique = crypto.randomUUID().slice(0, 8);
 
-  return `${name}_${timestamp}${ext}`;
+  return `${name}_${timestamp}_${unique}${ext}`;
 }
 
 /**
@@ -164,7 +167,7 @@ export async function validateUploadFile(
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
 
-  const magicResult = validateMagicBytes(buffer, file.type);
+  const magicResult = await validateMagicBytes(buffer, file.type);
   if (!magicResult.isValid) return magicResult;
 
   // 6. Sanitize filename
@@ -185,11 +188,11 @@ export async function validateUploadFile(
 /**
  * ตรวจสอบ Buffer โดยตรง (สำหรับกรณีที่ได้ buffer มาแล้ว)
  */
-export function validateUploadBuffer(
+export async function validateUploadBuffer(
   buffer: Buffer,
   filename: string,
   mimeType: string,
-): FileValidationResult & { validatedFile?: ValidatedFile } {
+): Promise<FileValidationResult & { validatedFile?: ValidatedFile }> {
   // 1. ตรวจสอบ extension
   const extResult = validateExtension(filename);
   if (!extResult.isValid) return extResult;
@@ -203,7 +206,7 @@ export function validateUploadBuffer(
   if (!sizeResult.isValid) return sizeResult;
 
   // 4. ตรวจสอบ magic bytes
-  const magicResult = validateMagicBytes(buffer, mimeType);
+  const magicResult = await validateMagicBytes(buffer, mimeType);
   if (!magicResult.isValid) return magicResult;
 
   // 5. Sanitize filename

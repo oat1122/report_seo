@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { SelectChangeEvent } from "@mui/material";
-import { KDLevel } from "@prisma/client";
+import { KdLevel } from "@/types/kd";
 import {
   OverallMetricsForm,
   KeywordReport,
@@ -83,7 +83,7 @@ export const useMetricsModal = (metricsData: OverallMetricsForm | null) => {
     keyword: "",
     position: 0,
     traffic: 0,
-    kd: KDLevel.EASY,
+    kd: KdLevel.EASY,
     isTopReport: false,
   });
   const [newRecommend, setNewRecommend] = useState<KeywordRecommendForm>({
@@ -144,10 +144,10 @@ export const useMetricsModal = (metricsData: OverallMetricsForm | null) => {
   );
 
   const handleKeywordSelectChange = useCallback(
-    (e: SelectChangeEvent<KDLevel>) => {
+    (e: SelectChangeEvent<KdLevel>) => {
       setNewKeyword((prev) => ({
         ...prev,
-        kd: e.target.value as KDLevel,
+        kd: e.target.value as KdLevel,
       }));
     },
     [],
@@ -165,10 +165,10 @@ export const useMetricsModal = (metricsData: OverallMetricsForm | null) => {
   );
 
   const handleRecommendSelectChange = useCallback(
-    (e: SelectChangeEvent<KDLevel | "">) => {
+    (e: SelectChangeEvent<KdLevel | "">) => {
       setNewRecommend((prev) => ({
         ...prev,
-        kd: e.target.value === "" ? null : (e.target.value as KDLevel),
+        kd: e.target.value === "" ? null : (e.target.value as KdLevel),
       }));
     },
     [],
@@ -179,7 +179,7 @@ export const useMetricsModal = (metricsData: OverallMetricsForm | null) => {
       keyword: "",
       position: 0,
       traffic: 0,
-      kd: KDLevel.EASY,
+      kd: KdLevel.EASY,
       isTopReport: false,
     });
   };

@@ -1,7 +1,12 @@
 // src/services/UserService.ts
-import { prisma } from "@/lib/prisma";
+import { prisma, prismaBase } from "@/lib/prisma";
 import { Role } from "@/types/auth";
 import { UserFormState } from "@/types/user";
+import {
+  BadRequestError,
+  ConflictError,
+  NotFoundError,
+} from "@/lib/errors";
 import bcrypt from "bcrypt";
 
 const publicUserSelect = {
@@ -23,11 +28,11 @@ const publicUserSelect = {
 class UserService {
   /**
    * ดึงผู้ใช้ทั้งหมด
+   * ถ้า includeDeleted=true ใช้ prismaBase เพื่อ bypass extension ที่กรอง deletedAt: null
    */
   public async getUsers(includeDeleted: boolean) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (prisma as any).user.findMany({
-      includeDeleted: includeDeleted,
+    const client = includeDeleted ? prismaBase : prisma;
+    return client.user.findMany({
       orderBy: { createdAt: "desc" },
       select: publicUserSelect,
     });
@@ -82,11 +87,13 @@ class UserService {
     const { name, email, password, role, companyName, domain, seoDevId } = data;
 
     if (!name || !email || !password || !role) {
-      throw new Error("Missing required user fields");
+      throw new BadRequestError("Missing required user fields");
     }
 
     if (role === Role.CUSTOMER && (!companyName || !domain)) {
-      throw new Error("Company Name and Domain are required for CUSTOMER role");
+      throw new BadRequestError(
+        "Company Name and Domain are required for CUSTOMER role",
+      );
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -97,7 +104,7 @@ class UserService {
       });
 
       if (existingCustomer) {
-        throw new Error(
+        throw new ConflictError(
           `Domain "${domain}" is already registered to another customer.`,
         );
       }
@@ -142,7 +149,7 @@ class UserService {
     });
 
     if (!existingUser) {
-      throw new Error("User not found");
+      throw new NotFoundError("User not found");
     }
 
     if (role === Role.CUSTOMER && (companyName || domain)) {
@@ -155,7 +162,7 @@ class UserService {
         });
 
         if (existingCustomerWithDomain) {
-          throw new Error(
+          throw new ConflictError(
             `Domain "${domain}" is already registered to another customer.`,
           );
         }
@@ -219,18 +226,22 @@ class UserService {
 
   /**
    * Restore ผู้ใช้ที่ถูก Soft Delete
+   * ต้อง throw 404 ถ้าไม่พบ user หรือ user ไม่ได้ถูก soft-delete
+   * ใช้ prismaBase เพื่อ bypass extension ที่กรอง deletedAt: null
    */
   public async restoreUser(id: string) {
-    return prisma.user.updateMany({
-      where: {
-        id: id,
-        deletedAt: {
-          not: null,
-        },
-      },
-      data: {
-        deletedAt: null,
-      },
+    const user = await prismaBase.user.findUnique({
+      where: { id },
+      select: { id: true, deletedAt: true },
+    });
+
+    if (!user || user.deletedAt === null) {
+      throw new NotFoundError("ไม่พบผู้ใช้ที่ถูกลบ");
+    }
+
+    return prismaBase.user.update({
+      where: { id },
+      data: { deletedAt: null },
     });
   }
 
@@ -246,19 +257,19 @@ class UserService {
     const userToUpdate = await prisma.user.findUnique({ where: { id } });
 
     if (!userToUpdate) {
-      throw new Error("User not found");
+      throw new NotFoundError("User not found");
     }
 
     if (!isAdmin) {
       if (!currentPassword || !userToUpdate.password) {
-        throw new Error("Current password is required");
+        throw new BadRequestError("Current password is required");
       }
       const isPasswordValid = await bcrypt.compare(
         currentPassword,
         userToUpdate.password,
       );
       if (!isPasswordValid) {
-        throw new Error("Invalid current password");
+        throw new BadRequestError("Invalid current password");
       }
     }
 

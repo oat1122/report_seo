@@ -1,4 +1,6 @@
 // src/components/Customer/Report/components/MetricChangeIndicator.tsx
+"use client";
+
 import React from "react";
 import { Paper, Box, Typography, Chip } from "@mui/material";
 import {

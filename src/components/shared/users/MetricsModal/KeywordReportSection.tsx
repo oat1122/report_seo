@@ -21,7 +21,7 @@ import {
   Typography,
 } from "@mui/material";
 import { Add, Delete, Edit, History, Save } from "@mui/icons-material";
-import { KDLevel } from "@prisma/client";
+import { KdLevel, KD_LEVELS } from "@/types/kd";
 import { KeywordReport, KeywordReportForm } from "@/types/metrics";
 
 interface KeywordReportSectionProps {
@@ -29,7 +29,7 @@ interface KeywordReportSectionProps {
   keywordsData: KeywordReport[];
   editingKeywordId: string | null;
   onKeywordChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onKeywordSelectChange: (e: SelectChangeEvent<KDLevel>) => void;
+  onKeywordSelectChange: (e: SelectChangeEvent<KdLevel>) => void;
   onAddOrUpdateKeyword: () => void;
   onDeleteKeyword: (id: string) => void;
   onSetEditing: (keyword: KeywordReport) => void;
@@ -126,7 +126,7 @@ export const KeywordReportSection: React.FC<KeywordReportSectionProps> = ({
                 label="KD"
                 onChange={onKeywordSelectChange}
               >
-                {Object.values(KDLevel).map((level) => (
+                {KD_LEVELS.map((level) => (
                   <MenuItem key={level} value={level}>
                     {level}
                   </MenuItem>

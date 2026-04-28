@@ -1,4 +1,4 @@
-import { KDLevel } from "@prisma/client";
+import type { KdLevel } from "@/types/kd";
 
 export interface OverallMetrics {
   id: string;
@@ -49,7 +49,7 @@ export interface KeywordReport {
   keyword: string;
   position: number | null;
   traffic: number;
-  kd: KDLevel;
+  kd: KdLevel;
   isTopReport: boolean;
   dateRecorded: string;
   customerId: string;
@@ -63,7 +63,7 @@ export type KeywordReportForm = Omit<
 export interface KeywordRecommend {
   id: string;
   keyword: string;
-  kd: KDLevel | null;
+  kd: KdLevel | null;
   isTopReport: boolean;
   note: string | null;
   createdAt: string;

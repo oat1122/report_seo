@@ -1,4 +1,6 @@
 // src/components/Customer/Report/StickyNavigation.tsx
+"use client";
+
 import React from "react";
 import { Box, Button, Paper } from "@mui/material";
 import { Assessment, List, Lightbulb, MoreHoriz } from "@mui/icons-material";

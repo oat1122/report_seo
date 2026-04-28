@@ -21,7 +21,7 @@ import {
   Typography,
 } from "@mui/material";
 import { Add, Delete, Edit, Save } from "@mui/icons-material";
-import { KDLevel } from "@prisma/client";
+import { KdLevel, KD_LEVELS } from "@/types/kd";
 import { KeywordRecommend, KeywordRecommendForm } from "@/types/metrics";
 
 interface RecommendKeywordSectionProps {
@@ -29,7 +29,7 @@ interface RecommendKeywordSectionProps {
   recommendKeywordsData: KeywordRecommend[];
   editingRecommendId: string | null;
   onRecommendChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onRecommendSelectChange: (e: SelectChangeEvent<KDLevel | "">) => void;
+  onRecommendSelectChange: (e: SelectChangeEvent<KdLevel | "">) => void;
   onAddRecommend: () => void;
   onSetEditingRecommend: (keyword: KeywordRecommend) => void;
   onClearEditingRecommend: () => void;
@@ -112,7 +112,7 @@ export const RecommendKeywordSection: React.FC<
                 <MenuItem value="">
                   <em>ไม่ระบุ</em>
                 </MenuItem>
-                {Object.values(KDLevel).map((level) => (
+                {KD_LEVELS.map((level) => (
                   <MenuItem key={level} value={level}>
                     {level}
                   </MenuItem>

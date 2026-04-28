@@ -19,13 +19,18 @@ import { KeywordTrendChart } from "./KeywordTrendChart";
 import { useReportPage } from "./hooks/useReportPage";
 import { HistoryProvider } from "./contexts/HistoryContext";
 import { AiOverviewCard } from "./AiOverviewCard";
+import type { CustomerReportData } from "@/hooks/api/useCustomersApi";
 
 interface ReportPageProps {
   customerId: string;
+  initialData?: CustomerReportData;
 }
 
-const ReportPage: React.FC<ReportPageProps> = ({ customerId }) => {
-  const { reportData, isLoading, error } = useReportPage(customerId);
+const ReportPage: React.FC<ReportPageProps> = ({ customerId, initialData }) => {
+  const { reportData, isLoading, error } = useReportPage(
+    customerId,
+    initialData,
+  );
 
   if (isLoading) {
     return (

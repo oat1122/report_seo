@@ -1,20 +1,15 @@
 // src/components/Customer/Report/lib/utils.ts
-import { KDLevel } from "@prisma/client";
+import { KdLevel } from "@/types/kd";
 
-/**
- * ฟังก์ชันกำหนดสีของ Chip ตาม KD Level
- * @param kd - ระดับความยาก (HARD, MEDIUM, EASY)
- * @returns สีที่ใช้แสดงใน MUI Chip component
- */
 export const getKdColor = (
-  kd: KDLevel,
+  kd: KdLevel,
 ): "error" | "warning" | "success" | "default" => {
   switch (kd) {
-    case KDLevel.HARD:
+    case KdLevel.HARD:
       return "error";
-    case KDLevel.MEDIUM:
+    case KdLevel.MEDIUM:
       return "warning";
-    case KDLevel.EASY:
+    case KdLevel.EASY:
       return "success";
     default:
       return "default";

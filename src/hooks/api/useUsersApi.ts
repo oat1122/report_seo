@@ -96,15 +96,19 @@ export const useGetManagedCustomers = () => {
 /**
  * Hook to add a new user
  */
+function invalidateUserListQueries(queryClient: ReturnType<typeof useQueryClient>) {
+  queryClient.invalidateQueries({ queryKey: ["users"] });
+  queryClient.invalidateQueries({ queryKey: ["seoDevs"] });
+  queryClient.invalidateQueries({ queryKey: ["managedCustomers"] });
+}
+
 export const useAddUser = () => {
   const queryClient = useQueryClient();
 
   return useMutation<User, Error, UserFormState>({
     mutationFn: addUser,
     onSuccess: () => {
-      // Invalidate and refetch users
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-      // Toast notification handled by showPromiseToast in useUserModalLogic
+      invalidateUserListQueries(queryClient);
     },
   });
 };
@@ -118,8 +122,7 @@ export const useUpdateUser = () => {
   return useMutation<User, Error, { id: string; user: UserFormState }>({
     mutationFn: updateUser,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-      // Toast notification handled by showPromiseToast in useUserModalLogic
+      invalidateUserListQueries(queryClient);
     },
   });
 };
@@ -133,7 +136,7 @@ export const useDeleteUser = () => {
   return useMutation<void, Error, string>({
     mutationFn: deleteUser,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
+      invalidateUserListQueries(queryClient);
       toast.success("ลบผู้ใช้สำเร็จ");
     },
   });
@@ -148,7 +151,7 @@ export const useRestoreUser = () => {
   return useMutation<void, Error, string>({
     mutationFn: restoreUser,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
+      invalidateUserListQueries(queryClient);
       toast.success("กู้คืนผู้ใช้สำเร็จ");
     },
   });

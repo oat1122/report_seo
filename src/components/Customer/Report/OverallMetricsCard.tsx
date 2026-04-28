@@ -1,4 +1,6 @@
 // src/components/Customer/Report/OverallMetricsCard.tsx
+"use client";
+
 import React from "react";
 import {
   Paper,

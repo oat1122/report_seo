@@ -1,79 +1,50 @@
 import { NextRequest, NextResponse } from "next/server";
+import { existsSync } from "fs";
+import { mkdir, unlink, writeFile } from "fs/promises";
+import path from "path";
 import { Role } from "@/types/auth";
 import { validateUploadFile } from "@/lib/file-upload";
-import { writeFile, mkdir } from "fs/promises";
-import { existsSync } from "fs";
-import path from "path";
-import prisma from "@/lib/prisma";
-import { requireSession } from "@/lib/api-auth";
+import { prisma } from "@/lib/prisma";
+import {
+  getCustomerAccessByCustomerId,
+  requireSession,
+} from "@/lib/api-auth";
+import { toErrorResponse } from "@/lib/http";
+import { BadRequestError, ForbiddenError } from "@/lib/errors";
+import { buildPublicUrl, getUploadDir } from "@/lib/upload-paths";
+import {
+  paymentListQuerySchema,
+  paymentUploadSchema,
+} from "@/schemas/payment";
 
-const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads", "payments");
+const UPLOAD_DIR = getUploadDir("payments");
 
 export async function POST(request: NextRequest) {
   try {
-    const auth = await requireSession();
-
-    if (auth.response || !auth.session) {
-      return auth.response;
-    }
-
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
-    const customerId = formData.get("customerId") as string | null;
 
     if (!file) {
-      return NextResponse.json(
-        {
-          error:
-            "เธเธฃเธธเธ“เธฒเน€เธฅเธทเธญเธเนเธเธฅเนเธ—เธตเนเธ•เนเธญเธเธเธฒเธฃเธญเธฑเธเนเธซเธฅเธ”",
-        },
-        { status: 400 },
-      );
+      throw new BadRequestError("กรุณาเลือกไฟล์ที่ต้องการอัปโหลด");
     }
 
-    if (!customerId) {
-      return NextResponse.json(
-        { error: "เธเธฃเธธเธ“เธฒเธฃเธฐเธเธธ customerId" },
-        { status: 400 },
-      );
-    }
-
-    const customer = await prisma.customer.findUnique({
-      where: { id: customerId },
-      select: {
-        id: true,
-        userId: true,
-        seoDevId: true,
-      },
+    const { customerId } = paymentUploadSchema.parse({
+      customerId: formData.get("customerId"),
     });
 
-    if (!customer) {
-      return NextResponse.json(
-        { error: "เนเธกเนเธเธเธเนเธญเธกเธนเธฅเธฅเธนเธเธเนเธฒ" },
-        { status: 404 },
-      );
+    const access = await getCustomerAccessByCustomerId(customerId);
+    if (access.response || !access.context) {
+      return access.response;
     }
-
-    const isAdmin = auth.session.user.role === Role.ADMIN;
-    const isOwner = auth.session.user.id === customer.userId;
-    const isAssignedSeoDev =
-      auth.session.user.role === Role.SEO_DEV &&
-      auth.session.user.id === customer.seoDevId;
-
+    const { isAdmin, isOwner, isAssignedSeoDev } = access.context;
     if (!isAdmin && !isOwner && !isAssignedSeoDev) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      throw new ForbiddenError();
     }
 
     const validationResult = await validateUploadFile(file);
-
     if (!validationResult.isValid || !validationResult.validatedFile) {
-      return NextResponse.json(
-        {
-          error:
-            validationResult.error ||
-            "เนเธเธฅเนเนเธกเนเธเนเธฒเธเธเธฒเธฃเธ•เธฃเธงเธเธชเธญเธ",
-        },
-        { status: 400 },
+      throw new BadRequestError(
+        validationResult.error || "ไฟล์ไม่ผ่านการตรวจสอบ",
       );
     }
 
@@ -86,35 +57,37 @@ export async function POST(request: NextRequest) {
     const filePath = path.join(UPLOAD_DIR, validatedFile.filename);
     await writeFile(filePath, validatedFile.buffer);
 
-    const uploadUrl = `/uploads/payments/${validatedFile.filename}`;
-
-    const paymentProof = await prisma.paymentProof.create({
-      data: {
-        uploadUrl,
-        customerId,
-        status: "PENDING",
-      },
-    });
+    let paymentProof;
+    try {
+      paymentProof = await prisma.paymentProof.create({
+        data: {
+          uploadUrl: buildPublicUrl("payments", validatedFile.filename),
+          customerId: access.context.customer.id,
+          status: "PENDING",
+        },
+      });
+    } catch (error) {
+      // DB ล้มเหลว → unlink ไฟล์เพื่อกัน orphan
+      try {
+        await unlink(filePath);
+      } catch (unlinkErr) {
+        console.error("Failed to cleanup orphan file:", unlinkErr);
+      }
+      throw error;
+    }
 
     return NextResponse.json({
       success: true,
-      message: "เธญเธฑเธเนเธซเธฅเธ”เธชเธฅเธดเธเธชเธณเน€เธฃเนเธ",
+      message: "อัปโหลดสลิปสำเร็จ",
       data: {
         id: paymentProof.id,
-        uploadUrl,
+        uploadUrl: paymentProof.uploadUrl,
         status: paymentProof.status,
         uploadDate: paymentProof.uploadDate,
       },
     });
   } catch (error) {
-    console.error("Upload error:", error);
-    return NextResponse.json(
-      {
-        error:
-          "เน€เธเธดเธ”เธเนเธญเธเธดเธ”เธเธฅเธฒเธ”เนเธเธเธฒเธฃเธญเธฑเธเนเธซเธฅเธ”เนเธเธฅเน",
-      },
-      { status: 500 },
-    );
+    return toErrorResponse(error);
   }
 }
 
@@ -126,41 +99,28 @@ export async function GET(request: NextRequest) {
       return auth.response;
     }
 
-    const userRole = auth.session.user.role;
-    if (userRole !== Role.ADMIN && userRole !== Role.SEO_DEV) {
-      return NextResponse.json(
-        { error: "เนเธกเนเธกเธตเธชเธดเธ—เธเธดเนเน€เธเนเธฒเธ–เธถเธ" },
-        { status: 403 },
-      );
-    }
-
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get("status");
-    const customerId = searchParams.get("customerId");
+    const query = paymentListQuerySchema.parse({
+      status: searchParams.get("status") || undefined,
+      customerId: searchParams.get("customerId") || undefined,
+    });
 
-    if (customerId && userRole === Role.SEO_DEV) {
-      const customer = await prisma.customer.findUnique({
-        where: { id: customerId },
-        select: {
-          seoDevId: true,
-        },
-      });
-
-      if (!customer || customer.seoDevId !== auth.session.user.id) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
-    }
+    const userRole = auth.session.user.role;
 
     const where: Record<string, unknown> = {};
-    if (status) where.status = status;
-    if (customerId) where.customerId = customerId;
-    if (userRole === Role.SEO_DEV) {
-      where.customer = {
-        is: {
-          seoDevId: auth.session.user.id,
-        },
-      };
+    if (query.status) where.status = query.status;
+    if (query.customerId) where.customerId = query.customerId;
+
+    if (userRole === Role.CUSTOMER) {
+      // CUSTOMER เห็นเฉพาะของตัวเอง
+      where.customer = { is: { userId: auth.session.user.id } };
+    } else if (userRole === Role.SEO_DEV) {
+      // SEO_DEV เห็นเฉพาะลูกค้าที่ดูแล
+      where.customer = { is: { seoDevId: auth.session.user.id } };
+    } else if (userRole !== Role.ADMIN) {
+      throw new BadRequestError("Invalid role");
     }
+    // ADMIN เห็นทั้งหมดตาม where
 
     const paymentProofs = await prisma.paymentProof.findMany({
       where,
@@ -173,9 +133,7 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-      orderBy: {
-        uploadDate: "desc",
-      },
+      orderBy: { uploadDate: "desc" },
     });
 
     return NextResponse.json({
@@ -183,10 +141,6 @@ export async function GET(request: NextRequest) {
       data: paymentProofs,
     });
   } catch (error) {
-    console.error("Get payments error:", error);
-    return NextResponse.json(
-      { error: "เน€เธเธดเธ”เธเนเธญเธเธดเธ”เธเธฅเธฒเธ”" },
-      { status: 500 },
-    );
+    return toErrorResponse(error);
   }
 }

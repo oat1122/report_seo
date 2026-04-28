@@ -20,20 +20,20 @@ const keywordSchema = z.object({
   keyword: z.string().min(1, "Keyword is required"),
   position: z.union([z.number().int().min(1), z.string(), z.null()]).optional(),
   traffic: z.union([z.number().int().min(0), z.string()]),
-  kd: z.nativeEnum(KDLevel), // Required field
+  kd: z.enum(KDLevel), // Required field
   isTopReport: z.boolean(),
 });
 
 const recommendKeywordSchema = z.object({
   keyword: z.string().min(1, "Keyword is required"),
-  kd: z.nativeEnum(KDLevel).nullable().optional(),
+  kd: z.enum(KDLevel).nullable().optional(),
   isTopReport: z.boolean().optional(),
   note: z.string().optional(),
 });
 
 class CustomerService {
   /**
-   * ดึงข้อมูล Customer Report ทั้งหมด (Metrics, Keywords, Recommendations)
+   * ดึงข้อมูล Customer Report ทั้งหมด (Metrics, Keywords, Recommendations, AI Overviews)
    */
   public async getCustomerReport(customerId: string) {
     // 1. ค้นหา Customer Profile โดยใช้ userId
@@ -52,25 +52,33 @@ class CustomerService {
         topKeywords: [],
         otherKeywords: [],
         recommendations: [],
+        aiOverviews: [],
         customerName: null,
         domain: null,
       };
     }
 
-    // 2. ดึงข้อมูล Metrics, Keywords และ Recommendations พร้อมกัน
-    const [metrics, keywords, recommendations] = await Promise.all([
-      prisma.overallMetrics.findUnique({
-        where: { customerId: customer.id },
-      }),
-      prisma.keywordReport.findMany({
-        where: { customerId: customer.id },
-        orderBy: [{ isTopReport: "desc" }, { position: "asc" }],
-      }),
-      prisma.keywordRecommend.findMany({
-        where: { customerId: customer.id },
-        orderBy: { createdAt: "desc" },
-      }),
-    ]);
+    // 2. ดึงข้อมูลทั้งหมดพร้อมกัน
+    const [metrics, keywords, recommendations, aiOverviews] = await Promise.all(
+      [
+        prisma.overallMetrics.findUnique({
+          where: { customerId: customer.id },
+        }),
+        prisma.keywordReport.findMany({
+          where: { customerId: customer.id },
+          orderBy: [{ isTopReport: "desc" }, { position: "asc" }],
+        }),
+        prisma.keywordRecommend.findMany({
+          where: { customerId: customer.id },
+          orderBy: { createdAt: "desc" },
+        }),
+        prisma.aiOverview.findMany({
+          where: { customerId: customer.id },
+          include: { images: true },
+          orderBy: { createdAt: "desc" },
+        }),
+      ],
+    );
 
     // 3. แยกประเภท Keywords
     const topKeywords = keywords.filter((kw) => kw.isTopReport);
@@ -81,6 +89,7 @@ class CustomerService {
       topKeywords,
       otherKeywords,
       recommendations,
+      aiOverviews,
       customerName: customer.user.name,
       domain: customer.domain,
     };
@@ -288,6 +297,7 @@ class CustomerService {
 
   /**
    * ดึง Recommend Keywords
+   * คืน [] ถ้าไม่พบ customer (ตรงกับ getMetrics, getKeywords)
    */
   public async getRecommendKeywords(customerId: string) {
     const customer = await prisma.customer.findUnique({
@@ -295,7 +305,7 @@ class CustomerService {
     });
 
     if (!customer) {
-      throw new Error("Customer not found");
+      return [];
     }
 
     return prisma.keywordRecommend.findMany({

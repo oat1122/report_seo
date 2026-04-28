@@ -1,4 +1,6 @@
 // src/components/Customer/Report/SummaryStatistics.tsx
+"use client";
+
 import React from "react";
 import { Box, Paper, Typography, Grid, alpha } from "@mui/material";
 import {
