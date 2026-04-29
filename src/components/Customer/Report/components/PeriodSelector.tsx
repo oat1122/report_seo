@@ -51,10 +51,10 @@ export const PeriodSelector: React.FC<PeriodSelectorProps> = ({
               backgroundColor: "#f1f5f9",
             },
             "&.Mui-selected": {
-              backgroundColor: "#667eea",
+              backgroundColor: "#9592ff",
               color: "#ffffff",
               "&:hover": {
-                backgroundColor: "#5a67d8",
+                backgroundColor: "#6c68e8",
               },
             },
           },

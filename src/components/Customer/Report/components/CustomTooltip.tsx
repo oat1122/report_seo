@@ -59,11 +59,11 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
     <Box
       sx={{
         backgroundColor: "#ffffff",
-        padding: "12px 16px",
+        padding: { xs: "8px 10px", md: "12px 16px" },
         borderRadius: "8px",
         boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
         border: "1px solid #e2e8f0",
-        minWidth: "140px",
+        minWidth: { xs: 100, md: 140 },
       }}
     >
       {/* Date header */}

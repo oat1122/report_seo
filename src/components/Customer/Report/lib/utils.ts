@@ -22,10 +22,10 @@ export const getKdColor = (
  * @returns สีที่ใช้แสดงในกราฟ
  */
 export const getRatingColor = (value: number): string => {
-  if (value > 40) return "#2e7d32"; // Dark Green
-  if (value > 30) return "#66bb6a"; // Light Green
-  if (value < 20) return "#ed6c02"; // Yellow (Warning)
-  return "#1976d2"; // Default Blue
+  if (value > 40) return "#2e7d32"; // success.main
+  if (value > 30) return "#66bb6a"; // success.light
+  if (value < 20) return "#ed6c02"; // warning.main
+  return "#9592ff"; // theme info.main
 };
 
 /**

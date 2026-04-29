@@ -17,6 +17,8 @@ import {
   ListItemText,
   ListItemSecondaryAction,
   Chip,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import {
   AutoAwesomeOutlined,
@@ -35,6 +37,9 @@ interface AiOverviewCardProps {
 export const AiOverviewCard: React.FC<AiOverviewCardProps> = ({
   aiOverviews,
 }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   // Dialog state: which AI Overview item is being viewed
   const [dialogItem, setDialogItem] = useState<AiOverview | null>(null);
 
@@ -90,7 +95,7 @@ export const AiOverviewCard: React.FC<AiOverviewCardProps> = ({
         <Box
           sx={{
             p: 3,
-            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            background: "linear-gradient(135deg, #9592ff 0%, #6c68e8 100%)",
             position: "relative",
             overflow: "hidden",
           }}
@@ -137,7 +142,7 @@ export const AiOverviewCard: React.FC<AiOverviewCardProps> = ({
                 "&:hover": {
                   bgcolor: "#F1F5F9",
                   transform: "translateX(4px)",
-                  boxShadow: "inset 4px 0 0 #667eea",
+                  boxShadow: "inset 4px 0 0 #9592ff",
                 },
               }}
             >
@@ -175,14 +180,15 @@ export const AiOverviewCard: React.FC<AiOverviewCardProps> = ({
         </List>
       </Paper>
 
-      {/* Image Dialog */}
+      {/* Image Dialog — full screen on mobile */}
       <Dialog
         open={!!dialogItem}
         onClose={handleCloseDialog}
         maxWidth="md"
         fullWidth
+        fullScreen={isMobile}
         PaperProps={{
-          sx: { borderRadius: 3 },
+          sx: { borderRadius: { xs: 0, sm: 3 } },
         }}
       >
         {dialogItem && (
@@ -193,7 +199,7 @@ export const AiOverviewCard: React.FC<AiOverviewCardProps> = ({
                 justifyContent: "space-between",
                 alignItems: "flex-start",
                 pb: 2,
-                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                background: "linear-gradient(135deg, #9592ff 0%, #6c68e8 100%)",
                 color: "white",
               }}
             >
@@ -307,28 +313,36 @@ export const AiOverviewCard: React.FC<AiOverviewCardProps> = ({
             <>
               <IconButton
                 onClick={handlePrev}
+                aria-label="ภาพก่อนหน้า"
+                size="large"
                 sx={{
                   position: "absolute",
-                  left: -50,
+                  left: { xs: 8, md: 16 },
                   top: "50%",
                   transform: "translateY(-50%)",
                   color: "white",
                   bgcolor: "rgba(0,0,0,0.5)",
-                  "&:hover": { bgcolor: "rgba(0,0,0,0.7)" },
+                  "&:hover": { bgcolor: "rgba(0,0,0,0.75)" },
+                  width: 48,
+                  height: 48,
                 }}
               >
                 <ArrowBack />
               </IconButton>
               <IconButton
                 onClick={handleNext}
+                aria-label="ภาพถัดไป"
+                size="large"
                 sx={{
                   position: "absolute",
-                  right: -50,
+                  right: { xs: 8, md: 16 },
                   top: "50%",
                   transform: "translateY(-50%)",
                   color: "white",
                   bgcolor: "rgba(0,0,0,0.5)",
-                  "&:hover": { bgcolor: "rgba(0,0,0,0.7)" },
+                  "&:hover": { bgcolor: "rgba(0,0,0,0.75)" },
+                  width: 48,
+                  height: 48,
                 }}
               >
                 <ArrowForward />

@@ -23,7 +23,9 @@ export async function GET(
       return permissionError;
     }
 
-    const history = await customerService.getKeywordHistory(keywordId);
+    const history = await customerService.getKeywordHistory(keywordId, {
+      onlyVisible: !access.context.canManage,
+    });
     return NextResponse.json(history);
   } catch (error) {
     return toErrorResponse(error);

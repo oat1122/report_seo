@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { SelectChangeEvent } from "@mui/material";
 import { KdLevel } from "@/types/kd";
 import {
@@ -96,8 +96,20 @@ export const useMetricsModal = (metricsData: OverallMetricsForm | null) => {
   const [editingRecommendId, setEditingRecommendId] = useState<string | null>(
     null,
   );
+  const [isDirty, setIsDirty] = useState(false);
+
+  // Sync metricsData → form, แต่กัน reset เมื่อค่าจริงไม่เปลี่ยน (React Query refetch)
+  // ใช้ stringified key เป็น dep แทน reference
+  const metricsKey = useMemo(
+    () => (metricsData ? JSON.stringify(metricsData) : null),
+    [metricsData],
+  );
+  const lastSyncedKey = useRef<string | null>(null);
 
   useEffect(() => {
+    if (lastSyncedKey.current === metricsKey) return;
+    lastSyncedKey.current = metricsKey;
+
     if (metricsData) {
       setMetrics({
         domainRating: metricsData.domainRating || "",
@@ -110,11 +122,11 @@ export const useMetricsModal = (metricsData: OverallMetricsForm | null) => {
         backlinks: metricsData.backlinks || "",
         refDomains: metricsData.refDomains || "",
       });
-      return;
+    } else {
+      setMetrics(createDefaultMetrics());
     }
-
-    setMetrics(createDefaultMetrics());
-  }, [metricsData]);
+    setIsDirty(false);
+  }, [metricsData, metricsKey]);
 
   const handleMetricsChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -123,6 +135,7 @@ export const useMetricsModal = (metricsData: OverallMetricsForm | null) => {
         ...prev,
         [field]: sanitizeNumericValue(e.target.value),
       }));
+      setIsDirty(true);
     },
     [],
   );
@@ -224,8 +237,11 @@ export const useMetricsModal = (metricsData: OverallMetricsForm | null) => {
     resetRecommendForm();
   };
 
-  const validationErrors = validateMetrics(metrics);
+  const validationErrors = useMemo(() => validateMetrics(metrics), [metrics]);
   const isMetricsValid = Object.keys(validationErrors).length === 0;
+
+  // Reset isDirty (เรียกหลัง save สำเร็จ)
+  const markClean = useCallback(() => setIsDirty(false), []);
 
   return {
     metrics,
@@ -235,6 +251,8 @@ export const useMetricsModal = (metricsData: OverallMetricsForm | null) => {
     editingRecommendId,
     validationErrors,
     isMetricsValid,
+    isDirty,
+    markClean,
     handleMetricsChange,
     handleKeywordChange,
     handleKeywordSelectChange,

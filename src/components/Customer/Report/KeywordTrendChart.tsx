@@ -247,7 +247,7 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
         <Typography variant="h5" fontWeight={700} mb={2}>
           {title}
         </Typography>
-        <Box sx={{ height: 300 }}>
+        <Box sx={{ height: { xs: 220, md: 300 } }}>
           <ChartEmptyState message="ยังไม่มีประวัติ Keyword" />
         </Box>
       </Paper>
@@ -256,7 +256,7 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
 
   return (
     <Paper
-      sx={{ p: 3, borderRadius: 3, border: "1px solid #E2E8F0" }}
+      sx={{ p: { xs: 2, md: 3 }, borderRadius: 3, border: "1px solid #E2E8F0" }}
       elevation={0}
     >
       {/* Header with title and period selector */}
@@ -402,7 +402,7 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
       </Box>
 
       {!hasData ? (
-        <Box sx={{ height: 300 }}>
+        <Box sx={{ height: { xs: 220, md: 300 } }}>
           <ChartEmptyState message="ยังไม่มีข้อมูลเพียงพอสำหรับ Keywords ที่เลือก" />
         </Box>
       ) : (
@@ -411,7 +411,7 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
           sx={{
             display: "grid",
             gridTemplateColumns: { xs: "1fr", md: "2fr 1fr" },
-            gap: 3,
+            gap: { xs: 2, md: 3 },
           }}
         >
           {/* Left: Line Chart */}
@@ -465,7 +465,7 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
               </Box>
             </Box>
 
-            <Box sx={{ height: 400 }}>
+            <Box sx={{ height: { xs: 280, sm: 320, md: 400 } }}>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData} {...KEYWORD_CHART_PROPS}>
                   <CartesianGrid
@@ -651,8 +651,13 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
               สัดส่วน Traffic
             </Typography>
 
-            <Box sx={{ minHeight: 280, position: "relative" }}>
-              <ResponsiveContainer width="100%" height={280}>
+            <Box
+              sx={{
+                minHeight: { xs: 220, md: 280 },
+                position: "relative",
+              }}
+            >
+              <ResponsiveContainer width="100%" height={260}>
                 <PieChart>
                   <Pie
                     data={donutData}
@@ -752,10 +757,10 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
                       sx={{
                         fontWeight: 500,
                         color: "#1e293b",
-                        maxWidth: 100,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
+                        fontSize: { xs: "0.7rem", md: "0.75rem" },
+                        wordBreak: "break-word",
+                        overflowWrap: "anywhere",
+                        lineHeight: 1.4,
                       }}
                       title={item.keyword}
                     >

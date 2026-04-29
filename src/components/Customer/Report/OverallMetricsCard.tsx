@@ -10,6 +10,8 @@ import {
   CircularProgress,
   IconButton,
   Tooltip,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { OverallMetricsForm } from "@/types/metrics";
 import { formatDuration } from "@/lib/duration";
@@ -29,8 +31,16 @@ import { MetricChangeIndicator } from "./components/MetricChangeIndicator";
 
 // --- Helper Components ---
 
-// Gauge Chart Component (ใช้แทน CircularProgress แบบเดิม)
-const GaugeChart = ({ label, value }: { label: string; value: number }) => {
+// Gauge Chart Component — รับ size จาก parent (responsive)
+const GaugeChart = ({
+  label,
+  value,
+  size = 80,
+}: {
+  label: string;
+  value: number;
+  size?: number;
+}) => {
   const color = getRatingColor(value);
   return (
     <Box
@@ -38,7 +48,7 @@ const GaugeChart = ({ label, value }: { label: string; value: number }) => {
         display: "flex",
         alignItems: "center",
         height: "100%",
-        p: 2,
+        p: { xs: 1.5, md: 2 },
         flexDirection: "column",
         justifyContent: "center",
       }}
@@ -47,7 +57,7 @@ const GaugeChart = ({ label, value }: { label: string; value: number }) => {
         <CircularProgress
           variant="determinate"
           value={value}
-          size={80}
+          size={size}
           thickness={6}
           style={{ color }}
         />
@@ -63,12 +73,19 @@ const GaugeChart = ({ label, value }: { label: string; value: number }) => {
             justifyContent: "center",
           }}
         >
-          <Typography variant="h5" component="div" fontWeight={700}>
+          <Typography
+            variant="h5"
+            component="div"
+            fontWeight={700}
+            sx={{ fontSize: size <= 64 ? "1rem" : "1.5rem" }}
+          >
             {value}
           </Typography>
         </Box>
       </Box>
-      <Typography variant="h6">{label}</Typography>
+      <Typography variant="h6" sx={{ fontSize: { xs: "0.95rem", md: "1.1rem" } }}>
+        {label}
+      </Typography>
     </Box>
   );
 };
@@ -142,6 +159,10 @@ export const OverallMetricsCard: React.FC<OverallMetricsCardProps> = ({
   customerId,
   customerName,
 }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const gaugeSize = isMobile ? 64 : 80;
+
   // ใช้ Custom Hook สำหรับจัดการ State และ Logic
   const {
     isHistoryModalOpen,
@@ -196,7 +217,11 @@ export const OverallMetricsCard: React.FC<OverallMetricsCardProps> = ({
   return (
     <>
       <Paper
-        sx={{ p: 3, borderRadius: 3, border: "1px solid #E2E8F0" }}
+        sx={{
+          p: { xs: 2, md: 3 },
+          borderRadius: 3,
+          border: "1px solid #E2E8F0",
+        }}
         elevation={0}
       >
         {/* Header with History button */}
@@ -221,10 +246,18 @@ export const OverallMetricsCard: React.FC<OverallMetricsCardProps> = ({
         <Grid container spacing={2}>
           {/* Main metrics with new charts */}
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <GaugeChart label="Domain Rating" value={metrics.domainRating} />
+            <GaugeChart
+              label="Domain Rating"
+              value={metrics.domainRating}
+              size={gaugeSize}
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <GaugeChart label="Health Score" value={metrics.healthScore} />
+            <GaugeChart
+              label="Health Score"
+              value={metrics.healthScore}
+              size={gaugeSize}
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <CustomLinearProgress

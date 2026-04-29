@@ -58,6 +58,7 @@ CREATE TABLE `overallmetricshistory` (
     `backlinks` INTEGER NOT NULL,
     `refDomains` INTEGER NOT NULL,
     `dateRecorded` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `isVisible` BOOLEAN NOT NULL DEFAULT true,
     `customerId` VARCHAR(191) NOT NULL,
 
     INDEX `overallmetricshistory_customerId_idx`(`customerId`),
@@ -88,6 +89,7 @@ CREATE TABLE `keywordreporthistory` (
     `kd` ENUM('HARD', 'MEDIUM', 'EASY') NOT NULL,
     `isTopReport` BOOLEAN NOT NULL,
     `dateRecorded` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `isVisible` BOOLEAN NOT NULL DEFAULT true,
     `reportId` VARCHAR(191) NOT NULL,
 
     INDEX `keywordreporthistory_reportId_idx`(`reportId`),
@@ -124,6 +126,7 @@ CREATE TABLE `keywordrecommend` (
 CREATE TABLE `aioverview` (
     `id` VARCHAR(191) NOT NULL,
     `title` VARCHAR(191) NOT NULL,
+    `displayDate` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `customerId` VARCHAR(191) NOT NULL,
 

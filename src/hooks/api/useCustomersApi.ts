@@ -370,6 +370,143 @@ export const useGetKeywordSpecificHistory = (keywordId: string | null) => {
   });
 };
 
+// --- History visibility (toggle log แสดง/ซ่อนต่อลูกค้า) ---
+
+interface VisibilityPayload {
+  customerId: string;
+  historyId?: string;
+  historyIds?: string[];
+  isVisible: boolean;
+}
+
+const patchMetricsHistoryVisibility = async ({
+  customerId,
+  historyId,
+  historyIds,
+  isVisible,
+}: VisibilityPayload) => {
+  const { data } = await axios.patch(
+    `/customers/${customerId}/metrics/history/visibility`,
+    { historyId, historyIds, isVisible },
+  );
+  return data as { updated: number };
+};
+
+const patchKeywordHistoryVisibility = async ({
+  customerId,
+  historyId,
+  historyIds,
+  isVisible,
+}: VisibilityPayload) => {
+  const { data } = await axios.patch(
+    `/customers/${customerId}/keywords/history/visibility`,
+    { historyId, historyIds, isVisible },
+  );
+  return data as { updated: number };
+};
+
+export const useToggleMetricsHistoryVisibility = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    { updated: number },
+    Error,
+    VisibilityPayload,
+    { previous: CombinedHistoryData | undefined }
+  >({
+    mutationFn: patchMetricsHistoryVisibility,
+    onMutate: async (variables) => {
+      const queryKey = ["history", variables.customerId];
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<CombinedHistoryData>(queryKey);
+
+      // Optimistic flip บน metricsHistory
+      const targetIds = variables.historyIds ?? [variables.historyId];
+      queryClient.setQueryData<CombinedHistoryData>(queryKey, (old) =>
+        old
+          ? {
+              ...old,
+              metricsHistory: old.metricsHistory.map((h) =>
+                targetIds.includes(h.id)
+                  ? { ...h, isVisible: variables.isVisible }
+                  : h,
+              ),
+            }
+          : old,
+      );
+
+      return { previous };
+    },
+    onError: (_err, variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(
+          ["history", variables.customerId],
+          context.previous,
+        );
+      }
+    },
+    onSettled: (_data, _err, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["history", variables.customerId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["customerReport", variables.customerId],
+      });
+    },
+  });
+};
+
+export const useToggleKeywordHistoryVisibility = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    { updated: number },
+    Error,
+    VisibilityPayload,
+    { previousCombined: CombinedHistoryData | undefined }
+  >({
+    mutationFn: patchKeywordHistoryVisibility,
+    onMutate: async (variables) => {
+      const queryKey = ["history", variables.customerId];
+      await queryClient.cancelQueries({ queryKey });
+      const previousCombined =
+        queryClient.getQueryData<CombinedHistoryData>(queryKey);
+
+      const targetIds = variables.historyIds ?? [variables.historyId];
+      queryClient.setQueryData<CombinedHistoryData>(queryKey, (old) =>
+        old
+          ? {
+              ...old,
+              keywordHistory: old.keywordHistory.map((h) =>
+                targetIds.includes(h.id)
+                  ? { ...h, isVisible: variables.isVisible }
+                  : h,
+              ),
+            }
+          : old,
+      );
+
+      return { previousCombined };
+    },
+    onError: (_err, variables, context) => {
+      if (context?.previousCombined) {
+        queryClient.setQueryData(
+          ["history", variables.customerId],
+          context.previousCombined,
+        );
+      }
+    },
+    onSettled: (_data, _err, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["history", variables.customerId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["customerReport", variables.customerId],
+      });
+    },
+  });
+};
+
 const fetchAiOverviews = async (customerId: string): Promise<AiOverview[]> => {
   const { data } = await axios.get(`/customers/${customerId}/ai-overview`);
   return data;

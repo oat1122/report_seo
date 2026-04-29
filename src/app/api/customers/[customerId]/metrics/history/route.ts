@@ -23,8 +23,11 @@ export async function GET(
       return permissionError;
     }
 
+    // CUSTOMER (canManage=false) เห็นเฉพาะ row ที่ admin เปิดให้
+    // ADMIN/SEO_DEV (canManage=true) เห็นทั้งหมด — รวม row ที่ซ่อนเพื่อจัดการ visibility
     const history = await customerService.getMetricsHistory(
       access.context.customer.id,
+      { onlyVisible: !access.context.canManage },
     );
     return NextResponse.json(history);
   } catch (error) {

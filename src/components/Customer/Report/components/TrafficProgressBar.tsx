@@ -36,20 +36,20 @@ export const TrafficProgressBar: React.FC<TrafficProgressBarProps> = ({
   const getColors = () => {
     if (trend === "new") {
       return {
-        base: "linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)",
-        text: "#3b82f6",
+        base: "linear-gradient(90deg, #9592ff 0%, #6c68e8 100%)",
+        text: "#9592ff",
       };
     }
     if (trend === "up") {
       return {
-        base: "linear-gradient(90deg, #31fb4c 0%, #00d4aa 100%)",
-        text: "#059669",
+        base: "linear-gradient(90deg, #31fb4c 0%, #1ce03b 100%)",
+        text: "#2e7d32",
       };
     }
     if (trend === "down") {
       return {
-        base: "linear-gradient(90deg, #ef4444 0%, #dc2626 100%)",
-        text: "#dc2626",
+        base: "linear-gradient(90deg, #d32f2f 0%, #b71c1c 100%)",
+        text: "#d32f2f",
       };
     }
     return {

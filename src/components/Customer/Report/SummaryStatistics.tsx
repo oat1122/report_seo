@@ -36,21 +36,22 @@ const StatCard: React.FC<StatCardProps> = ({
     <Paper
       elevation={0}
       sx={{
-        p: 3,
+        p: { xs: 2, md: 3 },
         borderRadius: 3,
         border: "1px solid #E2E8F0",
         background: `linear-gradient(135deg, ${bgColor} 0%, #FFFFFF 100%)`,
         position: "relative",
         overflow: "hidden",
-        transition: "all 0.3s ease",
+        transition: "transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease",
         "&:hover": {
           transform: "translateY(-4px)",
           boxShadow: `0 12px 24px ${alpha(color, 0.15)}`,
           borderColor: color,
         },
+        "&:active": { transform: "translateY(-2px)" },
       }}
     >
-      {/* Decorative Circle */}
+      {/* Decorative Circle — hide on mobile to reduce visual noise */}
       <Box
         sx={{
           position: "absolute",
@@ -60,6 +61,7 @@ const StatCard: React.FC<StatCardProps> = ({
           height: 80,
           borderRadius: "50%",
           bgcolor: alpha(color, 0.1),
+          display: { xs: "none", sm: "block" },
         }}
       />
 
@@ -67,10 +69,10 @@ const StatCard: React.FC<StatCardProps> = ({
         <Box
           sx={{
             display: "inline-flex",
-            p: 1.5,
+            p: { xs: 1, md: 1.5 },
             borderRadius: 2,
             bgcolor: alpha(color, 0.1),
-            mb: 2,
+            mb: { xs: 1.5, md: 2 },
           }}
         >
           <Box sx={{ color, display: "flex" }}>{icon}</Box>
@@ -79,7 +81,11 @@ const StatCard: React.FC<StatCardProps> = ({
         <Typography
           variant="h3"
           fontWeight={700}
-          sx={{ mb: 0.5, color: "#2f2f2f" }}
+          sx={{
+            mb: 0.5,
+            color: "#2f2f2f",
+            fontSize: { xs: "1.5rem", md: "1.75rem" },
+          }}
         >
           {value}
         </Typography>
@@ -98,11 +104,18 @@ export const SummaryStatistics: React.FC<SummaryStatisticsProps> = ({
   recommendationsCount,
 }) => {
   return (
-    <Box sx={{ mb: 4 }}>
-      <Typography variant="h5" fontWeight={700} sx={{ mb: 3 }}>
+    <Box sx={{ mb: { xs: 3, md: 4 } }}>
+      <Typography
+        variant="h5"
+        fontWeight={700}
+        sx={{
+          mb: { xs: 2, md: 3 },
+          fontSize: { xs: "1.125rem", md: "1.5rem" },
+        }}
+      >
         Quick Overview
       </Typography>
-      <Grid container spacing={3}>
+      <Grid container spacing={{ xs: 2, md: 3 }}>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard
             icon={<VpnKey sx={{ fontSize: 28 }} />}
@@ -126,8 +139,8 @@ export const SummaryStatistics: React.FC<SummaryStatisticsProps> = ({
             icon={<EmojiEvents sx={{ fontSize: 28 }} />}
             label="Top 3 Rankings"
             value={top3Count}
-            color="#FFD700"
-            bgColor="#FFFBEB"
+            color="#ed6c02"
+            bgColor="#FFF7E6"
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
@@ -135,8 +148,8 @@ export const SummaryStatistics: React.FC<SummaryStatisticsProps> = ({
             icon={<Lightbulb sx={{ fontSize: 28 }} />}
             label="Recommendations"
             value={recommendationsCount}
-            color="#f5576c"
-            bgColor="#FFF1F2"
+            color="#6c68e8"
+            bgColor="#EEEDFF"
           />
         </Grid>
       </Grid>

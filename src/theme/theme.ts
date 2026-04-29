@@ -8,11 +8,16 @@ export const theme = createTheme({
       contrastText: "#FFFFFF",
     },
     secondary: {
+      light: "#7dfd91", // Soft green for backgrounds
       main: "#31fb4c", // Bright Teal/Green
+      dark: "#1ce03b", // Darker green for hover/border
       contrastText: "#2f2f2f",
     },
     info: {
+      light: "#bdbcff", // Soft purple for backgrounds
       main: "#9592ff", // Purple
+      dark: "#6c68e8", // Darker purple for hover/gradient end
+      contrastText: "#FFFFFF",
     },
     background: {
       default: "#FFFFFF", // White
@@ -76,6 +81,16 @@ export const theme = createTheme({
           borderRadius: "16px",
           boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
           border: "1px solid #E2E8F0",
+        },
+      },
+    },
+    MuiButtonBase: {
+      styleOverrides: {
+        root: {
+          "&:focus-visible": {
+            outline: "2px solid #9592ff",
+            outlineOffset: "2px",
+          },
         },
       },
     },

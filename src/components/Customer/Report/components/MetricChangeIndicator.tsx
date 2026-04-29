@@ -146,7 +146,7 @@ export const MetricChangeIndicator: React.FC<MetricChangeIndicatorProps> = ({
             sx={{
               height: 18,
               fontSize: "0.6rem",
-              bgcolor: "#3b82f6",
+              bgcolor: "#9592ff",
               color: "#fff",
               fontWeight: 700,
             }}

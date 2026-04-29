@@ -88,22 +88,33 @@ class CustomerService {
     const validationResult = metricsSchema.safeParse(data);
 
     if (!validationResult.success) {
-      throw new BadRequestError(
-        `Invalid data: ${validationResult.error.issues
-          .map((i) => i.message)
-          .join(", ")}`,
-      );
+      const detail = validationResult.error.issues
+        .map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`)
+        .join(", ");
+      throw new BadRequestError(`Invalid data: ${detail}`);
     }
 
     const numericData = validationResult.data;
 
+    // Update รับ partial (เฉพาะ field ที่ส่งมา)
+    // Create ต้องมีครบ → fill 0 สำหรับ field ที่ผู้ใช้ไม่ได้กรอก (สามารถ update ทีหลัง)
+    const createData = {
+      domainRating: numericData.domainRating ?? 0,
+      healthScore: numericData.healthScore ?? 0,
+      ageInYears: numericData.ageInYears ?? 0,
+      ageInMonths: numericData.ageInMonths ?? 0,
+      spamScore: numericData.spamScore ?? 0,
+      organicTraffic: numericData.organicTraffic ?? 0,
+      organicKeywords: numericData.organicKeywords ?? 0,
+      backlinks: numericData.backlinks ?? 0,
+      refDomains: numericData.refDomains ?? 0,
+      customerId: customerInternalId,
+    };
+
     return prisma.overallMetrics.upsert({
       where: { customerId: customerInternalId },
       update: numericData,
-      create: {
-        ...numericData,
-        customerId: customerInternalId,
-      },
+      create: createData,
     });
   }
 
@@ -256,11 +267,17 @@ class CustomerService {
 
   /**
    * ดึงประวัติ Metrics + Keyword ของลูกค้า — รับ Customer.id (internal) ตรง
+   * options.onlyVisible=true → filter เฉพาะ row ที่ admin เปิดให้ลูกค้าเห็น
    */
-  public async getMetricsHistory(customerInternalId: string) {
+  public async getMetricsHistory(
+    customerInternalId: string,
+    options: { onlyVisible?: boolean } = {},
+  ) {
+    const visibilityFilter = options.onlyVisible ? { isVisible: true } : {};
+
     const [metricsHistory, currentKeywords] = await Promise.all([
       prisma.overallMetricsHistory.findMany({
-        where: { customerId: customerInternalId },
+        where: { customerId: customerInternalId, ...visibilityFilter },
         orderBy: { dateRecorded: "desc" },
       }),
       prisma.keywordReport.findMany({
@@ -272,7 +289,7 @@ class CustomerService {
     const keywordIds = currentKeywords.map((kw) => kw.id);
 
     const keywordHistory = await prisma.keywordReportHistory.findMany({
-      where: { reportId: { in: keywordIds } },
+      where: { reportId: { in: keywordIds }, ...visibilityFilter },
       orderBy: { dateRecorded: "desc" },
     });
 
@@ -281,12 +298,87 @@ class CustomerService {
 
   /**
    * ดึงประวัติของ Keyword หนึ่งตัว — caller ต้องตรวจ access แล้ว
+   * options.onlyVisible=true → filter เฉพาะ row ที่ admin เปิดให้ลูกค้าเห็น
    */
-  public async getKeywordHistory(keywordId: string) {
+  public async getKeywordHistory(
+    keywordId: string,
+    options: { onlyVisible?: boolean } = {},
+  ) {
     return prisma.keywordReportHistory.findMany({
-      where: { reportId: keywordId },
+      where: {
+        reportId: keywordId,
+        ...(options.onlyVisible ? { isVisible: true } : {}),
+      },
       orderBy: { dateRecorded: "desc" },
     });
+  }
+
+  /**
+   * ตั้งค่าการเปิด/ปิดของ OverallMetricsHistory row (single)
+   * caller ต้องตรวจ access (canManage) แล้ว + verify ว่า history เป็นของลูกค้านี้
+   */
+  public async setMetricsHistoryVisibility(
+    historyId: string,
+    isVisible: boolean,
+    customerInternalId: string,
+  ) {
+    const result = await prisma.overallMetricsHistory.updateMany({
+      where: { id: historyId, customerId: customerInternalId },
+      data: { isVisible },
+    });
+    return { updated: result.count };
+  }
+
+  /**
+   * ตั้งค่าการเปิด/ปิดของ KeywordReportHistory row (single)
+   * verify ผ่าน reportId.customer.id === customerInternalId
+   */
+  public async setKeywordHistoryVisibility(
+    historyId: string,
+    isVisible: boolean,
+    customerInternalId: string,
+  ) {
+    const result = await prisma.keywordReportHistory.updateMany({
+      where: {
+        id: historyId,
+        report: { customerId: customerInternalId },
+      },
+      data: { isVisible },
+    });
+    return { updated: result.count };
+  }
+
+  /**
+   * Bulk set visibility ของ metrics history หลาย row
+   */
+  public async bulkSetMetricsHistoryVisibility(
+    historyIds: string[],
+    isVisible: boolean,
+    customerInternalId: string,
+  ) {
+    const result = await prisma.overallMetricsHistory.updateMany({
+      where: { id: { in: historyIds }, customerId: customerInternalId },
+      data: { isVisible },
+    });
+    return { updated: result.count };
+  }
+
+  /**
+   * Bulk set visibility ของ keyword history หลาย row
+   */
+  public async bulkSetKeywordHistoryVisibility(
+    historyIds: string[],
+    isVisible: boolean,
+    customerInternalId: string,
+  ) {
+    const result = await prisma.keywordReportHistory.updateMany({
+      where: {
+        id: { in: historyIds },
+        report: { customerId: customerInternalId },
+      },
+      data: { isVisible },
+    });
+    return { updated: result.count };
   }
 }
 

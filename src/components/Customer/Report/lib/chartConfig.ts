@@ -4,28 +4,28 @@
  * Ensures consistent styling across all trend charts
  */
 
-// --- Color Palette ---
+// --- Color Palette (aligned to theme: info, secondary, primary + semantic success/warning/error) ---
 export const CHART_COLORS = {
   // Primary colors for different metrics
-  primary: "#667eea", // Domain Rating (Purple)
-  secondary: "#764ba2", // Secondary purple for gradients
-  traffic: "#22c55e", // Organic Traffic (Green)
-  keywords: "#9592ff", // Organic Keywords (Light Purple)
-  backlinks: "#3b82f6", // Backlinks (Blue)
-  refDomains: "#a78bfa", // Ref Domains (Lighter Purple)
-  spamScore: "#ef4444", // Spam Score (Red)
-  healthScore: "#10b981", // Health Score (Emerald)
+  primary: "#9592ff", // Domain Rating — info.main
+  secondary: "#6c68e8", // Secondary purple — info.dark
+  traffic: "#31fb4c", // Organic Traffic — secondary.main
+  keywords: "#bdbcff", // Organic Keywords — info.light
+  backlinks: "#2f2f2f", // Backlinks — primary.main
+  refDomains: "#9592ff", // Ref Domains — info.main
+  spamScore: "#d32f2f", // Spam Score — error.main
+  healthScore: "#1ce03b", // Health Score — secondary.dark
 
   // UI Colors
-  grid: "#f0f0f0", // Grid lines
+  grid: "#E2E8F0", // Grid lines
   cursor: "#cbd5e0", // Tooltip cursor line
   text: "#a0aec0", // Axis text
-  textDark: "#64748b", // Darker text for labels
+  textDark: "#64748B", // theme.text.secondary
 
-  // Trend indicators (match existing theme)
-  up: "#059669", // Green - positive trend
-  down: "#dc2626", // Red - negative trend
-  neutral: "#64748b", // Gray - no change
+  // Trend indicators (semantic, aligned to MUI defaults)
+  up: "#2e7d32", // success.main
+  down: "#d32f2f", // error.main
+  neutral: "#64748B", // text.secondary
 } as const;
 
 // --- Common Recharts Props ---
@@ -226,18 +226,18 @@ export const TOOLTIP_STYLES = {
 // --- Keyword Chart Configuration ---
 export const MAX_SELECTED_KEYWORDS = 5;
 
-// Color palette for multi-keyword charts (10 distinct colors)
+// Color palette for multi-keyword charts — theme-aligned with diverging hues for series clarity
 export const KEYWORD_COLORS = [
-  "#3b82f6", // Blue
-  "#f97316", // Orange
-  "#14b8a6", // Teal
-  "#ef4444", // Red
-  "#8b5cf6", // Purple
-  "#22c55e", // Green
-  "#ec4899", // Pink
-  "#eab308", // Yellow
-  "#06b6d4", // Cyan
-  "#6366f1", // Indigo
+  "#9592ff", // info.main
+  "#31fb4c", // secondary.main
+  "#2f2f2f", // primary.main
+  "#d32f2f", // error.main
+  "#ed6c02", // warning.main
+  "#6c68e8", // info.dark
+  "#1ce03b", // secondary.dark
+  "#7dfd91", // secondary.light
+  "#bdbcff", // info.light
+  "#64748B", // neutral
 ] as const;
 
 // Y-axis tick values for position chart (showing key thresholds)

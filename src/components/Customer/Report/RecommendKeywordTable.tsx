@@ -200,13 +200,13 @@ export const RecommendKeywordTable: React.FC<RecommendKeywordTableProps> = ({
         <Box
           sx={{
             p: 2.5,
-            background: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+            background: "linear-gradient(135deg, #31fb4c 0%, #1ce03b 100%)",
             borderBottom: "1px solid rgba(255,255,255,0.1)",
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-            <Lightbulb sx={{ color: "#fff", fontSize: 24 }} />
-            <Typography variant="h6" fontWeight={700} color="#fff">
+            <Lightbulb sx={{ color: "#2f2f2f", fontSize: 24 }} />
+            <Typography variant="h6" fontWeight={700} color="#2f2f2f">
               {title}
             </Typography>
           </Box>

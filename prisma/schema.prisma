@@ -95,7 +95,7 @@ model OverallMetrics {
   healthScore     Int      // ค่า Health Score
   ageInYears      Int      // อายุของโดเมน (ปี)
   ageInMonths     Int      @default(0) // อายุของโดเมน (เดือน 0-11)
-  spamScore       Int      // ค่า Spam Score
+  spamScore       Float    // ค่า Spam Score (รองรับทศนิยม เช่น 0.1)
   organicTraffic  Float    // ยอด Organic Traffic
   organicKeywords Float    // จำนวน Organic Keywords
   backlinks       Int      // จำนวน Backlinks
@@ -117,12 +117,13 @@ model OverallMetricsHistory {
   healthScore     Int      // ค่า Health Score
   ageInYears      Int      // อายุของโดเมน (ปี)
   ageInMonths     Int      @default(0) // อายุของโดเมน (เดือน 0-11)
-  spamScore       Int      // ค่า Spam Score
+  spamScore       Float    // ค่า Spam Score (รองรับทศนิยม เช่น 0.1)
   organicTraffic  Float    // ยอด Organic Traffic
   organicKeywords Float    // จำนวน Organic Keywords
   backlinks       Int      // จำนวน Backlinks
   refDomains      Int      // จำนวน Referring Domains
   dateRecorded    DateTime @default(now()) // วันที่บันทึกประวัติ
+  isVisible       Boolean  @default(true)  // เปิด/ปิดให้ลูกค้าเห็นในรายงาน
 
   // ความสัมพันธ์: ข้อมูลนี้เป็นของลูกค้าคนไหน
   customerId String
@@ -165,6 +166,7 @@ model KeywordReportHistory {
   kd           KDLevel  // ระดับความยาก (KD)
   isTopReport  Boolean  // ใช้แยกกลุ่มรายงาน
   dateRecorded DateTime @default(now()) // วันที่บันทึกประวัติ
+  isVisible    Boolean  @default(true)   // เปิด/ปิดให้ลูกค้าเห็นในรายงาน
 
   // ความสัมพันธ์: ข้อมูลนี้เป็นของ KeywordReport ไหน
   reportId String

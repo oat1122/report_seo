@@ -111,18 +111,22 @@ export const DashboardHeader: React.FC = () => {
           {/* Right Icon Group */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
             <Tooltip title="ดูประวัติการเปลี่ยนแปลง">
-              <IconButton
-                onClick={handleOpenHistoryModal}
-                disabled={session?.user?.role !== Role.CUSTOMER}
-                size="small"
-                sx={{
-                  border: "1px solid #e0e0e0",
-                  width: 32,
-                  height: 32,
-                }}
-              >
-                <AccessTime fontSize="small" />
-              </IconButton>
+              {/* span wrapper — disabled IconButton ส่ง ref ให้ Tooltip ไม่ได้ */}
+              <span>
+                <IconButton
+                  onClick={handleOpenHistoryModal}
+                  disabled={session?.user?.role !== Role.CUSTOMER}
+                  size="small"
+                  aria-label="ดูประวัติการเปลี่ยนแปลง"
+                  sx={{
+                    border: "1px solid #e0e0e0",
+                    width: 32,
+                    height: 32,
+                  }}
+                >
+                  <AccessTime fontSize="small" />
+                </IconButton>
+              </span>
             </Tooltip>
             <Button
               variant="contained"

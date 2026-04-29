@@ -11,7 +11,13 @@ import {
 } from "@mui/material";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { useGetManagedCustomers } from "@/hooks/api/useUsersApi";
+import {
+  useToggleMetricsHistoryVisibility,
+  useToggleKeywordHistoryVisibility,
+} from "@/hooks/api/useCustomersApi";
 import { MetricsModal } from "./MetricsModal/MetricsModal";
+import { HistoryModal } from "./MetricsModal/HistoryModal";
+import { KeywordHistoryModal } from "./MetricsModal/KeywordHistoryModal";
 import { UserTable } from "./UserTable";
 import { useCustomerMetricsModal } from "@/hooks/ui/useCustomerMetricsModal";
 
@@ -57,6 +63,9 @@ const UserManagementSeoDev: React.FC = () => {
     handleOpenKeywordHistory,
     handleCloseKeywordHistory,
   } = useCustomerMetricsModal(managedCustomers);
+
+  const toggleMetricsVisibility = useToggleMetricsHistoryVisibility();
+  const toggleKeywordVisibility = useToggleKeywordHistoryVisibility();
 
   return (
     <DashboardLayout>
@@ -118,24 +127,48 @@ const UserManagementSeoDev: React.FC = () => {
             onUpdateRecommendKeyword={handleUpdateRecommendKeyword}
             onDeleteRecommendKeyword={handleDeleteRecommendKeyword}
             onOpenHistory={handleOpenHistory}
-            isHistoryOpen={isHistoryModalOpen}
-            onCloseHistory={handleCloseHistory}
-            historyData={historyData}
-            isKeywordHistoryOpen={isKeywordHistoryModalOpen}
             onOpenKeywordHistory={handleOpenKeywordHistory}
-            onCloseKeywordHistory={handleCloseKeywordHistory}
-            keywordHistoryData={keywordHistory}
-            selectedKeyword={selectedKeyword}
             isLoadingMetrics={isLoadingMetrics}
             isLoadingKeywords={isLoadingKeywords}
             isLoadingRecommend={isLoadingRecommend}
-            isLoadingCombinedHistory={isLoadingCombinedHistory}
-            isLoadingSpecificHistory={isLoadingSpecificHistory}
             aiOverviews={aiOverviews}
             isLoadingAiOverviews={isLoadingAiOverviews}
             onAddAiOverview={handleAddAiOverview}
             onUpdateAiOverview={handleUpdateAiOverview}
             onDeleteAiOverview={handleDeleteAiOverview}
+          />
+        )}
+
+        {selectedCustomer && isHistoryModalOpen && (
+          <HistoryModal
+            open={isHistoryModalOpen}
+            onClose={handleCloseHistory}
+            history={historyData.metricsHistory}
+            keywordHistory={historyData.keywordHistory}
+            customerName={selectedCustomer.name || ""}
+            isLoading={isLoadingCombinedHistory}
+            canManage
+            onToggleMetricsVisibility={(payload) =>
+              toggleMetricsVisibility.mutate({
+                customerId: selectedCustomer.id,
+                ...payload,
+              })
+            }
+            onToggleKeywordVisibility={(payload) =>
+              toggleKeywordVisibility.mutate({
+                customerId: selectedCustomer.id,
+                ...payload,
+              })
+            }
+          />
+        )}
+        {selectedKeyword && isKeywordHistoryModalOpen && (
+          <KeywordHistoryModal
+            open={isKeywordHistoryModalOpen}
+            onClose={handleCloseKeywordHistory}
+            history={keywordHistory}
+            keywordName={selectedKeyword.keyword}
+            isLoading={isLoadingSpecificHistory}
           />
         )}
       </Container>

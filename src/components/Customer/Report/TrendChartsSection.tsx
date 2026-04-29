@@ -19,7 +19,6 @@ import { CustomTooltip } from "./components/CustomTooltip";
 import {
   CHART_COLORS,
   DOMAIN_METRICS_CHART_PROPS,
-  CHART_LAYOUT,
   DEFAULT_PERIOD,
   PeriodOption,
   DOMAIN_METRICS_SERIES,
@@ -253,11 +252,11 @@ export const TrendChartsSection: React.FC<TrendChartsSectionProps> = ({
       </Box>
 
       {!hasData ? (
-        <Box sx={{ height: 400 }}>
+        <Box sx={{ height: { xs: 280, sm: 320, md: 400 } }}>
           <ChartEmptyState />
         </Box>
       ) : (
-        <Box className={CHART_LAYOUT.containerHeight}>
+        <Box sx={{ width: "100%", height: { xs: 280, sm: 320, md: 400 } }}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} {...DOMAIN_METRICS_CHART_PROPS}>
               <CartesianGrid

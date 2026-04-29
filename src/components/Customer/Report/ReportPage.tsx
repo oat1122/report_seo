@@ -74,13 +74,28 @@ const ReportPage: React.FC<ReportPageProps> = ({ customerId, initialData }) => {
 
   return (
     <HistoryProvider customerId={customerId}>
-      <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Container maxWidth="xl" sx={{ py: { xs: 2, md: 4 } }}>
         {/* Header */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h2" component="h1" gutterBottom>
+        <Box sx={{ mb: { xs: 3, md: 4 } }}>
+          <Typography
+            variant="h2"
+            component="h1"
+            gutterBottom
+            sx={{
+              fontSize: { xs: "1.75rem", md: "2.5rem", lg: "3rem" },
+              wordBreak: "break-word",
+            }}
+          >
             SEO Report for {customerName}
           </Typography>
-          <Typography variant="h5" color="text.secondary">
+          <Typography
+            variant="h5"
+            color="text.secondary"
+            sx={{
+              fontSize: { xs: "1rem", md: "1.5rem" },
+              wordBreak: "break-word",
+            }}
+          >
             {domain}
           </Typography>
         </Box>
@@ -94,15 +109,19 @@ const ReportPage: React.FC<ReportPageProps> = ({ customerId, initialData }) => {
         />
 
         {/* Main Content Grid: Overall Metrics + Recommendations */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid size={{ xs: 12, lg: 8 }}>
+        <Grid
+          container
+          spacing={{ xs: 2, md: 3 }}
+          sx={{ mb: { xs: 3, md: 4 } }}
+        >
+          <Grid size={{ xs: 12, md: 7, lg: 8 }}>
             <OverallMetricsCard
               metrics={reportData?.metrics || null}
               customerId={customerId}
               customerName={customerName}
             />
           </Grid>
-          <Grid size={{ xs: 12, lg: 4 }}>
+          <Grid size={{ xs: 12, md: 5, lg: 4 }}>
             <RecommendKeywordTable
               title="Recommended Keywords"
               keywords={reportData?.recommendations || []}
@@ -111,32 +130,32 @@ const ReportPage: React.FC<ReportPageProps> = ({ customerId, initialData }) => {
         </Grid>
 
         {/* Trend Charts Section: Domain Metrics History */}
-        <Box sx={{ mb: 4 }}>
+        <Box sx={{ mb: { xs: 3, md: 4 } }}>
           <TrendChartsSection title="แนวโน้ม Domain Metrics" />
         </Box>
 
         {/* Keyword Trend Chart */}
-        <Box sx={{ mb: 4 }}>
+        <Box sx={{ mb: { xs: 3, md: 4 } }}>
           <KeywordTrendChart title="แนวโน้ม Keyword" />
         </Box>
 
         {/* Top Keywords Table */}
-        <Box sx={{ mb: 4 }}>
+        <Box sx={{ mb: { xs: 3, md: 4 } }}>
           <KeywordReportTable
             title="Top Keywords Report"
             keywords={reportData?.topKeywords || []}
           />
         </Box>
 
-        {/* Other Keywords (60%) + AI Overview (40%) */}
-        <Grid container spacing={3}>
-          <Grid size={{ xs: 12, lg: 7 }}>
+        {/* Other Keywords + AI Overview */}
+        <Grid container spacing={{ xs: 2, md: 3 }}>
+          <Grid size={{ xs: 12, md: 6, lg: 7 }}>
             <KeywordReportTable
               title="Other Keywords"
               keywords={reportData?.otherKeywords || []}
             />
           </Grid>
-          <Grid size={{ xs: 12, lg: 5 }}>
+          <Grid size={{ xs: 12, md: 6, lg: 5 }}>
             <AiOverviewCard aiOverviews={reportData?.aiOverviews || []} />
           </Grid>
         </Grid>

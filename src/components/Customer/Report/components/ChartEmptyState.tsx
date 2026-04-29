@@ -59,7 +59,7 @@ export const ChartEmptyState: React.FC<ChartEmptyStateProps> = ({
             y1="25"
             x2="200"
             y2="25"
-            stroke="#667eea"
+            stroke="#9592ff"
             strokeWidth="1"
           />
           <line
@@ -67,7 +67,7 @@ export const ChartEmptyState: React.FC<ChartEmptyStateProps> = ({
             y1="50"
             x2="200"
             y2="50"
-            stroke="#667eea"
+            stroke="#9592ff"
             strokeWidth="1"
           />
           <line
@@ -75,13 +75,13 @@ export const ChartEmptyState: React.FC<ChartEmptyStateProps> = ({
             y1="75"
             x2="200"
             y2="75"
-            stroke="#667eea"
+            stroke="#9592ff"
             strokeWidth="1"
           />
           {/* Mock trend line */}
           <path
             d="M0 80 Q50 60 80 70 T120 40 T160 50 T200 20"
-            stroke="#667eea"
+            stroke="#9592ff"
             strokeWidth="3"
             fill="none"
           />

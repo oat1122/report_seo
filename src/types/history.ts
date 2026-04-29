@@ -16,6 +16,7 @@ export interface OverallMetricsHistory {
   backlinks: number;
   refDomains: number;
   dateRecorded: string;
+  isVisible: boolean;
   customerId: string;
 }
 
@@ -31,5 +32,6 @@ export interface KeywordReportHistory {
   kd: string;
   isTopReport: boolean;
   dateRecorded: string;
+  isVisible: boolean;
   reportId: string;
 }
