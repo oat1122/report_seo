@@ -60,7 +60,7 @@ export const DOMAIN_METRICS_SERIES: MetricSeriesConfig[] = [
     dataKey: "healthScore",
     name: "Health Score",
     color: CHART_COLORS.healthScore,
-    defaultVisible: true,
+    defaultVisible: false,
     axisType: "score",
   },
   {

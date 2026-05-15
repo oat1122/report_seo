@@ -1,0 +1,61 @@
+"use client";
+
+import { useMemo } from "react";
+import { KeywordTrendChart } from "../KeywordTrendChart";
+import { KeywordReportTable } from "../KeywordReportTable";
+import { KdDistributionDonut } from "../widgets/KdDistributionDonut";
+import { KdSuccessRateBar } from "../widgets/KdSuccessRateBar";
+import { TopKeywordsByTrafficPie } from "../widgets/TopKeywordsByTrafficPie";
+import { KeywordVelocityScatter } from "../widgets/KeywordVelocityScatter";
+import { KeywordPositionHeatmap } from "../widgets/KeywordPositionHeatmap";
+import { BracketTransitionsSankey } from "../widgets/BracketTransitionsSankey";
+import type { CustomerReportData } from "@/hooks/api/useCustomersApi";
+
+interface KeywordPerformanceTabProps {
+  topKeywords: CustomerReportData["topKeywords"];
+  otherKeywords: CustomerReportData["otherKeywords"];
+}
+
+// Tab 3: Keyword Performance — "อะไรเด่น/ตก?" (Phase D complete)
+export const KeywordPerformanceTab = ({
+  topKeywords,
+  otherKeywords,
+}: KeywordPerformanceTabProps) => {
+  const allKeywords = useMemo(
+    () => [...(topKeywords ?? []), ...(otherKeywords ?? [])],
+    [topKeywords, otherKeywords],
+  );
+
+  return (
+    <div className="flex flex-col gap-6">
+      {/* Row 1: hero chart */}
+      <KeywordTrendChart title="แนวโน้ม Keyword" />
+
+      {/* Row 2: heatmap (full width) */}
+      <KeywordPositionHeatmap />
+
+      {/* Row 3: 3-up insight grid */}
+      <div className="grid gap-4 md:grid-cols-3 md:gap-5">
+        <KdDistributionDonut keywords={allKeywords} />
+        <KdSuccessRateBar keywords={allKeywords} />
+        <TopKeywordsByTrafficPie keywords={allKeywords} />
+      </div>
+
+      {/* Row 4: bracket transitions sankey */}
+      <BracketTransitionsSankey />
+
+      {/* Row 5: scatter */}
+      <KeywordVelocityScatter />
+
+      {/* Row 6-7: tables */}
+      <KeywordReportTable
+        title="Top Keywords Report"
+        keywords={topKeywords ?? []}
+      />
+      <KeywordReportTable
+        title="Other Keywords"
+        keywords={otherKeywords ?? []}
+      />
+    </div>
+  );
+};

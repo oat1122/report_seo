@@ -18,6 +18,7 @@ import { useMobileDrawer } from "@/hooks/ui/useMobileDrawer";
 import { UserMenu } from "./UserMenu";
 import { HistoryButton } from "./HistoryButton";
 import { MobileMenuContent } from "./MobileMenuContent";
+import { ThemeToggle } from "./ThemeToggle";
 
 export const DashboardHeader = () => {
   const { data: session, status } = useSession();
@@ -46,6 +47,7 @@ export const DashboardHeader = () => {
 
           {/* Desktop actions */}
           <div className="hidden items-center gap-2 md:flex">
+            <ThemeToggle />
             <HistoryButton
               role={userRole}
               customerUserId={customerUserId}

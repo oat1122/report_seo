@@ -47,7 +47,7 @@ export const HistoryModal = ({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
+      <DialogContent className="max-h-[92vh] max-w-5xl overflow-y-auto sm:max-w-[min(94vw,1280px)]">
         <DialogHeader>
           <DialogTitle>ประวัติการเปลี่ยนแปลง</DialogTitle>
           <DialogDescription>

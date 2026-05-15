@@ -128,7 +128,7 @@ const ImagePreviewTile = ({
       type="button"
       onClick={onRemove}
       className={cn(
-        "absolute top-1 right-1 flex size-6 items-center justify-center rounded-full text-white",
+        "absolute top-1 right-1 flex size-6 items-center justify-center rounded-full text-background",
         removeIcon === "plus"
           ? "bg-success/90 hover:bg-success"
           : variant === "marked-for-deletion"
@@ -478,7 +478,7 @@ export const AiOverviewSection = forwardRef<
         onOpenChange={(o) => !o && handleCloseEdit()}
       >
         {editingItem && (
-          <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+          <DialogContent className="max-h-[92vh] max-w-2xl overflow-y-auto sm:max-w-[min(92vw,820px)]">
             <DialogHeader>
               <DialogTitle>แก้ไข AI Overview</DialogTitle>
               <DialogDescription>

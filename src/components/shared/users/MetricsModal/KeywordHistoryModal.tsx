@@ -41,7 +41,7 @@ export const KeywordHistoryModal = ({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+      <DialogContent className="max-h-[92vh] max-w-3xl overflow-y-auto sm:max-w-[min(92vw,960px)]">
         <DialogHeader>
           <DialogTitle>ประวัติการเปลี่ยนแปลง: {keywordName}</DialogTitle>
           <DialogDescription className="sr-only">

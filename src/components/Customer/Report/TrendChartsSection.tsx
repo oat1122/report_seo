@@ -1,47 +1,79 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import type { AxisOptions } from "react-charts";
-import { Badge } from "@/components/ui/badge";
+import React, { useMemo } from "react";
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 import { useHistoryContext } from "./contexts/HistoryContext";
-import { PeriodSelector } from "./components/PeriodSelector";
+import { useReportFilters } from "./contexts/ReportFiltersContext";
 import { ChartEmptyState } from "./components/ChartEmptyState";
-import { CustomTooltip } from "./components/CustomTooltip";
+import { MiniSparkline } from "./components/MiniSparkline";
+import { AnomalyDot } from "./components/AnomalyDot";
 import {
-  TimeSeriesChart,
-  type ChartSeries,
-  type TimeSeriesDatum,
-} from "./components/Chart";
-import {
-  DEFAULT_PERIOD,
-  PeriodOption,
   DOMAIN_METRICS_SERIES,
   MetricSeriesConfig,
 } from "./lib/chartConfig";
+import { buildChartConfig } from "./lib/buildChartConfig";
 import {
+  computeAnomalies,
+  downsampleWide,
   filterHistoryByPeriod,
   hasEnoughDataForChart,
 } from "./lib/historyCalculations";
-import { cn } from "@/lib/utils";
+import type { OverallMetricsHistory } from "@/types/history";
 
 interface TrendChartsSectionProps {
   title?: string;
 }
 
-const formatVolumeValue = (val: number): string => {
+const formatVolumeValue = (val: number | null | undefined): string => {
+  if (val == null) return "";
   if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(1)}M`;
   if (val >= 1_000) return `${(val / 1_000).toFixed(0)}K`;
   return val.toString();
 };
 
+const fmtDateTick = (ms: number) =>
+  new Date(ms).toLocaleDateString("th-TH", {
+    day: "2-digit",
+    month: "short",
+  });
+
+const fmtDateLabel = (ms: number) =>
+  new Date(ms).toLocaleDateString("th-TH", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+
+const pickMetricValue = (
+  record: OverallMetricsHistory,
+  key: string,
+): number => Number(record[key as keyof OverallMetricsHistory] ?? 0);
+
+interface WideRow {
+  dateMs: number;
+  [key: string]: number | boolean;
+}
+
 export const TrendChartsSection: React.FC<TrendChartsSectionProps> = ({
   title = "แนวโน้ม Domain Metrics",
 }) => {
   const { metricsHistory, isLoading } = useHistoryContext();
-  const [period, setPeriod] = useState<PeriodOption>(DEFAULT_PERIOD);
+  const { period } = useReportFilters();
 
-  const [visibleSeries, setVisibleSeries] = useState<Set<string>>(() => {
+  const [visibleSeries, setVisibleSeries] = React.useState<Set<string>>(() => {
     const defaults = new Set<string>();
     DOMAIN_METRICS_SERIES.forEach((s) => {
       if (s.defaultVisible) defaults.add(s.dataKey);
@@ -49,7 +81,6 @@ export const TrendChartsSection: React.FC<TrendChartsSectionProps> = ({
     return defaults;
   });
 
-  // Filter history by period (ascending by date)
   const filteredHistory = useMemo(
     () => filterHistoryByPeriod(metricsHistory, period),
     [metricsHistory, period],
@@ -57,79 +88,83 @@ export const TrendChartsSection: React.FC<TrendChartsSectionProps> = ({
 
   const hasData = hasEnoughDataForChart(filteredHistory.length);
 
-  // Build react-charts series from filtered history, only for visible metrics
-  const chartSeries = useMemo<ChartSeries[]>(() => {
-    return DOMAIN_METRICS_SERIES.filter((s) =>
+  // Wide-format rows: 1 row ต่อ timestamp + column per series + anomaly flag
+  const chartData = useMemo<WideRow[]>(() => {
+    const visible = DOMAIN_METRICS_SERIES.filter((s) =>
       visibleSeries.has(s.dataKey),
-    ).map((s) => ({
-      label: s.name,
-      color: s.color,
-      secondaryAxisId: s.axisType,
-      data: filteredHistory.map((record) => ({
-        date: new Date(record.dateRecorded),
-        value: Number(record[s.dataKey as keyof typeof record] ?? 0),
-      })),
-    }));
+    );
+    const valuesByKey: Record<string, number[]> = {};
+    visible.forEach((s) => {
+      valuesByKey[s.dataKey] = filteredHistory.map((r) =>
+        pickMetricValue(r, s.dataKey),
+      );
+    });
+    const anomalyByKey: Record<string, boolean[]> = {};
+    visible.forEach((s) => {
+      anomalyByKey[s.dataKey] = computeAnomalies(valuesByKey[s.dataKey]);
+    });
+
+    const rows: WideRow[] = filteredHistory.map((r, idx) => {
+      const row: WideRow = { dateMs: new Date(r.dateRecorded).getTime() };
+      visible.forEach((s) => {
+        row[s.dataKey] = valuesByKey[s.dataKey][idx];
+        row[`${s.dataKey}__anomaly`] = anomalyByKey[s.dataKey][idx];
+      });
+      return row;
+    });
+    return downsampleWide(rows, 60);
   }, [filteredHistory, visibleSeries]);
+
+  const visibleConfigs = useMemo(
+    () =>
+      DOMAIN_METRICS_SERIES.filter((s) => visibleSeries.has(s.dataKey)),
+    [visibleSeries],
+  );
+
+  const chartConfig = useMemo(
+    () =>
+      buildChartConfig(
+        visibleConfigs.map((s) => ({
+          key: s.dataKey,
+          label: s.name,
+          color: s.color,
+        })),
+      ),
+    [visibleConfigs],
+  );
 
   const { hasScoreAxis, hasVolumeAxis } = useMemo(() => {
     let hasScore = false;
     let hasVolume = false;
-    DOMAIN_METRICS_SERIES.forEach((s) => {
-      if (visibleSeries.has(s.dataKey)) {
-        if (s.axisType === "score") hasScore = true;
-        if (s.axisType === "volume") hasVolume = true;
-      }
+    visibleConfigs.forEach((s) => {
+      if (s.axisType === "score") hasScore = true;
+      if (s.axisType === "volume") hasVolume = true;
     });
     return { hasScoreAxis: hasScore, hasVolumeAxis: hasVolume };
-  }, [visibleSeries]);
+  }, [visibleConfigs]);
 
-  const secondaryAxes = useMemo<AxisOptions<TimeSeriesDatum>[]>(() => {
-    const axes: AxisOptions<TimeSeriesDatum>[] = [];
-    if (hasScoreAxis) {
-      axes.push({
-        id: "score",
-        position: "left",
-        scaleType: "linear",
-        getValue: (d) => d.value,
-        min: 0,
-        max: 100,
-        elementType: "line",
-      });
-    }
-    if (hasVolumeAxis) {
-      axes.push({
-        id: "volume",
-        position: "right",
-        scaleType: "linear",
-        getValue: (d) => d.value,
-        min: 0,
-        elementType: "line",
-        formatters: { scale: formatVolumeValue },
-      });
-    }
-    return axes;
-  }, [hasScoreAxis, hasVolumeAxis]);
+  // Mini-sparkline strip: metrics ที่ off chart
+  const offSeries = useMemo(() => {
+    return DOMAIN_METRICS_SERIES.filter(
+      (s) => !visibleSeries.has(s.dataKey),
+    ).map((s) => {
+      const values = filteredHistory.map((r) => pickMetricValue(r, s.dataKey));
+      const latest = values.length > 0 ? values[values.length - 1] : 0;
+      return { config: s, values, latest };
+    });
+  }, [filteredHistory, visibleSeries]);
 
-  // Flat-line detection
   const flatLineMessage = useMemo(() => {
-    if (filteredHistory.length < 2) return null;
-    const visibleList = DOMAIN_METRICS_SERIES.filter((s) =>
-      visibleSeries.has(s.dataKey),
-    );
-    const allFlat = visibleList.every((s) => {
-      const values = filteredHistory
-        .map((r) => Number(r[s.dataKey as keyof typeof r] ?? 0))
-        .filter((v): v is number => typeof v === "number");
-      if (values.length < 2) return true;
+    if (filteredHistory.length < 2 || visibleConfigs.length === 0) return null;
+    const allFlat = visibleConfigs.every((s) => {
+      const values = filteredHistory.map((r) => pickMetricValue(r, s.dataKey));
       const first = values[0];
       return values.every((v) => v === first);
     });
-    if (allFlat && visibleList.length > 0) {
-      return `ไม่มีการเปลี่ยนแปลงในช่วง ${period} วันที่ผ่านมา`;
-    }
-    return null;
-  }, [filteredHistory, visibleSeries, period]);
+    return allFlat
+      ? `ไม่มีการเปลี่ยนแปลงในช่วง ${period} วันที่ผ่านมา`
+      : null;
+  }, [filteredHistory, visibleConfigs, period]);
 
   const toggleSeries = (dataKey: string) => {
     setVisibleSeries((prev) => {
@@ -154,32 +189,57 @@ export const TrendChartsSection: React.FC<TrendChartsSectionProps> = ({
 
   return (
     <div className="rounded-2xl border border-border p-4 md:p-6">
-      <div className="mb-4 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+      <div className="mb-4">
         <h3 className="text-xl font-bold">{title}</h3>
-        <PeriodSelector value={period} onChange={setPeriod} />
       </div>
 
-      {/* Series toggle chips */}
-      <div className="mb-4 flex flex-wrap gap-2">
-        {DOMAIN_METRICS_SERIES.map((series: MetricSeriesConfig) => {
-          const isVisible = visibleSeries.has(series.dataKey);
-          return (
+      {/* Mini-sparkline strip — กดเพื่อ toggle metric ขึ้น chart */}
+      {offSeries.length > 0 && hasData && (
+        <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
+          {offSeries.map(({ config, values, latest }) => (
             <button
-              key={series.dataKey}
+              key={config.dataKey}
               type="button"
-              onClick={() => toggleSeries(series.dataKey)}
-              className={cn(
-                "rounded-full px-3 py-1 text-xs font-semibold transition-colors",
-                isVisible
-                  ? "text-white"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80",
-              )}
-              style={isVisible ? { backgroundColor: series.color } : undefined}
+              onClick={() => toggleSeries(config.dataKey)}
+              className="flex flex-col items-start gap-1 rounded-lg border border-border bg-card p-2 text-left transition-colors hover:bg-muted"
+              aria-label={`เพิ่ม ${config.name} ในกราฟ`}
             >
-              {series.name}
+              <span className="text-[0.7rem] font-medium text-muted-foreground">
+                {config.name}
+              </span>
+              <div className="flex w-full items-center justify-between">
+                <span className="text-sm font-bold tabular-nums">
+                  {config.axisType === "volume"
+                    ? formatVolumeValue(latest)
+                    : latest}
+                  {config.unit ?? ""}
+                </span>
+                <MiniSparkline
+                  data={values}
+                  color={config.color}
+                  width={56}
+                  height={20}
+                />
+              </div>
             </button>
-          );
-        })}
+          ))}
+        </div>
+      )}
+
+      {/* Active series chips */}
+      <div className="mb-4 flex flex-wrap gap-2">
+        {visibleConfigs.map((series: MetricSeriesConfig) => (
+          <button
+            key={series.dataKey}
+            type="button"
+            onClick={() => toggleSeries(series.dataKey)}
+            className="rounded-full px-3 py-1 text-xs font-semibold text-white transition-colors"
+            style={{ backgroundColor: series.color }}
+            aria-label={`ซ่อน ${series.name}`}
+          >
+            {series.name} ×
+          </button>
+        ))}
       </div>
 
       {/* Axis legend */}
@@ -187,7 +247,7 @@ export const TrendChartsSection: React.FC<TrendChartsSectionProps> = ({
         {hasScoreAxis && (
           <div className="flex items-center gap-1">
             <span className="size-3 rounded-sm bg-success/70" />
-            <span className="font-medium text-success">
+            <span className="font-medium text-muted-foreground">
               Score (0-100) — แกนซ้าย
             </span>
           </div>
@@ -195,7 +255,7 @@ export const TrendChartsSection: React.FC<TrendChartsSectionProps> = ({
         {hasVolumeAxis && (
           <div className="flex items-center gap-1">
             <span className="size-3 rounded-sm bg-secondary/70" />
-            <span className="font-medium text-success">
+            <span className="font-medium text-muted-foreground">
               Volume — แกนขวา
             </span>
           </div>
@@ -205,14 +265,85 @@ export const TrendChartsSection: React.FC<TrendChartsSectionProps> = ({
       {!hasData ? (
         <ChartEmptyState height="320px" />
       ) : (
-        <TimeSeriesChart
-          series={chartSeries}
-          secondaryAxes={secondaryAxes}
-          height={400}
-          tooltipRender={({ focusedDatum }) => (
-            <CustomTooltip focusedDatum={focusedDatum} />
-          )}
-        />
+        <ChartContainer config={chartConfig} className="h-[400px] w-full">
+          <LineChart
+            data={chartData}
+            margin={{ top: 8, right: 16, left: 8, bottom: 8 }}
+          >
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="var(--border)"
+              vertical={false}
+            />
+            <XAxis
+              dataKey="dateMs"
+              type="number"
+              domain={["dataMin", "dataMax"]}
+              scale="time"
+              tickFormatter={fmtDateTick}
+              stroke="var(--muted-foreground)"
+              tickLine={false}
+              tick={{ fontSize: 11 }}
+            />
+            {hasScoreAxis && (
+              <YAxis
+                yAxisId="score"
+                orientation="left"
+                domain={[0, 100]}
+                stroke="var(--muted-foreground)"
+                tick={{ fontSize: 11 }}
+                allowDecimals={false}
+              />
+            )}
+            {hasVolumeAxis && (
+              <YAxis
+                yAxisId="volume"
+                orientation="right"
+                domain={[0, "auto"]}
+                tickFormatter={formatVolumeValue}
+                stroke="var(--muted-foreground)"
+                tick={{ fontSize: 11 }}
+              />
+            )}
+            <ChartTooltip
+              cursor={{
+                stroke: "var(--muted-foreground)",
+                strokeDasharray: "3 3",
+              }}
+              content={
+                <ChartTooltipContent
+                  labelFormatter={(_label, payload) => {
+                    const ms = payload?.[0]?.payload?.dateMs;
+                    return typeof ms === "number" ? fmtDateLabel(ms) : "";
+                  }}
+                  formatter={(value, name) => {
+                    const config = visibleConfigs.find(
+                      (s) => s.dataKey === name,
+                    );
+                    const formatted =
+                      config?.axisType === "volume"
+                        ? formatVolumeValue(Number(value))
+                        : Number(value).toLocaleString();
+                    return [`${formatted}${config?.unit ?? ""}`, config?.name];
+                  }}
+                />
+              }
+            />
+            {visibleConfigs.map((s) => (
+              <Line
+                key={s.dataKey}
+                yAxisId={s.axisType}
+                type="monotone"
+                dataKey={s.dataKey}
+                stroke={`var(--color-${s.dataKey})`}
+                strokeWidth={2}
+                dot={<AnomalyDot dataKey={s.dataKey} />}
+                activeDot={{ r: 5 }}
+                isAnimationActive={false}
+              />
+            ))}
+          </LineChart>
+        </ChartContainer>
       )}
 
       {flatLineMessage && hasData && (

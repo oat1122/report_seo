@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { Geist, Inter } from "next/font/google";
 import { Kanit } from "next/font/google";
 import { Providers } from "@/components/Login/subcomponents/providers";
-import { ToastContainer } from "react-toastify";
+import { ThemedToastContainer } from "@/components/Layout/ThemedToastContainer";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
 import { cn } from "@/lib/utils";
@@ -40,24 +40,13 @@ export default function RootLayout({
 }>) {
   return (
     // กำหนด CSS Variable ของฟอนต์ทั้งหมด
-    <html lang="th" className={cn(kanit.variable, geistSans.variable, "font-sans", inter.variable)}>
+    <html lang="th" suppressHydrationWarning className={cn(kanit.variable, geistSans.variable, "font-sans", inter.variable)}>
       {/* ใช้ kanit.className บน body โดยตรงเพื่อบังคับให้ Kanit เป็นฟอนต์หลัก
           (คลาสนี้จะถูกกำหนด font-family โดย Next.js) */}
       <body className={`${kanit.className} font-sans antialiased`}>
         <Providers>
           {children}
-          <ToastContainer
-            position="bottom-right"
-            autoClose={5000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="colored"
-          />
+          <ThemedToastContainer />
         </Providers>
       </body>
     </html>

@@ -91,7 +91,7 @@ export const UserModal: React.FC<UserModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && handleCloseModal()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+      <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-[min(92vw,640px)]">
         <DialogHeader>
           <DialogTitle className="text-2xl">
             {isEditing ? "แก้ไขผู้ใช้งาน" : "เพิ่มผู้ใช้งานใหม่"}

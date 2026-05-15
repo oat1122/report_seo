@@ -55,26 +55,48 @@ export const AiOverviewCard: React.FC<AiOverviewCardProps> = ({
   const showNext = () =>
     setLightboxIndex((p) => (p < lightboxImages.length - 1 ? p + 1 : 0));
 
-  if (aiOverviews.length === 0) return null;
+  if (aiOverviews.length === 0) {
+    return (
+      <div className="flex h-full flex-col rounded-2xl border border-border p-4 md:p-6">
+        <div className="mb-4">
+          <h3 className="flex items-center gap-2 text-xl font-bold">
+            <Sparkles className="size-5 text-info" />
+            AI Overview
+          </h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            keyword ที่ถูก AI Search หยิบขึ้นมา
+          </p>
+        </div>
+        <div className="flex flex-1 flex-col items-center justify-center gap-2 py-12 text-center">
+          <Sparkles className="size-8 text-muted-foreground/50" />
+          <p className="text-sm text-muted-foreground">
+            ยังไม่มี AI Overview ที่บันทึก
+          </p>
+          <p className="text-xs text-muted-foreground/70">
+            เมื่อ keyword ของคุณถูก AI Search หยิบขึ้นมา จะแสดงรูปภาพและข้อมูลที่นี่
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
-      <div className="overflow-hidden rounded-2xl border border-border bg-gradient-to-b from-background to-card">
-        <div className="relative overflow-hidden bg-gradient-to-br from-info to-info/70 p-5">
-          <div className="absolute -top-12 -right-12 size-48 rounded-full bg-white/10" />
-          <div className="relative flex items-center gap-2">
-            <Sparkles className="size-7 text-info-foreground" />
-            <h3 className="text-xl font-bold text-info-foreground">
-              AI Overview
-            </h3>
-          </div>
+      <div className="h-full overflow-hidden rounded-2xl border border-border p-4 md:p-6">
+        <div className="mb-4">
+          <h3 className="flex items-center gap-2 text-xl font-bold">
+            <Sparkles className="size-5 text-info" />
+            AI Overview
+          </h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {aiOverviews.length} รายการ · keyword ที่ถูก AI Search หยิบขึ้นมา
+          </p>
         </div>
-
-        <ul className="divide-y divide-border">
+        <ul className="-mx-4 divide-y divide-border md:-mx-6">
           {aiOverviews.map((item) => (
             <li
               key={item.id}
-              className="flex items-center gap-3 px-5 py-3 transition-all hover:bg-muted hover:shadow-[inset_4px_0_0_var(--info)]"
+              className="flex items-center gap-3 px-4 py-3 transition-all hover:bg-muted hover:shadow-[inset_4px_0_0_var(--info)] md:px-6"
             >
               <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold">{item.title}</p>
@@ -103,7 +125,7 @@ export const AiOverviewCard: React.FC<AiOverviewCardProps> = ({
       {/* Item dialog — แสดงทุกรูปของ item */}
       <Dialog open={!!dialogItem} onOpenChange={(o) => !o && setDialogItem(null)}>
         {dialogItem && (
-          <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
+          <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-[min(92vw,1024px)]">
             <DialogHeader className="bg-gradient-to-br from-info to-info/70 -m-4 mb-2 rounded-t-xl p-4 text-info-foreground">
               <DialogTitle className="flex items-center gap-2 text-info-foreground">
                 <Sparkles className="size-5" />

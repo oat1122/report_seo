@@ -112,6 +112,62 @@
     --sidebar-ring: #9592ff;
 }
 
+/* Dark palette — mirror จาก colorsDark ใน src/theme/theme.ts (rule 08-colors)
+   zinc-based neutral + คง brand hue + ปรับ saturation ของ state colors เพื่อ contrast */
+.dark {
+    /* Surface */
+    --background: #0a0a0a;                  /* zinc-950 */
+    --foreground: #fafafa;                  /* zinc-50 */
+    --card: #18181b;                        /* zinc-900 */
+    --card-foreground: #fafafa;
+    --popover: #18181b;
+    --popover-foreground: #fafafa;
+
+    /* Brand — flip primary */
+    --primary: #fafafa;
+    --primary-foreground: #18181b;
+    --secondary: #31fb4c;                   /* คง brand green */
+    --secondary-foreground: #052e0a;
+
+    /* Neutral */
+    --muted: #27272a;                       /* zinc-800 */
+    --muted-foreground: #a1a1aa;            /* zinc-400 */
+    --accent: #6c68e8;                      /* info.dark — contrast บนพื้นเข้ม */
+    --accent-foreground: #fafafa;
+
+    /* State — สว่างขึ้นเพื่อ contrast บน dark */
+    --destructive: #ef4444;
+    --destructive-foreground: #fef2f2;
+    --success: #22c55e;
+    --success-foreground: #052e0a;
+    --warning: #f59e0b;
+    --warning-foreground: #1f1300;
+    --info: #9592ff;                        /* คง brand purple */
+    --info-foreground: #1a1830;
+
+    /* Border / form */
+    --border: #27272a;                      /* zinc-800 */
+    --input: #27272a;
+    --ring: #9592ff;
+
+    /* Charts */
+    --chart-1: #31fb4c;
+    --chart-2: #9592ff;
+    --chart-3: #7dfd91;
+    --chart-4: #bdbcff;
+    --chart-5: #71717a;                     /* zinc-500 — รองรับ white text บน bar */
+
+    /* Sidebar */
+    --sidebar: #18181b;
+    --sidebar-foreground: #fafafa;
+    --sidebar-primary: #fafafa;
+    --sidebar-primary-foreground: #18181b;
+    --sidebar-accent: #27272a;
+    --sidebar-accent-foreground: #fafafa;
+    --sidebar-border: #27272a;
+    --sidebar-ring: #9592ff;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
