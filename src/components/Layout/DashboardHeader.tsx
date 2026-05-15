@@ -37,7 +37,7 @@ export const DashboardHeader = () => {
         <div className="flex min-h-12 items-center justify-between py-1">
           <div className="flex items-center">
             <Image
-              src="/img/LOGO SEO PRIME4_0.png"
+              src="/img/LOGO_SEO_PRIME4_0-removebg.png"
               alt="SEO Prime Logo"
               width={70}
               height={24}

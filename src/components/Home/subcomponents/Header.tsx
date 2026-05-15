@@ -73,7 +73,7 @@ export const Header = () => {
 
           <div className="flex flex-1 items-center">
             <Image
-              src="/img/LOGO SEO PRIME4_0.png"
+              src="/img/LOGO_SEO_PRIME4_0-removebg.png"
               alt="SEO PRIME Logo"
               width={80}
               height={28}

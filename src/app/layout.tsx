@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   title: "SEO Report Dashboard",
   description: "Dashboard for SEO keyword and domain reports",
   icons: {
-    icon: "/img/LOGO_SEO_PRIME3_0_bg_remove.png",
+    icon: "/img/LOGO_SEO_PRIME4_0-removebg.png",
   },
 };
 
