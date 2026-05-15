@@ -9,35 +9,40 @@ import React, {
   useState,
 } from "react";
 import {
-  Box,
-  Button,
-  Card,
-  CardActions,
-  CardContent,
-  CardMedia,
-  Chip,
-  CircularProgress,
-  Divider,
-  IconButton,
-  Paper,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
-import {
-  Add,
-  Delete,
-  CloudUpload,
-  Close,
-  ImageOutlined,
-  Edit,
+  Plus,
+  Trash2,
+  Upload,
+  X,
+  Image as ImageIcon,
+  Pencil,
   Save,
-} from "@mui/icons-material";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+  Loader2,
+  CalendarIcon,
+} from "lucide-react";
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/th";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Field, FieldGroup } from "@/components/ui/field";
+import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 import { AiOverview } from "@/types/metrics";
 
 interface AiOverviewSectionProps {
@@ -59,6 +64,87 @@ export interface AiOverviewSectionHandle {
   isSubmitting: boolean;
 }
 
+const MAX_IMAGES = 3;
+
+const DatePickerField = ({
+  value,
+  onChange,
+  id,
+}: {
+  value: Dayjs | null;
+  onChange: (date: Dayjs | null) => void;
+  id?: string;
+}) => (
+  <Popover>
+    <PopoverTrigger asChild>
+      <Button
+        id={id}
+        type="button"
+        variant="outline"
+        className={cn(
+          "w-full justify-start font-normal",
+          !value && "text-muted-foreground",
+        )}
+      >
+        <CalendarIcon className="size-4" />
+        {value ? value.format("DD/MM/YYYY") : "เลือกวันที่"}
+      </Button>
+    </PopoverTrigger>
+    <PopoverContent className="w-auto p-0" align="start">
+      <Calendar
+        mode="single"
+        selected={value?.toDate()}
+        onSelect={(d) => onChange(d ? dayjs(d) : null)}
+        autoFocus
+      />
+    </PopoverContent>
+  </Popover>
+);
+
+const ImagePreviewTile = ({
+  src,
+  alt,
+  onRemove,
+  removeIcon = "x",
+  variant = "default",
+}: {
+  src: string;
+  alt: string;
+  onRemove: () => void;
+  removeIcon?: "x" | "plus";
+  variant?: "default" | "marked-for-deletion";
+}) => (
+  <div
+    className={cn(
+      "relative size-28 overflow-hidden rounded-lg border",
+      variant === "marked-for-deletion"
+        ? "border-destructive opacity-45"
+        : "border-border",
+    )}
+  >
+    {/* eslint-disable-next-line @next/next/no-img-element */}
+    <img src={src} alt={alt} className="size-full object-cover" />
+    <button
+      type="button"
+      onClick={onRemove}
+      className={cn(
+        "absolute top-1 right-1 flex size-6 items-center justify-center rounded-full text-white",
+        removeIcon === "plus"
+          ? "bg-success/90 hover:bg-success"
+          : variant === "marked-for-deletion"
+            ? "bg-success/90 hover:bg-success"
+            : "bg-foreground/55 hover:bg-foreground/70",
+      )}
+    >
+      {removeIcon === "plus" ? (
+        <Plus className="size-3.5" />
+      ) : (
+        <X className="size-3.5" />
+      )}
+    </button>
+  </div>
+);
+
 export const AiOverviewSection = forwardRef<
   AiOverviewSectionHandle,
   AiOverviewSectionProps
@@ -74,6 +160,7 @@ export const AiOverviewSection = forwardRef<
   },
   ref,
 ) {
+  // Create form state
   const [title, setTitle] = useState("");
   const [displayDate, setDisplayDate] = useState<Dayjs | null>(dayjs());
   const [files, setFiles] = useState<File[]>([]);
@@ -81,14 +168,13 @@ export const AiOverviewSection = forwardRef<
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Edit modal state
   const [editingItem, setEditingItem] = useState<AiOverview | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editDisplayDate, setEditDisplayDate] = useState<Dayjs | null>(null);
   const [editFiles, setEditFiles] = useState<File[]>([]);
   const [editPreviews, setEditPreviews] = useState<string[]>([]);
-  const [existingImages, setExistingImages] = useState<AiOverview["images"]>(
-    [],
-  );
+  const [existingImages, setExistingImages] = useState<AiOverview["images"]>([]);
   const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
   const editFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -96,28 +182,21 @@ export const AiOverviewSection = forwardRef<
     title.trim().length > 0 && files.length > 0 && !isSubmitting;
 
   useEffect(() => {
-    onStateChange?.({
-      canSubmit,
-      isSubmitting,
-    });
+    onStateChange?.({ canSubmit, isSubmitting });
   }, [canSubmit, isSubmitting, onStateChange]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
-    const totalFiles = files.length + selectedFiles.length;
-
-    if (totalFiles > 3) {
-      alert("อัปโหลดรูปภาพได้สูงสุด 3 รูป");
+    if (files.length + selectedFiles.length > MAX_IMAGES) {
+      alert(`อัปโหลดรูปภาพได้สูงสุด ${MAX_IMAGES} รูป`);
       return;
     }
-
     setFiles((prev) => [...prev, ...selectedFiles]);
-    const newPreviews = selectedFiles.map((file) => URL.createObjectURL(file));
-    setPreviews((prev) => [...prev, ...newPreviews]);
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+    setPreviews((prev) => [
+      ...prev,
+      ...selectedFiles.map((f) => URL.createObjectURL(f)),
+    ]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleRemoveFile = (index: number) => {
@@ -128,7 +207,6 @@ export const AiOverviewSection = forwardRef<
 
   const handleSubmit = useCallback(async () => {
     if (!title.trim() || files.length === 0 || isSubmitting) return;
-
     setIsSubmitting(true);
     try {
       const formData = new FormData();
@@ -138,7 +216,6 @@ export const AiOverviewSection = forwardRef<
         displayDate?.toISOString() || dayjs().toISOString(),
       );
       files.forEach((file) => formData.append("files", file));
-
       await onAdd(formData);
 
       setTitle("");
@@ -185,21 +262,19 @@ export const AiOverviewSection = forwardRef<
   const handleEditFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
     const remainingImages = existingImages.length - imagesToDelete.length;
-    const totalImages =
-      remainingImages + editFiles.length + selectedFiles.length;
-
-    if (totalImages > 3) {
-      alert("อัปโหลดรูปภาพได้สูงสุด 3 รูป");
+    if (
+      remainingImages + editFiles.length + selectedFiles.length >
+      MAX_IMAGES
+    ) {
+      alert(`อัปโหลดรูปภาพได้สูงสุด ${MAX_IMAGES} รูป`);
       return;
     }
-
     setEditFiles((prev) => [...prev, ...selectedFiles]);
-    const newPreviews = selectedFiles.map((file) => URL.createObjectURL(file));
-    setEditPreviews((prev) => [...prev, ...newPreviews]);
-
-    if (editFileInputRef.current) {
-      editFileInputRef.current.value = "";
-    }
+    setEditPreviews((prev) => [
+      ...prev,
+      ...selectedFiles.map((f) => URL.createObjectURL(f)),
+    ]);
+    if (editFileInputRef.current) editFileInputRef.current.value = "";
   };
 
   const handleRemoveEditFile = (index: number) => {
@@ -208,25 +283,13 @@ export const AiOverviewSection = forwardRef<
     setEditPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleRemoveExistingImage = (imageId: string) => {
-    setImagesToDelete((prev) => [...prev, imageId]);
-  };
-
-  const handleRestoreExistingImage = (imageId: string) => {
-    setImagesToDelete((prev) => prev.filter((id) => id !== imageId));
-  };
-
   const handleEditSubmit = async () => {
     if (!editingItem || !editTitle.trim()) return;
-
     const remainingImages = existingImages.length - imagesToDelete.length;
-    const totalImages = remainingImages + editFiles.length;
-
-    if (totalImages === 0) {
+    if (remainingImages + editFiles.length === 0) {
       alert("ต้องมีรูปภาพอย่างน้อย 1 รูป");
       return;
     }
-
     setIsSubmitting(true);
     try {
       const formData = new FormData();
@@ -237,7 +300,6 @@ export const AiOverviewSection = forwardRef<
       );
       formData.append("imagesToDelete", JSON.stringify(imagesToDelete));
       editFiles.forEach((file) => formData.append("files", file));
-
       await onUpdate(editingItem.id, formData);
       handleCloseEdit();
     } finally {
@@ -245,496 +307,287 @@ export const AiOverviewSection = forwardRef<
     }
   };
 
+  const editTotalImages =
+    existingImages.length - imagesToDelete.length + editFiles.length;
+
   return (
     <>
-      <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
-        <Stack spacing={2}>
-          <Box>
-            <Typography variant="h6" fontWeight={700}>
-              เพิ่ม AI Overview
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+      <div className="rounded-2xl border border-border p-4 sm:p-6">
+        <FieldGroup>
+          <div>
+            <h3 className="text-lg font-bold">เพิ่ม AI Overview</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
               เพิ่มหัวข้อและภาพประกอบสำหรับรายงาน AI Overview
-              โดยอัปโหลดได้สูงสุด 3 รูป
-            </Typography>
-          </Box>
+              โดยอัปโหลดได้สูงสุด {MAX_IMAGES} รูป
+            </p>
+          </div>
 
-          <TextField
-            label="หัวข้อ AI Overview"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            size="small"
-            fullWidth
-            placeholder="เช่น คีย์เวิร์ด SEO ติด AI Overview แล้ว"
-          />
-
-          <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="th">
-            <DatePicker
-              label="วันที่แสดงผล"
-              value={displayDate}
-              onChange={(newValue) => setDisplayDate(newValue)}
-              format="DD/MM/YYYY"
-              slotProps={{
-                textField: {
-                  size: "small",
-                  fullWidth: true,
-                },
-              }}
+          <Field>
+            <Label htmlFor="ai-title">หัวข้อ AI Overview</Label>
+            <Input
+              id="ai-title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="เช่น คีย์เวิร์ด SEO ติด AI Overview แล้ว"
             />
-          </LocalizationProvider>
+          </Field>
 
-          <Box>
+          <Field>
+            <Label htmlFor="ai-date">วันที่แสดงผล</Label>
+            <DatePickerField
+              id="ai-date"
+              value={displayDate}
+              onChange={setDisplayDate}
+            />
+          </Field>
+
+          <div>
             <input
               type="file"
               ref={fileInputRef}
               accept="image/jpeg,image/png"
               multiple
               onChange={handleFileChange}
-              style={{ display: "none" }}
+              className="hidden"
             />
-            <Stack
-              direction={{ xs: "column", sm: "row" }}
-              spacing={1.5}
-              alignItems={{ xs: "stretch", sm: "center" }}
-            >
+            <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
               <Button
-                variant="outlined"
-                startIcon={<CloudUpload />}
+                type="button"
+                variant="outline"
+                size="sm"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={files.length >= 3}
-                size="small"
+                disabled={files.length >= MAX_IMAGES}
               >
-                เลือกรูปภาพ ({files.length}/3)
+                <Upload className="size-4" />
+                เลือกรูปภาพ ({files.length}/{MAX_IMAGES})
               </Button>
-              <Typography variant="body2" color="text.secondary">
+              <p className="text-sm text-muted-foreground">
                 รองรับไฟล์ JPG และ PNG
-              </Typography>
-            </Stack>
+              </p>
+            </div>
 
             {previews.length > 0 && (
-              <Stack
-                direction="row"
-                spacing={1}
-                sx={{ mt: 1.5, flexWrap: "wrap" }}
-              >
+              <div className="mt-3 flex flex-wrap gap-2">
                 {previews.map((preview, index) => (
-                  <Box
+                  <ImagePreviewTile
                     key={index}
-                    sx={{
-                      position: "relative",
-                      width: 108,
-                      height: 108,
-                      borderRadius: 2,
-                      overflow: "hidden",
-                      border: "1px solid",
-                      borderColor: "divider",
-                    }}
-                  >
-                    <Box
-                      component="img"
-                      src={preview}
-                      alt={`preview-${index}`}
-                      sx={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                      }}
-                    />
-                    <IconButton
-                      size="small"
-                      onClick={() => handleRemoveFile(index)}
-                      sx={{
-                        position: "absolute",
-                        top: 4,
-                        right: 4,
-                        bgcolor: "rgba(0,0,0,0.55)",
-                        color: "white",
-                        p: 0.4,
-                        "&:hover": { bgcolor: "rgba(0,0,0,0.7)" },
-                      }}
-                    >
-                      <Close sx={{ fontSize: 14 }} />
-                    </IconButton>
-                  </Box>
+                    src={preview}
+                    alt={`preview-${index}`}
+                    onRemove={() => handleRemoveFile(index)}
+                  />
                 ))}
-              </Stack>
+              </div>
             )}
-          </Box>
+          </div>
 
           {showSubmitButton && (
-            <Stack direction="row" justifyContent="flex-end">
+            <div className="flex justify-end">
               <Button
-                startIcon={
-                  isSubmitting ? <CircularProgress size={16} /> : <Save />
-                }
-                variant="contained"
-                color="secondary"
                 onClick={handleSubmit}
                 disabled={!canSubmit}
-                size="medium"
+                className="bg-secondary text-secondary-foreground hover:bg-secondary/90"
               >
+                {isSubmitting ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  <Save />
+                )}
                 {isSubmitting ? "กำลังอัปโหลด..." : "บันทึก AI Overview"}
               </Button>
-            </Stack>
+            </div>
           )}
-        </Stack>
-      </Paper>
+        </FieldGroup>
+      </div>
 
-      <Divider sx={{ my: 3 }} />
+      <Separator className="my-6" />
 
       {isLoading ? (
-        <Box sx={{ textAlign: "center", py: 3 }}>
-          <CircularProgress size={32} />
-        </Box>
+        <div className="flex justify-center py-6">
+          <Loader2 className="size-8 animate-spin text-info" />
+        </div>
       ) : aiOverviews.length === 0 ? (
-        <Paper
-          variant="outlined"
-          sx={{ p: 3, borderRadius: 3, textAlign: "center" }}
-        >
-          <Typography variant="body2" color="text.secondary">
-            ยังไม่มี AI Overview
-          </Typography>
-        </Paper>
+        <div className="rounded-2xl border border-border p-6 text-center text-sm text-muted-foreground">
+          ยังไม่มี AI Overview
+        </div>
       ) : (
-        <Stack spacing={2}>
+        <div className="flex flex-col gap-3">
           {aiOverviews.map((item) => (
-            <Card key={item.id} variant="outlined" sx={{ borderRadius: 3 }}>
-              <CardContent sx={{ pb: 1.5 }}>
-                <Stack
-                  direction={{ xs: "column", sm: "row" }}
-                  justifyContent="space-between"
-                  alignItems={{ xs: "flex-start", sm: "center" }}
-                  spacing={1}
-                >
-                  <Stack direction="row" alignItems="center" spacing={1}>
-                    <ImageOutlined color="primary" fontSize="small" />
-                    <Box>
-                      <Typography variant="subtitle2" fontWeight={700}>
-                        {item.title}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
+            <Card key={item.id}>
+              <CardContent className="p-4">
+                <div className="mb-3 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
+                  <div className="flex items-center gap-2">
+                    <ImageIcon className="size-4 text-info" />
+                    <div>
+                      <p className="font-semibold">{item.title}</p>
+                      <p className="text-xs text-muted-foreground">
                         วันที่แสดงผล{" "}
                         {dayjs(item.displayDate).format("DD/MM/YYYY")}
-                      </Typography>
-                    </Box>
-                  </Stack>
-                  <Chip
-                    label={`${item.images.length} รูป`}
-                    size="small"
-                    color="info"
-                    variant="outlined"
-                  />
-                </Stack>
+                      </p>
+                    </div>
+                  </div>
+                  <Badge
+                    variant="outline"
+                    className="border-info/40 text-info"
+                  >
+                    {item.images.length} รูป
+                  </Badge>
+                </div>
+
+                {item.images.length > 0 && (
+                  <div className="mb-3 flex flex-wrap gap-2">
+                    {item.images.map((img) => (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        key={img.id}
+                        src={img.imageUrl}
+                        alt={item.title}
+                        className="h-22 w-32 rounded-md border border-border object-cover"
+                      />
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-2">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleEdit(item)}
+                  >
+                    <Pencil className="size-4" />
+                    แก้ไข
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => onDelete(item.id)}
+                    className="text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="size-4" />
+                    ลบ
+                  </Button>
+                </div>
               </CardContent>
-
-              {item.images.length > 0 && (
-                <Stack
-                  direction="row"
-                  spacing={1}
-                  sx={{ px: 2, pb: 1.5, flexWrap: "wrap" }}
-                >
-                  {item.images.map((img) => (
-                    <CardMedia
-                      key={img.id}
-                      component="img"
-                      image={img.imageUrl}
-                      alt={item.title}
-                      sx={{
-                        width: 128,
-                        height: 88,
-                        objectFit: "cover",
-                        borderRadius: 1.5,
-                        border: "1px solid",
-                        borderColor: "divider",
-                      }}
-                    />
-                  ))}
-                </Stack>
-              )}
-
-              <CardActions
-                sx={{ justifyContent: "flex-end", pt: 0, px: 2, pb: 2 }}
-              >
-                <Button
-                  size="small"
-                  startIcon={<Edit fontSize="small" />}
-                  onClick={() => handleEdit(item)}
-                >
-                  แก้ไข
-                </Button>
-                <Button
-                  size="small"
-                  color="error"
-                  startIcon={<Delete fontSize="small" />}
-                  onClick={() => onDelete(item.id)}
-                >
-                  ลบ
-                </Button>
-              </CardActions>
             </Card>
           ))}
-        </Stack>
+        </div>
       )}
 
-      {editingItem && (
-        <Box
-          sx={{
-            position: "fixed",
-            inset: 0,
-            bgcolor: "rgba(15, 23, 42, 0.45)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1300,
-            px: 2,
-          }}
-          onClick={handleCloseEdit}
-        >
-          <Paper
-            elevation={0}
-            sx={{
-              width: "100%",
-              maxWidth: 640,
-              maxHeight: "90vh",
-              overflow: "auto",
-              borderRadius: 3,
-              p: { xs: 2, sm: 3 },
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Stack spacing={2}>
-              <Stack
-                direction="row"
-                justifyContent="space-between"
-                alignItems="center"
-              >
-                <Box>
-                  <Typography variant="h6" fontWeight={700}>
-                    แก้ไข AI Overview
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    ปรับหัวข้อ วันที่แสดงผล และจัดการรูปภาพได้ในหน้าต่างนี้
-                  </Typography>
-                </Box>
-                <IconButton size="small" onClick={handleCloseEdit}>
-                  <Close />
-                </IconButton>
-              </Stack>
+      {/* Edit dialog */}
+      <Dialog
+        open={!!editingItem}
+        onOpenChange={(o) => !o && handleCloseEdit()}
+      >
+        {editingItem && (
+          <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>แก้ไข AI Overview</DialogTitle>
+              <DialogDescription>
+                ปรับหัวข้อ วันที่แสดงผล และจัดการรูปภาพได้ในหน้าต่างนี้
+              </DialogDescription>
+            </DialogHeader>
 
-              <TextField
-                label="หัวข้อ AI Overview"
-                value={editTitle}
-                onChange={(e) => setEditTitle(e.target.value)}
-                size="small"
-                fullWidth
-              />
-
-              <LocalizationProvider
-                dateAdapter={AdapterDayjs}
-                adapterLocale="th"
-              >
-                <DatePicker
-                  label="วันที่แสดงผล"
-                  value={editDisplayDate}
-                  onChange={(newValue) => setEditDisplayDate(newValue)}
-                  format="DD/MM/YYYY"
-                  slotProps={{
-                    textField: {
-                      size: "small",
-                      fullWidth: true,
-                    },
-                  }}
+            <FieldGroup>
+              <Field>
+                <Label htmlFor="edit-title">หัวข้อ AI Overview</Label>
+                <Input
+                  id="edit-title"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
                 />
-              </LocalizationProvider>
+              </Field>
+
+              <Field>
+                <Label htmlFor="edit-date">วันที่แสดงผล</Label>
+                <DatePickerField
+                  id="edit-date"
+                  value={editDisplayDate}
+                  onChange={setEditDisplayDate}
+                />
+              </Field>
 
               {existingImages.length > 0 && (
-                <Box>
-                  <Typography variant="subtitle2" gutterBottom>
-                    รูปภาพปัจจุบัน
-                  </Typography>
-                  <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+                <div>
+                  <p className="mb-2 text-sm font-medium">รูปภาพปัจจุบัน</p>
+                  <div className="flex flex-wrap gap-2">
                     {existingImages.map((img) => {
-                      const isMarkedForDeletion = imagesToDelete.includes(
-                        img.id,
-                      );
+                      const marked = imagesToDelete.includes(img.id);
                       return (
-                        <Box
+                        <ImagePreviewTile
                           key={img.id}
-                          sx={{
-                            position: "relative",
-                            width: 108,
-                            height: 108,
-                            borderRadius: 2,
-                            overflow: "hidden",
-                            border: "1px solid",
-                            borderColor: isMarkedForDeletion
-                              ? "error.main"
-                              : "divider",
-                            opacity: isMarkedForDeletion ? 0.45 : 1,
-                          }}
-                        >
-                          <Box
-                            component="img"
-                            src={img.imageUrl}
-                            alt="existing"
-                            sx={{
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                            }}
-                          />
-                          {isMarkedForDeletion ? (
-                            <IconButton
-                              size="small"
-                              onClick={() => handleRestoreExistingImage(img.id)}
-                              sx={{
-                                position: "absolute",
-                                top: 4,
-                                right: 4,
-                                bgcolor: "rgba(76, 175, 80, 0.9)",
-                                color: "white",
-                                p: 0.4,
-                                "&:hover": {
-                                  bgcolor: "rgba(76, 175, 80, 1)",
-                                },
-                              }}
-                            >
-                              <Add sx={{ fontSize: 14 }} />
-                            </IconButton>
-                          ) : (
-                            <IconButton
-                              size="small"
-                              onClick={() => handleRemoveExistingImage(img.id)}
-                              sx={{
-                                position: "absolute",
-                                top: 4,
-                                right: 4,
-                                bgcolor: "rgba(244, 67, 54, 0.9)",
-                                color: "white",
-                                p: 0.4,
-                                "&:hover": {
-                                  bgcolor: "rgba(244, 67, 54, 1)",
-                                },
-                              }}
-                            >
-                              <Close sx={{ fontSize: 14 }} />
-                            </IconButton>
-                          )}
-                        </Box>
+                          src={img.imageUrl}
+                          alt="existing"
+                          variant={marked ? "marked-for-deletion" : "default"}
+                          removeIcon={marked ? "plus" : "x"}
+                          onRemove={() =>
+                            setImagesToDelete((prev) =>
+                              marked
+                                ? prev.filter((id) => id !== img.id)
+                                : [...prev, img.id],
+                            )
+                          }
+                        />
                       );
                     })}
-                  </Stack>
-                </Box>
+                  </div>
+                </div>
               )}
 
-              <Box>
+              <div>
                 <input
                   type="file"
                   ref={editFileInputRef}
                   accept="image/jpeg,image/png"
                   multiple
                   onChange={handleEditFileChange}
-                  style={{ display: "none" }}
+                  className="hidden"
                 />
-                <Stack
-                  direction={{ xs: "column", sm: "row" }}
-                  spacing={1.5}
-                  alignItems={{ xs: "stretch", sm: "center" }}
-                >
+                <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
                   <Button
-                    variant="outlined"
-                    startIcon={<CloudUpload />}
+                    type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={() => editFileInputRef.current?.click()}
-                    disabled={
-                      existingImages.length -
-                        imagesToDelete.length +
-                        editFiles.length >=
-                      3
-                    }
-                    size="small"
+                    disabled={editTotalImages >= MAX_IMAGES}
                   >
-                    เพิ่มรูปภาพใหม่ (
-                    {existingImages.length -
-                      imagesToDelete.length +
-                      editFiles.length}
-                    /3)
+                    <Upload className="size-4" />
+                    เพิ่มรูปภาพใหม่ ({editTotalImages}/{MAX_IMAGES})
                   </Button>
-                  <Typography variant="body2" color="text.secondary">
-                    รวมรูปเดิมและรูปใหม่ได้สูงสุด 3 รูป
-                  </Typography>
-                </Stack>
+                  <p className="text-sm text-muted-foreground">
+                    รวมรูปเดิมและรูปใหม่ได้สูงสุด {MAX_IMAGES} รูป
+                  </p>
+                </div>
 
                 {editPreviews.length > 0 && (
-                  <Stack
-                    direction="row"
-                    spacing={1}
-                    sx={{ mt: 1.5, flexWrap: "wrap" }}
-                  >
+                  <div className="mt-3 flex flex-wrap gap-2">
                     {editPreviews.map((preview, index) => (
-                      <Box
+                      <ImagePreviewTile
                         key={index}
-                        sx={{
-                          position: "relative",
-                          width: 108,
-                          height: 108,
-                          borderRadius: 2,
-                          overflow: "hidden",
-                          border: "1px solid",
-                          borderColor: "divider",
-                        }}
-                      >
-                        <Box
-                          component="img"
-                          src={preview}
-                          alt={`preview-${index}`}
-                          sx={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                          }}
-                        />
-                        <IconButton
-                          size="small"
-                          onClick={() => handleRemoveEditFile(index)}
-                          sx={{
-                            position: "absolute",
-                            top: 4,
-                            right: 4,
-                            bgcolor: "rgba(0,0,0,0.55)",
-                            color: "white",
-                            p: 0.4,
-                            "&:hover": { bgcolor: "rgba(0,0,0,0.7)" },
-                          }}
-                        >
-                          <Close sx={{ fontSize: 14 }} />
-                        </IconButton>
-                      </Box>
+                        src={preview}
+                        alt={`preview-${index}`}
+                        onRemove={() => handleRemoveEditFile(index)}
+                      />
                     ))}
-                  </Stack>
+                  </div>
                 )}
-              </Box>
+              </div>
+            </FieldGroup>
 
-              <Stack direction="row" spacing={1.5} justifyContent="flex-end">
-                <Button onClick={handleCloseEdit}>ยกเลิก</Button>
-                <Button
-                  variant="contained"
-                  onClick={handleEditSubmit}
-                  disabled={
-                    !editTitle.trim() ||
-                    existingImages.length -
-                      imagesToDelete.length +
-                      editFiles.length ===
-                      0 ||
-                    isSubmitting
-                  }
-                >
-                  {isSubmitting ? "กำลังบันทึก..." : "บันทึกการแก้ไข"}
-                </Button>
-              </Stack>
-            </Stack>
-          </Paper>
-        </Box>
-      )}
+            <DialogFooter>
+              <Button variant="outline" onClick={handleCloseEdit}>
+                ยกเลิก
+              </Button>
+              <Button
+                onClick={handleEditSubmit}
+                disabled={
+                  !editTitle.trim() || editTotalImages === 0 || isSubmitting
+                }
+              >
+                {isSubmitting ? "กำลังบันทึก..." : "บันทึกการแก้ไข"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        )}
+      </Dialog>
     </>
   );
 });

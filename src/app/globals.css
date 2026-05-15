@@ -1,1 +1,125 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-heading: var(--font-sans);
+    --font-sans: var(--font-sans);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive-foreground: var(--destructive-foreground);
+    --color-destructive: var(--destructive);
+    --color-success-foreground: var(--success-foreground);
+    --color-success: var(--success);
+    --color-warning-foreground: var(--warning-foreground);
+    --color-warning: var(--warning);
+    --color-info-foreground: var(--info-foreground);
+    --color-info: var(--info);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* Brand palette — mirror จาก src/theme/theme.ts (rule 08-colors)
+   อย่าแก้ค่าตรงนี้เพื่อ "เปลี่ยนสี" — แก้ theme.ts แล้ว mirror กลับมา */
+:root {
+    /* Surface */
+    --background: #ffffff;                  /* surface.page */
+    --foreground: #2f2f2f;                  /* text.primary */
+    --card: #f8f9fa;                        /* surface.panel */
+    --card-foreground: #2f2f2f;
+    --popover: #ffffff;
+    --popover-foreground: #2f2f2f;
+
+    /* Brand */
+    --primary: #2f2f2f;                     /* brand.primary */
+    --primary-foreground: #ffffff;          /* brand.primaryContrast */
+    --secondary: #31fb4c;                   /* brand.secondary */
+    --secondary-foreground: #2f2f2f;        /* brand.secondaryContrast */
+
+    /* Neutral */
+    --muted: #f8f9fa;
+    --muted-foreground: #64748b;            /* slate.500 / text.secondary */
+    --accent: #bdbcff;                      /* info.light */
+    --accent-foreground: #2f2f2f;
+
+    /* State */
+    --destructive: #d32f2f;                 /* error.main */
+    --destructive-foreground: #ffffff;
+    --success: #2e7d32;                     /* success.main */
+    --success-foreground: #ffffff;
+    --warning: #ed6c02;                     /* warning.main */
+    --warning-foreground: #ffffff;
+    --info: #9592ff;                        /* info.main */
+    --info-foreground: #ffffff;
+
+    /* Border / form */
+    --border: #e2e8f0;                      /* border.default */
+    --input: #e2e8f0;
+    --ring: #9592ff;                        /* info.main (focus ring) */
+
+    /* Charts */
+    --chart-1: #31fb4c;                     /* brand.secondary */
+    --chart-2: #9592ff;                     /* info.main */
+    --chart-3: #7dfd91;                     /* brand.secondaryLight */
+    --chart-4: #bdbcff;                     /* info.light */
+    --chart-5: #2f2f2f;                     /* brand.primary */
+
+    --radius: 0.625rem;
+
+    /* Sidebar */
+    --sidebar: #f8f9fa;
+    --sidebar-foreground: #2f2f2f;
+    --sidebar-primary: #2f2f2f;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #bdbcff;
+    --sidebar-accent-foreground: #2f2f2f;
+    --sidebar-border: #e2e8f0;
+    --sidebar-ring: #9592ff;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply bg-background text-foreground;
+    }
+  html {
+    @apply font-sans;
+    }
+}

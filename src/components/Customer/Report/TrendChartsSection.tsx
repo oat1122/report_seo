@@ -1,61 +1,46 @@
-// src/components/Customer/Report/TrendChartsSection.tsx
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Box, Typography, Paper, Chip } from "@mui/material";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import type { AxisOptions } from "react-charts";
+import { Badge } from "@/components/ui/badge";
+import { Loader2 } from "lucide-react";
 import { useHistoryContext } from "./contexts/HistoryContext";
 import { PeriodSelector } from "./components/PeriodSelector";
 import { ChartEmptyState } from "./components/ChartEmptyState";
 import { CustomTooltip } from "./components/CustomTooltip";
 import {
-  CHART_COLORS,
-  DOMAIN_METRICS_CHART_PROPS,
+  TimeSeriesChart,
+  type ChartSeries,
+  type TimeSeriesDatum,
+} from "./components/Chart";
+import {
   DEFAULT_PERIOD,
   PeriodOption,
   DOMAIN_METRICS_SERIES,
   MetricSeriesConfig,
 } from "./lib/chartConfig";
 import {
-  transformMetricsForRecharts,
+  filterHistoryByPeriod,
   hasEnoughDataForChart,
-  formatChartDate,
-  MetricsChartDataPoint,
 } from "./lib/historyCalculations";
+import { cn } from "@/lib/utils";
 
 interface TrendChartsSectionProps {
   title?: string;
 }
 
-// Color for Score axis (left) - uses healthScore color for visibility
-const SCORE_AXIS_COLOR = CHART_COLORS.healthScore;
-// Color for Volume axis (right) - uses traffic color for visibility
-const VOLUME_AXIS_COLOR = CHART_COLORS.traffic;
+const formatVolumeValue = (val: number): string => {
+  if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(1)}M`;
+  if (val >= 1_000) return `${(val / 1_000).toFixed(0)}K`;
+  return val.toString();
+};
 
-/**
- * Container component for Domain Metrics trend chart
- * Displays a single combined line chart with toggle-able series
- * Users can show/hide different metrics using the legend chips
- *
- * Dual-axis design:
- * - Left axis (Score): 0-100 scale for domainRating, healthScore, spamScore
- * - Right axis (Volume): Dynamic scale for organicTraffic, organicKeywords, backlinks, refDomains
- */
 export const TrendChartsSection: React.FC<TrendChartsSectionProps> = ({
   title = "แนวโน้ม Domain Metrics",
 }) => {
   const { metricsHistory, isLoading } = useHistoryContext();
   const [period, setPeriod] = useState<PeriodOption>(DEFAULT_PERIOD);
 
-  // Initialize visible series from default config
   const [visibleSeries, setVisibleSeries] = useState<Set<string>>(() => {
     const defaults = new Set<string>();
     DOMAIN_METRICS_SERIES.forEach((s) => {
@@ -64,63 +49,93 @@ export const TrendChartsSection: React.FC<TrendChartsSectionProps> = ({
     return defaults;
   });
 
-  // Transform data for charts
-  const chartData = useMemo(() => {
-    return transformMetricsForRecharts(metricsHistory, period);
-  }, [metricsHistory, period]);
+  // Filter history by period (ascending by date)
+  const filteredHistory = useMemo(
+    () => filterHistoryByPeriod(metricsHistory, period),
+    [metricsHistory, period],
+  );
 
-  const hasData = hasEnoughDataForChart(chartData.length);
+  const hasData = hasEnoughDataForChart(filteredHistory.length);
 
-  // Check for visible series by axis type
+  // Build react-charts series from filtered history, only for visible metrics
+  const chartSeries = useMemo<ChartSeries[]>(() => {
+    return DOMAIN_METRICS_SERIES.filter((s) =>
+      visibleSeries.has(s.dataKey),
+    ).map((s) => ({
+      label: s.name,
+      color: s.color,
+      secondaryAxisId: s.axisType,
+      data: filteredHistory.map((record) => ({
+        date: new Date(record.dateRecorded),
+        value: Number(record[s.dataKey as keyof typeof record] ?? 0),
+      })),
+    }));
+  }, [filteredHistory, visibleSeries]);
+
   const { hasScoreAxis, hasVolumeAxis } = useMemo(() => {
     let hasScore = false;
     let hasVolume = false;
-
-    DOMAIN_METRICS_SERIES.forEach((series) => {
-      if (visibleSeries.has(series.dataKey)) {
-        if (series.axisType === "score") hasScore = true;
-        if (series.axisType === "volume") hasVolume = true;
+    DOMAIN_METRICS_SERIES.forEach((s) => {
+      if (visibleSeries.has(s.dataKey)) {
+        if (s.axisType === "score") hasScore = true;
+        if (s.axisType === "volume") hasVolume = true;
       }
     });
-
     return { hasScoreAxis: hasScore, hasVolumeAxis: hasVolume };
   }, [visibleSeries]);
 
-  // Detect flat-line (no variance) in visible series
-  const flatLineMessage = useMemo(() => {
-    if (chartData.length < 2) return null;
+  const secondaryAxes = useMemo<AxisOptions<TimeSeriesDatum>[]>(() => {
+    const axes: AxisOptions<TimeSeriesDatum>[] = [];
+    if (hasScoreAxis) {
+      axes.push({
+        id: "score",
+        position: "left",
+        scaleType: "linear",
+        getValue: (d) => d.value,
+        min: 0,
+        max: 100,
+        elementType: "line",
+      });
+    }
+    if (hasVolumeAxis) {
+      axes.push({
+        id: "volume",
+        position: "right",
+        scaleType: "linear",
+        getValue: (d) => d.value,
+        min: 0,
+        elementType: "line",
+        formatters: { scale: formatVolumeValue },
+      });
+    }
+    return axes;
+  }, [hasScoreAxis, hasVolumeAxis]);
 
-    const visibleSeriesList = DOMAIN_METRICS_SERIES.filter((s) =>
+  // Flat-line detection
+  const flatLineMessage = useMemo(() => {
+    if (filteredHistory.length < 2) return null;
+    const visibleList = DOMAIN_METRICS_SERIES.filter((s) =>
       visibleSeries.has(s.dataKey),
     );
-
-    // Check each visible series for variance
-    const allFlat = visibleSeriesList.every((series) => {
-      const values = chartData
-        .map((point) => point[series.dataKey as keyof MetricsChartDataPoint])
+    const allFlat = visibleList.every((s) => {
+      const values = filteredHistory
+        .map((r) => Number(r[s.dataKey as keyof typeof r] ?? 0))
         .filter((v): v is number => typeof v === "number");
-
       if (values.length < 2) return true;
-
-      const firstValue = values[0];
-      return values.every((v) => v === firstValue);
+      const first = values[0];
+      return values.every((v) => v === first);
     });
-
-    if (allFlat && visibleSeriesList.length > 0) {
+    if (allFlat && visibleList.length > 0) {
       return `ไม่มีการเปลี่ยนแปลงในช่วง ${period} วันที่ผ่านมา`;
     }
     return null;
-  }, [chartData, visibleSeries, period]);
+  }, [filteredHistory, visibleSeries, period]);
 
-  // Toggle series visibility
   const toggleSeries = (dataKey: string) => {
     setVisibleSeries((prev) => {
       const next = new Set(prev);
       if (next.has(dataKey)) {
-        // Prevent hiding all series
-        if (next.size > 1) {
-          next.delete(dataKey);
-        }
+        if (next.size > 1) next.delete(dataKey);
       } else {
         next.add(dataKey);
       }
@@ -128,228 +143,89 @@ export const TrendChartsSection: React.FC<TrendChartsSectionProps> = ({
     });
   };
 
-  // Format large numbers for volume axis (K, M)
-  const formatVolumeValue = (val: number): string => {
-    if (val >= 1000000) return `${(val / 1000000).toFixed(1)}M`;
-    if (val >= 1000) return `${(val / 1000).toFixed(0)}K`;
-    return val.toString();
-  };
-
   if (isLoading) {
     return (
-      <Paper
-        sx={{ p: 3, borderRadius: 3, border: "1px solid #E2E8F0" }}
-        elevation={0}
-      >
-        <Typography>กำลังโหลดข้อมูลแนวโน้ม...</Typography>
-      </Paper>
+      <div className="flex items-center gap-2 rounded-2xl border border-border p-6">
+        <Loader2 className="size-4 animate-spin text-info" />
+        <span>กำลังโหลดข้อมูลแนวโน้ม...</span>
+      </div>
     );
   }
 
   return (
-    <Paper
-      sx={{ p: 3, borderRadius: 3, border: "1px solid #E2E8F0" }}
-      elevation={0}
-    >
-      {/* Header with title and period selector */}
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: { xs: "column", sm: "row" },
-          justifyContent: "space-between",
-          alignItems: { xs: "flex-start", sm: "center" },
-          gap: 2,
-          mb: 2,
-        }}
-      >
-        <Typography variant="h5" fontWeight={700}>
-          {title}
-        </Typography>
+    <div className="rounded-2xl border border-border p-4 md:p-6">
+      <div className="mb-4 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+        <h3 className="text-xl font-bold">{title}</h3>
         <PeriodSelector value={period} onChange={setPeriod} />
-      </Box>
+      </div>
 
-      {/* Series Toggle Chips with axis type indicators */}
-      <Box
-        sx={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: 1,
-          mb: 3,
-        }}
-      >
+      {/* Series toggle chips */}
+      <div className="mb-4 flex flex-wrap gap-2">
         {DOMAIN_METRICS_SERIES.map((series: MetricSeriesConfig) => {
           const isVisible = visibleSeries.has(series.dataKey);
           return (
-            <Chip
+            <button
               key={series.dataKey}
-              label={series.name}
+              type="button"
               onClick={() => toggleSeries(series.dataKey)}
-              sx={{
-                backgroundColor: isVisible ? series.color : "#e2e8f0",
-                color: isVisible ? "#ffffff" : "#64748b",
-                fontWeight: 600,
-                fontSize: "0.75rem",
-                "&:hover": {
-                  backgroundColor: isVisible ? series.color : "#cbd5e1",
-                  opacity: isVisible ? 0.9 : 1,
-                },
-                transition: "all 0.2s ease",
-                cursor: "pointer",
-              }}
-              size="small"
-            />
+              className={cn(
+                "rounded-full px-3 py-1 text-xs font-semibold transition-colors",
+                isVisible
+                  ? "text-white"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80",
+              )}
+              style={isVisible ? { backgroundColor: series.color } : undefined}
+            >
+              {series.name}
+            </button>
           );
         })}
-      </Box>
+      </div>
 
-      {/* Axis Legend Indicator */}
-      <Box
-        sx={{
-          display: "flex",
-          gap: 3,
-          mb: 2,
-          flexWrap: "wrap",
-        }}
-      >
+      {/* Axis legend */}
+      <div className="mb-4 flex flex-wrap gap-4 text-xs">
         {hasScoreAxis && (
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <Box
-              sx={{
-                width: 12,
-                height: 12,
-                borderRadius: "2px",
-                backgroundColor: SCORE_AXIS_COLOR,
-                opacity: 0.7,
-              }}
-            />
-            <Typography
-              variant="caption"
-              sx={{ color: SCORE_AXIS_COLOR, fontWeight: 500 }}
-            >
-              Score (0-100) - แกนซ้าย
-            </Typography>
-          </Box>
+          <div className="flex items-center gap-1">
+            <span className="size-3 rounded-sm bg-success/70" />
+            <span className="font-medium text-success">
+              Score (0-100) — แกนซ้าย
+            </span>
+          </div>
         )}
         {hasVolumeAxis && (
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <Box
-              sx={{
-                width: 12,
-                height: 12,
-                borderRadius: "2px",
-                backgroundColor: VOLUME_AXIS_COLOR,
-                opacity: 0.7,
-              }}
-            />
-            <Typography
-              variant="caption"
-              sx={{ color: VOLUME_AXIS_COLOR, fontWeight: 500 }}
-            >
-              Volume - แกนขวา
-            </Typography>
-          </Box>
+          <div className="flex items-center gap-1">
+            <span className="size-3 rounded-sm bg-secondary/70" />
+            <span className="font-medium text-success">
+              Volume — แกนขวา
+            </span>
+          </div>
         )}
-      </Box>
+      </div>
 
       {!hasData ? (
-        <Box sx={{ height: { xs: 280, sm: 320, md: 400 } }}>
-          <ChartEmptyState />
-        </Box>
+        <ChartEmptyState height="320px" />
       ) : (
-        <Box sx={{ width: "100%", height: { xs: 280, sm: 320, md: 400 } }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} {...DOMAIN_METRICS_CHART_PROPS}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                vertical={false}
-                stroke={CHART_COLORS.grid}
-              />
-              <XAxis
-                dataKey="date"
-                tick={{ fontSize: 11, fill: CHART_COLORS.text }}
-                tickFormatter={(val) => formatChartDate(val)}
-                axisLine={{ stroke: CHART_COLORS.grid }}
-                tickLine={{ stroke: CHART_COLORS.grid }}
-              />
-              {/* Left Y-axis: Score metrics (0-100) - color-coded */}
-              <YAxis
-                yAxisId="score"
-                orientation="left"
-                domain={[0, 100]}
-                tick={{ fontSize: 11, fill: SCORE_AXIS_COLOR }}
-                axisLine={{ stroke: SCORE_AXIS_COLOR, strokeOpacity: 0.5 }}
-                tickLine={{ stroke: SCORE_AXIS_COLOR, strokeOpacity: 0.5 }}
-                width={45}
-                hide={!hasScoreAxis}
-              />
-              {/* Right Y-axis: Volume metrics (dynamic) - color-coded */}
-              <YAxis
-                yAxisId="volume"
-                orientation="right"
-                tick={{ fontSize: 11, fill: VOLUME_AXIS_COLOR }}
-                axisLine={{ stroke: VOLUME_AXIS_COLOR, strokeOpacity: 0.5 }}
-                tickLine={{ stroke: VOLUME_AXIS_COLOR, strokeOpacity: 0.5 }}
-                tickFormatter={formatVolumeValue}
-                width={55}
-                hide={!hasVolumeAxis}
-              />
-              <Tooltip
-                content={<CustomTooltip />}
-                cursor={{ stroke: CHART_COLORS.cursor, strokeWidth: 2 }}
-              />
-
-              {/* Render visible series dynamically based on axisType */}
-              {DOMAIN_METRICS_SERIES.map((series) => {
-                if (!visibleSeries.has(series.dataKey)) return null;
-                return (
-                  <Line
-                    key={series.dataKey}
-                    yAxisId={series.axisType}
-                    type="monotone"
-                    dataKey={series.dataKey}
-                    name={series.name}
-                    stroke={series.color}
-                    strokeWidth={2}
-                    dot={false}
-                    activeDot={{ r: 5, strokeWidth: 0, fill: series.color }}
-                    connectNulls
-                  />
-                );
-              })}
-            </LineChart>
-          </ResponsiveContainer>
-        </Box>
+        <TimeSeriesChart
+          series={chartSeries}
+          secondaryAxes={secondaryAxes}
+          height={400}
+          tooltipRender={({ focusedDatum }) => (
+            <CustomTooltip focusedDatum={focusedDatum} />
+          )}
+        />
       )}
 
-      {/* Flat-line detection message */}
       {flatLineMessage && hasData && (
-        <Typography
-          variant="caption"
-          sx={{
-            display: "block",
-            mt: 1,
-            color: CHART_COLORS.text,
-            textAlign: "center",
-            fontStyle: "italic",
-          }}
-        >
+        <p className="mt-2 text-center text-xs italic text-muted-foreground">
           📊 {flatLineMessage}
-        </Typography>
+        </p>
       )}
 
-      {/* Data source info */}
-      <Typography
-        variant="caption"
-        sx={{
-          display: "block",
-          mt: 2,
-          color: CHART_COLORS.text,
-          textAlign: "right",
-        }}
-      >
-        ข้อมูลจาก Database: {chartData.length} รายการ
-      </Typography>
-    </Paper>
+      <p className="mt-3 text-right text-xs text-muted-foreground">
+        ข้อมูลจาก Database:{" "}
+        <Badge variant="outline">{filteredHistory.length} รายการ</Badge>
+      </p>
+    </div>
   );
 };
 

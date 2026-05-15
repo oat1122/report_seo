@@ -1,128 +1,82 @@
-// src/components/Customer/Report/components/CustomTooltip.tsx
 "use client";
 
 import React from "react";
-import { Box, Typography } from "@mui/material";
-import { CHART_COLORS } from "../lib/chartConfig";
-import { formatChartDate } from "../lib/historyCalculations";
-
-interface TooltipPayloadEntry {
-  dataKey: string;
-  name: string;
-  value: number;
-  color: string;
-  payload?: { dateLabel?: string };
-}
+import type { Datum } from "react-charts";
+import { cn } from "@/lib/utils";
+import type { TimeSeriesDatum, ChartSeries } from "./Chart";
 
 interface CustomTooltipProps {
-  active?: boolean;
-  payload?: TooltipPayloadEntry[];
-  label?: string | number;
-  formatValue?: (value: number, dataKey: string) => string;
+  focusedDatum: Datum<TimeSeriesDatum> | null;
+  formatValue?: (value: number, seriesId: string) => string;
 }
 
-/**
- * Custom tooltip component for Recharts
- * Displays date in Thai format and color-coded values
- */
+const defaultFormat = (value: number, seriesId: string) => {
+  if (seriesId.toLowerCase().includes("position")) {
+    return value ? `#${value}` : "-";
+  }
+  if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+  if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
+  return value.toLocaleString();
+};
+
+// react-charts tooltip — แสดงทุก series ใน tooltipGroup เดียวกัน
 export const CustomTooltip: React.FC<CustomTooltipProps> = ({
-  active,
-  payload,
-  label,
+  focusedDatum,
   formatValue,
 }) => {
-  if (!active || !payload || payload.length === 0) {
-    return null;
-  }
+  if (!focusedDatum) return null;
 
-  // Format the date label
-  const dateLabel: string = label
-    ? formatChartDate(String(label))
-    : (payload[0]?.payload?.dateLabel ?? "");
+  const formatter = formatValue ?? defaultFormat;
+  const date = focusedDatum.primaryValue;
+  const dateLabel =
+    date instanceof Date
+      ? date.toLocaleDateString("th-TH", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })
+      : String(date ?? "");
 
-  // Default value formatter
-  const defaultFormatValue = (value: number, dataKey: string): string => {
-    // Format position differently (lower is better)
-    if (dataKey === "position") {
-      return value ? `#${value}` : "-";
-    }
-    // Large numbers with K suffix
-    if (value >= 1000) {
-      return `${(value / 1000).toFixed(1)}K`;
-    }
-    return value.toLocaleString();
-  };
-
-  const formatter = formatValue || defaultFormatValue;
+  const datums = focusedDatum.tooltipGroup ?? [focusedDatum];
+  const entries = datums.map((d) => {
+    const series = d.originalSeries as ChartSeries;
+    return {
+      label: d.seriesLabel ?? series.label,
+      value: typeof d.secondaryValue === "number" ? d.secondaryValue : 0,
+      color: series.color,
+    };
+  });
 
   return (
-    <Box
-      sx={{
-        backgroundColor: "#ffffff",
-        padding: { xs: "8px 10px", md: "12px 16px" },
-        borderRadius: "8px",
-        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-        border: "1px solid #e2e8f0",
-        minWidth: { xs: 100, md: 140 },
-      }}
+    <div
+      className={cn(
+        "pointer-events-none min-w-32 rounded-lg border border-border bg-popover px-3 py-2 text-popover-foreground shadow-md",
+      )}
     >
-      {/* Date header */}
-      <Typography
-        sx={{
-          fontWeight: 700,
-          fontSize: "0.875rem",
-          color: "#374151",
-          marginBottom: "8px",
-          paddingBottom: "6px",
-          borderBottom: "1px solid #e5e7eb",
-        }}
-      >
+      <div className="mb-1 border-b border-border pb-1 text-xs font-bold">
         {dateLabel}
-      </Typography>
-
-      {/* Values */}
-      {payload.map((entry: TooltipPayloadEntry, index: number) => (
-        <Box
-          key={index}
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 2,
-            marginTop: index > 0 ? "4px" : 0,
-          }}
+      </div>
+      {entries.map((entry, index) => (
+        <div
+          key={`${entry.label}-${index}`}
+          className={cn(
+            "flex items-center justify-between gap-3",
+            index > 0 && "mt-0.5",
+          )}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            {/* Color dot */}
-            <Box
-              sx={{
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                backgroundColor: entry.color || CHART_COLORS.primary,
-              }}
+          <div className="flex items-center gap-2">
+            <span
+              className="size-2 rounded-full"
+              style={{ backgroundColor: entry.color }}
             />
-            <Typography
-              sx={{
-                fontSize: "0.8rem",
-                color: "#6b7280",
-              }}
-            >
-              {entry.name}
-            </Typography>
-          </Box>
-          <Typography
-            sx={{
-              fontSize: "0.875rem",
-              fontWeight: 600,
-              color: "#111827",
-            }}
-          >
-            {formatter(entry.value, entry.dataKey)}
-          </Typography>
-        </Box>
+            <span className="text-xs text-muted-foreground">{entry.label}</span>
+          </div>
+          <span className="text-xs font-semibold">
+            {formatter(entry.value, entry.label)}
+          </span>
+        </div>
       ))}
-    </Box>
+    </div>
   );
 };
 

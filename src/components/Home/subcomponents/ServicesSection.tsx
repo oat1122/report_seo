@@ -1,51 +1,36 @@
-import React from "react";
 import Image from "next/image";
-import {
-  Box,
-  Container,
-  Typography,
-  Grid,
-  Card,
-  CardContent,
-  CardMedia,
-} from "@mui/material";
+import { Card, CardContent } from "@/components/ui/card";
 import { services } from "@/components/Home/constants/data";
 
-export const ServicesSection: React.FC = () => {
+export const ServicesSection = () => {
   return (
-    <Box component="section" sx={{ py: 8, bgcolor: "background.paper" }}>
-      <Container maxWidth="lg" sx={{ textAlign: "center" }}>
-        <Typography variant="h2" component="h2" color="primary" gutterBottom>
+    <section className="bg-card py-12">
+      <div className="mx-auto w-full max-w-5xl px-4 text-center">
+        <h2 className="mb-2 text-3xl font-bold text-primary md:text-4xl">
           บริการ SEO ของเรา
-        </Typography>
-        <Typography variant="h6" color="text.secondary" sx={{ mb: 6 }}>
+        </h2>
+        <p className="mb-8 text-lg text-muted-foreground">
           เราทำอะไรบ้างเพื่อขับเคลื่อนธุรกิจของคุณสู่หน้าแรก
-        </Typography>
-        <Grid container spacing={4}>
-          {services.map((service, index) => (
-            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
-              <Card sx={{ textAlign: "center", p: 3, height: "100%" }}>
-                <CardMedia sx={{ width: 80, height: 80, mx: "auto", mb: 2 }}>
-                  <Image
-                    src={service.icon}
-                    alt={`${service.title} icon`}
-                    width={80}
-                    height={80}
-                  />
-                </CardMedia>
-                <CardContent>
-                  <Typography variant="h4" color="primary" gutterBottom>
-                    {service.title}
-                  </Typography>
-                  <Typography color="text.secondary">
-                    {service.description}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
+        </p>
+        <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
+          {services.map((service) => (
+            <Card key={service.title} className="h-full p-6 text-center">
+              <CardContent className="flex flex-col items-center gap-3 p-0">
+                <Image
+                  src={service.icon}
+                  alt={`${service.title} icon`}
+                  width={80}
+                  height={80}
+                />
+                <h3 className="text-lg font-semibold text-primary md:text-xl">
+                  {service.title}
+                </h3>
+                <p className="text-muted-foreground">{service.description}</p>
+              </CardContent>
+            </Card>
           ))}
-        </Grid>
-      </Container>
-    </Box>
+        </div>
+      </div>
+    </section>
   );
 };

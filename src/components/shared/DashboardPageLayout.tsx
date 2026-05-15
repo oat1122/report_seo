@@ -1,22 +1,22 @@
-// src/components/shared/DashboardPageLayout.tsx
 import React from "react";
-import { Role } from "@/types/auth";
-import {
-  Box,
-  Container,
-  Typography,
-  Grid,
-  Card,
-  CardContent,
-  Paper,
-} from "@mui/material";
 import Link from "next/link";
+import { Role } from "@/types/auth";
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+
+type CardColor =
+  | "primary"
+  | "secondary"
+  | "info"
+  | "success"
+  | "warning"
+  | "error";
 
 interface DashboardCard {
   title: string;
   description: string;
   href: string;
-  color: "primary" | "secondary" | "info" | "success" | "warning" | "error";
+  color: CardColor;
   disabled?: boolean;
 }
 
@@ -30,121 +30,78 @@ interface DashboardPageLayoutProps {
   cards: DashboardCard[];
 }
 
+const cardColorClass: Record<CardColor, string> = {
+  primary: "bg-primary/5 border-primary/30 hover:border-primary",
+  secondary: "bg-secondary/10 border-secondary/40 hover:border-secondary",
+  info: "bg-info/10 border-info/30 hover:border-info",
+  success: "bg-success/10 border-success/30 hover:border-success",
+  warning: "bg-warning/10 border-warning/30 hover:border-warning",
+  error: "bg-destructive/10 border-destructive/30 hover:border-destructive",
+};
+
 export const DashboardPageLayout: React.FC<DashboardPageLayoutProps> = ({
   user,
   title,
   cards,
 }) => {
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Paper
-        elevation={0}
-        sx={{
-          p: 4,
-          borderRadius: 3,
-          border: "1px solid",
-          borderColor: "divider",
-        }}
-      >
-        <Typography variant="h2" component="h1" gutterBottom>
-          {title}
-        </Typography>
+    <div className="mx-auto w-full max-w-6xl py-8">
+      <Card className="rounded-2xl">
+        <CardContent className="p-8">
+          <h1 className="mb-4 text-3xl font-bold tracking-tight">{title}</h1>
 
-        <Box
-          sx={{
-            bgcolor: "info.50",
-            p: 2,
-            borderRadius: 2,
-            mb: 4,
-            border: "1px solid",
-            borderColor: "info.200",
-          }}
-        >
-          <Typography color="info.dark">
-            ยินดีต้อนรับ,{" "}
-            <Typography component="span" fontWeight="bold">
-              {user.name}
-            </Typography>
-            !
-          </Typography>
-          <Typography variant="body2" color="info.dark">
-            บทบาท: {user.role} | อีเมล: {user.email}
-          </Typography>
-        </Box>
+          <div className="mb-6 rounded-lg border border-info/30 bg-info/10 p-4">
+            <p>
+              ยินดีต้อนรับ,{" "}
+              <span className="font-bold">{user.name}</span>!
+            </p>
+            <p className="text-sm text-muted-foreground">
+              บทบาท: {user.role} | อีเมล: {user.email}
+            </p>
+          </div>
 
-        <Grid container spacing={3}>
-          {cards.map((card) => (
-            <Grid size={{ xs: 12, md: 4 }} key={card.href}>
-              {card.disabled ? (
-                <Card
-                  elevation={0}
-                  sx={{
-                    height: "100%",
-                    border: "1px solid",
-                    borderColor: "grey.300",
-                    bgcolor: "grey.100",
-                    opacity: 0.6,
-                    cursor: "not-allowed",
-                  }}
-                >
-                  <CardContent>
-                    <Typography
-                      variant="h5"
-                      component="h3"
-                      color="text.disabled"
-                      gutterBottom
-                      sx={{ fontWeight: 600 }}
-                    >
-                      {card.title}
-                    </Typography>
-                    <Typography color="text.disabled">
-                      {card.description}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              ) : (
+          <div className="grid gap-4 md:grid-cols-3">
+            {cards.map((card) => {
+              if (card.disabled) {
+                return (
+                  <Card
+                    key={card.href}
+                    className="cursor-not-allowed border border-border bg-muted opacity-60"
+                  >
+                    <CardContent className="p-6">
+                      <h3 className="mb-2 text-xl font-semibold text-muted-foreground">
+                        {card.title}
+                      </h3>
+                      <p className="text-muted-foreground">{card.description}</p>
+                    </CardContent>
+                  </Card>
+                );
+              }
+              return (
                 <Link
+                  key={card.href}
                   href={card.href}
-                  passHref
-                  style={{ textDecoration: "none" }}
+                  className="no-underline"
                 >
                   <Card
-                    elevation={0}
-                    sx={{
-                      height: "100%",
-                      border: "1px solid",
-                      borderColor: `${card.color}.200`,
-                      bgcolor: `${card.color}.50`,
-                      transition: "all 0.3s ease",
-                      cursor: "pointer",
-                      "&:hover": {
-                        boxShadow: 3,
-                        borderColor: `${card.color}.main`,
-                        transform: "translateY(-2px)",
-                      },
-                    }}
+                    className={cn(
+                      "h-full cursor-pointer border transition-all hover:-translate-y-0.5 hover:shadow-md",
+                      cardColorClass[card.color],
+                    )}
                   >
-                    <CardContent>
-                      <Typography
-                        variant="h5"
-                        component="h3"
-                        color={`${card.color}.dark`}
-                        gutterBottom
-                        sx={{ fontWeight: 600 }}
-                      >
+                    <CardContent className="p-6">
+                      <h3 className="mb-2 text-xl font-semibold">
                         {card.title}
-                      </Typography>
-                      <Typography color={`${card.color}.dark`}>
-                        {card.description}
-                      </Typography>
+                      </h3>
+                      <p className="text-foreground/80">{card.description}</p>
                     </CardContent>
                   </Card>
                 </Link>
-              )}
-            </Grid>
-          ))}
-        </Grid>
-      </Paper>
-    </Container>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };

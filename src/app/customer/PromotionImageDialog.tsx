@@ -1,8 +1,13 @@
 "use client";
 
-import { Dialog, DialogContent, IconButton, Box } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
 import Image from "next/image";
+import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface PromotionImageDialogProps {
   src: string | null;
@@ -14,72 +19,30 @@ export function PromotionImageDialog({
   onClose,
 }: PromotionImageDialogProps) {
   return (
-    <Dialog
-      open={!!src}
-      onClose={onClose}
-      maxWidth="lg"
-      fullWidth
-      aria-labelledby="promotion-image-dialog"
-      PaperProps={{
-        sx: {
-          bgcolor: "transparent",
-          boxShadow: "none",
-          maxWidth: "90vw",
-          maxHeight: "90vh",
-        },
-      }}
-    >
-      <IconButton
-        onClick={onClose}
-        aria-label="ปิดรูปภาพ"
-        sx={{
-          position: "absolute",
-          right: 8,
-          top: 8,
-          bgcolor: "rgba(0, 0, 0, 0.7)",
-          color: "white",
-          zIndex: 1,
-          "&:hover": { bgcolor: "rgba(0, 0, 0, 0.9)" },
-        }}
-      >
-        <CloseIcon />
-      </IconButton>
+    <Dialog open={!!src} onOpenChange={(o) => !o && onClose()}>
       <DialogContent
-        sx={{
-          p: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          bgcolor: "transparent",
-          overflow: "hidden",
-        }}
+        showCloseButton={false}
+        className="max-h-[90vh] max-w-[90vw] border-none bg-transparent p-0 shadow-none"
       >
+        <DialogTitle className="sr-only">โปรโมชันขนาดเต็ม</DialogTitle>
+        <Button
+          size="icon-sm"
+          variant="secondary"
+          onClick={onClose}
+          aria-label="ปิดรูปภาพ"
+          className="absolute top-2 right-2 z-10 bg-foreground/70 text-background hover:bg-foreground/90"
+        >
+          <X />
+        </Button>
         {src && (
-          <Box
-            sx={{
-              position: "relative",
-              width: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Image
-              src={src}
-              alt="โปรโมชันขนาดเต็ม"
-              width={1200}
-              height={800}
-              style={{
-                width: "100%",
-                height: "auto",
-                maxHeight: "90vh",
-                objectFit: "contain",
-                borderRadius: "8px",
-                cursor: "zoom-out",
-              }}
-              onClick={onClose}
-            />
-          </Box>
+          <Image
+            src={src}
+            alt="โปรโมชันขนาดเต็ม"
+            width={1200}
+            height={800}
+            className="h-auto w-full max-h-[90vh] cursor-zoom-out rounded-lg object-contain"
+            onClick={onClose}
+          />
         )}
       </DialogContent>
     </Dialog>

@@ -1,15 +1,7 @@
-// src/components/Customer/Report/ReportPage.tsx
 "use client";
 
 import React from "react";
-import {
-  Container,
-  Typography,
-  Box,
-  CircularProgress,
-  Alert,
-  Grid,
-} from "@mui/material";
+import { Loader2 } from "lucide-react";
 import { OverallMetricsCard } from "./OverallMetricsCard";
 import { KeywordReportTable } from "./KeywordReportTable";
 import { RecommendKeywordTable } from "./RecommendKeywordTable";
@@ -34,27 +26,31 @@ const ReportPage: React.FC<ReportPageProps> = ({ customerId, initialData }) => {
 
   if (isLoading) {
     return (
-      <Container maxWidth="xl" sx={{ textAlign: "center", py: 8 }}>
-        <CircularProgress size={60} />
-        <Typography sx={{ mt: 3 }} variant="h6" color="text.secondary">
+      <div className="mx-auto w-full max-w-screen-xl px-4 py-16 text-center">
+        <Loader2 className="mx-auto size-12 animate-spin text-info" />
+        <p className="mt-3 text-lg text-muted-foreground">
           Loading report data...
-        </Typography>
-      </Container>
+        </p>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Container maxWidth="xl" sx={{ py: 4 }}>
-        <Alert severity="error">Failed to load report data: {error}</Alert>
-      </Container>
+      <div className="mx-auto w-full max-w-screen-xl px-4 py-8">
+        <div
+          role="alert"
+          className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-destructive"
+        >
+          Failed to load report data: {error}
+        </div>
+      </div>
     );
   }
 
   const customerName = reportData?.customerName || "Customer";
   const domain = reportData?.domain || "N/A";
 
-  // Calculate summary statistics
   const allKeywords = [
     ...(reportData?.topKeywords || []),
     ...(reportData?.otherKeywords || []),
@@ -74,33 +70,16 @@ const ReportPage: React.FC<ReportPageProps> = ({ customerId, initialData }) => {
 
   return (
     <HistoryProvider customerId={customerId}>
-      <Container maxWidth="xl" sx={{ py: { xs: 2, md: 4 } }}>
-        {/* Header */}
-        <Box sx={{ mb: { xs: 3, md: 4 } }}>
-          <Typography
-            variant="h2"
-            component="h1"
-            gutterBottom
-            sx={{
-              fontSize: { xs: "1.75rem", md: "2.5rem", lg: "3rem" },
-              wordBreak: "break-word",
-            }}
-          >
+      <div className="mx-auto w-full max-w-screen-xl px-4 py-4 md:py-8">
+        <div className="mb-6 md:mb-8">
+          <h1 className="mb-1 text-3xl font-bold break-words md:text-5xl">
             SEO Report for {customerName}
-          </Typography>
-          <Typography
-            variant="h5"
-            color="text.secondary"
-            sx={{
-              fontSize: { xs: "1rem", md: "1.5rem" },
-              wordBreak: "break-word",
-            }}
-          >
+          </h1>
+          <p className="text-lg break-words text-muted-foreground md:text-2xl">
             {domain}
-          </Typography>
-        </Box>
+          </p>
+        </div>
 
-        {/* Summary Statistics */}
         <SummaryStatistics
           totalKeywords={totalKeywords}
           avgPosition={avgPosition}
@@ -108,58 +87,49 @@ const ReportPage: React.FC<ReportPageProps> = ({ customerId, initialData }) => {
           recommendationsCount={recommendationsCount}
         />
 
-        {/* Main Content Grid: Overall Metrics + Recommendations */}
-        <Grid
-          container
-          spacing={{ xs: 2, md: 3 }}
-          sx={{ mb: { xs: 3, md: 4 } }}
-        >
-          <Grid size={{ xs: 12, md: 7, lg: 8 }}>
+        <div className="mb-6 grid gap-4 md:mb-8 md:grid-cols-12 md:gap-5">
+          <div className="md:col-span-7 lg:col-span-8">
             <OverallMetricsCard
               metrics={reportData?.metrics || null}
               customerId={customerId}
               customerName={customerName}
             />
-          </Grid>
-          <Grid size={{ xs: 12, md: 5, lg: 4 }}>
+          </div>
+          <div className="md:col-span-5 lg:col-span-4">
             <RecommendKeywordTable
               title="Recommended Keywords"
               keywords={reportData?.recommendations || []}
             />
-          </Grid>
-        </Grid>
+          </div>
+        </div>
 
-        {/* Trend Charts Section: Domain Metrics History */}
-        <Box sx={{ mb: { xs: 3, md: 4 } }}>
+        <section className="mb-6 md:mb-8">
           <TrendChartsSection title="แนวโน้ม Domain Metrics" />
-        </Box>
+        </section>
 
-        {/* Keyword Trend Chart */}
-        <Box sx={{ mb: { xs: 3, md: 4 } }}>
+        <section className="mb-6 md:mb-8">
           <KeywordTrendChart title="แนวโน้ม Keyword" />
-        </Box>
+        </section>
 
-        {/* Top Keywords Table */}
-        <Box sx={{ mb: { xs: 3, md: 4 } }}>
+        <section className="mb-6 md:mb-8">
           <KeywordReportTable
             title="Top Keywords Report"
             keywords={reportData?.topKeywords || []}
           />
-        </Box>
+        </section>
 
-        {/* Other Keywords + AI Overview */}
-        <Grid container spacing={{ xs: 2, md: 3 }}>
-          <Grid size={{ xs: 12, md: 6, lg: 7 }}>
+        <div className="grid gap-4 md:grid-cols-12 md:gap-5">
+          <div className="md:col-span-6 lg:col-span-7">
             <KeywordReportTable
               title="Other Keywords"
               keywords={reportData?.otherKeywords || []}
             />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6, lg: 5 }}>
+          </div>
+          <div className="md:col-span-6 lg:col-span-5">
             <AiOverviewCard aiOverviews={reportData?.aiOverviews || []} />
-          </Grid>
-        </Grid>
-      </Container>
+          </div>
+        </div>
+      </div>
     </HistoryProvider>
   );
 };

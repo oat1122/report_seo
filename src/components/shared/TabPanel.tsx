@@ -1,6 +1,4 @@
-// src/components/shared/TabPanel.tsx
 import React from "react";
-import { Box } from "@mui/material";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -9,13 +7,8 @@ interface TabPanelProps {
   prefix?: string;
 }
 
-/**
- * Shared TabPanel Component สำหรับแสดงเนื้อหาของแต่ละ Tab
- * @param children - เนื้อหาที่จะแสดงใน Tab
- * @param index - Index ของ Tab นี้
- * @param value - Index ของ Tab ที่กำลังเปิดอยู่
- * @param prefix - Prefix สำหรับ id (ใช้เพื่อให้แต่ละ TabPanel มี unique id)
- */
+// Deprecated: ใช้ shadcn `<Tabs>` + `<TabsContent>` ในโค้ดใหม่
+// คงไว้ชั่วคราวจนกว่า HistoryModal จะ migrate (Phase 7) แล้วลบไฟล์นี้
 export const TabPanel: React.FC<TabPanelProps> = ({
   children,
   value,
@@ -23,15 +16,16 @@ export const TabPanel: React.FC<TabPanelProps> = ({
   prefix = "tabpanel",
   ...other
 }) => {
+  if (value !== index) return null;
   return (
     <div
       role="tabpanel"
-      hidden={value !== index}
       id={`${prefix}-${index}`}
       aria-labelledby={`${prefix}-tab-${index}`}
+      className="mt-4"
       {...other}
     >
-      {value === index && <Box sx={{ mt: 2 }}>{children}</Box>}
+      {children}
     </div>
   );
 };

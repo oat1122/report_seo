@@ -1,154 +1,108 @@
-import React from "react";
-import {
-  Box,
-  Container,
-  Typography,
-  Grid,
-  Card,
-  CardContent,
-  Button,
-  Chip,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-} from "@mui/material";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import { CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { packages } from "@/components/Home/constants/data";
 
-interface PackageCardProps {
-  plan: {
-    title: string;
-    price: string;
-    duration: string;
-    keywords: string;
-    features: string[];
-    guarantee: string;
-    recommended?: boolean;
-  };
+interface Plan {
+  title: string;
+  price: string;
+  duration: string;
+  keywords: string;
+  features: string[];
+  guarantee: string;
   recommended?: boolean;
 }
 
-const PackageCard: React.FC<PackageCardProps> = ({
-  plan,
-  recommended = false,
-}) => (
-  <Card
-    sx={{
-      height: "100%",
-      border: recommended ? "2px solid" : "1px solid #E2E8F0",
-      borderColor: recommended ? "secondary.main" : "#E2E8F0",
-      position: "relative",
-    }}
-  >
-    {recommended && (
-      <Chip
-        label="แนะนำ"
-        color="secondary"
-        sx={{ position: "absolute", top: 16, right: 16, fontWeight: "bold" }}
-      />
-    )}
-    <CardContent sx={{ p: 4 }}>
-      <Typography variant="h3" color="info.main" gutterBottom>
-        {plan.title}
-      </Typography>
-      <Typography variant="h2" component="p" sx={{ mb: 1 }}>
-        ฿{plan.price}{" "}
-        <Typography variant="body1" component="span">
-          / เดือน
-        </Typography>
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        {plan.duration} | {plan.keywords}
-      </Typography>
-      <Button
-        variant="contained"
-        color={recommended ? "secondary" : "info"}
-        size="large"
-        fullWidth
-      >
-        เลือกแพ็คเกจนี้
-      </Button>
-      <List sx={{ mt: 3 }}>
-        {plan.features.map((feature, index) => (
-          <ListItem key={index} disableGutters>
-            <ListItemIcon sx={{ minWidth: 32 }}>
-              <CheckCircleIcon color="secondary" fontSize="small" />
-            </ListItemIcon>
-            <ListItemText primary={feature} />
-          </ListItem>
-        ))}
-      </List>
-      <Box
-        sx={{
-          mt: 2,
-          p: 2,
-          bgcolor: "background.paper",
-          borderRadius: 2,
-          textAlign: "center",
-        }}
-      >
-        <Typography variant="h6" color="secondary.main" fontWeight="bold">
-          {plan.guarantee}
-        </Typography>
-      </Box>
-    </CardContent>
-  </Card>
+const PackageCard = ({ plan }: { plan: Plan }) => {
+  const recommended = !!plan.recommended;
+
+  return (
+    <Card
+      className={cn(
+        "relative h-full",
+        recommended ? "border-2 border-secondary" : "border-border",
+      )}
+    >
+      {recommended && (
+        <Badge className="absolute top-4 right-4 bg-secondary text-secondary-foreground">
+          แนะนำ
+        </Badge>
+      )}
+      <CardContent className="p-6">
+        <h3 className="mb-2 text-xl font-semibold text-info md:text-2xl">
+          {plan.title}
+        </h3>
+        <p className="mb-1 text-3xl font-bold md:text-4xl">
+          ฿{plan.price}
+          <span className="ml-1 text-base font-normal">/ เดือน</span>
+        </p>
+        <p className="mb-4 text-sm text-muted-foreground">
+          {plan.duration} | {plan.keywords}
+        </p>
+        <Button
+          size="lg"
+          className={cn(
+            "w-full",
+            recommended
+              ? "bg-secondary text-secondary-foreground hover:bg-secondary/90"
+              : "bg-info text-info-foreground hover:bg-info/90",
+          )}
+        >
+          เลือกแพ็คเกจนี้
+        </Button>
+        <ul className="mt-5 space-y-2">
+          {plan.features.map((feature) => (
+            <li key={feature} className="flex items-start gap-2 text-sm">
+              <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-secondary" />
+              <span>{feature}</span>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-4 rounded-lg bg-card p-3 text-center">
+          <p className="font-bold text-secondary">{plan.guarantee}</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+const SectionHeading = ({ title, subtitle }: { title: string; subtitle: string }) => (
+  <>
+    <h2 className="mt-12 mb-1 text-center text-3xl font-bold md:text-4xl">
+      {title}
+    </h2>
+    <p className="mx-auto mb-10 max-w-xl text-center text-lg text-muted-foreground">
+      {subtitle}
+    </p>
+  </>
 );
 
-export const PackagesSection: React.FC = () => {
+export const PackagesSection = () => {
   return (
-    <Box
-      component="section"
-      id="packages"
-      sx={{ py: 10, bgcolor: "background.paper" }}
-    >
-      <Container maxWidth="lg">
-        <Typography
-          variant="h2"
-          component="h2"
-          sx={{ textAlign: "center", mb: 1 }}
-        >
-          แพ็คเกจ BASIC
-        </Typography>
-        <Typography
-          variant="h6"
-          color="text.secondary"
-          sx={{ textAlign: "center", mb: 8, maxWidth: "600px", mx: "auto" }}
-        >
-          เหมาะสำหรับธุรกิจที่ต้องการเจาะจงเว็บไซต์ที่เป็นเป้าหมายเพื่อแข่งขันอย่างเจาะจง
-        </Typography>
-        <Grid container spacing={4}>
-          {packages.basic.map((plan, index) => (
-            <Grid size={{ xs: 12, md: 4 }} key={index}>
-              <PackageCard plan={plan} recommended={plan.recommended} />
-            </Grid>
+    <section id="packages" className="bg-card py-16">
+      <div className="mx-auto w-full max-w-5xl px-4">
+        <SectionHeading
+          title="แพ็คเกจ BASIC"
+          subtitle="เหมาะสำหรับธุรกิจที่ต้องการเจาะจงเว็บไซต์ที่เป็นเป้าหมายเพื่อแข่งขันอย่างเจาะจง"
+        />
+        <div className="grid gap-6 md:grid-cols-3">
+          {packages.basic.map((plan) => (
+            <PackageCard key={plan.title} plan={plan} />
           ))}
-        </Grid>
+        </div>
 
-        <Typography
-          variant="h2"
-          component="h2"
-          sx={{ textAlign: "center", mt: 12, mb: 1 }}
-        >
-          แพ็คเกจ BUSINESS PRO
-        </Typography>
-        <Typography
-          variant="h6"
-          color="text.secondary"
-          sx={{ textAlign: "center", mb: 8, maxWidth: "600px", mx: "auto" }}
-        >
-          เหมาะกับธุรกิจที่ต้องการความหลากหลาย ต้องการการขยายการเข้าถึง
-          หรือต้องการวางรากฐานการตลาดระยะยาว
-        </Typography>
-        <Grid container spacing={4} justifyContent="center">
-          {packages.business.map((plan, index) => (
-            <Grid size={{ xs: 12, md: 4 }} key={index}>
-              <PackageCard plan={plan} />
-            </Grid>
+        <SectionHeading
+          title="แพ็คเกจ BUSINESS PRO"
+          subtitle="เหมาะกับธุรกิจที่ต้องการความหลากหลาย ต้องการการขยายการเข้าถึง หรือต้องการวางรากฐานการตลาดระยะยาว"
+        />
+        <div className="grid justify-center gap-6 md:grid-cols-2">
+          {packages.business.map((plan) => (
+            <PackageCard key={plan.title} plan={plan} />
           ))}
-        </Grid>
-      </Container>
-    </Box>
+        </div>
+      </div>
+    </section>
   );
 };

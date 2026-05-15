@@ -1,68 +1,33 @@
 // src/components/Customer/Report/lib/chartConfig.ts
-/**
- * Centralized configuration for Recharts components
- * Ensures consistent styling across all trend charts
- */
+// สีและ config สำหรับ charts ในรายงาน — mirror จาก src/theme/theme.ts ผ่าน globals.css
 
-// --- Color Palette (aligned to theme: info, secondary, primary + semantic success/warning/error) ---
+// --- Color palette via CSS variables ---
+// ใช้กับ inline style เช่น style={{ color: CHART_COLORS.primary }} หรือใน SVG stroke/fill
 export const CHART_COLORS = {
-  // Primary colors for different metrics
-  primary: "#9592ff", // Domain Rating — info.main
-  secondary: "#6c68e8", // Secondary purple — info.dark
-  traffic: "#31fb4c", // Organic Traffic — secondary.main
-  keywords: "#bdbcff", // Organic Keywords — info.light
-  backlinks: "#2f2f2f", // Backlinks — primary.main
-  refDomains: "#9592ff", // Ref Domains — info.main
-  spamScore: "#d32f2f", // Spam Score — error.main
-  healthScore: "#1ce03b", // Health Score — secondary.dark
+  // Series colors
+  primary: "var(--info)", // Domain Rating — info.main
+  secondary: "var(--info)", // Secondary purple — fallback to info
+  traffic: "var(--secondary)", // Organic Traffic — secondary.main (bright green)
+  keywords: "var(--accent)", // Organic Keywords — info.light
+  backlinks: "var(--primary)", // Backlinks — primary.main
+  refDomains: "var(--info)", // Ref Domains — info.main
+  spamScore: "var(--destructive)", // Spam Score — error
+  healthScore: "var(--success)", // Health Score — success
 
-  // UI Colors
-  grid: "#E2E8F0", // Grid lines
-  cursor: "#cbd5e0", // Tooltip cursor line
-  text: "#a0aec0", // Axis text
-  textDark: "#64748B", // theme.text.secondary
+  // UI colors
+  grid: "var(--border)",
+  text: "var(--muted-foreground)",
 
-  // Trend indicators (semantic, aligned to MUI defaults)
-  up: "#2e7d32", // success.main
-  down: "#d32f2f", // error.main
-  neutral: "#64748B", // text.secondary
+  // Trend (semantic)
+  up: "var(--success)",
+  down: "var(--destructive)",
+  neutral: "var(--muted-foreground)",
 } as const;
 
-// --- Common Recharts Props ---
-// Base props without syncId (for independent tooltip behavior)
-export const COMMON_CHART_PROPS = {
-  margin: { top: 10, right: 30, left: 0, bottom: 0 },
-} as const;
-
-// Props for Domain Metrics charts (synchronized within this section)
-export const DOMAIN_METRICS_CHART_PROPS = {
-  ...COMMON_CHART_PROPS,
-  syncId: "domain-metrics-sync",
-} as const;
-
-// Props for Keyword charts (synchronized within this section)
-export const KEYWORD_CHART_PROPS = {
-  ...COMMON_CHART_PROPS,
-  syncId: "keyword-chart-sync",
-} as const;
-
-// --- Layout Classes (Tailwind) - Light Theme Only ---
-export const CHART_LAYOUT = {
-  // Combined chart: taller height for single chart view
-  containerHeight: "w-full h-80 sm:h-96",
-  // Card styling - Light theme (unified across all charts)
-  cardBase: "bg-white p-4 rounded-xl shadow-sm border border-gray-100",
-  // Section header
-  header: "text-sm font-semibold text-gray-600 mb-2",
-  // Section title (larger)
-  sectionTitle: "text-lg font-bold text-gray-800",
-} as const;
-
-// --- Position Chart Clipping ---
-// Positions beyond this threshold will be clamped and shown with label
+// --- Position chart clipping ---
 export const POSITION_CLIP_THRESHOLD = 20;
 
-// --- Period Options ---
+// --- Period options ---
 export type PeriodOption = 7 | 30 | 90;
 
 export const PERIOD_OPTIONS: { value: PeriodOption; label: string }[] = [
@@ -73,14 +38,14 @@ export const PERIOD_OPTIONS: { value: PeriodOption; label: string }[] = [
 
 export const DEFAULT_PERIOD: PeriodOption = 30;
 
-// --- Metric Series Definitions for Combined Chart ---
+// --- Metric series definitions for combined chart ---
 export interface MetricSeriesConfig {
   dataKey: string;
   name: string;
   color: string;
   unit?: string;
   defaultVisible: boolean;
-  axisType: "score" | "volume"; // score: 0-100 scale (left axis), volume: dynamic scale (right axis)
+  axisType: "score" | "volume"; // score: 0-100 (left), volume: dynamic (right)
 }
 
 export const DOMAIN_METRICS_SERIES: MetricSeriesConfig[] = [
@@ -88,49 +53,43 @@ export const DOMAIN_METRICS_SERIES: MetricSeriesConfig[] = [
     dataKey: "domainRating",
     name: "Domain Rating",
     color: CHART_COLORS.primary,
-    unit: "",
     defaultVisible: true,
-    axisType: "score", // 0-100 scale
+    axisType: "score",
   },
   {
     dataKey: "healthScore",
     name: "Health Score",
     color: CHART_COLORS.healthScore,
-    unit: "",
     defaultVisible: true,
-    axisType: "score", // 0-100 scale
+    axisType: "score",
   },
   {
     dataKey: "organicTraffic",
     name: "Organic Traffic",
     color: CHART_COLORS.traffic,
-    unit: "",
     defaultVisible: true,
-    axisType: "volume", // Dynamic scale (thousands/millions)
+    axisType: "volume",
   },
   {
     dataKey: "organicKeywords",
     name: "Organic Keywords",
     color: CHART_COLORS.keywords,
-    unit: "",
     defaultVisible: false,
-    axisType: "volume", // Dynamic scale
+    axisType: "volume",
   },
   {
     dataKey: "backlinks",
     name: "Backlinks",
     color: CHART_COLORS.backlinks,
-    unit: "",
     defaultVisible: false,
-    axisType: "volume", // Dynamic scale
+    axisType: "volume",
   },
   {
     dataKey: "refDomains",
     name: "Ref. Domains",
     color: CHART_COLORS.refDomains,
-    unit: "",
     defaultVisible: false,
-    axisType: "volume", // Dynamic scale
+    axisType: "volume",
   },
   {
     dataKey: "spamScore",
@@ -138,116 +97,26 @@ export const DOMAIN_METRICS_SERIES: MetricSeriesConfig[] = [
     color: CHART_COLORS.spamScore,
     unit: "%",
     defaultVisible: false,
-    axisType: "score", // 0-100 scale (percentage)
+    axisType: "score",
   },
 ];
 
-// --- Legacy Chart Series Definitions (for backward compatibility) ---
-export const METRICS_CHART_SERIES = {
-  healthScore: {
-    charts: [
-      {
-        title: "Health & Rating",
-        series: [
-          {
-            dataKey: "domainRating",
-            name: "Domain Rating",
-            color: CHART_COLORS.primary,
-            yAxisId: "left",
-          },
-          {
-            dataKey: "healthScore",
-            name: "Health Score",
-            color: CHART_COLORS.secondary,
-            yAxisId: "left",
-            strokeDasharray: "5 5",
-          },
-        ],
-        domain: [0, 100],
-        showXAxis: false,
-      },
-    ],
-  },
-  volume: {
-    charts: [
-      {
-        title: "Traffic & Keywords",
-        series: [
-          {
-            dataKey: "organicTraffic",
-            name: "Organic Traffic",
-            color: CHART_COLORS.traffic,
-            yAxisId: "left",
-          },
-          {
-            dataKey: "organicKeywords",
-            name: "Organic Keywords",
-            color: CHART_COLORS.keywords,
-            yAxisId: "right",
-            strokeDasharray: "5 5",
-          },
-        ],
-        showXAxis: false,
-      },
-    ],
-  },
-  authority: {
-    charts: [
-      {
-        title: "Backlinks & Ref. Domains",
-        series: [
-          {
-            dataKey: "backlinks",
-            name: "Backlinks",
-            color: CHART_COLORS.backlinks,
-            yAxisId: "left",
-          },
-          {
-            dataKey: "refDomains",
-            name: "Ref. Domains",
-            color: CHART_COLORS.refDomains,
-            yAxisId: "right",
-            strokeDasharray: "5 5",
-          },
-        ],
-        showXAxis: true, // Only bottom chart shows X axis
-      },
-    ],
-  },
-} as const;
-
-// --- Tooltip Styling - Light Theme Only ---
-export const TOOLTIP_STYLES = {
-  container: "bg-white p-3 border border-gray-100 shadow-lg rounded-lg text-sm",
-  label: "font-bold text-gray-700 mb-2",
-  value: "text-gray-600",
-} as const;
-
-// --- Keyword Chart Configuration ---
+// --- Keyword chart config ---
 export const MAX_SELECTED_KEYWORDS = 5;
 
-// Color palette for multi-keyword charts — theme-aligned with diverging hues for series clarity
+// Color palette สำหรับ multi-keyword chart — chart-1..5 + extras (mirror theme tokens)
 export const KEYWORD_COLORS = [
-  "#9592ff", // info.main
-  "#31fb4c", // secondary.main
-  "#2f2f2f", // primary.main
-  "#d32f2f", // error.main
-  "#ed6c02", // warning.main
-  "#6c68e8", // info.dark
-  "#1ce03b", // secondary.dark
-  "#7dfd91", // secondary.light
-  "#bdbcff", // info.light
-  "#64748B", // neutral
+  "var(--chart-2)", // info.main (purple)
+  "var(--chart-1)", // secondary.main (green)
+  "var(--chart-5)", // primary.main (dark grey)
+  "var(--destructive)",
+  "var(--warning)",
+  "var(--chart-4)", // info.light
+  "var(--chart-3)", // secondary.light
+  "var(--success)",
+  "var(--info)",
+  "var(--muted-foreground)",
 ] as const;
 
-// Y-axis tick values for position chart (showing key thresholds)
-export const POSITION_Y_AXIS_TICKS = [1, 5, 10, 20, 50, 100] as const;
-
-/**
- * Get color for keyword by index
- * @param index - Keyword index
- * @returns Color hex string
- */
-export const getKeywordColor = (index: number): string => {
-  return KEYWORD_COLORS[index % KEYWORD_COLORS.length];
-};
+export const getKeywordColor = (index: number): string =>
+  KEYWORD_COLORS[index % KEYWORD_COLORS.length];

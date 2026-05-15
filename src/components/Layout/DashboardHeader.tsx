@@ -1,102 +1,40 @@
-"use client"; // แปลงเป็น Client Component
+"use client";
 
-import React, { useState } from "react";
 import Image from "next/image";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { Globe, Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
-  AppBar,
-  Toolbar,
-  Box,
-  Button,
-  IconButton,
-  Typography,
-  Container,
-  Skeleton, // Import Skeleton for loading state
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
-  Tooltip,
-} from "@mui/material";
-import {
-  AccessTime,
-  PersonOutline,
-  Language,
-  Logout,
-  ExpandMore,
-} from "@mui/icons-material";
-import { HistoryModal } from "@/components/shared/users/MetricsModal/HistoryModal";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Role } from "@/types";
-import { useGetCombinedHistory } from "@/hooks/api/useCustomersApi";
-import { showPromiseToast } from "@/components/shared/toast/lib/toastify";
+import { useMobileDrawer } from "@/hooks/ui/useMobileDrawer";
+import { UserMenu } from "./UserMenu";
+import { HistoryButton } from "./HistoryButton";
+import { MobileMenuContent } from "./MobileMenuContent";
 
-export const DashboardHeader: React.FC = () => {
-  const { data: session, status } = useSession(); // เพิ่ม status เพื่อเช็ค loading
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
+export const DashboardHeader = () => {
+  const { data: session, status } = useSession();
+  const { mobileOpen, handleDrawerToggle, handleDrawerClose } =
+    useMobileDrawer();
 
-  // State สำหรับ History Modal — fetch ผ่าน React Query เมื่อเปิด
-  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
-  const customerId =
-    session?.user?.role === Role.CUSTOMER ? session.user.id : null;
-  const { data: historyData } = useGetCombinedHistory(
-    isHistoryModalOpen ? customerId : null,
-  );
-
-  // เปิด/ปิด เมนู user
-  const handleUserMenuClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleUserMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  // ฟังก์ชัน Logout
-  const handleLogout = async () => {
-    handleUserMenuClose();
-    await signOut({
-      callbackUrl: "/",
-    });
-  };
-
-  // ฟังก์ชันเปิด History Modal — React Query จะ fetch อัตโนมัติเมื่อ enable
-  const handleOpenHistoryModal = () => {
-    if (session?.user?.role !== Role.CUSTOMER) {
-      showPromiseToast(Promise.reject(), {
-        pending: "",
-        success: "",
-        error: "ฟีเจอร์นี้สำหรับลูกค้าเท่านั้น",
-      });
-      return;
-    }
-    setIsHistoryModalOpen(true);
-  };
-
-  const handleCloseHistoryModal = () => {
-    setIsHistoryModalOpen(false);
-  };
-
-  // ดึงข้อมูลจาก session โดยตรง
   const isLoading = status === "loading";
   const userName = session?.user?.name || "Guest";
   const userRole = session?.user?.role;
+  const customerUserId =
+    userRole === Role.CUSTOMER ? (session?.user?.id ?? null) : null;
 
   return (
-    <AppBar
-      position="static"
-      sx={{
-        backgroundColor: "white",
-        color: "text.primary",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-      }}
-    >
-      <Container maxWidth="xl">
-        <Toolbar
-          sx={{ justifyContent: "space-between", py: 0.5, minHeight: "48px" }}
-        >
-          {/* Logo - เปลี่ยน path ที่นี่ */}
-          <Box sx={{ display: "flex", alignItems: "center" }}>
+    <header className="bg-background shadow-sm">
+      <div className="mx-auto w-full max-w-screen-2xl px-4">
+        <div className="flex min-h-12 items-center justify-between py-1">
+          <div className="flex items-center">
             <Image
               src="/img/LOGO SEO PRIME4_0.png"
               alt="SEO Prime Logo"
@@ -104,130 +42,64 @@ export const DashboardHeader: React.FC = () => {
               height={24}
               priority
             />
-          </Box>
+          </div>
 
-          <Box sx={{ flexGrow: 1 }} />
+          {/* Desktop actions */}
+          <div className="hidden items-center gap-2 md:flex">
+            <HistoryButton
+              role={userRole}
+              customerUserId={customerUserId}
+              customerName={userName}
+            />
+            <UserMenu userName={userName} isLoading={isLoading} />
+          </div>
 
-          {/* Right Icon Group */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <Tooltip title="ดูประวัติการเปลี่ยนแปลง">
-              {/* span wrapper — disabled IconButton ส่ง ref ให้ Tooltip ไม่ได้ */}
-              <span>
-                <IconButton
-                  onClick={handleOpenHistoryModal}
-                  disabled={session?.user?.role !== Role.CUSTOMER}
-                  size="small"
-                  aria-label="ดูประวัติการเปลี่ยนแปลง"
-                  sx={{
-                    border: "1px solid #e0e0e0",
-                    width: 32,
-                    height: 32,
-                  }}
-                >
-                  <AccessTime fontSize="small" />
-                </IconButton>
-              </span>
-            </Tooltip>
-            <Button
-              variant="contained"
-              onClick={handleUserMenuClick}
-              size="small"
-              sx={{
-                backgroundColor: "#f5f5f5",
-                color: "black",
-                boxShadow: "none",
-                "&:hover": { backgroundColor: "#e0e0e0" },
-                borderRadius: "16px",
-                padding: "4px 12px",
-                textTransform: "none",
-                minWidth: 120,
-                fontSize: "0.875rem",
-              }}
-              startIcon={<PersonOutline fontSize="small" />}
-              endIcon={<ExpandMore fontSize="small" />}
-            >
-              {/* ดึงข้อมูลจาก session โดยตรง */}
-              {isLoading ? <Skeleton width="80%" /> : userName}
-            </Button>
-
-            {/* User Menu */}
-            <Menu
-              anchorEl={anchorEl}
-              open={open}
-              onClose={handleUserMenuClose}
-              onClick={handleUserMenuClose}
-              PaperProps={{
-                elevation: 0,
-                sx: {
-                  overflow: "visible",
-                  filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
-                  mt: 1.5,
-                  "& .MuiAvatar-root": {
-                    width: 32,
-                    height: 32,
-                    ml: -0.5,
-                    mr: 1,
-                  },
-                  "&:before": {
-                    content: '""',
-                    display: "block",
-                    position: "absolute",
-                    top: 0,
-                    right: 14,
-                    width: 10,
-                    height: 10,
-                    bgcolor: "background.paper",
-                    transform: "translateY(-50%) rotate(45deg)",
-                    zIndex: 0,
-                  },
-                },
-              }}
-              transformOrigin={{ horizontal: "right", vertical: "top" }}
-              anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-            >
-              <MenuItem onClick={handleLogout}>
-                <ListItemIcon>
-                  <Logout fontSize="small" />
-                </ListItemIcon>
-                <ListItemText>ออกจากระบบ</ListItemText>
-              </MenuItem>
-            </Menu>
-          </Box>
-        </Toolbar>
-        {/* Website Info Bar */}
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            py: 0.25,
-            px: 2,
-            borderTop: "1px solid #e0e0e0",
-          }}
-        >
-          <Language sx={{ fontSize: 16, mr: 0.75, color: "text.secondary" }} />
-          <Typography
-            variant="caption"
-            sx={{ color: "text.secondary", fontSize: "0.75rem" }}
+          {/* Mobile hamburger → Sheet */}
+          <Sheet
+            open={mobileOpen}
+            onOpenChange={(o) => (o ? handleDrawerToggle() : handleDrawerClose())}
           >
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label="เปิดเมนู"
+                className="md:hidden"
+              >
+                <Menu className="size-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-72">
+              <SheetHeader>
+                <SheetTitle>เมนู</SheetTitle>
+                <SheetDescription className="sr-only">
+                  เมนูสำหรับผู้ใช้
+                </SheetDescription>
+              </SheetHeader>
+              <MobileMenuContent
+                userName={userName}
+                userRole={userRole}
+                customerUserId={customerUserId}
+                isLoading={isLoading}
+                onAction={handleDrawerClose}
+              />
+            </SheetContent>
+          </Sheet>
+        </div>
+
+        <div className="flex items-center gap-2 border-t border-border px-2 py-1">
+          <Globe className="size-4 text-muted-foreground" />
+          <span className="text-xs text-muted-foreground">
             {isLoading ? (
-              <Skeleton width="150px" />
-            ) : userRole === "CUSTOMER" ? (
-              "Customer Report Panel" // แสดงข้อความสำหรับ Customer
+              <Skeleton className="inline-block h-3 w-32" />
+            ) : userRole === Role.CUSTOMER ? (
+              "Customer Report Panel"
             ) : (
               `${userRole || "USER"} Dashboard`
             )}
-          </Typography>
-        </Box>
-      </Container>
-
-      {/* History Modal */}
-      <HistoryModal
-        open={isHistoryModalOpen}
-        onClose={handleCloseHistoryModal}
-        history={historyData?.metricsHistory ?? []}
-        keywordHistory={historyData?.keywordHistory ?? []}
-        customerName={userName}
-      />
-    </AppBar>
+          </span>
+        </div>
+      </div>
+    </header>
   );
 };

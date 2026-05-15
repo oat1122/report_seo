@@ -2,21 +2,16 @@
 
 import { SessionProvider } from "next-auth/react";
 import { ReactNode, useState } from "react";
-import { ThemeProvider } from "@mui/material/styles";
-import CssBaseline from "@mui/material/CssBaseline";
-import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
-import { theme } from "@/theme/theme";
 import { Provider as ReduxProvider } from "react-redux";
 import { store } from "@/store/store";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 interface ProvidersProps {
   children: ReactNode;
 }
 
-/**
- * NextAuth SessionProvider, React Query, Redux และ MUI ThemeProvider wrapper
- */
+// NextAuth + Redux + React Query + Tooltip providers (no MUI — โปรเจกต์ใช้ shadcn/Tailwind ทั้งหมด)
 export function Providers({ children }: ProvidersProps) {
   const [queryClient] = useState(() => new QueryClient());
 
@@ -24,12 +19,7 @@ export function Providers({ children }: ProvidersProps) {
     <SessionProvider>
       <ReduxProvider store={store}>
         <QueryClientProvider client={queryClient}>
-          <AppRouterCacheProvider>
-            <ThemeProvider theme={theme}>
-              <CssBaseline />
-              {children}
-            </ThemeProvider>
-          </AppRouterCacheProvider>
+          <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
         </QueryClientProvider>
       </ReduxProvider>
     </SessionProvider>

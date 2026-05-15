@@ -1,14 +1,7 @@
-// src/components/shared/users/UserManagementSeoDev.tsx
 "use client";
 
 import React from "react";
-import {
-  Alert,
-  Box,
-  CircularProgress,
-  Container,
-  Typography,
-} from "@mui/material";
+import { Loader2 } from "lucide-react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { useGetManagedCustomers } from "@/hooks/api/useUsersApi";
 import {
@@ -69,37 +62,29 @@ const UserManagementSeoDev: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 4,
-            flexWrap: "wrap",
-            gap: 2,
-          }}
-        >
-          <Box>
-            <Typography variant="h2" component="h1" gutterBottom>
-              customer management
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              customer management
-            </Typography>
-          </Box>
-        </Box>
+      <div className="mx-auto w-full max-w-6xl py-8">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
+            Customer Management
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            จัดการลูกค้าที่อยู่ในความดูแลของคุณ
+          </p>
+        </div>
 
         {usersError && (
-          <Alert severity="error" sx={{ mb: 3 }}>
+          <div
+            role="alert"
+            className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          >
             {usersError.message || "เกิดข้อผิดพลาดในการโหลดข้อมูล"}
-          </Alert>
+          </div>
         )}
 
         {loading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", my: 4 }}>
-            <CircularProgress color="secondary" />
-          </Box>
+          <div className="flex min-h-96 items-center justify-center">
+            <Loader2 className="size-10 animate-spin text-secondary" />
+          </div>
         ) : (
           <UserTable
             users={managedCustomers}
@@ -107,7 +92,7 @@ const UserManagementSeoDev: React.FC = () => {
             onDelete={() => {}}
             onRestore={() => {}}
             onOpenMetrics={handleOpenMetrics}
-            isSeoDevView={true}
+            isSeoDevView
           />
         )}
 
@@ -162,6 +147,7 @@ const UserManagementSeoDev: React.FC = () => {
             }
           />
         )}
+
         {selectedKeyword && isKeywordHistoryModalOpen && (
           <KeywordHistoryModal
             open={isKeywordHistoryModalOpen}
@@ -171,7 +157,7 @@ const UserManagementSeoDev: React.FC = () => {
             isLoading={isLoadingSpecificHistory}
           />
         )}
-      </Container>
+      </div>
     </DashboardLayout>
   );
 };

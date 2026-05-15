@@ -1,90 +1,76 @@
-import React from "react";
-import { Box, Container, Typography, Grid, Link } from "@mui/material";
-import MailOutlineIcon from "@mui/icons-material/MailOutline";
-import PhoneIcon from "@mui/icons-material/Phone";
-import FacebookIcon from "@mui/icons-material/Facebook";
-import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
+import { Mail, Phone, Globe, MessageCircle } from "lucide-react";
 import { contactInfo } from "@/components/Home/constants/data";
 
-export const Footer: React.FC = () => {
+const FooterColumnTitle = ({ children }: { children: React.ReactNode }) => (
+  <h3 className="mb-3 text-xl font-semibold text-primary-foreground">
+    {children}
+  </h3>
+);
+
+export const Footer = () => {
   return (
-    <Box
-      component="footer"
-      sx={{ bgcolor: "#0D1117", color: "#e0e0e0", py: 8 }}
-    >
-      <Container maxWidth="lg">
-        <Grid container spacing={5}>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <Typography variant="h4" color="white" gutterBottom>
-              SEO PRIME
-            </Typography>
-            <Typography variant="body2" sx={{ opacity: 0.8 }}>
+    <footer className="bg-primary text-primary-foreground">
+      <div className="mx-auto w-full max-w-5xl px-4 py-10">
+        <div className="grid gap-8 md:grid-cols-3">
+          <div>
+            <FooterColumnTitle>SEO PRIME</FooterColumnTitle>
+            <p className="text-sm opacity-80">
               ให้บริการด้านการตลาดออนไลน์ เกี่ยวกับจัดทำ SEO
               ครบวงจรดูแลโดยทีมการตลาดที่มีประสบการณ์
               เราพร้อมแล้วที่จะสร้างทีมที่แข็งแรงเพื่อเป็นหนึ่งในความสำเร็จสำคัญให้กับทุกธุรกิจของคุณ
-            </Typography>
-          </Grid>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <Typography variant="h4" color="white" gutterBottom>
-              ADDRESS
-            </Typography>
-            <Typography variant="body2" sx={{ opacity: 0.8 }}>
-              {contactInfo.address}
-            </Typography>
-          </Grid>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <Typography variant="h4" color="white" gutterBottom>
-              CONTACT US
-            </Typography>
-            <Box
-              component="ul"
-              sx={{
-                p: 0,
-                listStyle: "none",
-                opacity: 0.8,
-                "& li": { mb: 1 },
-              }}
-            >
-              <li>
-                <MailOutlineIcon sx={{ verticalAlign: "middle", mr: 1 }} />{" "}
-                E-MAIL :{" "}
-                <Link href={`mailto:${contactInfo.email}`} color="inherit">
+            </p>
+          </div>
+
+          <div>
+            <FooterColumnTitle>ADDRESS</FooterColumnTitle>
+            <p className="text-sm opacity-80">{contactInfo.address}</p>
+          </div>
+
+          <div>
+            <FooterColumnTitle>CONTACT US</FooterColumnTitle>
+            <ul className="space-y-2 text-sm opacity-80">
+              <li className="flex items-center gap-2">
+                <Mail className="size-4" />
+                <span>E-MAIL:</span>
+                <a
+                  href={`mailto:${contactInfo.email}`}
+                  className="underline-offset-4 hover:underline"
+                >
                   {contactInfo.email}
-                </Link>
+                </a>
               </li>
-              <li>
-                <ChatBubbleOutlineIcon
-                  sx={{ verticalAlign: "middle", mr: 1 }}
-                />{" "}
-                LINE :{" "}
-                <Link href={contactInfo.line} color="inherit">
+              <li className="flex items-center gap-2">
+                <MessageCircle className="size-4" />
+                <span>LINE:</span>
+                <a
+                  href={contactInfo.line}
+                  className="underline-offset-4 hover:underline"
+                >
                   คลิกที่นี่
-                </Link>
+                </a>
               </li>
-              <li>
-                <FacebookIcon sx={{ verticalAlign: "middle", mr: 1 }} />{" "}
-                FACEBOOK :{" "}
-                <Link href="#" color="inherit">
+              <li className="flex items-center gap-2">
+                <Globe className="size-4" />
+                <span>FACEBOOK:</span>
+                <a href="#" className="underline-offset-4 hover:underline">
                   {contactInfo.facebook}
-                </Link>
+                </a>
               </li>
-              <li>
-                <PhoneIcon sx={{ verticalAlign: "middle", mr: 1 }} /> TEL 1 :{" "}
-                {contactInfo.phone1}
+              <li className="flex items-center gap-2">
+                <Phone className="size-4" />
+                <span>TEL 1: {contactInfo.phone1}</span>
               </li>
-              <li>
-                <PhoneIcon sx={{ verticalAlign: "middle", mr: 1 }} /> TEL 2 :{" "}
-                {contactInfo.phone2}
+              <li className="flex items-center gap-2">
+                <Phone className="size-4" />
+                <span>TEL 2: {contactInfo.phone2}</span>
               </li>
-            </Box>
-          </Grid>
-        </Grid>
-      </Container>
-      <Box sx={{ bgcolor: "black", py: 2, mt: 6, textAlign: "center" }}>
-        <Typography variant="body2" sx={{ color: "text.secondary" }}>
-          Copyright 2025 © SEO Prime
-        </Typography>
-      </Box>
-    </Box>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div className="border-t border-primary-foreground/10 py-3 text-center text-sm opacity-70">
+        Copyright 2025 © SEO Prime
+      </div>
+    </footer>
   );
 };

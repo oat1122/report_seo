@@ -1,51 +1,38 @@
-import React from "react";
-import { Box, Container, Typography, Button } from "@mui/material";
+"use client";
+
+import { Button } from "@/components/ui/button";
 
 const scrollToPackages = () => {
-  const section = document.querySelector("#packages");
-  if (section) {
-    section.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
+  document
+    .querySelector("#packages")
+    ?.scrollIntoView({ behavior: "smooth", block: "start" });
 };
 
-export const HeroSection: React.FC = () => {
+export const HeroSection = () => {
   return (
-    <Box
-      component="section"
-      sx={{
-        py: 15,
-        textAlign: "center",
-        background: (theme) =>
-          `radial-gradient(circle, ${theme.palette.info.main}1A, ${theme.palette.background.default} 70%)`,
+    <section
+      className="py-20 text-center md:py-28"
+      style={{
+        backgroundImage:
+          "radial-gradient(circle, color-mix(in srgb, var(--info) 10%, transparent), var(--background) 70%)",
       }}
     >
-      <Container maxWidth="md">
-        <Typography
-          variant="h1"
-          component="h1"
-          sx={{
-            background: (theme) =>
-              `-webkit-linear-gradient(45deg, ${theme.palette.info.main}, ${theme.palette.secondary.main})`,
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            mb: 3,
-          }}
-        >
+      <div className="mx-auto w-full max-w-3xl px-4">
+        <h1 className="mb-6 bg-gradient-to-r from-info to-secondary bg-clip-text text-4xl font-bold leading-tight text-transparent md:text-5xl lg:text-6xl">
           ขับเคลื่อนธุรกิจของคุณสู่หน้าแรก ด้วยแพ็คเกจ SEO ที่คุ้มค่าที่สุด
-        </Typography>
-        <Typography variant="h5" color="text.secondary" sx={{ mb: 4 }}>
+        </h1>
+        <p className="mb-8 text-lg text-muted-foreground md:text-xl">
           เรามีแพ็คเกจที่หลากหลาย ตอบโจทย์ทุกขนาดธุรกิจ
           พร้อมทีมงานมืออาชีพที่จะพาเว็บไซต์ของคุณติดอันดับและเติบโตอย่างยั่งยืน
-        </Typography>
+        </p>
         <Button
-          variant="contained"
-          color="secondary"
-          size="large"
+          size="lg"
           onClick={scrollToPackages}
+          className="bg-secondary text-secondary-foreground hover:bg-secondary/90"
         >
           ดูแพ็คเกจของเรา
         </Button>
-      </Container>
-    </Box>
+      </div>
+    </section>
   );
 };

@@ -1,46 +1,30 @@
-import { Box, Chip, Typography, Stack } from "@mui/material";
-import LocalOfferIcon from "@mui/icons-material/LocalOffer";
-import CardGiftcardIcon from "@mui/icons-material/CardGiftcard";
+import { Tag, Gift } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import PromotionGrid from "./PromotionGrid";
 
 export default function PromotionSection() {
   return (
-    <Box component="section" sx={{ my: 6 }} aria-labelledby="promotion-heading">
-      <Stack spacing={1.5} alignItems="center" sx={{ mb: 4, textAlign: "center" }}>
-        <Chip
-          icon={<LocalOfferIcon />}
-          label="โปรโมชันพิเศษ"
-          color="info"
-          sx={{
-            fontSize: "0.95rem",
-            fontWeight: 700,
-            px: 1,
-            py: 2.5,
-            "& .MuiChip-icon": { fontSize: "1.25rem" },
-          }}
-        />
-        <Stack
-          direction="row"
-          alignItems="center"
-          justifyContent="center"
-          spacing={1.5}
-        >
-          <CardGiftcardIcon sx={{ fontSize: "2rem", color: "#9592ff" }} />
-          <Typography
+    <section aria-labelledby="promotion-heading" className="my-10">
+      <div className="mb-6 flex flex-col items-center gap-2 text-center">
+        <Badge className="gap-1 bg-info/15 px-3 py-1.5 text-sm font-bold text-info hover:bg-info/20">
+          <Tag className="size-4" />
+          โปรโมชันพิเศษ
+        </Badge>
+        <div className="flex items-center gap-2">
+          <Gift className="size-7 text-info" />
+          <h2
             id="promotion-heading"
-            variant="h3"
-            component="h2"
-            sx={{ fontWeight: 800, fontSize: { xs: "1.5rem", md: "2rem" } }}
+            className="text-2xl font-extrabold md:text-3xl"
           >
             แพ็กเกจสุดพิเศษสำหรับคุณ
-          </Typography>
-        </Stack>
-        <Typography variant="body1" color="text.secondary">
+          </h2>
+        </div>
+        <p className="text-base text-muted-foreground">
           เลือกแพ็กเกจที่เหมาะสมกับความต้องการของคุณ
-        </Typography>
-      </Stack>
+        </p>
+      </div>
 
       <PromotionGrid />
-    </Box>
+    </section>
   );
 }

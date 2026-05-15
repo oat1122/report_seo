@@ -1,35 +1,31 @@
 import React from "react";
+import { Plus, Trash2, Pencil, Save } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Field, FieldGroup } from "@/components/ui/field";
 import {
-  Alert,
-  Box,
-  Button,
-  Checkbox,
-  Chip,
-  FormControl,
-  FormControlLabel,
-  IconButton,
-  InputLabel,
-  List,
-  ListItem,
-  ListItemText,
-  MenuItem,
-  Paper,
   Select,
-  SelectChangeEvent,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
-import { Add, Delete, Edit, Save } from "@mui/icons-material";
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import { KdLevel, KD_LEVELS } from "@/types/kd";
 import { KeywordRecommend, KeywordRecommendForm } from "@/types/metrics";
+
+const NONE_KD = "__none__";
 
 interface RecommendKeywordSectionProps {
   newRecommend: KeywordRecommendForm;
   recommendKeywordsData: KeywordRecommend[];
   editingRecommendId: string | null;
   onRecommendChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onRecommendSelectChange: (e: SelectChangeEvent<KdLevel | "">) => void;
+  onRecommendSelectChange: (value: KdLevel | "") => void;
   onAddRecommend: () => void;
   onSetEditingRecommend: (keyword: KeywordRecommend) => void;
   onClearEditingRecommend: () => void;
@@ -49,225 +45,176 @@ export const RecommendKeywordSection: React.FC<
   onClearEditingRecommend,
   onDeleteRecommendKeyword,
 }) => (
-  <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
-    <Stack spacing={3}>
-      <Box>
-        <Typography variant="h6" fontWeight={700}>
-          Keyword Recommend
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          บันทึกคีย์เวิร์ดที่แนะนำให้ลูกค้า พร้อมระดับความยากและหมายเหตุสั้น ๆ
-        </Typography>
-      </Box>
+  <div className="rounded-2xl border border-border p-4 sm:p-6">
+    <div className="mb-4">
+      <h3 className="text-lg font-bold">Keyword Recommend</h3>
+      <p className="mt-1 text-sm text-muted-foreground">
+        บันทึกคีย์เวิร์ดที่แนะนำให้ลูกค้า พร้อมระดับความยากและหมายเหตุสั้น ๆ
+      </p>
+    </div>
 
-      <Paper
-        variant="outlined"
-        sx={{
-          p: 2,
-          borderRadius: 2.5,
-          bgcolor: editingRecommendId ? "warning.50" : "grey.50",
-        }}
-      >
-        <Stack spacing={2}>
-          {editingRecommendId && (
-            <Alert severity="info">
-              กำลังแก้ไข Keyword Recommend รายการเดิม
-              สามารถปรับข้อมูลแล้วกดบันทึกการแก้ไขได้ทันที
-            </Alert>
-          )}
+    <div
+      className={cn(
+        "mb-4 rounded-xl border border-border p-4",
+        editingRecommendId ? "bg-warning/10" : "bg-muted/50",
+      )}
+    >
+      <FieldGroup>
+        {editingRecommendId && (
+          <div className="rounded-md border border-info/30 bg-info/10 px-3 py-2 text-sm text-info">
+            กำลังแก้ไข Keyword Recommend รายการเดิม
+            สามารถปรับข้อมูลแล้วกดบันทึกการแก้ไขได้ทันที
+          </div>
+        )}
 
-          <TextField
+        <Field>
+          <Label htmlFor="rec-keyword">Keyword</Label>
+          <Input
+            id="rec-keyword"
             name="keyword"
-            label="Keyword"
             placeholder="เช่น เสื้อ"
             value={newRecommend.keyword}
             onChange={onRecommendChange}
-            size="small"
-            fullWidth
           />
+        </Field>
 
-          <Box
-            sx={{
-              display: "grid",
-              gap: 2,
-              gridTemplateColumns: {
-                xs: "repeat(2, 1fr)",
-                md: "repeat(4, minmax(0, 1fr))",
-              },
-              alignItems: "center",
-            }}
-          >
-            <FormControl
-              size="small"
-              fullWidth
-              sx={{ gridColumn: { xs: "span 2", md: "span 2" } }}
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <Field>
+            <Label htmlFor="rec-kd">KD</Label>
+            <Select
+              value={newRecommend.kd ?? NONE_KD}
+              onValueChange={(v) =>
+                onRecommendSelectChange(v === NONE_KD ? "" : (v as KdLevel))
+              }
             >
-              <InputLabel>KD</InputLabel>
-              <Select
-                name="kd"
-                value={newRecommend.kd || ""}
-                label="KD"
-                onChange={onRecommendSelectChange}
-              >
-                <MenuItem value="">
+              <SelectTrigger id="rec-kd">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NONE_KD}>
                   <em>ไม่ระบุ</em>
-                </MenuItem>
+                </SelectItem>
                 {KD_LEVELS.map((level) => (
-                  <MenuItem key={level} value={level}>
+                  <SelectItem key={level} value={level}>
                     {level}
-                  </MenuItem>
+                  </SelectItem>
                 ))}
-              </Select>
-            </FormControl>
-            <Box
-              sx={{
-                gridColumn: { xs: "span 2", md: "span 2" },
-                minHeight: 40,
-                display: "flex",
-                alignItems: "center",
-                px: 1,
-                borderRadius: 1.5,
-                border: "1px dashed",
-                borderColor: "divider",
-              }}
-            >
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    name="isTopReport"
-                    checked={newRecommend.isTopReport}
-                    onChange={onRecommendChange}
-                    size="small"
-                  />
-                }
-                label="แสดงใน Top Report"
-                sx={{ m: 0 }}
-              />
-            </Box>
-          </Box>
+              </SelectContent>
+            </Select>
+          </Field>
 
-          <TextField
+          <div className="flex items-center gap-2 rounded-md border border-dashed border-border px-3">
+            <Checkbox
+              id="rec-top"
+              checked={newRecommend.isTopReport}
+              onCheckedChange={(c) =>
+                onRecommendChange({
+                  target: {
+                    name: "isTopReport",
+                    type: "checkbox",
+                    checked: c === true,
+                    value: "",
+                  },
+                } as unknown as React.ChangeEvent<HTMLInputElement>)
+              }
+            />
+            <Label htmlFor="rec-top" className="cursor-pointer">
+              แสดงใน Top Report
+            </Label>
+          </div>
+        </div>
+
+        <Field>
+          <Label htmlFor="rec-note">หมายเหตุ</Label>
+          <Textarea
+            id="rec-note"
             name="note"
-            label="หมายเหตุ"
             placeholder="เช่น ยากมาก"
             value={newRecommend.note || ""}
-            onChange={onRecommendChange}
-            size="small"
-            fullWidth
-            multiline
-            minRows={3}
+            onChange={
+              onRecommendChange as unknown as React.ChangeEventHandler<HTMLTextAreaElement>
+            }
+            rows={3}
           />
+        </Field>
 
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            spacing={1.5}
-            justifyContent="flex-end"
-          >
-            {editingRecommendId && (
-              <Button onClick={onClearEditingRecommend}>ยกเลิก</Button>
-            )}
-            <Button
-              startIcon={editingRecommendId ? <Save /> : <Add />}
-              variant="contained"
-              color="warning"
-              onClick={onAddRecommend}
-              size="medium"
-              disabled={!newRecommend.keyword.trim()}
-            >
-              {editingRecommendId ? "บันทึกการแก้ไข" : "เพิ่ม Keyword แนะนำ"}
+        <div className="flex flex-col justify-end gap-2 sm:flex-row">
+          {editingRecommendId && (
+            <Button variant="ghost" onClick={onClearEditingRecommend}>
+              ยกเลิก
             </Button>
-          </Stack>
-        </Stack>
-      </Paper>
-
-      <Box>
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          justifyContent="space-between"
-          alignItems={{ xs: "flex-start", sm: "center" }}
-          spacing={1}
-          mb={1.5}
-        >
-          <Typography variant="subtitle1" fontWeight={700}>
-            รายการ Keyword แนะนำ
-          </Typography>
-          <Chip
-            label={`${recommendKeywordsData.length} รายการ`}
-            size="small"
-            color="warning"
-            variant="outlined"
-          />
-        </Stack>
-
-        <List dense disablePadding>
-          {recommendKeywordsData.length === 0 ? (
-            <Paper
-              variant="outlined"
-              sx={{ p: 3, borderRadius: 2.5, textAlign: "center" }}
-            >
-              <Typography variant="body2" color="text.secondary">
-                ยังไม่มี Keyword ที่แนะนำ
-              </Typography>
-            </Paper>
-          ) : (
-            recommendKeywordsData.map((kw) => (
-              <Paper
-                key={kw.id}
-                variant="outlined"
-                sx={{ mb: 1.5, borderRadius: 2.5 }}
-              >
-                <ListItem
-                  secondaryAction={
-                    <Stack direction="row" spacing={0.5}>
-                      <IconButton
-                        edge="end"
-                        aria-label="edit"
-                        onClick={() => onSetEditingRecommend(kw)}
-                      >
-                        <Edit />
-                      </IconButton>
-                      <IconButton
-                        edge="end"
-                        aria-label="delete"
-                        onClick={() => onDeleteRecommendKeyword(kw.id)}
-                      >
-                        <Delete color="error" />
-                      </IconButton>
-                    </Stack>
-                  }
-                  sx={{ py: 1.5 }}
-                >
-                  <ListItemText
-                    primary={
-                      <Stack
-                        direction="row"
-                        spacing={1}
-                        alignItems="center"
-                        flexWrap="wrap"
-                      >
-                        <Typography variant="subtitle2" fontWeight={700}>
-                          {kw.keyword}
-                        </Typography>
-                        {kw.isTopReport && (
-                          <Chip
-                            label="Top Report"
-                            size="small"
-                            color="warning"
-                            variant="outlined"
-                          />
-                        )}
-                      </Stack>
-                    }
-                    secondary={`KD: ${kw.kd || "ไม่ระบุ"}${
-                      kw.note ? ` | หมายเหตุ: ${kw.note}` : ""
-                    }`}
-                  />
-                </ListItem>
-              </Paper>
-            ))
           )}
-        </List>
-      </Box>
-    </Stack>
-  </Paper>
+          <Button
+            onClick={onAddRecommend}
+            disabled={!newRecommend.keyword.trim()}
+            className="bg-warning text-warning-foreground hover:bg-warning/90"
+          >
+            {editingRecommendId ? <Save /> : <Plus />}
+            {editingRecommendId ? "บันทึกการแก้ไข" : "เพิ่ม Keyword แนะนำ"}
+          </Button>
+        </div>
+      </FieldGroup>
+    </div>
+
+    <div>
+      <div className="mb-3 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
+        <h4 className="font-bold">รายการ Keyword แนะนำ</h4>
+        <Badge variant="outline" className="border-warning/40 text-warning">
+          {recommendKeywordsData.length} รายการ
+        </Badge>
+      </div>
+
+      {recommendKeywordsData.length === 0 ? (
+        <div className="rounded-xl border border-border p-6 text-center text-sm text-muted-foreground">
+          ยังไม่มี Keyword ที่แนะนำ
+        </div>
+      ) : (
+        <ul className="flex flex-col gap-3">
+          {recommendKeywordsData.map((kw) => (
+            <li
+              key={kw.id}
+              className="flex items-start justify-between gap-3 rounded-xl border border-border p-4"
+            >
+              <div className="min-w-0 flex-1">
+                <div className="mb-1 flex flex-wrap items-center gap-2">
+                  <span className="font-semibold">{kw.keyword}</span>
+                  {kw.isTopReport && (
+                    <Badge
+                      variant="outline"
+                      className="border-warning/40 text-warning"
+                    >
+                      Top Report
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  KD: {kw.kd || "ไม่ระบุ"}
+                  {kw.note ? ` | หมายเหตุ: ${kw.note}` : ""}
+                </p>
+              </div>
+              <div className="flex gap-0.5">
+                <Button
+                  size="icon-sm"
+                  variant="ghost"
+                  aria-label="แก้ไข"
+                  onClick={() => onSetEditingRecommend(kw)}
+                >
+                  <Pencil className="size-4" />
+                </Button>
+                <Button
+                  size="icon-sm"
+                  variant="ghost"
+                  aria-label="ลบ"
+                  onClick={() => onDeleteRecommendKeyword(kw.id)}
+                  className="text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  </div>
 );

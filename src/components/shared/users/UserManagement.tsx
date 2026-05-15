@@ -1,15 +1,7 @@
 "use client";
 
 import React from "react";
-import {
-  Box,
-  Container,
-  Typography,
-  Button,
-  CircularProgress,
-  Alert,
-} from "@mui/material";
-import { Add } from "@mui/icons-material";
+import { Loader2, Plus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useGetUsers, useGetSeoDevs } from "@/hooks/api/useUsersApi";
 import {
@@ -17,6 +9,7 @@ import {
   useToggleKeywordHistoryVisibility,
 } from "@/hooks/api/useCustomersApi";
 import { Role } from "@/types/auth";
+import { Button } from "@/components/ui/button";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { UserTable } from "./UserTable";
 import { UserModal } from "./UserModal";
@@ -31,7 +24,6 @@ import { useCustomerMetricsModal } from "@/hooks/ui/useCustomerMetricsModal";
 const UserManagement: React.FC = () => {
   const { data: session } = useSession();
 
-  // 🆕 React Query: Fetch users and SEO devs
   const {
     data: users = [],
     isLoading: loading,
@@ -39,7 +31,6 @@ const UserManagement: React.FC = () => {
   } = useGetUsers(true);
   const { data: seoDevs = [] } = useGetSeoDevs();
 
-  // Use specialized hooks
   const {
     isModalOpen,
     isEditing,
@@ -100,59 +91,39 @@ const UserManagement: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 4,
-            flexWrap: "wrap",
-            gap: 2,
-          }}
-        >
-          <Box>
-            <Typography variant="h2" component="h1" gutterBottom>
+      <div className="mx-auto w-full max-w-6xl py-8">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
               การจัดการผู้ใช้งาน
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
               จัดการบัญชีผู้ใช้งานทั้งหมดในระบบ
-            </Typography>
-          </Box>
+            </p>
+          </div>
           <Button
-            variant="contained"
-            color="secondary"
-            size="large"
-            startIcon={<Add />}
+            size="lg"
             onClick={() => handleOpenUserModal()}
-            sx={{
-              px: 4,
-              py: 1.5,
-              fontSize: "1rem",
-              fontWeight: 600,
-            }}
+            className="bg-secondary text-secondary-foreground hover:bg-secondary/90"
           >
+            <Plus className="size-4" />
             เพิ่มผู้ใช้งาน
           </Button>
-        </Box>
+        </div>
 
         {usersError && (
-          <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+          <div
+            role="alert"
+            className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          >
             {usersError.message || "เกิดข้อผิดพลาดในการโหลดข้อมูล"}
-          </Alert>
+          </div>
         )}
 
         {loading ? (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              minHeight: "400px",
-            }}
-          >
-            <CircularProgress size={48} color="secondary" />
-          </Box>
+          <div className="flex min-h-96 items-center justify-center">
+            <Loader2 className="size-10 animate-spin text-secondary" />
+          </div>
         ) : (
           <UserTable
             users={users}
@@ -206,7 +177,6 @@ const UserManagement: React.FC = () => {
           />
         )}
 
-        {/* History modals — mount เฉพาะตอนเปิด เพื่อลด render tree */}
         {selectedCustomer && isHistoryModalOpen && (
           <HistoryModal
             open={isHistoryModalOpen}
@@ -230,6 +200,7 @@ const UserManagement: React.FC = () => {
             }
           />
         )}
+
         {selectedKeyword && isKeywordHistoryModalOpen && (
           <KeywordHistoryModal
             open={isKeywordHistoryModalOpen}
@@ -247,7 +218,7 @@ const UserManagement: React.FC = () => {
           title={confirmState.title}
           message={confirmState.message}
         />
-      </Container>
+      </div>
     </DashboardLayout>
   );
 };

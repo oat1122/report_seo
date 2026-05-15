@@ -1,32 +1,36 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Box,
-  Button,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Modal,
-  Select,
-  SelectChangeEvent,
-  TextField,
-  Typography,
-  Divider,
-  IconButton,
-  InputAdornment,
-  Tooltip,
-  Stack,
-} from "@mui/material";
+import { Eye, EyeOff, Pencil } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { Role } from "@/types/auth";
 import { User, UserFormState } from "@/types/user";
 import { getRoleLabel } from "@/lib/role-display";
-import { useSession } from "next-auth/react";
+import { Button } from "@/components/ui/button";
 import {
-  Visibility,
-  VisibilityOff,
-  Edit as EditIcon,
-} from "@mui/icons-material";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Field, FieldGroup } from "@/components/ui/field";
+import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface UserModalProps {
   open: boolean;
@@ -39,6 +43,8 @@ interface UserModalProps {
   seoDevs: User[];
   isSeoDevView?: boolean;
 }
+
+const NONE_SEO_DEV = "__none__";
 
 export const UserModal: React.FC<UserModalProps> = ({
   open,
@@ -55,385 +61,295 @@ export const UserModal: React.FC<UserModalProps> = ({
   const canEditRole = session?.user?.role === Role.ADMIN;
   const isOwnProfile = session?.user?.id === currentUser.id;
 
-  // State สำหรับจัดการการแก้ไขรหัสผ่านและการแสดงผล
   const [isPasswordEditing, setIsPasswordEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleRoleChange = (event: SelectChangeEvent<Role>) => {
-    onFormChange("role", event.target.value as Role);
-  };
-
-  const handleFormChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { name, value, type } = event.target;
-    const checked = (event.target as HTMLInputElement).checked;
-    onFormChange(name, type === "checkbox" ? checked : value);
-  };
-
-  const handleSeoDevChange = (event: SelectChangeEvent<string>) => {
-    onFormChange("seoDevId", event.target.value);
-  };
-
-  // ฟังก์ชันสำหรับ Toggle การแสดงผลรหัสผ่าน
-  const handleTogglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
-
-  // ฟังก์ชันสำหรับเปิด/ปิดโหมดแก้ไขรหัสผ่าน
   const handleTogglePasswordEdit = () => {
-    setIsPasswordEditing(!isPasswordEditing);
-    // Reset password fields เมื่อปิดโหมดแก้ไข
-    if (isPasswordEditing) {
-      onFormChange("currentPassword", "");
-      onFormChange("newPassword", "");
-      onFormChange("confirmPassword", "");
-    }
+    setIsPasswordEditing((prev) => {
+      if (prev) {
+        onFormChange("currentPassword", "");
+        onFormChange("newPassword", "");
+        onFormChange("confirmPassword", "");
+      }
+      return !prev;
+    });
   };
 
-  // ฟังก์ชันสำหรับปิด Modal พร้อมรีเซ็ต state
   const handleCloseModal = () => {
     setIsPasswordEditing(false);
     setShowPassword(false);
     onClose();
   };
 
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
+    onFormChange(name, type === "checkbox" ? checked : value);
+  };
+
   return (
-    <Modal
-      open={open}
-      onClose={handleCloseModal}
-      sx={{
-        backdropFilter: "blur(4px)",
-      }}
-    >
-      <Box
-        sx={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: { xs: "90%", sm: 500 },
-          maxHeight: "90vh",
-          overflow: "auto",
-          bgcolor: "background.paper",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
-          p: 4,
-          borderRadius: 3,
-        }}
-      >
-        {/* Modal Header */}
-        <Box>
-          <Typography variant="h4" component="h2" mb={1} fontWeight={700}>
+    <Dialog open={open} onOpenChange={(o) => !o && handleCloseModal()}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="text-2xl">
             {isEditing ? "แก้ไขผู้ใช้งาน" : "เพิ่มผู้ใช้งานใหม่"}
-          </Typography>
-          <Typography variant="body2" color="text.secondary" mb={3}>
+          </DialogTitle>
+          <DialogDescription>
             {isEditing
               ? "แก้ไขข้อมูลผู้ใช้งานในระบบ"
               : "กรอกข้อมูลเพื่อสร้างบัญชีผู้ใช้งานใหม่"}
-          </Typography>
-        </Box>
+          </DialogDescription>
+        </DialogHeader>
 
-        <TextField
-          fullWidth
-          label="ชื่อผู้ใช้"
-          name="name"
-          value={currentUser.name || ""}
-          onChange={handleFormChange}
-          margin="normal"
-          variant="outlined"
-          sx={{
-            "& .MuiOutlinedInput-root": {
-              borderRadius: 2,
-            },
-          }}
-        />
-        <TextField
-          fullWidth
-          label="อีเมล"
-          name="email"
-          type="email"
-          value={currentUser.email || ""}
-          onChange={handleFormChange}
-          margin="normal"
-          variant="outlined"
-          sx={{
-            "& .MuiOutlinedInput-root": {
-              borderRadius: 2,
-            },
-          }}
-        />
-        {!isEditing && (
-          <TextField
-            fullWidth
-            label="รหัสผ่าน"
-            name="password"
-            type={showPassword ? "text" : "password"}
-            onChange={handleFormChange}
-            margin="normal"
-            variant="outlined"
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle password visibility"
-                    onClick={handleTogglePasswordVisibility}
-                    edge="end"
-                  >
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: 2,
-              },
-            }}
-          />
-        )}
-        <FormControl
-          fullWidth
-          margin="normal"
-          disabled={isSeoDevView && !canEditRole}
-        >
-          <InputLabel id="role-label">บทบาท</InputLabel>
-          <Select
-            labelId="role-label"
-            label="บทบาท"
-            value={currentUser.role || ""}
-            onChange={handleRoleChange}
-            sx={{
-              borderRadius: 2,
-            }}
-          >
-            {Object.values(Role).map((role) => (
-              <MenuItem
-                key={role}
-                value={role}
-                disabled={isSeoDevView && role !== Role.CUSTOMER}
-              >
-                {getRoleLabel(role)}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        {/* แสดงฟิลด์ Customer สำหรับทั้งสร้างและแก้ไข */}
-        {currentUser.role === Role.CUSTOMER && (
-          <Box
-            sx={{
-              mt: 2,
-              p: 2,
-              bgcolor: "rgba(149, 146, 255, 0.05)",
-              borderRadius: 2,
-              border: "1px solid rgba(149, 146, 255, 0.2)",
-            }}
-          >
-            <Typography
-              variant="subtitle2"
-              fontWeight={600}
-              mb={2}
-              color="info.main"
-            >
-              ข้อมูลบริษัท
-            </Typography>
-            <TextField
-              fullWidth
-              label="ชื่อบริษัท"
-              name="companyName"
-              value={currentUser.companyName || ""}
-              onChange={handleFormChange}
-              margin="normal"
-              required={!isEditing}
-              variant="outlined"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  bgcolor: "white",
-                },
-              }}
+        <FieldGroup>
+          <Field>
+            <Label htmlFor="user-name">ชื่อผู้ใช้</Label>
+            <Input
+              id="user-name"
+              name="name"
+              value={currentUser.name || ""}
+              onChange={handleInputChange}
             />
-            <TextField
-              fullWidth
-              label="โดเมน (เช่น example.com)"
-              name="domain"
-              value={currentUser.domain || ""}
-              onChange={handleFormChange}
-              margin="normal"
-              required={!isEditing}
-              variant="outlined"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  bgcolor: "white",
-                },
-              }}
+          </Field>
+
+          <Field>
+            <Label htmlFor="user-email">อีเมล</Label>
+            <Input
+              id="user-email"
+              name="email"
+              type="email"
+              value={currentUser.email || ""}
+              onChange={handleInputChange}
             />
+          </Field>
 
-            {/* Dropdown สำหรับเลือก SEO Dev */}
-            {!isSeoDevView && (
-              <FormControl fullWidth margin="normal">
-                <InputLabel id="seodev-label">ผู้ดูแล (SEO Dev)</InputLabel>
-                <Select
-                  labelId="seodev-label"
-                  label="ผู้ดูแล (SEO Dev)"
-                  value={currentUser.seoDevId || ""}
-                  onChange={handleSeoDevChange}
-                  sx={{
-                    borderRadius: 2,
-                    bgcolor: "white",
-                  }}
-                >
-                  <MenuItem value="">
-                    <em>-- ไม่กำหนด --</em>
-                  </MenuItem>
-                  {seoDevs.map((dev) => (
-                    <MenuItem key={dev.id} value={dev.id}>
-                      {dev.name || dev.email}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            )}
-          </Box>
-        )}
-
-        {isEditing && (
-          <Box mt={3}>
-            <Divider sx={{ mb: 2 }}>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <Typography variant="overline">Change Password</Typography>
-                <Tooltip title={isPasswordEditing ? "ยกเลิก" : "แก้ไขรหัสผ่าน"}>
-                  <IconButton onClick={handleTogglePasswordEdit} size="small">
-                    <EditIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-              </Stack>
-            </Divider>
-
-            {isPasswordEditing && (
-              <>
-                {isOwnProfile && !canEditRole && (
-                  <TextField
-                    fullWidth
-                    label="Current Password"
-                    name="currentPassword"
-                    type={showPassword ? "text" : "password"}
-                    onChange={handleFormChange}
-                    margin="normal"
-                    variant="outlined"
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        borderRadius: 2,
-                      },
-                    }}
-                  />
-                )}
-                <TextField
-                  fullWidth
-                  label="New Password"
-                  name="newPassword"
+          {!isEditing && (
+            <Field>
+              <Label htmlFor="user-password">รหัสผ่าน</Label>
+              <div className="relative">
+                <Input
+                  id="user-password"
+                  name="password"
                   type={showPassword ? "text" : "password"}
-                  onChange={handleFormChange}
-                  margin="normal"
-                  variant="outlined"
-                  disabled={isSeoDevView && !isOwnProfile}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          aria-label="toggle password visibility"
-                          onClick={handleTogglePasswordVisibility}
-                          edge="end"
-                          disabled={isSeoDevView && !isOwnProfile}
-                        >
-                          {showPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: 2,
-                    },
-                  }}
+                  onChange={handleInputChange}
+                  className="pr-9"
                 />
-                <TextField
-                  fullWidth
-                  label="Confirm New Password"
-                  name="confirmPassword"
-                  type={showPassword ? "text" : "password"}
-                  onChange={handleFormChange}
-                  margin="normal"
-                  variant="outlined"
-                  disabled={isSeoDevView && !isOwnProfile}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: 2,
-                    },
-                  }}
-                />
-
-                {/* Dedicated Save Password Button */}
                 <Button
-                  fullWidth
-                  variant="contained"
-                  color="info"
-                  onClick={onSavePassword}
-                  disabled={
-                    !currentUser.newPassword ||
-                    !currentUser.confirmPassword ||
-                    (isOwnProfile &&
-                      !canEditRole &&
-                      !currentUser.currentPassword)
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label={
+                    showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"
                   }
-                  sx={{
-                    mt: 2,
-                    borderRadius: 2,
-                    py: 1.5,
-                    fontSize: "1rem",
-                    fontWeight: 600,
-                  }}
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute top-1/2 right-1 -translate-y-1/2"
                 >
-                  Save Password
+                  {showPassword ? <EyeOff /> : <Eye />}
                 </Button>
-              </>
-            )}
-          </Box>
-        )}
+              </div>
+            </Field>
+          )}
 
-        <Box mt={4} display="flex" justifyContent="flex-end" gap={2}>
-          <Button
-            onClick={handleCloseModal}
-            variant="outlined"
-            size="large"
-            sx={{
-              borderRadius: "9999px",
-              px: 3,
-              borderColor: "#E2E8F0",
-              color: "text.primary",
-              "&:hover": {
-                borderColor: "#CBD5E0",
-                bgcolor: "rgba(0,0,0,0.02)",
-              },
-            }}
-          >
+          <Field>
+            <Label htmlFor="user-role">บทบาท</Label>
+            <Select
+              value={currentUser.role || ""}
+              onValueChange={(v) => onFormChange("role", v as Role)}
+              disabled={isSeoDevView && !canEditRole}
+            >
+              <SelectTrigger id="user-role">
+                <SelectValue placeholder="เลือกบทบาท" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.values(Role).map((role) => (
+                  <SelectItem
+                    key={role}
+                    value={role}
+                    disabled={isSeoDevView && role !== Role.CUSTOMER}
+                  >
+                    {getRoleLabel(role)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+
+          {currentUser.role === Role.CUSTOMER && (
+            <div className="rounded-lg border border-info/20 bg-info/5 p-4">
+              <p className="mb-3 text-sm font-semibold text-info">
+                ข้อมูลบริษัท
+              </p>
+              <FieldGroup>
+                <Field>
+                  <Label htmlFor="customer-company">ชื่อบริษัท</Label>
+                  <Input
+                    id="customer-company"
+                    name="companyName"
+                    value={currentUser.companyName || ""}
+                    onChange={handleInputChange}
+                    required={!isEditing}
+                  />
+                </Field>
+
+                <Field>
+                  <Label htmlFor="customer-domain">
+                    โดเมน (เช่น example.com)
+                  </Label>
+                  <Input
+                    id="customer-domain"
+                    name="domain"
+                    value={currentUser.domain || ""}
+                    onChange={handleInputChange}
+                    required={!isEditing}
+                  />
+                </Field>
+
+                {!isSeoDevView && (
+                  <Field>
+                    <Label htmlFor="customer-seodev">ผู้ดูแล (SEO Dev)</Label>
+                    <Select
+                      value={currentUser.seoDevId || NONE_SEO_DEV}
+                      onValueChange={(v) =>
+                        onFormChange("seoDevId", v === NONE_SEO_DEV ? "" : v)
+                      }
+                    >
+                      <SelectTrigger id="customer-seodev">
+                        <SelectValue placeholder="-- ไม่กำหนด --" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={NONE_SEO_DEV}>
+                          -- ไม่กำหนด --
+                        </SelectItem>
+                        {seoDevs.map((dev) => (
+                          <SelectItem key={dev.id} value={dev.id}>
+                            {dev.name || dev.email}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                )}
+              </FieldGroup>
+            </div>
+          )}
+
+          {isEditing && (
+            <div>
+              <div className="my-3 flex items-center gap-2">
+                <Separator className="flex-1" />
+                <span className="text-xs tracking-wide text-muted-foreground uppercase">
+                  Change Password
+                </span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={handleTogglePasswordEdit}
+                    >
+                      <Pencil className="size-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {isPasswordEditing ? "ยกเลิก" : "แก้ไขรหัสผ่าน"}
+                  </TooltipContent>
+                </Tooltip>
+                <Separator className="flex-1" />
+              </div>
+
+              {isPasswordEditing && (
+                <FieldGroup>
+                  {isOwnProfile && !canEditRole && (
+                    <Field>
+                      <Label htmlFor="user-current-password">
+                        Current Password
+                      </Label>
+                      <Input
+                        id="user-current-password"
+                        name="currentPassword"
+                        type={showPassword ? "text" : "password"}
+                        onChange={handleInputChange}
+                      />
+                    </Field>
+                  )}
+
+                  <Field>
+                    <Label htmlFor="user-new-password">New Password</Label>
+                    <div className="relative">
+                      <Input
+                        id="user-new-password"
+                        name="newPassword"
+                        type={showPassword ? "text" : "password"}
+                        onChange={handleInputChange}
+                        disabled={isSeoDevView && !isOwnProfile}
+                        className="pr-9"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={
+                          showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"
+                        }
+                        onClick={() => setShowPassword((v) => !v)}
+                        disabled={isSeoDevView && !isOwnProfile}
+                        className="absolute top-1/2 right-1 -translate-y-1/2"
+                      >
+                        {showPassword ? <EyeOff /> : <Eye />}
+                      </Button>
+                    </div>
+                  </Field>
+
+                  <Field>
+                    <Label htmlFor="user-confirm-password">
+                      Confirm New Password
+                    </Label>
+                    <Input
+                      id="user-confirm-password"
+                      name="confirmPassword"
+                      type={showPassword ? "text" : "password"}
+                      onChange={handleInputChange}
+                      disabled={isSeoDevView && !isOwnProfile}
+                    />
+                  </Field>
+
+                  <Button
+                    type="button"
+                    onClick={onSavePassword}
+                    disabled={
+                      !currentUser.newPassword ||
+                      !currentUser.confirmPassword ||
+                      (isOwnProfile &&
+                        !canEditRole &&
+                        !currentUser.currentPassword)
+                    }
+                    className="w-full bg-info text-info-foreground hover:bg-info/90"
+                    size="lg"
+                  >
+                    Save Password
+                  </Button>
+                </FieldGroup>
+              )}
+            </div>
+          )}
+        </FieldGroup>
+
+        <DialogFooter>
+          <Button variant="outline" size="lg" onClick={handleCloseModal}>
             ยกเลิก
           </Button>
           <Button
+            size="lg"
             onClick={onSave}
-            variant="contained"
-            color="secondary"
-            size="large"
-            sx={{
-              px: 4,
-              fontWeight: 600,
-            }}
+            className="bg-secondary text-secondary-foreground hover:bg-secondary/90"
           >
             {isEditing ? "บันทึกการเปลี่ยนแปลง" : "สร้างผู้ใช้งาน"}
           </Button>
-        </Box>
-      </Box>
-    </Modal>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };

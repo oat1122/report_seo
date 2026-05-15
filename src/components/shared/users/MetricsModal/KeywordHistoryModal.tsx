@@ -1,23 +1,22 @@
-// src/components/shared/users/MetricsModal/KeywordHistoryModal.tsx
 "use client";
 
-import React from "react";
+import { Loader2 } from "lucide-react";
 import {
-  Modal,
-  Box,
-  Typography,
-  Paper,
-  IconButton,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
   Table,
   TableBody,
   TableCell,
-  CircularProgress,
-  TableContainer,
   TableHead,
+  TableHeader,
   TableRow,
-  Chip,
-} from "@mui/material";
-import { Close } from "@mui/icons-material";
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { KeywordReportHistory } from "@/types/history";
 
 interface KeywordHistoryModalProps {
@@ -28,87 +27,71 @@ interface KeywordHistoryModalProps {
   isLoading?: boolean;
 }
 
-export const KeywordHistoryModal: React.FC<KeywordHistoryModalProps> = ({
+export const KeywordHistoryModal = ({
   open,
   onClose,
   history,
   keywordName,
   isLoading = false,
-}) => {
-  // เรียงลำดับข้อมูลก่อนแสดงผล - ล่าสุดขึ้นก่อน
-  const sortedHistory = [...history].sort(
+}: KeywordHistoryModalProps) => {
+  const sorted = [...history].sort(
     (a, b) =>
       new Date(b.dateRecorded).getTime() - new Date(a.dateRecorded).getTime(),
   );
 
   return (
-    <Modal open={open} onClose={onClose}>
-      <Paper
-        sx={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: { xs: "95%", md: 800 },
-          maxHeight: "90vh",
-          overflowY: "auto",
-          p: 3,
-          borderRadius: 4,
-        }}
-      >
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Typography variant="h5" fontWeight={700}>
-            ประวัติการเปลี่ยนแปลง: {keywordName}
-          </Typography>
-          <IconButton onClick={onClose}>
-            <Close />
-          </IconButton>
-        </Box>
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>ประวัติการเปลี่ยนแปลง: {keywordName}</DialogTitle>
+          <DialogDescription className="sr-only">
+            ตารางประวัติของคีย์เวิร์ดนี้
+          </DialogDescription>
+        </DialogHeader>
+
         {isLoading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-            <CircularProgress />
-          </Box>
+          <div className="flex justify-center py-8">
+            <Loader2 className="size-8 animate-spin text-info" />
+          </div>
         ) : (
-          <TableContainer sx={{ mt: 2 }}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>วันที่บันทึก</TableCell>
-                  <TableCell align="center">Position</TableCell>
-                  <TableCell align="center">Traffic</TableCell>
-                  <TableCell align="center">KD</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {sortedHistory.length > 0 ? (
-                  sortedHistory.map((record) => (
-                    <TableRow key={record.id}>
-                      <TableCell>
-                        {new Date(record.dateRecorded).toLocaleString("th-TH")}
-                      </TableCell>
-                      <TableCell align="center">
-                        {record.position || "-"}
-                      </TableCell>
-                      <TableCell align="center">
-                        {record.traffic.toLocaleString()}
-                      </TableCell>
-                      <TableCell align="center">
-                        <Chip label={record.kd} size="small" />
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={4} align="center">
-                      ไม่พบข้อมูลประวัติ
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>วันที่บันทึก</TableHead>
+                <TableHead className="text-center">Position</TableHead>
+                <TableHead className="text-center">Traffic</TableHead>
+                <TableHead className="text-center">KD</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sorted.length > 0 ? (
+                sorted.map((record) => (
+                  <TableRow key={record.id}>
+                    <TableCell>
+                      {new Date(record.dateRecorded).toLocaleString("th-TH")}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {record.position || "-"}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {record.traffic.toLocaleString()}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Badge variant="outline">{record.kd}</Badge>
                     </TableCell>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} className="py-6 text-center text-muted-foreground">
+                    ไม่พบข้อมูลประวัติ
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         )}
-      </Paper>
-    </Modal>
+      </DialogContent>
+    </Dialog>
   );
 };

@@ -1,82 +1,42 @@
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
-import { Box, Container, Skeleton, Stack } from "@mui/material";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function CustomerReportLoading() {
   return (
     <DashboardLayout>
-      <Container maxWidth="xl" sx={{ py: 4 }}>
+      <div className="mx-auto w-full max-w-screen-xl px-4 py-8">
         {/* Header */}
-        <Stack spacing={1} sx={{ mb: 4 }}>
-          <Skeleton variant="text" width="60%" height={56} />
-          <Skeleton variant="text" width="35%" height={32} />
-        </Stack>
+        <div className="mb-6 space-y-2">
+          <Skeleton className="h-12 w-3/5" />
+          <Skeleton className="h-7 w-1/3" />
+        </div>
 
         {/* Summary stats — 4 KPI cards */}
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: {
-              xs: "repeat(2, 1fr)",
-              md: "repeat(4, 1fr)",
-            },
-            gap: 2,
-            mb: 4,
-          }}
-        >
+        <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
           {[0, 1, 2, 3].map((i) => (
-            <Skeleton
-              key={i}
-              variant="rounded"
-              height={120}
-              sx={{ borderRadius: 3 }}
-            />
+            <Skeleton key={i} className="h-28 rounded-2xl" />
           ))}
-        </Box>
+        </div>
 
         {/* Overall metrics + recommendations */}
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", lg: "2fr 1fr" },
-            gap: 3,
-            mb: 4,
-          }}
-        >
-          <Skeleton variant="rounded" height={420} sx={{ borderRadius: 3 }} />
-          <Skeleton variant="rounded" height={420} sx={{ borderRadius: 3 }} />
-        </Box>
+        <div className="mb-6 grid gap-4 lg:grid-cols-3">
+          <Skeleton className="h-96 rounded-2xl lg:col-span-2" />
+          <Skeleton className="h-96 rounded-2xl" />
+        </div>
 
         {/* Trend charts */}
-        <Skeleton
-          variant="rounded"
-          height={320}
-          sx={{ borderRadius: 3, mb: 4 }}
-        />
-        <Skeleton
-          variant="rounded"
-          height={320}
-          sx={{ borderRadius: 3, mb: 4 }}
-        />
+        <Skeleton className="mb-6 h-72 rounded-2xl" />
+        <Skeleton className="mb-6 h-72 rounded-2xl" />
 
         {/* Top keywords */}
-        <Skeleton
-          variant="rounded"
-          height={360}
-          sx={{ borderRadius: 3, mb: 4 }}
-        />
+        <Skeleton className="mb-6 h-80 rounded-2xl" />
 
         {/* Other keywords + AI overview */}
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", lg: "7fr 5fr" },
-            gap: 3,
-          }}
-        >
-          <Skeleton variant="rounded" height={400} sx={{ borderRadius: 3 }} />
-          <Skeleton variant="rounded" height={400} sx={{ borderRadius: 3 }} />
-        </Box>
-      </Container>
+        <div className="grid gap-4 lg:grid-cols-12">
+          <Skeleton className="h-80 rounded-2xl lg:col-span-7" />
+          <Skeleton className="h-80 rounded-2xl lg:col-span-5" />
+        </div>
+      </div>
     </DashboardLayout>
   );
 }

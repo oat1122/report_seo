@@ -1,14 +1,8 @@
-// src/components/Customer/Report/SummaryStatistics.tsx
 "use client";
 
 import React from "react";
-import { Box, Paper, Typography, Grid, alpha } from "@mui/material";
-import {
-  TrendingUp,
-  VpnKey,
-  EmojiEvents,
-  Lightbulb,
-} from "@mui/icons-material";
+import { TrendingUp, KeyRound, Trophy, Lightbulb } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface SummaryStatisticsProps {
   totalKeywords: number;
@@ -21,79 +15,32 @@ interface StatCardProps {
   icon: React.ReactNode;
   label: string;
   value: string | number;
-  color: string;
-  bgColor: string;
+  colorClass: string;
 }
 
 const StatCard: React.FC<StatCardProps> = ({
   icon,
   label,
   value,
-  color,
-  bgColor,
+  colorClass,
 }) => {
   return (
-    <Paper
-      elevation={0}
-      sx={{
-        p: { xs: 2, md: 3 },
-        borderRadius: 3,
-        border: "1px solid #E2E8F0",
-        background: `linear-gradient(135deg, ${bgColor} 0%, #FFFFFF 100%)`,
-        position: "relative",
-        overflow: "hidden",
-        transition: "transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease",
-        "&:hover": {
-          transform: "translateY(-4px)",
-          boxShadow: `0 12px 24px ${alpha(color, 0.15)}`,
-          borderColor: color,
-        },
-        "&:active": { transform: "translateY(-2px)" },
-      }}
+    <div
+      className={cn(
+        "group relative overflow-hidden rounded-2xl border border-border bg-card p-4 transition-all hover:-translate-y-1 hover:shadow-lg md:p-6",
+        // hover border tint per color
+        colorClass,
+      )}
     >
-      {/* Decorative Circle — hide on mobile to reduce visual noise */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: -20,
-          right: -20,
-          width: 80,
-          height: 80,
-          borderRadius: "50%",
-          bgcolor: alpha(color, 0.1),
-          display: { xs: "none", sm: "block" },
-        }}
-      />
-
-      <Box sx={{ position: "relative" }}>
-        <Box
-          sx={{
-            display: "inline-flex",
-            p: { xs: 1, md: 1.5 },
-            borderRadius: 2,
-            bgcolor: alpha(color, 0.1),
-            mb: { xs: 1.5, md: 2 },
-          }}
-        >
-          <Box sx={{ color, display: "flex" }}>{icon}</Box>
-        </Box>
-
-        <Typography
-          variant="h3"
-          fontWeight={700}
-          sx={{
-            mb: 0.5,
-            color: "#2f2f2f",
-            fontSize: { xs: "1.5rem", md: "1.75rem" },
-          }}
-        >
-          {value}
-        </Typography>
-        <Typography variant="body2" color="text.secondary" fontWeight={500}>
-          {label}
-        </Typography>
-      </Box>
-    </Paper>
+      <div className="absolute -top-5 -right-5 hidden size-20 rounded-full opacity-10 sm:block bg-current" />
+      <div className="relative">
+        <div className={cn("mb-3 inline-flex rounded-lg p-2 md:p-3", "bg-current/10")}>
+          <span className="flex">{icon}</span>
+        </div>
+        <p className="mb-1 text-2xl font-bold text-foreground md:text-3xl">{value}</p>
+        <p className="text-sm font-medium text-muted-foreground">{label}</p>
+      </div>
+    </div>
   );
 };
 
@@ -104,55 +51,36 @@ export const SummaryStatistics: React.FC<SummaryStatisticsProps> = ({
   recommendationsCount,
 }) => {
   return (
-    <Box sx={{ mb: { xs: 3, md: 4 } }}>
-      <Typography
-        variant="h5"
-        fontWeight={700}
-        sx={{
-          mb: { xs: 2, md: 3 },
-          fontSize: { xs: "1.125rem", md: "1.5rem" },
-        }}
-      >
+    <div className="mb-6 md:mb-8">
+      <h2 className="mb-4 text-lg font-bold md:mb-6 md:text-2xl">
         Quick Overview
-      </Typography>
-      <Grid container spacing={{ xs: 2, md: 3 }}>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <StatCard
-            icon={<VpnKey sx={{ fontSize: 28 }} />}
-            label="Total Keywords"
-            value={totalKeywords}
-            color="#9592ff"
-            bgColor="#F5F3FF"
-          />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <StatCard
-            icon={<TrendingUp sx={{ fontSize: 28 }} />}
-            label="Avg Position"
-            value={avgPosition !== null ? avgPosition.toFixed(1) : "-"}
-            color="#31fb4c"
-            bgColor="#ECFDF5"
-          />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <StatCard
-            icon={<EmojiEvents sx={{ fontSize: 28 }} />}
-            label="Top 3 Rankings"
-            value={top3Count}
-            color="#ed6c02"
-            bgColor="#FFF7E6"
-          />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <StatCard
-            icon={<Lightbulb sx={{ fontSize: 28 }} />}
-            label="Recommendations"
-            value={recommendationsCount}
-            color="#6c68e8"
-            bgColor="#EEEDFF"
-          />
-        </Grid>
-      </Grid>
-    </Box>
+      </h2>
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 md:gap-5">
+        <StatCard
+          icon={<KeyRound className="size-7" />}
+          label="Total Keywords"
+          value={totalKeywords}
+          colorClass="text-info hover:border-info/40"
+        />
+        <StatCard
+          icon={<TrendingUp className="size-7" />}
+          label="Avg Position"
+          value={avgPosition !== null ? avgPosition.toFixed(1) : "-"}
+          colorClass="text-success hover:border-success/40"
+        />
+        <StatCard
+          icon={<Trophy className="size-7" />}
+          label="Top 3 Rankings"
+          value={top3Count}
+          colorClass="text-warning hover:border-warning/40"
+        />
+        <StatCard
+          icon={<Lightbulb className="size-7" />}
+          label="Recommendations"
+          value={recommendationsCount}
+          colorClass="text-info hover:border-info/40"
+        />
+      </div>
+    </div>
   );
 };

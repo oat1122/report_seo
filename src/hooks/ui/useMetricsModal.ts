@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { SelectChangeEvent } from "@mui/material";
 import { KdLevel } from "@/types/kd";
 import {
   OverallMetricsForm,
@@ -156,15 +155,9 @@ export const useMetricsModal = (metricsData: OverallMetricsForm | null) => {
     [],
   );
 
-  const handleKeywordSelectChange = useCallback(
-    (e: SelectChangeEvent<KdLevel>) => {
-      setNewKeyword((prev) => ({
-        ...prev,
-        kd: e.target.value as KdLevel,
-      }));
-    },
-    [],
-  );
+  const handleKeywordSelectChange = useCallback((value: KdLevel) => {
+    setNewKeyword((prev) => ({ ...prev, kd: value }));
+  }, []);
 
   const handleRecommendChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -178,10 +171,10 @@ export const useMetricsModal = (metricsData: OverallMetricsForm | null) => {
   );
 
   const handleRecommendSelectChange = useCallback(
-    (e: SelectChangeEvent<KdLevel | "">) => {
+    (value: KdLevel | "") => {
       setNewRecommend((prev) => ({
         ...prev,
-        kd: e.target.value === "" ? null : (e.target.value as KdLevel),
+        kd: value === "" ? null : value,
       }));
     },
     [],

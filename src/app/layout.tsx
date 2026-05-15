@@ -1,11 +1,15 @@
 // src/app/layout.tsx (โค้ดที่สะอาด)
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Geist, Inter } from "next/font/google";
 import { Kanit } from "next/font/google";
 import { Providers } from "@/components/Login/subcomponents/providers";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
+import { cn } from "@/lib/utils";
+
+const inter = Inter({subsets:['latin'],variable:'--font-sans'});
+
 
 // 1. กำหนดค่าฟอนต์ Kanit (ฟอนต์หลักภาษาไทย/Sans)
 const kanit = Kanit({
@@ -36,7 +40,7 @@ export default function RootLayout({
 }>) {
   return (
     // กำหนด CSS Variable ของฟอนต์ทั้งหมด
-    <html lang="th" className={`${kanit.variable} ${geistSans.variable}`}>
+    <html lang="th" className={cn(kanit.variable, geistSans.variable, "font-sans", inter.variable)}>
       {/* ใช้ kanit.className บน body โดยตรงเพื่อบังคับให้ Kanit เป็นฟอนต์หลัก
           (คลาสนี้จะถูกกำหนด font-family โดย Next.js) */}
       <body className={`${kanit.className} font-sans antialiased`}>

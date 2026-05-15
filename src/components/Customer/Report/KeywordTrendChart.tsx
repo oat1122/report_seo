@@ -1,136 +1,152 @@
-// src/components/Customer/Report/KeywordTrendChart.tsx
 "use client";
 
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import type { AxisOptions } from "react-charts";
+import { ChevronDown, Check, X, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Box,
-  Typography,
-  Paper,
-  Chip,
-  Autocomplete,
-  TextField,
-  Checkbox,
-} from "@mui/material";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
-  CheckBoxOutlineBlank,
-  CheckBox as CheckBoxIcon,
-} from "@mui/icons-material";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  ReferenceLine,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { useHistoryContext } from "./contexts/HistoryContext";
 import { PeriodSelector } from "./components/PeriodSelector";
 import { ChartEmptyState } from "./components/ChartEmptyState";
 import { CustomTooltip } from "./components/CustomTooltip";
 import {
-  CHART_COLORS,
-  KEYWORD_CHART_PROPS,
-  CHART_LAYOUT,
+  TimeSeriesChart,
+  type ChartSeries,
+  type TimeSeriesDatum,
+} from "./components/Chart";
+import { DonutChart, type DonutDatum } from "./components/DonutChart";
+import {
   DEFAULT_PERIOD,
   PeriodOption,
   MAX_SELECTED_KEYWORDS,
   POSITION_CLIP_THRESHOLD,
+  CHART_COLORS,
   getKeywordColor,
 } from "./lib/chartConfig";
-import {
-  formatChartDate,
-  transformMultiKeywordForRecharts,
-  createKeywordDataKey,
-} from "./lib/historyCalculations";
+import { filterHistoryByPeriod } from "./lib/historyCalculations";
+import { cn } from "@/lib/utils";
 
-// Interface for keyword option in Autocomplete
 interface KeywordOption {
   keyword: string;
   traffic: number;
   color: string;
 }
 
-// Interface for donut chart data
-interface DonutDataItem {
-  keyword: string;
-  traffic: number;
-  color: string;
-  percentage: number;
-  [key: string]: string | number; // Index signature for recharts compatibility
-}
-
 interface KeywordTrendChartProps {
   title?: string;
 }
 
-/**
- * Custom dot component for position line that shows real value when clipped
- * When position > POSITION_CLIP_THRESHOLD, displays a label with the actual value
- */
-interface ClippedPositionDotProps {
-  cx?: number;
-  cy?: number;
-  payload?: Record<string, unknown>;
-  dataKey?: string;
-  stroke?: string;
-  realDataKey: string;
-}
+const formatTrafficValue = (val: number): string => {
+  if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(1)}M`;
+  if (val >= 1_000) return `${(val / 1_000).toFixed(0)}K`;
+  return val.toString();
+};
 
-const ClippedPositionDot: React.FC<ClippedPositionDotProps> = ({
-  cx,
-  cy,
-  payload,
-  stroke,
-  realDataKey,
+const clampPosition = (position: number | null): number | null => {
+  if (position === null) return null;
+  return Math.min(position, POSITION_CLIP_THRESHOLD);
+};
+
+const KeywordSelector = ({
+  options,
+  selected,
+  onChange,
+}: {
+  options: KeywordOption[];
+  selected: string[];
+  onChange: (selected: string[]) => void;
 }) => {
-  if (cx === undefined || cy === undefined || !payload) return null;
+  const [open, setOpen] = useState(false);
+  const selectedSet = new Set(selected);
 
-  const realPosition = payload[realDataKey] as number | null;
+  const toggle = (keyword: string) => {
+    if (selectedSet.has(keyword)) {
+      if (selected.length > 1) {
+        onChange(selected.filter((k) => k !== keyword));
+      }
+    } else {
+      if (selected.length >= MAX_SELECTED_KEYWORDS) return;
+      onChange([...selected, keyword]);
+    }
+  };
 
-  // Only show custom dot if position is clipped (exceeds threshold)
-  if (!realPosition || realPosition <= POSITION_CLIP_THRESHOLD) {
-    return null; // Use default dot behavior (none in our case)
-  }
-
-  // Render a small badge showing the real position at the clipped point
   return (
-    <g>
-      {/* Background pill */}
-      <rect
-        x={cx - 14}
-        y={cy - 8}
-        width={28}
-        height={16}
-        rx={8}
-        fill={stroke || CHART_COLORS.primary}
-        opacity={0.9}
-      />
-      {/* Position text */}
-      <text
-        x={cx}
-        y={cy + 4}
-        textAnchor="middle"
-        fontSize={9}
-        fontWeight={600}
-        fill="#ffffff"
-      >
-        #{realPosition}
-      </text>
-    </g>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between font-normal"
+        >
+          <span className="truncate text-muted-foreground">
+            {selected.length === 0
+              ? "เลือก Keyword..."
+              : `เลือก ${selected.length}/${MAX_SELECTED_KEYWORDS} คำ`}
+          </span>
+          <ChevronDown className="size-4 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+        <Command>
+          <CommandInput placeholder="ค้นหา keyword..." />
+          <CommandList>
+            <CommandEmpty>ไม่พบ keyword</CommandEmpty>
+            <CommandGroup>
+              {options.map((opt) => {
+                const isSelected = selectedSet.has(opt.keyword);
+                const disabled =
+                  !isSelected && selected.length >= MAX_SELECTED_KEYWORDS;
+                return (
+                  <CommandItem
+                    key={opt.keyword}
+                    value={opt.keyword}
+                    disabled={disabled}
+                    onSelect={() => toggle(opt.keyword)}
+                    className="flex items-center gap-2"
+                  >
+                    <Checkbox checked={isSelected} aria-hidden="true" />
+                    <span
+                      className="size-3 shrink-0 rounded-full"
+                      style={{ backgroundColor: opt.color }}
+                    />
+                    <span
+                      className={cn(
+                        "flex-1 truncate",
+                        isSelected && "font-semibold",
+                      )}
+                    >
+                      {opt.keyword}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {opt.traffic.toLocaleString()}
+                    </span>
+                    {isSelected && <Check className="size-3 text-success" />}
+                  </CommandItem>
+                );
+              })}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 };
 
-/**
- * Keyword trend chart component with multi-select capability
- * Shows Position and Traffic trends for up to 5 selected keywords
- * Uses searchable Autocomplete dropdown with checkboxes for keyword selection
- * Combined dual-axis chart: Position (solid line) + Traffic (dashed line)
- */
 export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
   title = "แนวโน้ม Keyword",
 }) => {
@@ -138,7 +154,6 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
   const [period, setPeriod] = useState<PeriodOption>(DEFAULT_PERIOD);
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
 
-  // Build keyword options with traffic and color (sorted by traffic desc)
   const keywordOptions: KeywordOption[] = useMemo(() => {
     return currentKeywords.map((k, index) => ({
       keyword: k.keyword,
@@ -147,662 +162,289 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
     }));
   }, [currentKeywords]);
 
-  // Create color map for all keywords (consistent colors based on sorted order)
   const keywordColorMap = useMemo(() => {
     const map = new Map<string, string>();
-    keywordOptions.forEach((opt) => {
-      map.set(opt.keyword, opt.color);
-    });
+    keywordOptions.forEach((opt) => map.set(opt.keyword, opt.color));
     return map;
   }, [keywordOptions]);
 
-  // Auto-select first 3 keywords on load (sorted by traffic)
-  React.useEffect(() => {
+  // Auto-select first 3 keywords on load
+  useEffect(() => {
     if (keywordOptions.length > 0 && selectedKeywords.length === 0) {
-      const initial = keywordOptions.slice(0, 3).map((k) => k.keyword);
-      setSelectedKeywords(initial);
+      setSelectedKeywords(keywordOptions.slice(0, 3).map((k) => k.keyword));
     }
   }, [keywordOptions, selectedKeywords.length]);
 
-  // Transform data for selected keywords (include current data)
-  const chartData = useMemo(() => {
+  // Build series for position + traffic per selected keyword
+  const chartSeries = useMemo<ChartSeries[]>(() => {
     if (selectedKeywords.length === 0) return [];
-    return transformMultiKeywordForRecharts(
-      keywordHistory,
-      selectedKeywords,
-      period,
-      currentKeywords,
-    );
-  }, [keywordHistory, selectedKeywords, period, currentKeywords]);
+    const filtered = filterHistoryByPeriod(keywordHistory, period);
+    const series: ChartSeries[] = [];
 
-  const hasData = chartData.length >= 1;
+    selectedKeywords.forEach((keyword) => {
+      const color = keywordColorMap.get(keyword) || CHART_COLORS.primary;
+      const records = filtered
+        .filter((r) => r.keyword === keyword)
+        .map((r) => ({
+          date: new Date(r.dateRecorded),
+          position: r.position,
+          traffic: r.traffic,
+        }));
 
-  // Handle keyword selection change from Autocomplete
-  const handleKeywordChange = useCallback(
-    (_event: React.SyntheticEvent, newValue: KeywordOption[]) => {
-      // Minimum 1 keyword must always be selected
-      if (newValue.length === 0) return;
-      setSelectedKeywords(newValue.map((k) => k.keyword));
-    },
+      // Append current keyword data as latest point (if not duplicate)
+      const current = currentKeywords.find((c) => c.keyword === keyword);
+      if (current) {
+        const latestDate = new Date(current.dateRecorded);
+        const dateExists = records.some(
+          (r) => r.date.toISOString().split("T")[0] === latestDate.toISOString().split("T")[0],
+        );
+        if (!dateExists) {
+          records.push({
+            date: latestDate,
+            position: current.position,
+            traffic: current.traffic,
+          });
+        }
+      }
+
+      records.sort((a, b) => a.date.getTime() - b.date.getTime());
+
+      series.push({
+        label: `${keyword} (Position)`,
+        color,
+        secondaryAxisId: "position",
+        data: records
+          .filter((r) => r.position !== null)
+          .map((r) => ({
+            date: r.date,
+            value: clampPosition(r.position) ?? POSITION_CLIP_THRESHOLD,
+          })),
+      });
+      series.push({
+        label: `${keyword} (Traffic)`,
+        color,
+        secondaryAxisId: "traffic",
+        data: records.map((r) => ({
+          date: r.date,
+          value: r.traffic,
+        })),
+      });
+    });
+
+    return series;
+  }, [keywordHistory, currentKeywords, selectedKeywords, period, keywordColorMap]);
+
+  const hasData = chartSeries.some((s) => s.data.length >= 1);
+
+  const secondaryAxes = useMemo<AxisOptions<TimeSeriesDatum>[]>(
+    () => [
+      {
+        id: "position",
+        position: "left",
+        scaleType: "linear",
+        getValue: (d) => d.value,
+        min: 1,
+        max: POSITION_CLIP_THRESHOLD,
+        invert: true,
+        elementType: "line",
+        formatters: { scale: (v: number) => `#${v}` },
+      },
+      {
+        id: "traffic",
+        position: "right",
+        scaleType: "linear",
+        getValue: (d) => d.value,
+        min: 0,
+        elementType: "line",
+        formatters: { scale: formatTrafficValue },
+      },
+    ],
     [],
   );
 
-  // Get selected keyword options for Autocomplete value
-  const selectedOptions = useMemo(() => {
-    return keywordOptions.filter((opt) =>
-      selectedKeywords.includes(opt.keyword),
-    );
+  // Donut data
+  const donutData: DonutDatum[] = useMemo(() => {
+    return keywordOptions
+      .filter((opt) => selectedKeywords.includes(opt.keyword))
+      .map((opt) => ({
+        label: opt.keyword,
+        value: opt.traffic,
+        color: opt.color,
+      }));
   }, [keywordOptions, selectedKeywords]);
 
-  // Prepare data for Donut Chart
-  const donutData: DonutDataItem[] = useMemo(() => {
-    const selectedData = keywordOptions.filter((opt) =>
-      selectedKeywords.includes(opt.keyword),
-    );
-    const total = selectedData.reduce((sum, k) => sum + k.traffic, 0);
-
-    return selectedData.map((k) => ({
-      keyword: k.keyword,
-      traffic: k.traffic,
-      color: k.color,
-      percentage: total > 0 ? (k.traffic / total) * 100 : 0,
-    }));
-  }, [keywordOptions, selectedKeywords]);
-
-  // Total traffic for center label
-  const totalTraffic = useMemo(() => {
-    return donutData.reduce((sum, d) => sum + d.traffic, 0);
-  }, [donutData]);
-
-  // Custom formatter for position (inverted - lower is better)
-  const formatPosition = (value: number): string => {
-    return value ? `#${value}` : "-";
-  };
-
-  // Fixed Y-axis ticks for Position (clipped at threshold)
-  // Uses fixed domain [1, POSITION_CLIP_THRESHOLD] for consistent view
-  const positionTicks = useMemo(() => {
-    // Show key thresholds: 1, 5, 10, and the clip threshold (20)
-    return [1, 5, 10, POSITION_CLIP_THRESHOLD];
-  }, []);
+  const totalTraffic = useMemo(
+    () => donutData.reduce((sum, d) => sum + d.value, 0),
+    [donutData],
+  );
 
   if (isLoading) {
     return (
-      <Paper
-        sx={{ p: 3, borderRadius: 3, border: "1px solid #E2E8F0" }}
-        elevation={0}
-      >
-        <Typography>กำลังโหลดข้อมูล Keyword...</Typography>
-      </Paper>
+      <div className="flex items-center gap-2 rounded-2xl border border-border p-6">
+        <Loader2 className="size-4 animate-spin text-info" />
+        <span>กำลังโหลดข้อมูล Keyword...</span>
+      </div>
     );
   }
 
-  // No keywords available
   if (keywordOptions.length === 0) {
     return (
-      <Paper
-        sx={{ p: 3, borderRadius: 3, border: "1px solid #E2E8F0" }}
-        elevation={0}
-      >
-        <Typography variant="h5" fontWeight={700} mb={2}>
-          {title}
-        </Typography>
-        <Box sx={{ height: { xs: 220, md: 300 } }}>
-          <ChartEmptyState message="ยังไม่มีประวัติ Keyword" />
-        </Box>
-      </Paper>
+      <div className="rounded-2xl border border-border p-4 md:p-6">
+        <h3 className="mb-3 text-xl font-bold">{title}</h3>
+        <ChartEmptyState message="ยังไม่มีประวัติ Keyword" height="240px" />
+      </div>
     );
   }
 
   return (
-    <Paper
-      sx={{ p: { xs: 2, md: 3 }, borderRadius: 3, border: "1px solid #E2E8F0" }}
-      elevation={0}
-    >
-      {/* Header with title and period selector */}
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: { xs: "column", sm: "row" },
-          justifyContent: "space-between",
-          alignItems: { xs: "flex-start", sm: "center" },
-          gap: 2,
-          mb: 3,
-        }}
-      >
-        <Typography variant="h5" fontWeight={700}>
-          {title}
-        </Typography>
+    <div className="rounded-2xl border border-border p-4 md:p-6">
+      <div className="mb-4 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+        <h3 className="text-xl font-bold">{title}</h3>
         <PeriodSelector value={period} onChange={setPeriod} />
-      </Box>
+      </div>
 
-      {/* Searchable Keyword Dropdown with Checkboxes */}
-      <Box sx={{ mb: 3, maxWidth: { xs: "100%", md: "60%", lg: "50%" } }}>
-        <Autocomplete
-          multiple
-          id="keyword-selector"
+      <div className="mb-4 max-w-md">
+        <KeywordSelector
           options={keywordOptions}
-          disableCloseOnSelect
-          getOptionLabel={(option) => option.keyword}
-          getOptionDisabled={(option) =>
-            // Disable if max reached and option is not already selected
-            selectedKeywords.length >= MAX_SELECTED_KEYWORDS &&
-            !selectedKeywords.includes(option.keyword)
-          }
-          value={selectedOptions}
-          onChange={handleKeywordChange}
-          isOptionEqualToValue={(option, value) =>
-            option.keyword === value.keyword
-          }
-          renderOption={(props, option, { selected }) => {
-            const { key, ...restProps } = props;
-            return (
-              <li key={key} {...restProps}>
-                <Checkbox
-                  icon={<CheckBoxOutlineBlank fontSize="small" />}
-                  checkedIcon={<CheckBoxIcon fontSize="small" />}
-                  style={{ marginRight: 8 }}
-                  checked={selected}
-                />
-                {/* Color dot indicator */}
-                <Box
-                  sx={{
-                    width: 12,
-                    height: 12,
-                    borderRadius: "50%",
-                    backgroundColor: option.color,
-                    mr: 1.5,
-                    flexShrink: 0,
-                  }}
-                />
-                <Typography
-                  sx={{
-                    flex: 1,
-                    fontWeight: selected ? 600 : 400,
-                    color: selected ? option.color : "inherit",
-                  }}
-                >
-                  {option.keyword}
-                </Typography>
-                <Typography
-                  variant="caption"
-                  sx={{ color: CHART_COLORS.text, ml: "auto" }}
-                >
-                  {option.traffic.toLocaleString()} traffic
-                </Typography>
-              </li>
-            );
-          }}
-          renderTags={(value, getTagProps) =>
-            value.map((option, index) => {
-              const { key, ...tagProps } = getTagProps({ index });
-              return (
-                <Chip
-                  key={key}
-                  label={
-                    <Box
-                      sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
-                    >
-                      <Box
-                        sx={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: "50%",
-                          backgroundColor: option.color,
-                        }}
-                      />
-                      <span>{option.keyword}</span>
-                    </Box>
-                  }
-                  {...tagProps}
-                  size="small"
-                  sx={{
-                    backgroundColor: `${option.color}15`,
-                    border: `1.5px solid ${option.color}`,
-                    color: option.color,
-                    fontWeight: 600,
-                    fontSize: "0.75rem",
-                    "& .MuiChip-deleteIcon": {
-                      color: option.color,
-                      "&:hover": {
-                        color: option.color,
-                        opacity: 0.7,
-                      },
-                    },
-                  }}
-                  // Prevent delete if only 1 keyword left
-                  onDelete={
-                    selectedKeywords.length > 1 ? tagProps.onDelete : undefined
-                  }
-                />
-              );
-            })
-          }
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label={`เลือก Keywords (สูงสุด ${MAX_SELECTED_KEYWORDS} คำ)`}
-              placeholder="ค้นหา keyword..."
-              size="small"
-            />
-          )}
-          sx={{
-            "& .MuiOutlinedInput-root": {
-              borderRadius: 2,
-            },
-          }}
+          selected={selectedKeywords}
+          onChange={setSelectedKeywords}
         />
-        {/* Selection count */}
-        <Typography
-          variant="caption"
-          sx={{ color: CHART_COLORS.text, mt: 1, display: "block" }}
-        >
-          เลือก {selectedKeywords.length}/{MAX_SELECTED_KEYWORDS} คำ
-        </Typography>
-      </Box>
+      </div>
+
+      {/* Selected keyword chips */}
+      <div className="mb-4 flex flex-wrap gap-2">
+        {selectedKeywords.map((keyword) => {
+          const color = keywordColorMap.get(keyword) || CHART_COLORS.primary;
+          return (
+            <Badge
+              key={keyword}
+              variant="outline"
+              className="gap-1.5 border-2 font-semibold"
+              style={{
+                borderColor: color,
+                color,
+              }}
+            >
+              <span
+                className="size-2 rounded-full"
+                style={{ backgroundColor: color }}
+              />
+              {keyword}
+              {selectedKeywords.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSelectedKeywords((prev) =>
+                      prev.filter((k) => k !== keyword),
+                    )
+                  }
+                  className="ml-1 hover:opacity-70"
+                  aria-label={`ลบ ${keyword}`}
+                >
+                  <X className="size-3" />
+                </button>
+              )}
+            </Badge>
+          );
+        })}
+      </div>
 
       {!hasData ? (
-        <Box sx={{ height: { xs: 220, md: 300 } }}>
-          <ChartEmptyState message="ยังไม่มีข้อมูลเพียงพอสำหรับ Keywords ที่เลือก" />
-        </Box>
+        <ChartEmptyState
+          message="ยังไม่มีข้อมูลเพียงพอสำหรับ Keywords ที่เลือก"
+          height="240px"
+        />
       ) : (
-        /* Charts Container: Line Chart + Donut Chart */
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", md: "2fr 1fr" },
-            gap: { xs: 2, md: 3 },
-          }}
-        >
-          {/* Left: Line Chart */}
-          <Box className={CHART_LAYOUT.cardBase}>
-            {/* Legend indicator */}
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                mb: 2,
-                flexWrap: "wrap",
-                gap: 1,
-              }}
-            >
-              <Typography className={CHART_LAYOUT.header} sx={{ mb: 0 }}>
+        <div className="grid gap-4 md:grid-cols-3 md:gap-6">
+          {/* Line chart: position + traffic */}
+          <div className="rounded-xl border border-border bg-background p-3 md:col-span-2">
+            <div className="mb-2 flex items-center justify-between text-xs">
+              <span className="font-semibold text-muted-foreground">
                 Position & Traffic Trend
-              </Typography>
-              <Box sx={{ display: "flex", gap: 3, alignItems: "center" }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Box
-                    sx={{
-                      width: 24,
-                      height: 3,
-                      backgroundColor: CHART_COLORS.primary,
-                      borderRadius: 1,
-                    }}
-                  />
-                  <Typography
-                    variant="caption"
-                    sx={{ color: CHART_COLORS.text }}
-                  >
-                    Position (อันดับ)
-                  </Typography>
-                </Box>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Box
-                    sx={{
-                      width: 24,
-                      height: 0,
-                      borderTop: `2px dashed ${CHART_COLORS.primary}`,
-                    }}
-                  />
-                  <Typography
-                    variant="caption"
-                    sx={{ color: CHART_COLORS.text }}
-                  >
-                    Traffic
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
+              </span>
+              <span className="text-muted-foreground">
+                Position = แกนซ้าย, Traffic = แกนขวา
+              </span>
+            </div>
+            <TimeSeriesChart
+              series={chartSeries}
+              secondaryAxes={secondaryAxes}
+              height={360}
+              tooltipRender={({ focusedDatum }) => (
+                <CustomTooltip
+                  focusedDatum={focusedDatum}
+                  formatValue={(v, label) =>
+                    label.toLowerCase().includes("position")
+                      ? v
+                        ? `#${v}`
+                        : "-"
+                      : v.toLocaleString()
+                  }
+                />
+              )}
+            />
+          </div>
 
-            <Box sx={{ height: { xs: 280, sm: 320, md: 400 } }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData} {...KEYWORD_CHART_PROPS}>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    vertical={false}
-                    stroke={CHART_COLORS.grid}
-                  />
-                  <XAxis
-                    dataKey="date"
-                    tick={{ fontSize: 11, fill: CHART_COLORS.text }}
-                    tickFormatter={(val) => formatChartDate(val)}
-                    axisLine={{ stroke: CHART_COLORS.grid }}
-                    tickLine={{ stroke: CHART_COLORS.grid }}
-                  />
-                  {/* Left Y-axis: Position (inverted - #1 at top, clipped at threshold) */}
-                  <YAxis
-                    yAxisId="position"
-                    orientation="left"
-                    domain={[1, POSITION_CLIP_THRESHOLD]}
-                    reversed
-                    tick={{ fontSize: 11, fill: CHART_COLORS.text }}
-                    ticks={positionTicks}
-                    axisLine={{ stroke: CHART_COLORS.grid }}
-                    tickLine={{ stroke: CHART_COLORS.grid }}
-                    width={40}
-                    tickFormatter={(val) => `#${val}`}
-                    label={{
-                      value: "Position",
-                      angle: -90,
-                      position: "insideLeft",
-                      fontSize: 11,
-                      fill: CHART_COLORS.text,
-                      offset: 10,
-                    }}
-                  />
-                  {/* Right Y-axis: Traffic (normal) */}
-                  <YAxis
-                    yAxisId="traffic"
-                    orientation="right"
-                    tick={{ fontSize: 11, fill: CHART_COLORS.text }}
-                    axisLine={{ stroke: CHART_COLORS.grid }}
-                    tickLine={{ stroke: CHART_COLORS.grid }}
-                    width={60}
-                    tickFormatter={(val) =>
-                      val >= 1000 ? `${(val / 1000).toFixed(0)}K` : val
-                    }
-                    label={{
-                      value: "Traffic",
-                      angle: 90,
-                      position: "insideRight",
-                      fontSize: 11,
-                      fill: CHART_COLORS.text,
-                      offset: 10,
-                    }}
-                  />
-                  {/* Reference line at position 10 (first page threshold) */}
-                  <ReferenceLine
-                    yAxisId="position"
-                    y={10}
-                    stroke="#059669"
-                    strokeDasharray="3 3"
-                    label={{
-                      value: "Top 10",
-                      position: "insideTopRight",
-                      fontSize: 10,
-                      fill: "#059669",
-                      offset: 5,
-                    }}
-                  />
-                  <Tooltip
-                    content={
-                      <CustomTooltip
-                        formatValue={(val, key) =>
-                          key?.includes("position")
-                            ? formatPosition(val)
-                            : val.toLocaleString()
-                        }
-                      />
-                    }
-                    cursor={{ stroke: CHART_COLORS.cursor, strokeWidth: 2 }}
-                  />
-
-                  {/* Render lines for each selected keyword */}
-                  {selectedKeywords.map((keyword) => {
-                    const color =
-                      keywordColorMap.get(keyword) || CHART_COLORS.primary;
-                    const positionDataKey = createKeywordDataKey(
-                      keyword,
-                      "position",
-                    );
-                    // Real position data key for showing actual values when clipped
-                    const positionRealDataKey = `${keyword.replace(
-                      /\s+/g,
-                      "_",
-                    )}_position_real`;
-                    const trafficDataKey = createKeywordDataKey(
-                      keyword,
-                      "traffic",
-                    );
-
-                    return (
-                      <React.Fragment key={keyword}>
-                        {/* Position Line (HERO - solid, thick) with clipped dot indicator */}
-                        <Line
-                          yAxisId="position"
-                          type="monotone"
-                          dataKey={positionDataKey}
-                          name={`${keyword} (Position)`}
-                          stroke={color}
-                          strokeWidth={3}
-                          dot={
-                            <ClippedPositionDot
-                              realDataKey={positionRealDataKey}
-                              stroke={color}
-                            />
-                          }
-                          activeDot={{ r: 6, strokeWidth: 0, fill: color }}
-                          connectNulls
-                        />
-                        {/* Traffic Line (SUPPORT - dashed, thinner, semi-transparent) */}
-                        <Line
-                          yAxisId="traffic"
-                          type="monotone"
-                          dataKey={trafficDataKey}
-                          name={`${keyword} (Traffic)`}
-                          stroke={color}
-                          strokeWidth={2}
-                          strokeDasharray="5 5"
-                          strokeOpacity={0.6}
-                          dot={false}
-                          activeDot={{ r: 5, strokeWidth: 0, fill: color }}
-                          connectNulls
-                        />
-                      </React.Fragment>
-                    );
-                  })}
-                </LineChart>
-              </ResponsiveContainer>
-            </Box>
-
-            {/* Keyword color legend */}
-            <Box
-              sx={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: 2,
-                mt: 2,
-                pt: 2,
-                borderTop: "1px solid #e2e8f0",
-              }}
-            >
-              {selectedKeywords.map((keyword) => {
-                const color =
-                  keywordColorMap.get(keyword) || CHART_COLORS.primary;
+          {/* Donut: traffic share */}
+          <div className="rounded-xl border border-border bg-background p-3">
+            <p className="mb-2 text-xs font-semibold text-muted-foreground">
+              สัดส่วน Traffic
+            </p>
+            <div className="flex justify-center">
+              <DonutChart
+                data={donutData}
+                size={200}
+                thickness={28}
+                centerLabel="Total"
+                centerValue={
+                  totalTraffic >= 1000
+                    ? `${(totalTraffic / 1000).toFixed(1)}K`
+                    : totalTraffic.toLocaleString()
+                }
+              />
+            </div>
+            <ul className="mt-3 space-y-1 border-t border-border pt-2">
+              {donutData.map((item) => {
+                const pct =
+                  totalTraffic > 0 ? (item.value / totalTraffic) * 100 : 0;
                 return (
-                  <Box
-                    key={keyword}
-                    sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                  <li
+                    key={item.label}
+                    className="flex items-center justify-between gap-2 text-xs"
                   >
-                    <Box
-                      sx={{
-                        width: 12,
-                        height: 12,
-                        borderRadius: "50%",
-                        backgroundColor: color,
-                      }}
-                    />
-                    <Typography
-                      variant="caption"
-                      sx={{ fontWeight: 600, color: color }}
-                    >
-                      {keyword}
-                    </Typography>
-                  </Box>
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span
+                        className="size-2 shrink-0 rounded-full"
+                        style={{ backgroundColor: item.color }}
+                      />
+                      <span
+                        className="truncate font-medium"
+                        title={item.label}
+                      >
+                        {item.label}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <span>{item.value.toLocaleString()}</span>
+                      <span
+                        className="min-w-10 text-right font-semibold"
+                        style={{ color: item.color }}
+                      >
+                        {pct.toFixed(1)}%
+                      </span>
+                    </div>
+                  </li>
                 );
               })}
-            </Box>
-          </Box>
-
-          {/* Right: Donut Chart - Traffic Share */}
-          <Box className={CHART_LAYOUT.cardBase}>
-            <Typography className={CHART_LAYOUT.header}>
-              สัดส่วน Traffic
-            </Typography>
-
-            <Box
-              sx={{
-                minHeight: { xs: 220, md: 280 },
-                position: "relative",
-              }}
-            >
-              <ResponsiveContainer width="100%" height={260}>
-                <PieChart>
-                  <Pie
-                    data={donutData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={55}
-                    outerRadius={90}
-                    paddingAngle={2}
-                    dataKey="traffic"
-                    nameKey="keyword"
-                  >
-                    {donutData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={entry.color}
-                        stroke="transparent"
-                        strokeWidth={0}
-                        style={{ cursor: "pointer" }}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value: number) => [
-                      value.toLocaleString(),
-                      "Traffic",
-                    ]}
-                    contentStyle={{
-                      backgroundColor: "#ffffff",
-                      border: "1px solid #e2e8f0",
-                      borderRadius: "8px",
-                      color: "#1e293b",
-                      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                      padding: "8px 12px",
-                    }}
-                    itemStyle={{ color: "#1e293b" }}
-                    labelStyle={{
-                      fontWeight: 600,
-                      marginBottom: 4,
-                      color: "#64748b",
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-
-              {/* Center Label - Total Traffic */}
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                  transform: "translate(-50%, -50%)",
-                  textAlign: "center",
-                  pointerEvents: "none",
-                }}
-              >
-                <Typography
-                  variant="caption"
-                  sx={{ color: "#64748b", display: "block" }}
-                >
-                  Total
-                </Typography>
-                <Typography
-                  variant="h6"
-                  sx={{ fontWeight: 700, color: "#1e293b", lineHeight: 1.2 }}
-                >
-                  {totalTraffic >= 1000
-                    ? `${(totalTraffic / 1000).toFixed(1)}K`
-                    : totalTraffic.toLocaleString()}
-                </Typography>
-              </Box>
-            </Box>
-
-            {/* Donut Legend */}
-            <Box sx={{ mt: 2, pt: 2, borderTop: "1px solid #e2e8f0" }}>
-              {donutData.map((item) => (
-                <Box
-                  key={item.keyword}
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    py: 0.75,
-                  }}
-                >
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Box
-                      sx={{
-                        width: 10,
-                        height: 10,
-                        borderRadius: "50%",
-                        backgroundColor: item.color,
-                        flexShrink: 0,
-                      }}
-                    />
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        fontWeight: 500,
-                        color: "#1e293b",
-                        fontSize: { xs: "0.7rem", md: "0.75rem" },
-                        wordBreak: "break-word",
-                        overflowWrap: "anywhere",
-                        lineHeight: 1.4,
-                      }}
-                      title={item.keyword}
-                    >
-                      {item.keyword}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Typography variant="caption" sx={{ color: "#64748b" }}>
-                      {item.traffic.toLocaleString()}
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        fontWeight: 600,
-                        color: item.color,
-                        minWidth: 45,
-                        textAlign: "right",
-                      }}
-                    >
-                      {item.percentage.toFixed(1)}%
-                    </Typography>
-                  </Box>
-                </Box>
-              ))}
-            </Box>
-          </Box>
-        </Box>
+            </ul>
+          </div>
+        </div>
       )}
 
-      {/* Data source info */}
-      <Typography
-        variant="caption"
-        sx={{
-          display: "block",
-          mt: 2,
-          color: CHART_COLORS.text,
-          textAlign: "right",
-        }}
-      >
-        ข้อมูลจาก Database: {chartData.length} รายการ
-      </Typography>
-    </Paper>
+      <p className="mt-3 text-right text-xs text-muted-foreground">
+        ข้อมูลจาก Database
+      </p>
+    </div>
   );
 };
 

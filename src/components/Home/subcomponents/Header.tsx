@@ -1,125 +1,94 @@
-import React from "react";
+"use client";
+
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
-  AppBar,
-  Toolbar,
-  Typography,
-  Button,
-  Container,
-  Box,
-  IconButton,
-  Drawer,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemText,
-} from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetClose,
+} from "@/components/ui/sheet";
+import { useMobileDrawer } from "@/hooks/ui/useMobileDrawer";
 import { navItems } from "@/components/Home/constants/data";
 
-interface HeaderProps {
-  mobileOpen: boolean;
-  onDrawerToggle: () => void;
-  onDrawerClose: () => void;
-}
-
-export const Header: React.FC<HeaderProps> = ({
-  mobileOpen,
-  onDrawerToggle,
-  onDrawerClose,
-}) => {
+export const Header = () => {
   const router = useRouter();
+  const { mobileOpen, handleDrawerToggle, handleDrawerClose } =
+    useMobileDrawer();
 
   const handleLoginClick = () => {
     router.push("/login");
   };
-  const drawer = (
-    <Box onClick={onDrawerClose} sx={{ textAlign: "center" }}>
-      <Typography variant="h6" sx={{ my: 2 }}>
-        SEO PRIME
-      </Typography>
-      <List>
-        {navItems.map((item) => (
-          <ListItem key={item} disablePadding>
-            <ListItemButton sx={{ textAlign: "center" }}>
-              <ListItemText primary={item} />
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
-      <Box sx={{ p: 2 }}>
-        <Button
-          variant="contained"
-          color="info"
-          fullWidth
-          sx={{ color: "white" }}
-          onClick={handleLoginClick}
-        >
-          เข้าสู่ระบบ
-        </Button>
-      </Box>
-    </Box>
-  );
 
   return (
-    <>
-      <AppBar
-        component="nav"
-        position="sticky"
-        sx={{
-          bgcolor: "background.default",
-          boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-        }}
-      >
-        <Container maxWidth="xl">
-          <Toolbar>
-            <IconButton
-              color="inherit"
-              aria-label="open drawer"
-              edge="start"
-              onClick={onDrawerToggle}
-              sx={{ mr: 2, display: { lg: "none" }, color: "primary.main" }}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Box sx={{ flexGrow: 1, display: "flex", alignItems: "center" }}>
-              <Image
-                src="/img/LOGO SEO PRIME4_0.png"
-                alt="SEO PRIME Logo"
-                width={80}
-                height={28}
-                style={{ marginRight: "16px" }}
-              />
-            </Box>
-            <Button
-              variant="contained"
-              color="info"
-              sx={{
-                color: "white",
-                display: { xs: "none", lg: "block" },
-              }}
-              onClick={handleLoginClick}
-            >
-              เข้าสู่ระบบ
-            </Button>
-          </Toolbar>
-        </Container>
-      </AppBar>
-      <Drawer
-        variant="temporary"
-        open={mobileOpen}
-        onClose={onDrawerClose}
-        ModalProps={{
-          keepMounted: true,
-        }}
-        sx={{
-          display: { xs: "block", lg: "none" },
-          "& .MuiDrawer-paper": { boxSizing: "border-box", width: 240 },
-        }}
-      >
-        {drawer}
-      </Drawer>
-    </>
+    <header className="sticky top-0 z-40 bg-background shadow-sm">
+      <div className="mx-auto w-full max-w-screen-2xl px-4">
+        <div className="flex h-16 items-center gap-3">
+          <Sheet
+            open={mobileOpen}
+            onOpenChange={(o) => (o ? handleDrawerToggle() : handleDrawerClose())}
+          >
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label="open drawer"
+                className="lg:hidden"
+              >
+                <Menu className="size-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-60">
+              <SheetHeader>
+                <SheetTitle>SEO PRIME</SheetTitle>
+                <SheetDescription className="sr-only">
+                  เมนูหลัก
+                </SheetDescription>
+              </SheetHeader>
+              <nav className="flex flex-col gap-1 px-4">
+                {navItems.map((item) => (
+                  <SheetClose asChild key={item}>
+                    <Button variant="ghost" className="justify-center">
+                      {item}
+                    </Button>
+                  </SheetClose>
+                ))}
+                <Button
+                  className="mt-4 bg-info text-info-foreground hover:bg-info/90"
+                  onClick={() => {
+                    handleDrawerClose();
+                    handleLoginClick();
+                  }}
+                >
+                  เข้าสู่ระบบ
+                </Button>
+              </nav>
+            </SheetContent>
+          </Sheet>
+
+          <div className="flex flex-1 items-center">
+            <Image
+              src="/img/LOGO SEO PRIME4_0.png"
+              alt="SEO PRIME Logo"
+              width={80}
+              height={28}
+              priority
+            />
+          </div>
+
+          <Button
+            className="hidden bg-info text-info-foreground hover:bg-info/90 lg:inline-flex"
+            onClick={handleLoginClick}
+          >
+            เข้าสู่ระบบ
+          </Button>
+        </div>
+      </div>
+    </header>
   );
 };

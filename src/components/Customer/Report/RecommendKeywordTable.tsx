@@ -1,31 +1,22 @@
-// src/components/Customer/Report/RecommendKeywordTable.tsx
 "use client";
 
 import React from "react";
+import { Lightbulb, Star, Sparkles, Info } from "lucide-react";
 import {
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableHead,
+  TableHeader,
   TableRow,
-  Paper,
-  Typography,
-  Chip,
-  Box,
-  Tooltip,
-  useMediaQuery,
-  useTheme,
-  Card,
-  CardContent,
-  alpha,
-} from "@mui/material";
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import {
-  Lightbulb,
-  Star,
-  AutoAwesome,
-  InfoOutlined,
-} from "@mui/icons-material";
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 import { KeywordRecommend } from "@/types/metrics";
 
 interface RecommendKeywordTableProps {
@@ -33,124 +24,56 @@ interface RecommendKeywordTableProps {
   title?: string;
 }
 
-// Helper: Get KD styling
-const getKdStyle = (kd: string) => {
-  const styles = {
-    EASY: {
-      bgcolor: "#E8F5E9",
-      color: "#2E7D32",
-      label: "Easy",
-      glow: "#4CAF50",
-    },
-    MEDIUM: {
-      bgcolor: "#FFF3E0",
-      color: "#E65100",
-      label: "Medium",
-      glow: "#FF9800",
-    },
-    HARD: {
-      bgcolor: "#FFEBEE",
-      color: "#C62828",
-      label: "Hard",
-      glow: "#F44336",
-    },
-  };
-  return styles[kd as keyof typeof styles] || styles.MEDIUM;
+const kdStyle: Record<string, { label: string; className: string }> = {
+  EASY: { label: "Easy", className: "bg-success/10 text-success" },
+  MEDIUM: { label: "Medium", className: "bg-warning/10 text-warning" },
+  HARD: { label: "Hard", className: "bg-destructive/10 text-destructive" },
 };
 
-// Mobile Card View
+const getKdStyle = (kd: string | null | undefined) =>
+  (kd && kdStyle[kd]) || kdStyle.MEDIUM;
+
 const KeywordCard: React.FC<{ kw: KeywordRecommend }> = ({ kw }) => {
-  const kdStyle = kw.kd ? getKdStyle(kw.kd) : null;
-  const isTopReport = kw.isTopReport;
+  const kd = kw.kd ? getKdStyle(kw.kd) : null;
+  const isTop = kw.isTopReport;
 
   return (
-    <Card
-      elevation={0}
-      sx={{
-        border: "1px solid #E2E8F0",
-        borderRadius: 3,
-        bgcolor: isTopReport ? alpha("#FEF3C7", 0.3) : "transparent",
-        transition: "all 0.2s ease",
-        "&:hover": {
-          boxShadow: `0 4px 12px ${alpha("#9592ff", 0.15)}`,
-          transform: "translateY(-2px)",
-        },
-      }}
+    <div
+      className={cn(
+        "rounded-2xl border border-border p-4 transition-all hover:-translate-y-0.5 hover:shadow-md",
+        isTop && "bg-warning/5",
+      )}
     >
-      <CardContent>
-        <Box sx={{ display: "flex", alignItems: "start", gap: 2, mb: 2 }}>
-          <Box
-            sx={{
-              width: 32,
-              height: 32,
-              borderRadius: 2,
-              bgcolor: isTopReport ? "#FEF3C7" : "#F3E8FF",
-              color: isTopReport ? "#F59E0B" : "#9333EA",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            {isTopReport ? (
-              <AutoAwesome sx={{ fontSize: 18 }} />
-            ) : (
-              <Lightbulb sx={{ fontSize: 18 }} />
-            )}
-          </Box>
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="body1" fontWeight={700} sx={{ mb: 0.5 }}>
-              {kw.keyword}
-            </Typography>
-            {isTopReport && (
-              <Chip
-                icon={<Star sx={{ fontSize: 12 }} />}
-                label="Top Pick"
-                size="small"
-                sx={{
-                  height: 20,
-                  fontSize: "0.7rem",
-                  bgcolor: "#FEF3C7",
-                  color: "#92400E",
-                  fontWeight: 700,
-                  border: "1.5px solid #F59E0B",
-                }}
-              />
-            )}
-          </Box>
-          {kdStyle && (
-            <Chip
-              label={kdStyle.label}
-              size="small"
-              sx={{
-                bgcolor: kdStyle.bgcolor,
-                color: kdStyle.color,
-                fontWeight: 600,
-                borderRadius: 2,
-                minWidth: 70,
-              }}
-            />
+      <div className="mb-3 flex items-start gap-3">
+        <div
+          className={cn(
+            "flex size-8 items-center justify-center rounded-lg",
+            isTop ? "bg-warning/15 text-warning" : "bg-info/15 text-info",
           )}
-        </Box>
-        {kw.note && (
-          <Box
-            sx={{
-              p: 1.5,
-              borderRadius: 2,
-              bgcolor: alpha("#9592ff", 0.05),
-              border: `1px solid ${alpha("#9592ff", 0.1)}`,
-            }}
-          >
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              fontSize="0.85rem"
-            >
-              {kw.note}
-            </Typography>
-          </Box>
+        >
+          {isTop ? <Sparkles className="size-4" /> : <Lightbulb className="size-4" />}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="mb-1 font-bold">{kw.keyword}</p>
+          {isTop && (
+            <Badge className="gap-1 border-warning bg-warning/15 text-warning">
+              <Star className="size-3" />
+              Top Pick
+            </Badge>
+          )}
+        </div>
+        {kd && (
+          <Badge className={cn("min-w-16 justify-center font-semibold", kd.className)}>
+            {kd.label}
+          </Badge>
         )}
-      </CardContent>
-    </Card>
+      </div>
+      {kw.note && (
+        <div className="rounded-lg border border-info/10 bg-info/5 p-3">
+          <p className="text-sm text-muted-foreground">{kw.note}</p>
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -158,179 +81,99 @@ export const RecommendKeywordTable: React.FC<RecommendKeywordTableProps> = ({
   keywords,
   title,
 }) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  if (keywords.length === 0) return null;
 
-  if (keywords.length === 0) {
-    return null;
-  }
+  const topCount = keywords.filter((k) => k.isTopReport).length;
 
-  // Mobile View: Card Layout
-  if (isMobile) {
-    return (
-      <Box>
-        {title && (
-          <Typography variant="h5" fontWeight={700} sx={{ mb: 3 }}>
-            {title}
-          </Typography>
-        )}
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+  return (
+    <>
+      {/* Mobile: card layout */}
+      <div className="md:hidden">
+        {title && <h3 className="mb-3 text-xl font-bold">{title}</h3>}
+        <div className="flex flex-col gap-3">
           {keywords.map((kw) => (
             <KeywordCard key={kw.id} kw={kw} />
           ))}
-        </Box>
-      </Box>
-    );
-  }
+        </div>
+      </div>
 
-  // Desktop View: Compact Mini-Table
-  return (
-    <TableContainer
-      component={Paper}
-      elevation={0}
-      sx={{
-        borderRadius: 3,
-        border: "1px solid #E2E8F0",
-        overflow: "hidden",
-        height: "fit-content",
-        maxHeight: 600,
-      }}
-    >
-      {title && (
-        <Box
-          sx={{
-            p: 2.5,
-            background: "linear-gradient(135deg, #31fb4c 0%, #1ce03b 100%)",
-            borderBottom: "1px solid rgba(255,255,255,0.1)",
-          }}
-        >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-            <Lightbulb sx={{ color: "#2f2f2f", fontSize: 24 }} />
-            <Typography variant="h6" fontWeight={700} color="#2f2f2f">
-              {title}
-            </Typography>
-          </Box>
-        </Box>
-      )}
-
-      <Table size="small" stickyHeader>
-        <TableHead>
-          <TableRow
-            sx={{
-              "& th": {
-                fontWeight: 700,
-                color: "#475569",
-                bgcolor: "#F8F9FA",
-                fontSize: "0.7rem",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                py: 1.5,
-                borderBottom: "2px solid #E2E8F0",
-              },
-            }}
-          >
-            <TableCell>Keyword</TableCell>
-            <TableCell align="center" width="80px">
-              KD
-            </TableCell>
-            <TableCell align="center" width="40px">
-              <Tooltip title="Strategic Note">
-                <InfoOutlined sx={{ fontSize: 16, color: "#94A3B8" }} />
-              </Tooltip>
-            </TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {keywords.map((kw) => {
-            const kdStyle = kw.kd ? getKdStyle(kw.kd) : null;
-            const isTopReport = kw.isTopReport;
-
-            return (
-              <TableRow
-                key={kw.id}
-                sx={{
-                  bgcolor: isTopReport ? alpha("#FEF3C7", 0.2) : "transparent",
-                  transition: "all 0.15s ease",
-                  "&:hover": {
-                    bgcolor: alpha("#9592ff", 0.08),
-                  },
-                }}
-              >
-                <TableCell>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Box
-                      sx={{
-                        width: 6,
-                        height: 6,
-                        borderRadius: "50%",
-                        bgcolor: isTopReport ? "#F59E0B" : "#9592ff",
-                        flexShrink: 0,
-                      }}
-                    />
-                    <Typography
-                      variant="body2"
-                      fontWeight={600}
-                      fontSize="0.85rem"
-                    >
-                      {kw.keyword}
-                    </Typography>
-                    {isTopReport && (
-                      <Star
-                        sx={{ fontSize: 14, color: "#F59E0B", ml: "auto" }}
+      {/* Desktop: compact table */}
+      <div className="hidden h-fit max-h-[600px] overflow-hidden rounded-2xl border border-border md:block">
+        {title && (
+          <div className="bg-gradient-to-br from-secondary to-secondary/80 p-4">
+            <div className="flex items-center gap-2">
+              <Lightbulb className="size-5 text-secondary-foreground" />
+              <h3 className="font-bold text-secondary-foreground">{title}</h3>
+            </div>
+          </div>
+        )}
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted">
+              <TableHead className="text-xs font-bold tracking-wider uppercase text-muted-foreground">
+                Keyword
+              </TableHead>
+              <TableHead className="w-20 text-center text-xs font-bold tracking-wider uppercase text-muted-foreground">
+                KD
+              </TableHead>
+              <TableHead className="w-12 text-center">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="mx-auto size-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>Strategic Note</TooltipContent>
+                </Tooltip>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {keywords.map((kw) => {
+              const kd = kw.kd ? getKdStyle(kw.kd) : null;
+              const isTop = kw.isTopReport;
+              return (
+                <TableRow key={kw.id} className={cn(isTop && "bg-warning/5")}>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={cn(
+                          "size-1.5 shrink-0 rounded-full",
+                          isTop ? "bg-warning" : "bg-info",
+                        )}
                       />
+                      <span className="text-sm font-semibold">{kw.keyword}</span>
+                      {isTop && (
+                        <Star className="ml-auto size-3.5 text-warning" />
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {kd && (
+                      <Badge className={cn("min-w-14 justify-center font-semibold", kd.className)}>
+                        {kd.label}
+                      </Badge>
                     )}
-                  </Box>
-                </TableCell>
-
-                <TableCell align="center">
-                  {kdStyle && (
-                    <Chip
-                      label={kdStyle.label}
-                      size="small"
-                      sx={{
-                        bgcolor: kdStyle.bgcolor,
-                        color: kdStyle.color,
-                        fontWeight: 600,
-                        fontSize: "0.7rem",
-                        height: 22,
-                        minWidth: 60,
-                      }}
-                    />
-                  )}
-                </TableCell>
-
-                <TableCell align="center">
-                  {kw.note && (
-                    <Tooltip title={kw.note} arrow placement="left">
-                      <InfoOutlined
-                        sx={{
-                          fontSize: 18,
-                          color: "#9592ff",
-                          cursor: "pointer",
-                        }}
-                      />
-                    </Tooltip>
-                  )}
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-
-      <Box
-        sx={{
-          p: 1.5,
-          bgcolor: alpha("#9592ff", 0.05),
-          borderTop: "1px solid #E2E8F0",
-          textAlign: "center",
-        }}
-      >
-        <Typography variant="caption" color="text.secondary" fontWeight={600}>
-          {keywords.length} recommendations •{" "}
-          {keywords.filter((k) => k.isTopReport).length} top priorities
-        </Typography>
-      </Box>
-    </TableContainer>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {kw.note && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="mx-auto size-4 cursor-pointer text-info" />
+                        </TooltipTrigger>
+                        <TooltipContent side="left">{kw.note}</TooltipContent>
+                      </Tooltip>
+                    )}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+        <div className="border-t border-border bg-info/5 p-2 text-center">
+          <p className="text-xs font-semibold text-muted-foreground">
+            {keywords.length} recommendations • {topCount} top priorities
+          </p>
+        </div>
+      </div>
+    </>
   );
 };

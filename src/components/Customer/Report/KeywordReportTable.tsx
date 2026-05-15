@@ -1,25 +1,22 @@
-// src/components/Customer/Report/KeywordReportTable.tsx
 "use client";
 
 import React from "react";
+import { Trophy, Medal, Award, Search, Flame } from "lucide-react";
 import {
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableHead,
+  TableHeader,
   TableRow,
-  Paper,
-  Typography,
-  Chip,
-  Box,
-  Avatar,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import {
   Tooltip,
-  Stack,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material";
-import { EmojiEvents, Search, LocalFireDepartment } from "@mui/icons-material";
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 import { KeywordReport } from "@/types/metrics";
 import { useHistoryContext } from "./contexts/HistoryContext";
 import { calculateTrafficChange } from "./lib/historyCalculations";
@@ -30,166 +27,92 @@ interface KeywordReportTableProps {
   title?: string;
 }
 
-// Helper: Get position badge styling (gold/silver/bronze for rank 1-3)
+const positionBadgeConfig = [
+  { Icon: Trophy, opacity: "" },
+  { Icon: Medal, opacity: "/70" },
+  { Icon: Award, opacity: "/50" },
+] as const;
+
 const getPositionBadge = (position: number | null, rank: number) => {
-  if (!position) return null;
-  if (rank === 0 && position <= 3) {
-    return {
-      icon: <EmojiEvents sx={{ fontSize: 18 }} />,
-      color:
-        position === 1 ? "#FFD700" : position === 2 ? "#C0C0C0" : "#CD7F32",
-      label: `#${position}`,
-    };
+  if (!position || rank > 2 || position > 3) return null;
+  return positionBadgeConfig[rank];
+};
+
+const kdConfig: Record<string, { label: string; className: string }> = {
+  EASY: { label: "Easy", className: "bg-success/10 text-success" },
+  MEDIUM: { label: "Medium", className: "bg-warning/10 text-warning" },
+  HARD: { label: "Hard", className: "bg-destructive/10 text-destructive" },
+};
+
+const getKdConfig = (kd: string) => kdConfig[kd] || kdConfig.MEDIUM;
+
+const PositionBadge: React.FC<{
+  position: number | null;
+  rank: number;
+}> = ({ position, rank }) => {
+  const config = getPositionBadge(position, rank);
+  if (!config) {
+    return (
+      <span className="rounded-md bg-muted px-2 py-0.5 text-sm font-semibold text-muted-foreground">
+        {position || "-"}
+      </span>
+    );
   }
-  return null;
+  const { Icon, opacity } = config;
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-md border-2 px-2 py-0.5 font-bold",
+        `border-warning${opacity} bg-warning${opacity}/20 text-warning`,
+      )}
+    >
+      <Icon className="size-4" />#{position}
+    </span>
+  );
 };
 
-const getKdStyle = (kd: string) => {
-  const styles = {
-    EASY: { bgcolor: "#E8F5E9", color: "#2E7D32", label: "Easy" },
-    MEDIUM: { bgcolor: "#FFF3E0", color: "#E65100", label: "Medium" },
-    HARD: { bgcolor: "#FFEBEE", color: "#C62828", label: "Hard" },
-  };
-  return styles[kd as keyof typeof styles] || styles.MEDIUM;
-};
+const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
+  <div className="relative overflow-hidden bg-gradient-to-br from-info to-info/70 p-4 md:p-5">
+    <div className="absolute -top-12 -right-12 hidden size-48 rounded-full bg-white/10 md:block" />
+    <div className="relative flex items-center gap-3">
+      <Flame className="size-7 text-info-foreground" />
+      <h3 className="text-lg font-bold text-info-foreground md:text-2xl">
+        {title}
+      </h3>
+    </div>
+  </div>
+);
 
-interface KeywordCardProps {
+const KeywordCard: React.FC<{
   kw: KeywordReport;
   index: number;
   trafficChangeData: ReturnType<typeof calculateTrafficChange>;
-}
-
-const KeywordCard: React.FC<KeywordCardProps> = ({
-  kw,
-  index,
-  trafficChangeData,
-}) => {
-  const positionBadge = getPositionBadge(kw.position, index);
-  const kdStyle = getKdStyle(kw.kd);
+}> = ({ kw, index, trafficChangeData }) => {
+  const kd = getKdConfig(kw.kd);
 
   return (
-    <Paper
-      elevation={0}
-      sx={{
-        p: 2,
-        borderRadius: 3,
-        border: "1px solid #E2E8F0",
-        transition: "border-color 0.25s ease",
-        "&:active": { borderColor: "#9592ff" },
-      }}
-    >
-      <Stack spacing={1.5}>
-        {/* Rank + Keyword */}
-        <Stack direction="row" spacing={1.5} alignItems="flex-start">
-          <Avatar
-            sx={{
-              width: 32,
-              height: 32,
-              bgcolor: "#EEEDFF",
-              color: "#9592ff",
-              fontSize: "0.85rem",
-              fontWeight: 700,
-            }}
-          >
-            {index + 1}
-          </Avatar>
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography
-              fontWeight={600}
-              sx={{
-                mb: 0.5,
-                wordBreak: "break-word",
-                overflowWrap: "anywhere",
-                lineHeight: 1.4,
-              }}
-            >
-              {kw.keyword}
-            </Typography>
-            {kw.isTopReport && (
-              <Chip
-                label="Top Report"
-                size="small"
-                sx={{
-                  height: 20,
-                  fontSize: "0.7rem",
-                  bgcolor: "#FEF3C7",
-                  color: "#92400E",
-                  fontWeight: 600,
-                }}
-              />
-            )}
-          </Box>
-        </Stack>
-
-        {/* Metrics row */}
-        <Stack
-          direction="row"
-          spacing={1.5}
-          alignItems="center"
-          flexWrap="wrap"
-          useFlexGap
-        >
-          {positionBadge ? (
-            <Box
-              sx={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 0.5,
-                px: 1.25,
-                py: 0.25,
-                borderRadius: 2,
-                bgcolor: `${positionBadge.color}20`,
-                border: `2px solid ${positionBadge.color}`,
-              }}
-            >
-              <Box sx={{ color: positionBadge.color, display: "flex" }}>
-                {positionBadge.icon}
-              </Box>
-              <Typography
-                fontWeight={700}
-                sx={{ color: positionBadge.color, fontSize: "0.85rem" }}
-              >
-                {positionBadge.label}
-              </Typography>
-            </Box>
-          ) : (
-            <Box
-              sx={{
-                px: 1.25,
-                py: 0.25,
-                borderRadius: 2,
-                bgcolor: "#F1F5F9",
-              }}
-            >
-              <Typography
-                fontWeight={600}
-                color="text.secondary"
-                sx={{ fontSize: "0.85rem" }}
-              >
-                Pos: {kw.position || "-"}
-              </Typography>
-            </Box>
+    <div className="rounded-2xl border border-border bg-background p-4 transition-colors active:border-info">
+      <div className="mb-3 flex items-start gap-3">
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent/40 text-sm font-bold text-info">
+          {index + 1}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="mb-1 font-semibold break-words">{kw.keyword}</p>
+          {kw.isTopReport && (
+            <Badge className="bg-warning/15 text-warning">Top Report</Badge>
           )}
+        </div>
+      </div>
 
-          <Chip
-            label={kdStyle.label}
-            size="small"
-            sx={{
-              bgcolor: kdStyle.bgcolor,
-              color: kdStyle.color,
-              fontWeight: 600,
-              borderRadius: 2,
-              minWidth: 60,
-            }}
-          />
-        </Stack>
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <PositionBadge position={kw.position} rank={index} />
+        <Badge className={cn("min-w-14 justify-center font-semibold", kd.className)}>
+          {kd.label}
+        </Badge>
+      </div>
 
-        {/* Traffic bar — full width on mobile */}
-        <Box sx={{ width: "100%" }}>
-          <TrafficProgressBar changeData={trafficChangeData} />
-        </Box>
-      </Stack>
-    </Paper>
+      <TrafficProgressBar changeData={trafficChangeData} />
+    </div>
   );
 };
 
@@ -197,41 +120,20 @@ export const KeywordReportTable: React.FC<KeywordReportTableProps> = ({
   keywords,
   title,
 }) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { keywordHistory } = useHistoryContext();
 
-  if (keywords.length === 0) {
-    return null;
-  }
+  if (keywords.length === 0) return null;
 
-  // Mobile: card list
-  if (isMobile) {
-    return (
-      <Box>
+  return (
+    <>
+      {/* Mobile: card list */}
+      <div className="md:hidden">
         {title && (
-          <Box
-            sx={{
-              p: 2,
-              mb: 2,
-              borderRadius: 3,
-              background: "linear-gradient(135deg, #9592ff 0%, #6c68e8 100%)",
-              display: "flex",
-              alignItems: "center",
-              gap: 1.5,
-            }}
-          >
-            <LocalFireDepartment sx={{ color: "#fff", fontSize: 24 }} />
-            <Typography
-              variant="h6"
-              fontWeight={700}
-              sx={{ color: "#fff", fontSize: "1.05rem" }}
-            >
-              {title}
-            </Typography>
-          </Box>
+          <div className="mb-3 overflow-hidden rounded-2xl">
+            <SectionHeader title={title} />
+          </div>
         )}
-        <Stack spacing={1.5}>
+        <div className="flex flex-col gap-3">
           {keywords.map((kw, index) => {
             const trafficChangeData = calculateTrafficChange(
               kw.traffic,
@@ -247,221 +149,111 @@ export const KeywordReportTable: React.FC<KeywordReportTableProps> = ({
               />
             );
           })}
-        </Stack>
-      </Box>
-    );
-  }
+        </div>
+      </div>
 
-  // Desktop: table
-  return (
-    <TableContainer
-      component={Paper}
-      elevation={0}
-      sx={{
-        borderRadius: 4,
-        border: "1px solid #E2E8F0",
-        overflow: "hidden",
-        background: "linear-gradient(to bottom, #FFFFFF, #F8F9FA)",
-      }}
-    >
-      {title && (
-        <Box
-          sx={{
-            p: { xs: 2, md: 3 },
-            background: "linear-gradient(135deg, #9592ff 0%, #6c68e8 100%)",
-            position: "relative",
-            overflow: "hidden",
-          }}
-        >
-          <Box
-            sx={{
-              position: "absolute",
-              top: -50,
-              right: -50,
-              width: 200,
-              height: 200,
-              borderRadius: "50%",
-              background: "rgba(255,255,255,0.1)",
-              display: { xs: "none", md: "block" },
-            }}
-          />
-          <Box
-            sx={{ display: "flex", alignItems: "center", gap: 2, position: "relative" }}
-          >
-            <LocalFireDepartment sx={{ color: "#fff", fontSize: 32 }} />
-            <Typography
-              variant="h5"
-              fontWeight={700}
-              sx={{
-                background: "linear-gradient(to right, #fff, #e0e7ff)",
-                backgroundClip: "text",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                fontSize: { xs: "1.125rem", md: "1.5rem" },
-              }}
-            >
-              {title}
-            </Typography>
-          </Box>
-        </Box>
-      )}
+      {/* Desktop: table */}
+      <div className="hidden overflow-hidden rounded-2xl border border-border bg-gradient-to-b from-background to-card md:block">
+        {title && <SectionHeader title={title} />}
 
-      <Table>
-        <TableHead>
-          <TableRow
-            sx={{
-              bgcolor: "#F8F9FA",
-              "& th": {
-                fontWeight: 700,
-                color: "#475569",
-                textTransform: "uppercase",
-                fontSize: "0.75rem",
-                letterSpacing: "0.05em",
-                py: 2,
-              },
-            }}
-          >
-            <TableCell sx={{ width: "8%" }}>#</TableCell>
-            <TableCell>Keywords</TableCell>
-            <TableCell align="center" sx={{ width: "15%" }}>
-              Position
-            </TableCell>
-            <TableCell sx={{ width: "30%" }}>Traffic</TableCell>
-            <TableCell align="center" sx={{ width: "12%" }}>
-              KD
-            </TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {keywords.map((kw, index) => {
-            const positionBadge = getPositionBadge(kw.position, index);
-            const kdStyle = getKdStyle(kw.kd);
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted">
+              <TableHead className="w-12 text-xs font-bold tracking-wider uppercase text-muted-foreground">
+                #
+              </TableHead>
+              <TableHead className="text-xs font-bold tracking-wider uppercase text-muted-foreground">
+                Keywords
+              </TableHead>
+              <TableHead className="w-32 text-center text-xs font-bold tracking-wider uppercase text-muted-foreground">
+                Position
+              </TableHead>
+              <TableHead className="w-72 text-xs font-bold tracking-wider uppercase text-muted-foreground">
+                Traffic
+              </TableHead>
+              <TableHead className="w-24 text-center text-xs font-bold tracking-wider uppercase text-muted-foreground">
+                KD
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {keywords.map((kw, index) => {
+              const kd = getKdConfig(kw.kd);
+              const trafficChangeData = calculateTrafficChange(
+                kw.traffic,
+                keywordHistory,
+                kw.id,
+              );
+              const positionBadge = getPositionBadge(kw.position, index);
 
-            const trafficChangeData = calculateTrafficChange(
-              kw.traffic,
-              keywordHistory,
-              kw.id,
-            );
+              return (
+                <TableRow
+                  key={kw.id}
+                  className="cursor-pointer transition-all hover:bg-muted/50 hover:shadow-[inset_4px_0_0_var(--info)]"
+                >
+                  <TableCell>
+                    <span className="text-sm font-semibold text-muted-foreground">
+                      {index + 1}
+                    </span>
+                  </TableCell>
 
-            return (
-              <TableRow
-                key={kw.id}
-                sx={{
-                  transition: "all 0.2s ease-in-out",
-                  "&:hover": {
-                    bgcolor: "#F1F5F9",
-                    transform: "translateX(4px)",
-                    boxShadow: "inset 4px 0 0 #9592ff",
-                  },
-                  "&:active": { opacity: 0.85 },
-                  cursor: "pointer",
-                }}
-              >
-                <TableCell>
-                  <Typography
-                    variant="body2"
-                    fontWeight={600}
-                    color="text.secondary"
-                  >
-                    {index + 1}
-                  </Typography>
-                </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent/40 text-info">
+                        <Search className="size-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="mb-1 font-semibold break-words">
+                          {kw.keyword}
+                        </p>
+                        {kw.isTopReport && (
+                          <Badge className="bg-warning/15 text-warning">
+                            Top Report
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </TableCell>
 
-                <TableCell>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                    <Avatar
-                      sx={{
-                        width: 36,
-                        height: 36,
-                        bgcolor: "#EEEDFF",
-                        color: "#9592ff",
-                      }}
-                    >
-                      <Search sx={{ fontSize: 18 }} />
-                    </Avatar>
-                    <Box sx={{ minWidth: 0, flex: 1 }}>
-                      <Typography
-                        fontWeight={600}
-                        sx={{
-                          mb: 0.5,
-                          wordBreak: "break-word",
-                          overflowWrap: "anywhere",
-                        }}
-                      >
-                        {kw.keyword}
-                      </Typography>
-                      {kw.isTopReport && (
-                        <Chip
-                          label="Top Report"
-                          size="small"
-                          sx={{
-                            height: 20,
-                            fontSize: "0.7rem",
-                            bgcolor: "#FEF3C7",
-                            color: "#92400E",
-                            fontWeight: 600,
-                          }}
-                        />
+                  <TableCell className="text-center">
+                    {positionBadge ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span>
+                            <PositionBadge position={kw.position} rank={index} />
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Top {kw.position} Position!
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <span className="font-semibold text-muted-foreground">
+                        {kw.position || "-"}
+                      </span>
+                    )}
+                  </TableCell>
+
+                  <TableCell>
+                    <TrafficProgressBar changeData={trafficChangeData} />
+                  </TableCell>
+
+                  <TableCell className="text-center">
+                    <Badge
+                      className={cn(
+                        "min-w-16 justify-center font-semibold",
+                        kd.className,
                       )}
-                    </Box>
-                  </Box>
-                </TableCell>
-
-                <TableCell align="center">
-                  {positionBadge ? (
-                    <Tooltip title={`Top ${kw.position} Position!`}>
-                      <Box
-                        sx={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 0.5,
-                          px: 1.5,
-                          py: 0.5,
-                          borderRadius: 2,
-                          bgcolor: `${positionBadge.color}20`,
-                          border: `2px solid ${positionBadge.color}`,
-                        }}
-                      >
-                        <Box sx={{ color: positionBadge.color }}>
-                          {positionBadge.icon}
-                        </Box>
-                        <Typography
-                          fontWeight={700}
-                          sx={{ color: positionBadge.color }}
-                        >
-                          {positionBadge.label}
-                        </Typography>
-                      </Box>
-                    </Tooltip>
-                  ) : (
-                    <Typography fontWeight={600} color="text.secondary">
-                      {kw.position || "-"}
-                    </Typography>
-                  )}
-                </TableCell>
-
-                <TableCell>
-                  <TrafficProgressBar changeData={trafficChangeData} />
-                </TableCell>
-
-                <TableCell align="center">
-                  <Chip
-                    label={kdStyle.label}
-                    size="small"
-                    sx={{
-                      bgcolor: kdStyle.bgcolor,
-                      color: kdStyle.color,
-                      fontWeight: 600,
-                      borderRadius: 2,
-                      minWidth: 70,
-                    }}
-                  />
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </TableContainer>
+                    >
+                      {kd.label}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   );
 };

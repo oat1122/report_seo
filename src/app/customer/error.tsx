@@ -1,16 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
-import {
-  Box,
-  Button,
-  Container,
-  Paper,
-  Stack,
-  Typography,
-} from "@mui/material";
-import RefreshIcon from "@mui/icons-material/Refresh";
-import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+import { CircleAlert, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function CustomerError({
   error,
@@ -24,59 +17,27 @@ export default function CustomerError({
   }, [error]);
 
   return (
-    <Container maxWidth="sm" sx={{ py: 8 }}>
-      <Paper
-        elevation={0}
-        sx={{
-          p: { xs: 4, md: 6 },
-          borderRadius: 4,
-          border: "2px solid",
-          borderColor: "divider",
-          textAlign: "center",
-          bgcolor: "background.paper",
-        }}
-      >
-        <Stack spacing={3} alignItems="center">
-          <Box
-            sx={{
-              width: 72,
-              height: 72,
-              borderRadius: "50%",
-              bgcolor: "#d32f2f1A",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <ErrorOutlineIcon sx={{ fontSize: 40, color: "error.main" }} />
-          </Box>
-          <Stack spacing={1}>
-            <Typography variant="h4" sx={{ fontWeight: 700 }}>
-              เกิดข้อผิดพลาด
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              ขออภัย ระบบไม่สามารถโหลดหน้านี้ได้ในขณะนี้
-            </Typography>
-            {error.digest && (
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ fontFamily: "monospace", opacity: 0.7 }}
-              >
-                ref: {error.digest}
-              </Typography>
-            )}
-          </Stack>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<RefreshIcon />}
-            onClick={reset}
-          >
+    <div className="mx-auto w-full max-w-md px-4 py-16">
+      <Card className="rounded-2xl border-2">
+        <CardContent className="p-6 text-center md:p-10">
+          <div className="mx-auto mb-4 flex size-18 items-center justify-center rounded-full bg-destructive/10">
+            <CircleAlert className="size-10 text-destructive" />
+          </div>
+          <h2 className="mb-2 text-2xl font-bold">เกิดข้อผิดพลาด</h2>
+          <p className="mb-1 text-base text-muted-foreground">
+            ขออภัย ระบบไม่สามารถโหลดหน้านี้ได้ในขณะนี้
+          </p>
+          {error.digest && (
+            <p className="mb-4 font-mono text-xs text-muted-foreground/70">
+              ref: {error.digest}
+            </p>
+          )}
+          <Button onClick={reset} className="mt-4">
+            <RefreshCw className="size-4" />
             ลองใหม่อีกครั้ง
           </Button>
-        </Stack>
-      </Paper>
-    </Container>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

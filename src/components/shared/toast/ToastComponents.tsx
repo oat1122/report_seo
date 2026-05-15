@@ -1,9 +1,5 @@
-// src/components/shared/toast/ToastComponents.tsx
-import React from "react";
-import { Box, CircularProgress, Typography } from "@mui/material";
-import { CheckCircle, Error } from "@mui/icons-material";
+import { CheckCircle2, CircleAlert, Loader2 } from "lucide-react";
 
-// Base component for toast content
 const ToastContent = ({
   icon,
   message,
@@ -11,26 +7,29 @@ const ToastContent = ({
   icon: React.ReactNode;
   message: string;
 }) => (
-  <Box sx={{ display: "flex", alignItems: "center" }}>
+  <div className="flex items-center gap-3">
     {icon}
-    <Typography variant="body2" sx={{ ml: 1.5 }}>
-      {message}
-    </Typography>
-  </Box>
+    <p className="text-sm">{message}</p>
+  </div>
 );
 
-// Specific toast components for different states
 export const PendingToast = ({ message }: { message: string }) => (
   <ToastContent
-    icon={<CircularProgress size={20} color="inherit" />}
+    icon={<Loader2 className="size-5 animate-spin" />}
     message={message}
   />
 );
 
 export const SuccessToast = ({ message }: { message: string }) => (
-  <ToastContent icon={<CheckCircle />} message={message} />
+  <ToastContent
+    icon={<CheckCircle2 className="size-5 text-success" />}
+    message={message}
+  />
 );
 
 export const ErrorToast = ({ message }: { message: string }) => (
-  <ToastContent icon={<Error />} message={message} />
+  <ToastContent
+    icon={<CircleAlert className="size-5 text-destructive" />}
+    message={message}
+  />
 );

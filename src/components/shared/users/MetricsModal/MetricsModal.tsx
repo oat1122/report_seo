@@ -3,40 +3,36 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import {
+  Save,
+  Clock,
+  Sparkles,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  BarChart3,
+  Lightbulb,
+  TrendingUp,
+  Globe,
+  Wand2,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
   Dialog,
   DialogContent,
-  DialogActions,
+  DialogDescription,
+  DialogHeader,
   DialogTitle,
-  Box,
-  Typography,
-  TextField,
-  Button,
-  Paper,
-  IconButton,
-  Stack,
-  Tooltip,
-  Step,
-  StepLabel,
-  Stepper,
-  CircularProgress,
-  Alert,
-  Skeleton,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material";
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Field } from "@/components/ui/field";
 import {
-  Save,
-  Close,
-  AssessmentOutlined,
-  RecommendOutlined,
-  AccessTime,
-  AutoAwesomeOutlined,
-  ArrowBackIosNew,
-  ArrowForwardIos,
-  Language,
-  InsightsOutlined,
-  PublicOutlined,
-} from "@mui/icons-material";
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 import { User } from "@/types/user";
 import {
   OverallMetricsForm,
@@ -51,18 +47,18 @@ import { RecommendKeywordSection } from "./RecommendKeywordSection";
 import { useMetricsModal } from "@/hooks/ui/useMetricsModal";
 import type { AiOverviewSectionHandle } from "./AiOverviewSection";
 import { ConfirmAlert } from "@/components/shared/ConfirmAlert";
+import { StepperNav } from "./StepperNav";
 
-// Dynamic import — AiOverviewSection เป็น heaviest child (image upload + previews)
-// โหลดเมื่อเข้า step 2 เท่านั้น ลด initial bundle ของ Modal
+// Lazy load — AiOverviewSection has heaviest content (image upload + previews)
 const AiOverviewSection = dynamic(
   () => import("./AiOverviewSection").then((m) => m.AiOverviewSection),
   {
     ssr: false,
     loading: () => (
-      <Stack spacing={2}>
-        <Skeleton variant="rounded" height={180} sx={{ borderRadius: 3 }} />
-        <Skeleton variant="rounded" height={140} sx={{ borderRadius: 3 }} />
-      </Stack>
+      <div className="space-y-3">
+        <Skeleton className="h-44 w-full rounded-2xl" />
+        <Skeleton className="h-32 w-full rounded-2xl" />
+      </div>
     ),
   },
 );
@@ -109,16 +105,15 @@ interface MetricFieldConfig {
   helperText: string;
   min?: number;
   max?: number;
-  /** step ของ <input type="number"> — undefined = 1 (integer), "0.1" หรือ "any" = ทศนิยม */
   step?: string | number;
 }
 
 interface MetricSectionConfig {
   title: string;
   description: string;
-  icon: React.ReactNode;
+  Icon: typeof BarChart3;
   fields: MetricFieldConfig[];
-  columns?: { xs: string; sm: string; md: string };
+  cols: string;
 }
 
 const normalizeMetricsForSave = (
@@ -135,7 +130,7 @@ const metricSections: MetricSectionConfig[] = [
   {
     title: "Authority",
     description: "ค่าความน่าเชื่อถือและคุณภาพของโดเมน",
-    icon: <InsightsOutlined color="info" />,
+    Icon: Wand2,
     fields: [
       {
         key: "domainRating",
@@ -156,22 +151,18 @@ const metricSections: MetricSectionConfig[] = [
         key: "spamScore",
         label: "Spam Score",
         placeholder: "0-100",
-        helperText: "คะแนนความเสี่ยง (ใส่ทศนิยมได้ เช่น 0.1)",
+        helperText: "คะแนนความเสี่ยง (ใส่ทศนิยมได้)",
         min: 0,
         max: 100,
         step: 0.1,
       },
     ],
-    columns: {
-      xs: "repeat(1, 1fr)",
-      sm: "repeat(2, 1fr)",
-      md: "repeat(3, 1fr)",
-    },
+    cols: "grid-cols-1 sm:grid-cols-2 md:grid-cols-3",
   },
   {
     title: "Visibility",
     description: "ตัวเลขที่แสดงการมองเห็นของโดเมน",
-    icon: <PublicOutlined color="info" />,
+    Icon: TrendingUp,
     fields: [
       {
         key: "organicTraffic",
@@ -202,16 +193,12 @@ const metricSections: MetricSectionConfig[] = [
         min: 0,
       },
     ],
-    columns: {
-      xs: "repeat(1, 1fr)",
-      sm: "repeat(2, 1fr)",
-      md: "repeat(2, 1fr)",
-    },
+    cols: "grid-cols-1 sm:grid-cols-2",
   },
   {
     title: "Domain Age",
     description: "อายุโดเมนเป็นปีและเดือน (เดือน 0-11)",
-    icon: <Language color="info" />,
+    Icon: Globe,
     fields: [
       {
         key: "ageInYears",
@@ -229,13 +216,27 @@ const metricSections: MetricSectionConfig[] = [
         max: 11,
       },
     ],
-    columns: {
-      xs: "repeat(1, 1fr)",
-      sm: "repeat(2, 1fr)",
-      md: "repeat(2, 1fr)",
-    },
+    cols: "grid-cols-1 sm:grid-cols-2",
   },
 ];
+
+const StepHeader = ({
+  Icon,
+  title,
+  description,
+}: {
+  Icon: typeof BarChart3;
+  title: string;
+  description: string;
+}) => (
+  <div className="flex items-center gap-3 rounded-2xl border border-border p-4">
+    <Icon className="size-5 text-info" />
+    <div>
+      <h3 className="font-bold">{title}</h3>
+      <p className="text-sm text-muted-foreground">{description}</p>
+    </div>
+  </div>
+);
 
 export const MetricsModal: React.FC<MetricsModalProps> = ({
   open,
@@ -259,9 +260,6 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
   onUpdateAiOverview,
   onDeleteAiOverview,
 }) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-
   const [activeStep, setActiveStep] = useState<MetricsStep>(0);
   const [aiOverviewDraftState, setAiOverviewDraftState] = useState({
     canSubmit: false,
@@ -303,22 +301,10 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
 
   const metricSummary = useMemo(
     () => [
-      {
-        label: "DR",
-        value: metrics.domainRating === "" ? "-" : metrics.domainRating,
-      },
-      {
-        label: "Health",
-        value: metrics.healthScore === "" ? "-" : metrics.healthScore,
-      },
-      {
-        label: "Traffic",
-        value: metrics.organicTraffic === "" ? "-" : metrics.organicTraffic,
-      },
-      {
-        label: "Ref Domains",
-        value: metrics.refDomains === "" ? "-" : metrics.refDomains,
-      },
+      { label: "DR", value: metrics.domainRating === "" ? "-" : metrics.domainRating },
+      { label: "Health", value: metrics.healthScore === "" ? "-" : metrics.healthScore },
+      { label: "Traffic", value: metrics.organicTraffic === "" ? "-" : metrics.organicTraffic },
+      { label: "Ref Domains", value: metrics.refDomains === "" ? "-" : metrics.refDomains },
     ],
     [metrics],
   );
@@ -357,22 +343,14 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
     }
   };
 
-  const handleNextStep = () => {
-    setActiveStep((prev) => Math.min(prev + 1, 2) as MetricsStep);
-    setShowStepError(false);
-  };
-
-  const handlePrevStep = () => {
-    setActiveStep((prev) => Math.max(prev - 1, 0) as MetricsStep);
-    setShowStepError(false);
-  };
-
   const handleStepChange = (step: number) => {
     setActiveStep(step as MetricsStep);
     setShowStepError(false);
   };
 
-  // กัน data loss: ถ้า dirty แล้วจะปิด → confirm ก่อน
+  const handleNextStep = () => handleStepChange(Math.min(activeStep + 1, 2));
+  const handlePrevStep = () => handleStepChange(Math.max(activeStep - 1, 0));
+
   const handleRequestClose = () => {
     if (isDirty || aiOverviewDraftState.canSubmit) {
       setShowCloseConfirm(true);
@@ -390,394 +368,238 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
 
   return (
     <>
-      <Dialog
-        open={open}
-        onClose={handleRequestClose}
-        maxWidth="md"
-        fullWidth
-        fullScreen={isMobile}
-        keepMounted={false}
-        PaperProps={{
-          sx: {
-            borderRadius: { xs: 0, sm: 3 },
-            boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-            display: "flex",
-            flexDirection: "column",
-            maxHeight: { xs: "100vh", sm: "92vh" },
-          },
-        }}
-      >
-        <DialogTitle
-          component="div"
-          sx={{
-            px: { xs: 2, sm: 3 },
-            py: 2.5,
-            borderBottom: 1,
-            borderColor: "divider",
-          }}
-        >
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            justifyContent="space-between"
-            alignItems={{ xs: "flex-start", sm: "center" }}
-            spacing={2}
-          >
-            <Box sx={{ minWidth: 0, flex: 1 }}>
-              <Typography
-                variant="h5"
-                fontWeight={700}
-                sx={{ fontSize: { xs: "1.125rem", md: "1.5rem" } }}
-              >
-                จัดการข้อมูล Domain
-              </Typography>
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ mt: 0.5 }}
-              >
-                ลูกค้า:{" "}
-                <Box component="span" sx={{ fontWeight: 700 }}>
-                  {customer.name}
-                </Box>
-              </Typography>
-            </Box>
-            <Stack direction="row" spacing={0.5} alignItems="center">
-              <Tooltip title="ดูประวัติการเปลี่ยนแปลง">
-                <IconButton
-                  onClick={onOpenHistory}
-                  aria-label="ดูประวัติการเปลี่ยนแปลง"
-                >
-                  <AccessTime />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="ปิด">
-                <IconButton onClick={handleRequestClose} aria-label="ปิด">
-                  <Close />
-                </IconButton>
-              </Tooltip>
-            </Stack>
-          </Stack>
-
-          <Stepper
-            activeStep={activeStep}
-            alternativeLabel={!isMobile}
-            sx={{ mt: { xs: 2, sm: 3 } }}
-          >
-            {stepLabels.map((label, index) => (
-              <Step key={label}>
-                <StepLabel
-                  onClick={() => handleStepChange(index)}
-                  sx={{
-                    cursor: "pointer",
-                    "& .MuiStepLabel-label": { cursor: "pointer" },
-                    "& .MuiStepLabel-iconContainer": { cursor: "pointer" },
-                  }}
-                >
-                  {label}
-                </StepLabel>
-              </Step>
-            ))}
-          </Stepper>
-        </DialogTitle>
-
-        <DialogContent
-          sx={{
-            px: { xs: 2, sm: 3 },
-            py: { xs: 2, sm: 3 },
-          }}
-        >
-          {showStepError && !isMetricsValid && activeStep === 0 && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              ข้อมูลไม่ครบหรือไม่ถูกต้อง — โปรดตรวจสอบฟิลด์ที่มีข้อความแดง
-            </Alert>
-          )}
-
-          {/* Step 0 — Domain Metrics */}
-          {activeStep === 0 && (
-            <Stack spacing={3}>
-              <Paper
-                variant="outlined"
-                sx={{
-                  p: { xs: 2, sm: 2.5 },
-                  borderRadius: 3,
-                }}
-              >
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  spacing={1.5}
-                  mb={2}
-                >
-                  <AssessmentOutlined color="info" />
-                  <Typography variant="h6" fontWeight={700}>
-                    ภาพรวม
-                  </Typography>
-                </Stack>
-                <Box
-                  sx={{
-                    display: "grid",
-                    gap: 1.5,
-                    gridTemplateColumns: {
-                      xs: "repeat(2, 1fr)",
-                      md: "repeat(4, 1fr)",
-                    },
-                  }}
-                >
-                  {metricSummary.map((item) => (
-                    <Box
-                      key={item.label}
-                      sx={{
-                        p: 1.5,
-                        borderRadius: 2,
-                        bgcolor: "grey.50",
-                        border: "1px solid",
-                        borderColor: "divider",
-                      }}
-                    >
-                      <Typography variant="caption" color="text.secondary">
-                        {item.label}
-                      </Typography>
-                      <Typography
-                        variant="h6"
-                        fontWeight={700}
-                        sx={{
-                          mt: 0.25,
-                          fontSize: { xs: "1rem", md: "1.25rem" },
-                        }}
-                      >
-                        {item.value}
-                      </Typography>
-                    </Box>
-                  ))}
-                </Box>
-              </Paper>
-
-              {/* รวม 3 sections เป็น Paper เดียว ลด nesting */}
-              <Paper
-                variant="outlined"
-                sx={{ borderRadius: 3, overflow: "hidden" }}
-              >
-                {metricSections.map((section, idx) => (
-                  <Box
-                    key={section.title}
-                    sx={{
-                      p: { xs: 2, sm: 3 },
-                      borderTop: idx > 0 ? 1 : 0,
-                      borderColor: "divider",
-                    }}
+      <Dialog open={open} onOpenChange={(o) => !o && handleRequestClose()}>
+        <DialogContent className="max-h-[92vh] max-w-5xl overflow-y-auto sm:max-w-[min(92vw,1100px)]">
+          <DialogHeader>
+            <div className="flex items-start justify-between gap-3 pr-10">
+              <div className="min-w-0 flex-1">
+                <DialogTitle className="text-lg md:text-2xl">
+                  จัดการข้อมูล Domain
+                </DialogTitle>
+                <DialogDescription>
+                  ลูกค้า:{" "}
+                  <span className="font-bold text-foreground">
+                    {customer.name}
+                  </span>
+                </DialogDescription>
+              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="icon-sm"
+                    variant="ghost"
+                    aria-label="ดูประวัติการเปลี่ยนแปลง"
+                    onClick={onOpenHistory}
                   >
-                    <Stack
-                      direction="row"
-                      spacing={1.5}
-                      alignItems="flex-start"
-                      mb={2}
-                    >
-                      {section.icon}
-                      <Box>
-                        <Typography variant="h6" fontWeight={700}>
-                          {section.title}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {section.description}
-                        </Typography>
-                      </Box>
-                    </Stack>
+                    <Clock className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>ดูประวัติการเปลี่ยนแปลง</TooltipContent>
+              </Tooltip>
+            </div>
 
-                    <Box
-                      sx={{
-                        display: "grid",
-                        gap: 2,
-                        gridTemplateColumns: {
-                          xs: section.columns?.xs ?? "repeat(1, 1fr)",
-                          sm: section.columns?.sm ?? "repeat(2, 1fr)",
-                          md: section.columns?.md ?? "repeat(3, 1fr)",
-                        },
-                      }}
-                    >
-                      {section.fields.map((field) => (
-                        <TextField
-                          key={field.key}
-                          name={field.key}
-                          label={field.label}
-                          placeholder={field.placeholder}
-                          type="number"
-                          value={metrics[field.key]}
-                          onChange={handleMetricsChange}
-                          fullWidth
-                          size="small"
-                          inputProps={{
-                            min: field.min,
-                            max: field.max,
-                            step: field.step,
-                          }}
-                          error={Boolean(validationErrors[field.key])}
-                          helperText={
-                            validationErrors[field.key] || field.helperText
-                          }
-                        />
-                      ))}
-                    </Box>
-                  </Box>
-                ))}
-              </Paper>
-            </Stack>
-          )}
+            <div className="mt-4">
+              <StepperNav
+                steps={stepLabels}
+                activeStep={activeStep}
+                onStepChange={handleStepChange}
+              />
+            </div>
+          </DialogHeader>
 
-          {/* Step 1 — Keyword Data */}
-          {activeStep === 1 && (
-            <Stack spacing={3}>
-              <Stack
-                direction="row"
-                spacing={1.5}
-                alignItems="center"
-                sx={{
-                  p: 2,
-                  borderRadius: 3,
-                  border: 1,
-                  borderColor: "divider",
-                }}
+          <div className="mt-4 space-y-4">
+            {showStepError && !isMetricsValid && activeStep === 0 && (
+              <div
+                role="alert"
+                className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
               >
-                <RecommendOutlined color="info" />
-                <Box>
-                  <Typography variant="h6" fontWeight={700}>
-                    คีย์เวิร์ด
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    คีย์เวิร์ดหลัก + คีย์เวิร์ดแนะนำ
-                  </Typography>
-                </Box>
-              </Stack>
+                ข้อมูลไม่ครบหรือไม่ถูกต้อง — โปรดตรวจสอบฟิลด์ที่มีข้อความแดง
+              </div>
+            )}
 
-              <KeywordReportSection
-                newKeyword={newKeyword}
-                keywordsData={keywordsData}
-                editingKeywordId={editingKeywordId}
-                onKeywordChange={handleKeywordChange}
-                onKeywordSelectChange={handleKeywordSelectChange}
-                onAddOrUpdateKeyword={handleAddOrUpdateKeyword}
-                onDeleteKeyword={onDeleteKeyword}
-                onSetEditing={handleSetEditingKeyword}
-                onClearEditing={clearEditing}
-                onViewHistory={onOpenKeywordHistory}
-              />
+            {/* Step 0 — Domain Metrics */}
+            {activeStep === 0 && (
+              <div className="space-y-4">
+                <div className="rounded-2xl border border-border p-4 sm:p-5">
+                  <div className="mb-3 flex items-center gap-2">
+                    <BarChart3 className="size-5 text-info" />
+                    <h3 className="font-bold">ภาพรวม</h3>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+                    {metricSummary.map((item) => (
+                      <div
+                        key={item.label}
+                        className="rounded-lg border border-border bg-muted/30 p-3"
+                      >
+                        <p className="text-xs text-muted-foreground">
+                          {item.label}
+                        </p>
+                        <p className="mt-1 text-base font-bold md:text-xl">
+                          {item.value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-              <RecommendKeywordSection
-                newRecommend={newRecommend}
-                recommendKeywordsData={recommendKeywordsData}
-                editingRecommendId={editingRecommendId}
-                onRecommendChange={handleRecommendChange}
-                onRecommendSelectChange={handleRecommendSelectChange}
-                onAddRecommend={handleAddRecommend}
-                onSetEditingRecommend={handleSetEditingRecommend}
-                onClearEditingRecommend={clearRecommendEditing}
-                onDeleteRecommendKeyword={onDeleteRecommendKeyword}
-              />
-            </Stack>
-          )}
+                <div className="overflow-hidden rounded-2xl border border-border">
+                  {metricSections.map((section, idx) => (
+                    <div
+                      key={section.title}
+                      className={cn(
+                        "p-4 sm:p-6",
+                        idx > 0 && "border-t border-border",
+                      )}
+                    >
+                      <div className="mb-3 flex items-start gap-3">
+                        <section.Icon className="size-5 text-info" />
+                        <div>
+                          <h4 className="font-bold">{section.title}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {section.description}
+                          </p>
+                        </div>
+                      </div>
+                      <div className={cn("grid gap-3", section.cols)}>
+                        {section.fields.map((field) => {
+                          const hasError = Boolean(validationErrors[field.key]);
+                          return (
+                            <Field key={field.key}>
+                              <Label htmlFor={`m-${field.key}`}>
+                                {field.label}
+                              </Label>
+                              <Input
+                                id={`m-${field.key}`}
+                                name={field.key}
+                                placeholder={field.placeholder}
+                                type="number"
+                                min={field.min}
+                                max={field.max}
+                                step={field.step}
+                                value={metrics[field.key]}
+                                onChange={handleMetricsChange}
+                                aria-invalid={hasError}
+                              />
+                              <p
+                                className={cn(
+                                  "text-xs",
+                                  hasError
+                                    ? "text-destructive"
+                                    : "text-muted-foreground",
+                                )}
+                              >
+                                {validationErrors[field.key] || field.helperText}
+                              </p>
+                            </Field>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
-          {/* Step 2 — AI Overview (lazy loaded) */}
-          {activeStep === 2 && (
-            <Stack spacing={3}>
-              <Stack
-                direction="row"
-                spacing={1.5}
-                alignItems="center"
-                sx={{
-                  p: 2,
-                  borderRadius: 3,
-                  border: 1,
-                  borderColor: "divider",
-                }}
-              >
-                <AutoAwesomeOutlined color="info" />
-                <Box>
-                  <Typography variant="h6" fontWeight={700}>
-                    AI Overview
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    อัปโหลดรูปประกอบ + หัวข้อ (สูงสุด 3 รูปต่อรายการ)
-                  </Typography>
-                </Box>
-              </Stack>
+            {/* Step 1 — Keywords */}
+            {activeStep === 1 && (
+              <div className="space-y-4">
+                <StepHeader
+                  Icon={Lightbulb}
+                  title="คีย์เวิร์ด"
+                  description="คีย์เวิร์ดหลัก + คีย์เวิร์ดแนะนำ"
+                />
 
-              <AiOverviewSection
-                ref={aiOverviewRef}
-                aiOverviews={aiOverviews}
-                isLoading={isLoadingAiOverviews}
-                onAdd={onAddAiOverview || (async () => {})}
-                onUpdate={onUpdateAiOverview || (async () => {})}
-                onDelete={onDeleteAiOverview || (async () => {})}
-                showSubmitButton={false}
-                onStateChange={setAiOverviewDraftState}
-              />
-            </Stack>
-          )}
-        </DialogContent>
+                <KeywordReportSection
+                  newKeyword={newKeyword}
+                  keywordsData={keywordsData}
+                  editingKeywordId={editingKeywordId}
+                  onKeywordChange={handleKeywordChange}
+                  onKeywordSelectChange={handleKeywordSelectChange}
+                  onAddOrUpdateKeyword={handleAddOrUpdateKeyword}
+                  onDeleteKeyword={onDeleteKeyword}
+                  onSetEditing={handleSetEditingKeyword}
+                  onClearEditing={clearEditing}
+                  onViewHistory={onOpenKeywordHistory}
+                />
 
-        <DialogActions
-          sx={{
-            px: { xs: 2, sm: 3 },
-            py: 2,
-            borderTop: 1,
-            borderColor: "divider",
-            bgcolor: "background.paper",
-          }}
-        >
-          <Stack
-            direction={{ xs: "column-reverse", sm: "row" }}
-            justifyContent="space-between"
-            spacing={1.5}
-            sx={{ width: "100%" }}
-          >
+                <RecommendKeywordSection
+                  newRecommend={newRecommend}
+                  recommendKeywordsData={recommendKeywordsData}
+                  editingRecommendId={editingRecommendId}
+                  onRecommendChange={handleRecommendChange}
+                  onRecommendSelectChange={handleRecommendSelectChange}
+                  onAddRecommend={handleAddRecommend}
+                  onSetEditingRecommend={handleSetEditingRecommend}
+                  onClearEditingRecommend={clearRecommendEditing}
+                  onDeleteRecommendKeyword={onDeleteRecommendKeyword}
+                />
+              </div>
+            )}
+
+            {/* Step 2 — AI Overview (lazy) */}
+            {activeStep === 2 && (
+              <div className="space-y-4">
+                <StepHeader
+                  Icon={Sparkles}
+                  title="AI Overview"
+                  description="อัปโหลดรูปประกอบ + หัวข้อ (สูงสุด 3 รูปต่อรายการ)"
+                />
+
+                <AiOverviewSection
+                  ref={aiOverviewRef}
+                  aiOverviews={aiOverviews}
+                  isLoading={isLoadingAiOverviews}
+                  onAdd={onAddAiOverview || (async () => {})}
+                  onUpdate={onUpdateAiOverview || (async () => {})}
+                  onDelete={onDeleteAiOverview || (async () => {})}
+                  showSubmitButton={false}
+                  onStateChange={setAiOverviewDraftState}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Footer actions */}
+          <div className="mt-4 flex flex-col-reverse justify-between gap-3 border-t border-border pt-4 sm:flex-row">
             <Button
-              variant="text"
-              startIcon={<ArrowBackIosNew />}
+              variant="ghost"
               onClick={handlePrevStep}
               disabled={activeStep === 0}
             >
+              <ChevronLeft className="size-4" />
               ย้อนกลับ
             </Button>
 
-            <Stack
-              direction={{ xs: "column", sm: "row" }}
-              spacing={1.5}
-              sx={{ width: { xs: "100%", sm: "auto" } }}
-            >
+            <div className="flex flex-col gap-2 sm:flex-row">
               {activeStep === 0 && (
                 <Button
-                  variant="contained"
-                  color="info"
-                  startIcon={
-                    isSavingMetrics ? (
-                      <CircularProgress size={16} color="inherit" />
-                    ) : (
-                      <Save />
-                    )
-                  }
                   onClick={handleSaveMetrics}
                   disabled={!isMetricsValid || isSavingMetrics || !isDirty}
+                  className="bg-info text-info-foreground hover:bg-info/90"
                 >
+                  {isSavingMetrics ? (
+                    <Loader2 className="animate-spin" />
+                  ) : (
+                    <Save />
+                  )}
                   {isSavingMetrics ? "กำลังบันทึก..." : "บันทึก Metrics"}
                 </Button>
               )}
 
               {activeStep === 2 && (
                 <Button
-                  variant="contained"
-                  color="info"
-                  startIcon={
-                    aiOverviewDraftState.isSubmitting ? (
-                      <CircularProgress size={16} color="inherit" />
-                    ) : (
-                      <Save />
-                    )
-                  }
                   onClick={() => aiOverviewRef.current?.submit()}
                   disabled={
                     !aiOverviewDraftState.canSubmit ||
                     aiOverviewDraftState.isSubmitting
                   }
+                  className="bg-info text-info-foreground hover:bg-info/90"
                 >
+                  {aiOverviewDraftState.isSubmitting ? (
+                    <Loader2 className="animate-spin" />
+                  ) : (
+                    <Save />
+                  )}
                   {aiOverviewDraftState.isSubmitting
                     ? "กำลังบันทึก..."
                     : "บันทึก AI Overview"}
@@ -785,17 +607,14 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
               )}
 
               {activeStep < 2 && (
-                <Button
-                  variant="outlined"
-                  endIcon={<ArrowForwardIos />}
-                  onClick={handleNextStep}
-                >
+                <Button variant="outline" onClick={handleNextStep}>
                   ถัดไป
+                  <ChevronRight className="size-4" />
                 </Button>
               )}
-            </Stack>
-          </Stack>
-        </DialogActions>
+            </div>
+          </div>
+        </DialogContent>
       </Dialog>
 
       <ConfirmAlert

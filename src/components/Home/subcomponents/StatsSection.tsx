@@ -1,31 +1,20 @@
-import React from "react";
-import { Box, Container, Typography, Grid } from "@mui/material";
 import { stats } from "@/components/Home/constants/data";
 
-export const StatsSection: React.FC = () => {
+export const StatsSection = () => {
   return (
-    <Box
-      component="section"
-      sx={{
-        py: 8,
-        bgcolor: "primary.main",
-        color: "primary.contrastText",
-      }}
-    >
-      <Container maxWidth="lg">
-        <Grid container spacing={4} textAlign="center">
-          {stats.map((stat, index) => (
-            <Grid size={{ xs: 12, md: 4 }} key={index}>
-              <Typography variant="h2" component="p" fontWeight="bold">
-                {stat.value}
-              </Typography>
-              <Typography variant="h6" sx={{ opacity: 0.8 }}>
+    <section className="bg-primary py-12 text-primary-foreground">
+      <div className="mx-auto w-full max-w-5xl px-4">
+        <div className="grid gap-8 text-center md:grid-cols-3">
+          {stats.map((stat) => (
+            <div key={stat.label}>
+              <p className="text-4xl font-bold md:text-5xl">{stat.value}</p>
+              <p className="mt-2 text-base opacity-80 md:text-lg">
                 {stat.label}
-              </Typography>
-            </Grid>
+              </p>
+            </div>
           ))}
-        </Grid>
-      </Container>
-    </Box>
+        </div>
+      </div>
+    </section>
   );
 };

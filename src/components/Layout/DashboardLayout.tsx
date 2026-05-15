@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { Box } from "@mui/material";
 import { DashboardHeader } from "./DashboardHeader";
 
 interface DashboardLayoutProps {
@@ -12,11 +11,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   children,
 }) => {
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+    <div className="flex min-h-screen flex-col">
       <DashboardHeader />
-      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-        {children}
-      </Box>
-    </Box>
+      <main className="flex-1 p-6">{children}</main>
+    </div>
   );
 };

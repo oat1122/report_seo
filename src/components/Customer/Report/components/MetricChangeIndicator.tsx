@@ -1,14 +1,9 @@
-// src/components/Customer/Report/components/MetricChangeIndicator.tsx
 "use client";
 
 import React from "react";
-import { Paper, Box, Typography, Chip } from "@mui/material";
-import {
-  TrendingUp,
-  TrendingDown,
-  TrendingFlat,
-  FiberNew,
-} from "@mui/icons-material";
+import { TrendingUp, TrendingDown, Minus, Sparkles } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { TrafficChangeData } from "../lib/historyCalculations";
 
 interface MetricChangeIndicatorProps {
@@ -16,8 +11,22 @@ interface MetricChangeIndicatorProps {
   label: string;
   value: string | number;
   changeData: TrafficChangeData;
+  // hex string — backward-compat for OverallMetricsCard (Phase 6 will replace with iconClassName)
   color?: string;
+  iconClassName?: string;
 }
+
+type Trend = TrafficChangeData["trend"];
+
+const trendConfig: Record<
+  Trend,
+  { Icon: typeof TrendingUp; className: string }
+> = {
+  up: { Icon: TrendingUp, className: "bg-success/10 text-success" },
+  down: { Icon: TrendingDown, className: "bg-destructive/10 text-destructive" },
+  new: { Icon: Sparkles, className: "bg-info/10 text-info" },
+  neutral: { Icon: Minus, className: "bg-muted text-muted-foreground" },
+};
 
 export const MetricChangeIndicator: React.FC<MetricChangeIndicatorProps> = ({
   icon,
@@ -25,134 +34,50 @@ export const MetricChangeIndicator: React.FC<MetricChangeIndicatorProps> = ({
   value,
   changeData,
   color,
+  iconClassName,
 }) => {
   const { percentage, trend, hasHistory } = changeData;
+  const { Icon, className } = trendConfig[trend];
 
-  // Get colors and icons based on trend
-  const getTrendStyle = () => {
-    switch (trend) {
-      case "up":
-        return {
-          color: "#059669",
-          bgcolor: "#d1fae5",
-          icon: <TrendingUp sx={{ fontSize: 16 }} />,
-        };
-      case "down":
-        return {
-          color: "#dc2626",
-          bgcolor: "#fee2e2",
-          icon: <TrendingDown sx={{ fontSize: 16 }} />,
-        };
-      case "new":
-        return {
-          color: "#1e40af",
-          bgcolor: "#dbeafe",
-          icon: <FiberNew sx={{ fontSize: 16 }} />,
-        };
-      default:
-        return {
-          color: "#64748b",
-          bgcolor: "#f1f5f9",
-          icon: <TrendingFlat sx={{ fontSize: 16 }} />,
-        };
-    }
-  };
-
-  const trendStyle = getTrendStyle();
-
-  // Format percentage display
-  const getPercentageDisplay = () => {
-    if (trend === "new") {
-      return "New";
-    }
-    if (!hasHistory) {
-      return "No data";
-    }
-    const absPercentage = Math.abs(percentage);
+  const percentageText = (() => {
+    if (trend === "new") return "New";
+    if (!hasHistory) return "No data";
+    const abs = Math.abs(percentage).toFixed(1);
     const sign = percentage >= 0 ? "+" : "";
-    return `${sign}${absPercentage.toFixed(1)}%`;
-  };
+    return `${sign}${abs}%`;
+  })();
 
   return (
-    <Paper
-      variant="outlined"
-      sx={{
-        p: 2,
-        textAlign: "center",
-        borderRadius: 3,
-        height: "100%",
-        position: "relative",
-        transition: "all 0.3s ease-in-out",
-        "&:hover": {
-          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-          transform: "translateY(-2px)",
-        },
-      }}
-    >
-      {/* Icon */}
-      <Box sx={{ color: color || "text.secondary", mb: 1 }}>{icon}</Box>
+    <div className="relative h-full rounded-2xl border border-border bg-card p-4 text-center transition-all hover:-translate-y-0.5 hover:shadow-md">
+      <div
+        className={cn("mb-1 text-muted-foreground", iconClassName)}
+        style={color ? { color } : undefined}
+      >
+        {icon}
+      </div>
 
-      {/* Main Value */}
-      <Typography variant="h6" fontWeight={700}>
-        {value}
-      </Typography>
+      <p className="text-lg font-bold">{value}</p>
+      <p className="mb-1 text-sm text-muted-foreground">{label}</p>
 
-      {/* Label */}
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-        {label}
-      </Typography>
-
-      {/* Change Indicator */}
       {hasHistory && (
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 0.5,
-            mt: 1,
-          }}
-        >
-          <Chip
-            icon={trendStyle.icon}
-            label={getPercentageDisplay()}
-            size="small"
-            sx={{
-              height: 22,
-              fontSize: "0.7rem",
-              fontWeight: 600,
-              bgcolor: trendStyle.bgcolor,
-              color: trendStyle.color,
-              "& .MuiChip-icon": {
-                color: trendStyle.color,
-              },
-            }}
-          />
-        </Box>
+        <div className="mt-1 flex items-center justify-center">
+          <Badge
+            className={cn(
+              "gap-1 rounded-full px-2 py-0.5 text-xs font-semibold",
+              className,
+            )}
+          >
+            <Icon className="size-3" />
+            {percentageText}
+          </Badge>
+        </div>
       )}
 
-      {/* New Badge for new metrics */}
       {trend === "new" && (
-        <Box
-          sx={{
-            position: "absolute",
-            top: 8,
-            right: 8,
-          }}
-        >
-          <Chip
-            label="NEW"
-            size="small"
-            sx={{
-              height: 18,
-              fontSize: "0.6rem",
-              bgcolor: "#9592ff",
-              color: "#fff",
-              fontWeight: 700,
-            }}
-          />
-        </Box>
+        <Badge className="absolute top-2 right-2 bg-info text-info-foreground text-[0.6rem] font-bold">
+          NEW
+        </Badge>
       )}
-    </Paper>
+    </div>
   );
 };

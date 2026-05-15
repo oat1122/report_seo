@@ -1,9 +1,9 @@
-// src/components/Customer/Report/StickyNavigation.tsx
 "use client";
 
 import React from "react";
-import { Box, Button, Paper } from "@mui/material";
-import { Assessment, List, Lightbulb, MoreHoriz } from "@mui/icons-material";
+import { BarChart3, List, Lightbulb, MoreHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface StickyNavigationProps {
   activeSection: string;
@@ -11,10 +11,10 @@ interface StickyNavigationProps {
 }
 
 const navItems = [
-  { id: "overview", label: "Overview", icon: <Assessment /> },
-  { id: "top-keywords", label: "Top Keywords", icon: <List /> },
-  { id: "recommendations", label: "Recommendations", icon: <Lightbulb /> },
-  { id: "other-keywords", label: "Other Keywords", icon: <MoreHoriz /> },
+  { id: "overview", label: "Overview", icon: BarChart3 },
+  { id: "top-keywords", label: "Top Keywords", icon: List },
+  { id: "recommendations", label: "Recommendations", icon: Lightbulb },
+  { id: "other-keywords", label: "Other Keywords", icon: MoreHorizontal },
 ];
 
 export const StickyNavigation: React.FC<StickyNavigationProps> = ({
@@ -22,58 +22,28 @@ export const StickyNavigation: React.FC<StickyNavigationProps> = ({
   onNavigate,
 }) => {
   return (
-    <Paper
-      elevation={2}
-      sx={{
-        position: "sticky",
-        top: 80,
-        zIndex: 100,
-        mb: 4,
-        borderRadius: 3,
-        overflow: "hidden",
-        border: "1px solid #E2E8F0",
-      }}
-    >
-      <Box
-        sx={{
-          display: "flex",
-          gap: 1,
-          p: 1.5,
-          bgcolor: "background.paper",
-          overflowX: "auto",
-          "&::-webkit-scrollbar": {
-            height: 6,
-          },
-          "&::-webkit-scrollbar-thumb": {
-            bgcolor: "#CBD5E1",
-            borderRadius: 3,
-          },
-        }}
-      >
-        {navItems.map((item) => (
-          <Button
-            key={item.id}
-            startIcon={item.icon}
-            onClick={() => onNavigate(item.id)}
-            sx={{
-              borderRadius: 2,
-              px: 3,
-              py: 1,
-              fontWeight: 600,
-              textTransform: "none",
-              whiteSpace: "nowrap",
-              bgcolor: activeSection === item.id ? "#9592ff" : "transparent",
-              color: activeSection === item.id ? "#FFFFFF" : "text.secondary",
-              "&:hover": {
-                bgcolor: activeSection === item.id ? "#837fe8" : "action.hover",
-              },
-              transition: "all 0.2s ease",
-            }}
-          >
-            {item.label}
-          </Button>
-        ))}
-      </Box>
-    </Paper>
+    <nav className="sticky top-20 z-10 mb-6 overflow-hidden rounded-2xl border border-border bg-background shadow-md">
+      <div className="flex gap-2 overflow-x-auto bg-card p-3">
+        {navItems.map(({ id, label, icon: Icon }) => {
+          const isActive = activeSection === id;
+          return (
+            <Button
+              key={id}
+              variant={isActive ? "default" : "ghost"}
+              onClick={() => onNavigate(id)}
+              className={cn(
+                "whitespace-nowrap",
+                isActive
+                  ? "bg-info text-info-foreground hover:bg-info/90"
+                  : "text-muted-foreground",
+              )}
+            >
+              <Icon className="size-4" />
+              {label}
+            </Button>
+          );
+        })}
+      </div>
+    </nav>
   );
 };

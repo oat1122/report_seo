@@ -1,26 +1,24 @@
 import React from "react";
+import { Plus, Trash2, Pencil, History, Save } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Field, FieldGroup } from "@/components/ui/field";
 import {
-  Alert,
-  Box,
-  Button,
-  Checkbox,
-  Chip,
-  FormControl,
-  FormControlLabel,
-  IconButton,
-  InputLabel,
-  List,
-  ListItem,
-  ListItemText,
-  MenuItem,
-  Paper,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   Select,
-  SelectChangeEvent,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
-import { Add, Delete, Edit, History, Save } from "@mui/icons-material";
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import { KdLevel, KD_LEVELS } from "@/types/kd";
 import { KeywordReport, KeywordReportForm } from "@/types/metrics";
 
@@ -29,7 +27,7 @@ interface KeywordReportSectionProps {
   keywordsData: KeywordReport[];
   editingKeywordId: string | null;
   onKeywordChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onKeywordSelectChange: (e: SelectChangeEvent<KdLevel>) => void;
+  onKeywordSelectChange: (value: KdLevel) => void;
   onAddOrUpdateKeyword: () => void;
   onDeleteKeyword: (id: string) => void;
   onSetEditing: (keyword: KeywordReport) => void;
@@ -49,244 +47,208 @@ export const KeywordReportSection: React.FC<KeywordReportSectionProps> = ({
   onClearEditing,
   onViewHistory,
 }) => (
-  <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
-    <Stack spacing={3}>
-      <Box>
-        <Typography variant="h6" fontWeight={700}>
-          Keyword Report
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          เพิ่มคีย์เวิร์ดหลักที่ต้องการติดตาม พร้อมอันดับ ทราฟฟิก
-          และระดับความยาก
-        </Typography>
-      </Box>
+  <div className="rounded-2xl border border-border p-4 sm:p-6">
+    <div className="mb-4">
+      <h3 className="text-lg font-bold">Keyword Report</h3>
+      <p className="mt-1 text-sm text-muted-foreground">
+        เพิ่มคีย์เวิร์ดหลักที่ต้องการติดตาม พร้อมอันดับ ทราฟฟิก
+        และระดับความยาก
+      </p>
+    </div>
 
-      <Paper
-        variant="outlined"
-        sx={{
-          p: 2,
-          borderRadius: 2.5,
-          bgcolor: editingKeywordId ? "warning.50" : "grey.50",
-        }}
-      >
-        <Stack spacing={2}>
-          {editingKeywordId && (
-            <Alert severity="info">
-              กำลังแก้ไขคีย์เวิร์ดรายการเดิม
-              สามารถปรับข้อมูลแล้วกดบันทึกการแก้ไขได้ทันที
-            </Alert>
-          )}
+    <div
+      className={cn(
+        "mb-4 rounded-xl border border-border p-4",
+        editingKeywordId ? "bg-warning/10" : "bg-muted/50",
+      )}
+    >
+      <FieldGroup>
+        {editingKeywordId && (
+          <div className="rounded-md border border-info/30 bg-info/10 px-3 py-2 text-sm text-info">
+            กำลังแก้ไขคีย์เวิร์ดรายการเดิม
+            สามารถปรับข้อมูลแล้วกดบันทึกการแก้ไขได้ทันที
+          </div>
+        )}
 
-          <TextField
+        <Field>
+          <Label htmlFor="kw-keyword">Keyword</Label>
+          <Input
+            id="kw-keyword"
             name="keyword"
-            label="Keyword"
             placeholder="เช่น รับทำ SEO สายขาว"
             value={newKeyword.keyword}
             onChange={onKeywordChange}
-            size="small"
-            fullWidth
           />
+        </Field>
 
-          <Box
-            sx={{
-              display: "grid",
-              gap: 2,
-              gridTemplateColumns: {
-                xs: "repeat(2, 1fr)",
-                md: "repeat(4, minmax(0, 1fr))",
-              },
-              alignItems: "center",
-            }}
-          >
-            <TextField
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <Field>
+            <Label htmlFor="kw-position">Position</Label>
+            <Input
+              id="kw-position"
               name="position"
-              label="Position"
               type="number"
-              value={newKeyword.position}
+              min={0}
+              value={newKeyword.position ?? ""}
               onChange={onKeywordChange}
-              size="small"
-              fullWidth
-              inputProps={{ min: 0 }}
             />
-            <TextField
+          </Field>
+          <Field>
+            <Label htmlFor="kw-traffic">Traffic</Label>
+            <Input
+              id="kw-traffic"
               name="traffic"
-              label="Traffic"
               type="number"
+              min={0}
               value={newKeyword.traffic}
               onChange={onKeywordChange}
-              size="small"
-              fullWidth
-              inputProps={{ min: 0 }}
             />
-            <FormControl size="small" fullWidth>
-              <InputLabel>KD</InputLabel>
-              <Select
-                name="kd"
-                value={newKeyword.kd}
-                label="KD"
-                onChange={onKeywordSelectChange}
-              >
+          </Field>
+          <Field>
+            <Label htmlFor="kw-kd">KD</Label>
+            <Select
+              value={newKeyword.kd}
+              onValueChange={(v) => onKeywordSelectChange(v as KdLevel)}
+            >
+              <SelectTrigger id="kw-kd">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
                 {KD_LEVELS.map((level) => (
-                  <MenuItem key={level} value={level}>
+                  <SelectItem key={level} value={level}>
                     {level}
-                  </MenuItem>
+                  </SelectItem>
                 ))}
-              </Select>
-            </FormControl>
-            <Box
-              sx={{
-                minHeight: 40,
-                display: "flex",
-                alignItems: "center",
-                px: 1,
-                borderRadius: 1.5,
-                border: "1px dashed",
-                borderColor: "divider",
-              }}
-            >
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    name="isTopReport"
-                    checked={newKeyword.isTopReport}
-                    onChange={onKeywordChange}
-                    size="small"
-                  />
-                }
-                label="Top Report"
-                sx={{ m: 0 }}
-              />
-            </Box>
-          </Box>
+              </SelectContent>
+            </Select>
+          </Field>
+          <div className="flex items-center gap-2 rounded-md border border-dashed border-border px-3">
+            <Checkbox
+              id="kw-top"
+              checked={newKeyword.isTopReport}
+              onCheckedChange={(c) =>
+                onKeywordChange({
+                  target: {
+                    name: "isTopReport",
+                    type: "checkbox",
+                    checked: c === true,
+                    value: "",
+                  },
+                } as unknown as React.ChangeEvent<HTMLInputElement>)
+              }
+            />
+            <Label htmlFor="kw-top" className="cursor-pointer">
+              Top Report
+            </Label>
+          </div>
+        </div>
 
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            spacing={1.5}
-            justifyContent="flex-end"
-          >
-            {editingKeywordId && (
-              <Button onClick={onClearEditing} size="medium">
-                ยกเลิก
-              </Button>
-            )}
-            <Button
-              startIcon={editingKeywordId ? <Save /> : <Add />}
-              variant="contained"
-              onClick={onAddOrUpdateKeyword}
-              size="medium"
-              color={editingKeywordId ? "secondary" : "primary"}
-              disabled={!newKeyword.keyword.trim()}
-            >
-              {editingKeywordId ? "บันทึกการแก้ไข" : "เพิ่ม Keyword"}
+        <div className="flex flex-col justify-end gap-2 sm:flex-row">
+          {editingKeywordId && (
+            <Button variant="ghost" onClick={onClearEditing}>
+              ยกเลิก
             </Button>
-          </Stack>
-        </Stack>
-      </Paper>
-
-      <Box>
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          justifyContent="space-between"
-          alignItems={{ xs: "flex-start", sm: "center" }}
-          spacing={1}
-          mb={1.5}
-        >
-          <Typography variant="subtitle1" fontWeight={700}>
-            รายการคีย์เวิร์ดที่บันทึกแล้ว
-          </Typography>
-          <Chip
-            label={`${keywordsData.length} รายการ`}
-            size="small"
-            color="secondary"
-            variant="outlined"
-          />
-        </Stack>
-
-        <List dense disablePadding>
-          {keywordsData.length === 0 ? (
-            <Paper
-              variant="outlined"
-              sx={{ p: 3, borderRadius: 2.5, textAlign: "center" }}
-            >
-              <Typography variant="body2" color="text.secondary">
-                ยังไม่มีข้อมูลคีย์เวิร์ดในรายงาน
-              </Typography>
-            </Paper>
-          ) : (
-            keywordsData.map((kw) => (
-              <Paper
-                key={kw.id}
-                variant="outlined"
-                sx={{ mb: 1.5, borderRadius: 2.5 }}
-              >
-                <ListItem
-                  secondaryAction={
-                    <Stack direction="row" spacing={0.5}>
-                      <TooltipIconButton
-                        label="ดูประวัติ"
-                        onClick={() => onViewHistory(kw)}
-                      >
-                        <History />
-                      </TooltipIconButton>
-                      <TooltipIconButton
-                        label="แก้ไข"
-                        onClick={() => onSetEditing(kw)}
-                      >
-                        <Edit />
-                      </TooltipIconButton>
-                      <TooltipIconButton
-                        label="ลบ"
-                        onClick={() => onDeleteKeyword(kw.id)}
-                      >
-                        <Delete color="error" />
-                      </TooltipIconButton>
-                    </Stack>
-                  }
-                  sx={{ py: 1.5 }}
-                >
-                  <ListItemText
-                    primary={
-                      <Stack
-                        direction="row"
-                        spacing={1}
-                        alignItems="center"
-                        flexWrap="wrap"
-                      >
-                        <Typography variant="subtitle2" fontWeight={700}>
-                          {kw.keyword}
-                        </Typography>
-                        {kw.isTopReport && (
-                          <Chip
-                            label="Top Report"
-                            size="small"
-                            color="warning"
-                            variant="outlined"
-                          />
-                        )}
-                      </Stack>
-                    }
-                    secondary={`Position: ${kw.position ?? "-"} | Traffic: ${kw.traffic} | KD: ${kw.kd}`}
-                  />
-                </ListItem>
-              </Paper>
-            ))
           )}
-        </List>
-      </Box>
-    </Stack>
-  </Paper>
-);
+          <Button
+            onClick={onAddOrUpdateKeyword}
+            disabled={!newKeyword.keyword.trim()}
+            className={cn(
+              editingKeywordId
+                ? "bg-secondary text-secondary-foreground hover:bg-secondary/90"
+                : "",
+            )}
+          >
+            {editingKeywordId ? <Save /> : <Plus />}
+            {editingKeywordId ? "บันทึกการแก้ไข" : "เพิ่ม Keyword"}
+          </Button>
+        </div>
+      </FieldGroup>
+    </div>
 
-const TooltipIconButton = ({
-  children,
-  label,
-  onClick,
-}: {
-  children: React.ReactNode;
-  label: string;
-  onClick: () => void;
-}) => (
-  <IconButton edge="end" aria-label={label} onClick={onClick}>
-    {children}
-  </IconButton>
+    <div>
+      <div className="mb-3 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
+        <h4 className="font-bold">รายการคีย์เวิร์ดที่บันทึกแล้ว</h4>
+        <Badge
+          variant="outline"
+          className="border-secondary/40 text-secondary-foreground"
+        >
+          {keywordsData.length} รายการ
+        </Badge>
+      </div>
+
+      {keywordsData.length === 0 ? (
+        <div className="rounded-xl border border-border p-6 text-center text-sm text-muted-foreground">
+          ยังไม่มีข้อมูลคีย์เวิร์ดในรายงาน
+        </div>
+      ) : (
+        <ul className="flex flex-col gap-3">
+          {keywordsData.map((kw) => (
+            <li
+              key={kw.id}
+              className="flex items-start justify-between gap-3 rounded-xl border border-border p-4"
+            >
+              <div className="min-w-0 flex-1">
+                <div className="mb-1 flex flex-wrap items-center gap-2">
+                  <span className="font-semibold">{kw.keyword}</span>
+                  {kw.isTopReport && (
+                    <Badge
+                      variant="outline"
+                      className="border-warning/40 text-warning"
+                    >
+                      Top Report
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Position: {kw.position ?? "-"} | Traffic: {kw.traffic} | KD: {kw.kd}
+                </p>
+              </div>
+              <div className="flex gap-0.5">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="icon-sm"
+                      variant="ghost"
+                      aria-label="ดูประวัติ"
+                      onClick={() => onViewHistory(kw)}
+                    >
+                      <History className="size-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>ดูประวัติ</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="icon-sm"
+                      variant="ghost"
+                      aria-label="แก้ไข"
+                      onClick={() => onSetEditing(kw)}
+                    >
+                      <Pencil className="size-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>แก้ไข</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="icon-sm"
+                      variant="ghost"
+                      aria-label="ลบ"
+                      onClick={() => onDeleteKeyword(kw.id)}
+                      className="text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>ลบ</TooltipContent>
+                </Tooltip>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  </div>
 );

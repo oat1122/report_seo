@@ -1,53 +1,35 @@
-import React from "react";
 import {
-  Box,
-  Container,
-  Typography,
   Accordion,
-  AccordionSummary,
-  AccordionDetails,
-} from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { faqs } from "@/components/Home/constants/data";
 
-export const FAQSection: React.FC = () => {
+export const FAQSection = () => {
   return (
-    <Box component="section" sx={{ py: 8, bgcolor: "background.paper" }}>
-      <Container maxWidth="md">
-        <Typography
-          variant="h2"
-          component="h2"
-          color="primary"
-          sx={{ textAlign: "center", mb: 6 }}
-        >
+    <section className="bg-card py-12">
+      <div className="mx-auto w-full max-w-3xl px-4">
+        <h2 className="mb-8 text-center text-3xl font-bold text-primary md:text-4xl">
           คำถามที่พบบ่อย
-        </Typography>
-        {faqs.map((faq, index) => (
-          <Accordion
-            key={index}
-            sx={{
-              bgcolor: "background.default",
-              boxShadow: "none",
-              border: "1px solid #e0e0e0",
-              "&:not(:last-child)": { mb: 2 },
-              borderRadius: "8px",
-            }}
-          >
-            <AccordionSummary
-              expandIcon={<ExpandMoreIcon />}
-              aria-controls={`panel${index}-content`}
-              id={`panel${index}-header`}
+        </h2>
+        <Accordion type="single" collapsible className="space-y-2">
+          {faqs.map((faq, index) => (
+            <AccordionItem
+              key={faq.question}
+              value={`item-${index}`}
+              className="rounded-lg border border-border bg-background px-4"
             >
-              <Typography variant="h6" color="primary">
+              <AccordionTrigger className="text-base font-semibold text-primary md:text-lg">
                 {faq.question}
-              </Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Typography color="text.secondary">{faq.answer}</Typography>
-            </AccordionDetails>
-          </Accordion>
-        ))}
-      </Container>
-    </Box>
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground">
+                {faq.answer}
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </div>
+    </section>
   );
 };

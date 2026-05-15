@@ -1,22 +1,16 @@
-import React from "react";
 import { Role } from "@/types/auth";
-import {
-  AdminPanelSettings,
-  Business,
-  Code,
-  Person,
-} from "@mui/icons-material";
+import { ShieldUser, Building2, Code, User } from "lucide-react";
 
 export const getRoleIcon = (role: Role) => {
   switch (role) {
     case Role.ADMIN:
-      return <AdminPanelSettings fontSize="small" />;
+      return <ShieldUser className="size-4" />;
     case Role.CUSTOMER:
-      return <Business fontSize="small" />;
+      return <Building2 className="size-4" />;
     case Role.SEO_DEV:
-      return <Code fontSize="small" />;
+      return <Code className="size-4" />;
     default:
-      return <Person fontSize="small" />;
+      return <User className="size-4" />;
   }
 };
 
@@ -32,6 +26,19 @@ export const getRoleColor = (
       return "secondary";
     default:
       return "default";
+  }
+};
+
+export const getRoleBadgeClass = (role: Role): string => {
+  switch (role) {
+    case Role.ADMIN:
+      return "bg-destructive/10 text-destructive border-destructive/30";
+    case Role.CUSTOMER:
+      return "bg-info/10 text-info border-info/30";
+    case Role.SEO_DEV:
+      return "bg-secondary/20 text-secondary-foreground border-secondary/40";
+    default:
+      return "bg-muted text-muted-foreground border-border";
   }
 };
 

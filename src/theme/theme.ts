@@ -1,98 +1,113 @@
-import { createTheme } from "@mui/material/styles";
+/**
+ * Single source of truth ของสีในโปรเจกต์
+ *
+ * - โค้ดใหม่ใช้ Tailwind utility ที่ผูก CSS variable ใน globals.css เป็นหลัก
+ *   (เช่น `bg-info`, `text-foreground`, `border-border`)
+ * - globals.css mirror ค่าใน `colors` นี้เป็น CSS variable
+ * - import `colors` จากไฟล์นี้ได้สำหรับ inline style หรือ SVG (เช่น chart series, gradient)
+ *
+ * ห้ามเพิ่ม hex ตรงที่ component — ถ้าต้องการสีใหม่ ให้เพิ่มในไฟล์นี้ที่เดียว
+ * แล้ว mirror เข้า globals.css ด้วย
+ */
+export const colors = {
+  // ─── Brand ──────────────────────────────────────────────
+  brand: {
+    primary: "#2f2f2f",
+    primaryContrast: "#FFFFFF",
+    secondary: "#31fb4c",
+    secondaryLight: "#7dfd91",
+    secondaryDark: "#1ce03b",
+    secondaryHover: "#29e0a0",
+    secondaryContrast: "#2f2f2f",
+  },
 
-// New theme based on the provided image palette
-export const theme = createTheme({
-  palette: {
-    primary: {
-      main: "#2f2f2f", // Dark Grey
-      contrastText: "#FFFFFF",
-    },
-    secondary: {
-      light: "#7dfd91", // Soft green for backgrounds
-      main: "#31fb4c", // Bright Teal/Green
-      dark: "#1ce03b", // Darker green for hover/border
-      contrastText: "#2f2f2f",
-    },
-    info: {
-      light: "#bdbcff", // Soft purple for backgrounds
-      main: "#9592ff", // Purple
-      dark: "#6c68e8", // Darker purple for hover/gradient end
-      contrastText: "#FFFFFF",
-    },
-    background: {
-      default: "#FFFFFF", // White
-      paper: "#F8F9FA", // Off-white
-    },
-    text: {
-      primary: "#2f2f2f",
-      secondary: "#64748B", // A softer grey for secondary text
-    },
+  // ─── Info (brand purple) ────────────────────────────────
+  info: {
+    main: "#9592ff",
+    light: "#bdbcff",
+    dark: "#6c68e8",
+    hover: "#837fe8",
+    bg: "#eeedff",
+    bgSubtle: "#f5f3ff",
+    contrast: "#FFFFFF",
   },
-  typography: {
-    fontFamily: '"Kanit", sans-serif',
-    h1: {
-      fontWeight: 700,
-      fontSize: "3.5rem",
-      lineHeight: 1.2,
-      color: "#2f2f2f",
-    },
-    h2: {
-      fontWeight: 700,
-      fontSize: "2.5rem",
-      lineHeight: 1.2,
-      color: "#2f2f2f",
-    },
-    h3: {
-      fontWeight: 600,
-      fontSize: "1.75rem",
-      color: "#2f2f2f",
-    },
-    h4: {
-      fontWeight: 600,
-      fontSize: "1.25rem",
-    },
+
+  // ─── Info (blue, separate from brand purple) ────────────
+  infoBlue: {
+    main: "#1e40af",
+    bg: "#dbeafe",
   },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: "9999px", // Pill-shaped buttons
-          textTransform: "none",
-          fontWeight: 600,
-          padding: "12px 28px",
-          boxShadow: "none",
-        },
-        containedSecondary: {
-          "&:hover": {
-            backgroundColor: "#29e0a0",
-          },
-        },
-        containedInfo: {
-          color: "#FFFFFF",
-          "&:hover": {
-            backgroundColor: "#837fe8",
-          },
-        },
-      },
-    },
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          borderRadius: "16px",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-          border: "1px solid #E2E8F0",
-        },
-      },
-    },
-    MuiButtonBase: {
-      styleOverrides: {
-        root: {
-          "&:focus-visible": {
-            outline: "2px solid #9592ff",
-            outlineOffset: "2px",
-          },
-        },
-      },
-    },
+
+  // ─── Success (green) ────────────────────────────────────
+  success: {
+    main: "#2e7d32",
+    light: "#66bb6a",
+    dark: "#059669",
+    bg: "#e8f5e9",
+    bgSubtle: "#ecfdf5",
   },
-});
+
+  // ─── Error (red) ────────────────────────────────────────
+  error: {
+    main: "#d32f2f",
+    light: "#f44336",
+    dark: "#c62828",
+    bg: "#ffebee",
+    bgSubtle: "#fee2e2",
+  },
+
+  // ─── Warning (orange) ───────────────────────────────────
+  warning: {
+    main: "#ed6c02",
+    light: "#ff9800",
+    dark: "#e65100",
+    bg: "#fff3e0",
+    bgSubtle: "#fff7e6",
+    accent: "#f59e0b",
+    accentBg: "#fef3c7",
+    accentText: "#92400e",
+  },
+
+  // ─── Neutral / Slate scale ──────────────────────────────
+  slate: {
+    50: "#f8fafc",
+    100: "#f1f5f9",
+    200: "#e2e8f0",
+    300: "#cbd5e1",
+    400: "#94a3b8",
+    500: "#64748b",
+    600: "#475569",
+    800: "#1e293b",
+  },
+
+  // ─── Background / Surface ───────────────────────────────
+  surface: {
+    page: "#FFFFFF",
+    panel: "#F8F9FA",
+    dark: "#0D1117",
+  },
+
+  // ─── Text ───────────────────────────────────────────────
+  text: {
+    primary: "#2f2f2f",
+    secondary: "#64748B",
+    onDark: "#FFFFFF",
+  },
+
+  // ─── Border ─────────────────────────────────────────────
+  border: {
+    default: "#E2E8F0",
+  },
+
+  // ─── Achievement / Medal ────────────────────────────────
+  achievement: {
+    gold: "#FFD700",
+    silver: "#C0C0C0",
+    bronze: "#CD7F32",
+    glow: "#FFA500",
+    glowDark: "#FF8C00",
+  },
+} as const;
+
+/** Type ของ palette สำหรับใช้กับ TypeScript */
+export type AppColors = typeof colors;

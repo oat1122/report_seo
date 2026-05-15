@@ -1,152 +1,23 @@
-// src/components/Customer/Report/OverallMetricsCard.tsx
 "use client";
 
 import React from "react";
+import { History, Globe, KeyRound, Link as LinkIcon, Activity } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
-  Paper,
-  Grid,
-  Typography,
-  Box,
-  CircularProgress,
-  IconButton,
   Tooltip,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material";
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { OverallMetricsForm } from "@/types/metrics";
 import { formatDuration } from "@/lib/duration";
-import {
-  Traffic,
-  VpnKey,
-  Link as LinkIcon,
-  Language,
-  History,
-} from "@mui/icons-material";
 import { HistoryModal } from "@/components/shared/users/MetricsModal/HistoryModal";
 import { useOverallMetricsCard } from "@/hooks/ui/useOverallMetricsCard";
 import { getRatingColor, getAgeColor, getSpamColor } from "./lib/utils";
 import { useHistoryContext } from "./contexts/HistoryContext";
 import { calculateMetricChange } from "./lib/historyCalculations";
 import { MetricChangeIndicator } from "./components/MetricChangeIndicator";
-
-// --- Helper Components ---
-
-// Gauge Chart Component — รับ size จาก parent (responsive)
-const GaugeChart = ({
-  label,
-  value,
-  size = 80,
-}: {
-  label: string;
-  value: number;
-  size?: number;
-}) => {
-  const color = getRatingColor(value);
-  return (
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        height: "100%",
-        p: { xs: 1.5, md: 2 },
-        flexDirection: "column",
-        justifyContent: "center",
-      }}
-    >
-      <Box sx={{ position: "relative", display: "inline-flex", mb: 1 }}>
-        <CircularProgress
-          variant="determinate"
-          value={value}
-          size={size}
-          thickness={6}
-          style={{ color }}
-        />
-        <Box
-          sx={{
-            top: 0,
-            left: 0,
-            bottom: 0,
-            right: 0,
-            position: "absolute",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Typography
-            variant="h5"
-            component="div"
-            fontWeight={700}
-            sx={{ fontSize: size <= 64 ? "1rem" : "1.5rem" }}
-          >
-            {value}
-          </Typography>
-        </Box>
-      </Box>
-      <Typography variant="h6" sx={{ fontSize: { xs: "0.95rem", md: "1.1rem" } }}>
-        {label}
-      </Typography>
-    </Box>
-  );
-};
-
-// 3. Custom Linear Progress (ใช้แทน LinearProgress)
-const CustomLinearProgress = ({
-  label,
-  value,
-  displayValue,
-  colorFunc,
-}: {
-  label: string;
-  value: number;
-  displayValue: string;
-  colorFunc: (val: number) => string;
-}) => {
-  const color = colorFunc(value);
-  return (
-    <Box
-      sx={{
-        p: 2,
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-      }}
-    >
-      <Typography variant="h6">{label}</Typography>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 2, mt: 1 }}>
-        <Box sx={{ width: "100%", mr: 1 }}>
-          <Box
-            sx={{
-              height: 10,
-              borderRadius: 5,
-              bgcolor: "action.disabledBackground",
-            }}
-          >
-            <Box
-              sx={{
-                width: `${Math.min(value, 100)}%`,
-                height: 10,
-                borderRadius: 5,
-                bgcolor: color,
-                transition: "width 0.5s ease-in-out",
-              }}
-            />
-          </Box>
-        </Box>
-        <Typography
-          variant="body1"
-          fontWeight={600}
-          sx={{ whiteSpace: "nowrap" }}
-        >
-          {displayValue}
-        </Typography>
-      </Box>
-    </Box>
-  );
-};
-
-// --- Main Component ---
+import { GaugeChart } from "./components/GaugeChart";
+import { CustomLinearProgress } from "./components/CustomLinearProgress";
 
 interface OverallMetricsCardProps {
   metrics: OverallMetricsForm | null;
@@ -159,11 +30,6 @@ export const OverallMetricsCard: React.FC<OverallMetricsCardProps> = ({
   customerId,
   customerName,
 }) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const gaugeSize = isMobile ? 64 : 80;
-
-  // ใช้ Custom Hook สำหรับจัดการ State และ Logic
   const {
     isHistoryModalOpen,
     historyData,
@@ -171,28 +37,18 @@ export const OverallMetricsCard: React.FC<OverallMetricsCardProps> = ({
     handleOpenHistoryModal,
     handleCloseHistoryModal,
   } = useOverallMetricsCard(customerId);
-
-  // Get history data from context
   const { metricsHistory } = useHistoryContext();
 
   if (!metrics) {
     return (
-      <Paper
-        sx={{
-          p: 4,
-          textAlign: "center",
-          borderRadius: 4,
-          border: "1px dashed #ccc",
-        }}
-      >
-        <Typography color="text.secondary">
+      <div className="rounded-2xl border border-dashed border-border p-8 text-center">
+        <p className="text-muted-foreground">
           ยังไม่มีข้อมูลภาพรวมของ Domain
-        </Typography>
-      </Paper>
+        </p>
+      </div>
     );
   }
 
-  // Calculate changes for each metric
   const trafficChange = calculateMetricChange(
     metrics.organicTraffic,
     metricsHistory,
@@ -213,113 +69,84 @@ export const OverallMetricsCard: React.FC<OverallMetricsCardProps> = ({
     metricsHistory,
     "refDomains",
   );
+  const totalMonths = metrics.ageInYears * 12 + (metrics.ageInMonths || 0);
 
   return (
     <>
-      <Paper
-        sx={{
-          p: { xs: 2, md: 3 },
-          borderRadius: 3,
-          border: "1px solid #E2E8F0",
-        }}
-        elevation={0}
-      >
-        {/* Header with History button */}
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 2,
-          }}
-        >
-          <Typography variant="h5" fontWeight={700}>
-            Overall Domain Metrics
-          </Typography>
-          <Tooltip title="ดูประวัติการเปลี่ยนแปลง">
-            <IconButton onClick={handleOpenHistoryModal} color="primary">
-              <History />
-            </IconButton>
+      <div className="rounded-2xl border border-border bg-background p-4 md:p-6">
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-xl font-bold">Overall Domain Metrics</h3>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="icon-sm"
+                variant="ghost"
+                aria-label="ดูประวัติการเปลี่ยนแปลง"
+                onClick={handleOpenHistoryModal}
+              >
+                <History className="size-4 text-info" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>ดูประวัติการเปลี่ยนแปลง</TooltipContent>
           </Tooltip>
-        </Box>
+        </div>
 
-        <Grid container spacing={2}>
-          {/* Main metrics with new charts */}
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <GaugeChart
-              label="Domain Rating"
-              value={metrics.domainRating}
-              size={gaugeSize}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <GaugeChart
-              label="Health Score"
-              value={metrics.healthScore}
-              size={gaugeSize}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <CustomLinearProgress
-              label="Age"
-              value={metrics.ageInYears * 12 + (metrics.ageInMonths || 0)}
-              displayValue={formatDuration(
-                metrics.ageInYears,
-                metrics.ageInMonths || 0,
-              )}
-              colorFunc={(totalMonths) =>
-                getAgeColor(Math.floor(totalMonths / 12), totalMonths % 12)
-              }
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <CustomLinearProgress
-              label="Spam Score"
-              value={metrics.spamScore}
-              displayValue={`${metrics.spamScore}%`}
-              colorFunc={getSpamColor}
-            />
-          </Grid>
+        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
+          <GaugeChart
+            label="Domain Rating"
+            value={metrics.domainRating}
+            color={getRatingColor(metrics.domainRating)}
+          />
+          <GaugeChart
+            label="Health Score"
+            value={metrics.healthScore}
+            color={getRatingColor(metrics.healthScore)}
+          />
+          <CustomLinearProgress
+            label="Age"
+            value={totalMonths}
+            displayValue={formatDuration(
+              metrics.ageInYears,
+              metrics.ageInMonths || 0,
+            )}
+            colorFunc={(m) => getAgeColor(Math.floor(m / 12), m % 12)}
+          />
+          <CustomLinearProgress
+            label="Spam Score"
+            value={metrics.spamScore}
+            displayValue={`${metrics.spamScore}%`}
+            colorFunc={getSpamColor}
+          />
 
-          {/* Other metrics (ใช้ MetricChangeIndicator แทน MetricItem) */}
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <MetricChangeIndicator
-              icon={<Traffic />}
-              label="Organic Traffic"
-              value={metrics.organicTraffic.toLocaleString()}
-              changeData={trafficChange}
-              color="#31fb4c"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <MetricChangeIndicator
-              icon={<VpnKey />}
-              label="Organic Keywords"
-              value={metrics.organicKeywords.toLocaleString()}
-              changeData={keywordsChange}
-              color="#9592ff"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <MetricChangeIndicator
-              icon={<LinkIcon />}
-              label="Backlink"
-              value={metrics.backlinks.toLocaleString()}
-              changeData={backlinksChange}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <MetricChangeIndicator
-              icon={<Language />}
-              label="Ref.Domains"
-              value={metrics.refDomains.toLocaleString()}
-              changeData={refDomainsChange}
-            />
-          </Grid>
-        </Grid>
-      </Paper>
+          <MetricChangeIndicator
+            icon={<Activity className="size-5" />}
+            label="Organic Traffic"
+            value={metrics.organicTraffic.toLocaleString()}
+            changeData={trafficChange}
+            iconClassName="text-success"
+          />
+          <MetricChangeIndicator
+            icon={<KeyRound className="size-5" />}
+            label="Organic Keywords"
+            value={metrics.organicKeywords.toLocaleString()}
+            changeData={keywordsChange}
+            iconClassName="text-info"
+          />
+          <MetricChangeIndicator
+            icon={<LinkIcon className="size-5" />}
+            label="Backlink"
+            value={metrics.backlinks.toLocaleString()}
+            changeData={backlinksChange}
+          />
+          <MetricChangeIndicator
+            icon={<Globe className="size-5" />}
+            label="Ref.Domains"
+            value={metrics.refDomains.toLocaleString()}
+            changeData={refDomainsChange}
+          />
+        </div>
+      </div>
 
-      {/* History Modal */}
       <HistoryModal
         open={isHistoryModalOpen}
         onClose={handleCloseHistoryModal}

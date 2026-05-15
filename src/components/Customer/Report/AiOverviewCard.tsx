@@ -2,375 +2,205 @@
 
 import React, { useState } from "react";
 import {
-  Box,
-  Typography,
-  Paper,
-  Stack,
-  CardMedia,
-  IconButton,
-  Tooltip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
-  Chip,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material";
+  Sparkles,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  Calendar,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
-  AutoAwesomeOutlined,
-  Close,
-  ArrowBack,
-  ArrowForward,
-  Visibility,
-  CalendarToday,
-} from "@mui/icons-material";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { AiOverview } from "@/types/metrics";
 
 interface AiOverviewCardProps {
   aiOverviews: AiOverview[];
 }
 
+const formatThaiLongDate = (iso: string) =>
+  new Date(iso).toLocaleDateString("th-TH", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
 export const AiOverviewCard: React.FC<AiOverviewCardProps> = ({
   aiOverviews,
 }) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-
-  // Dialog state: which AI Overview item is being viewed
   const [dialogItem, setDialogItem] = useState<AiOverview | null>(null);
-
-  // Lightbox state for full-size image
-  const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
-  const handleOpenDialog = (item: AiOverview) => {
-    setDialogItem(item);
-  };
-
-  const handleCloseDialog = () => {
-    setDialogItem(null);
-  };
-
-  const handleOpenLightbox = (images: string[], index: number) => {
+  const openLightbox = (images: string[], index: number) => {
     setLightboxImages(images);
     setLightboxIndex(index);
-    setLightboxOpen(true);
   };
 
-  const handleCloseLightbox = () => {
-    setLightboxOpen(false);
-  };
+  const closeLightbox = () => setLightboxImages([]);
 
-  const handlePrev = () => {
-    setLightboxIndex((prev) =>
-      prev > 0 ? prev - 1 : lightboxImages.length - 1,
-    );
-  };
-
-  const handleNext = () => {
-    setLightboxIndex((prev) =>
-      prev < lightboxImages.length - 1 ? prev + 1 : 0,
-    );
-  };
+  const showPrev = () =>
+    setLightboxIndex((p) => (p > 0 ? p - 1 : lightboxImages.length - 1));
+  const showNext = () =>
+    setLightboxIndex((p) => (p < lightboxImages.length - 1 ? p + 1 : 0));
 
   if (aiOverviews.length === 0) return null;
 
   return (
     <>
-      <Paper
-        elevation={0}
-        sx={{
-          borderRadius: 4,
-          border: "1px solid #E2E8F0",
-          overflow: "hidden",
-          background: "linear-gradient(to bottom, #FFFFFF, #F8F9FA)",
-        }}
-      >
-        {/* Header - matching KeywordReportTable style */}
-        <Box
-          sx={{
-            p: 3,
-            background: "linear-gradient(135deg, #9592ff 0%, #6c68e8 100%)",
-            position: "relative",
-            overflow: "hidden",
-          }}
-        >
-          <Box
-            sx={{
-              position: "absolute",
-              top: -50,
-              right: -50,
-              width: 200,
-              height: 200,
-              borderRadius: "50%",
-              background: "rgba(255,255,255,0.1)",
-            }}
-          />
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <AutoAwesomeOutlined sx={{ color: "#fff", fontSize: 32 }} />
-            <Typography
-              variant="h5"
-              fontWeight={700}
-              sx={{
-                background: "linear-gradient(to right, #fff, #e0e7ff)",
-                backgroundClip: "text",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
+      <div className="overflow-hidden rounded-2xl border border-border bg-gradient-to-b from-background to-card">
+        <div className="relative overflow-hidden bg-gradient-to-br from-info to-info/70 p-5">
+          <div className="absolute -top-12 -right-12 size-48 rounded-full bg-white/10" />
+          <div className="relative flex items-center gap-2">
+            <Sparkles className="size-7 text-info-foreground" />
+            <h3 className="text-xl font-bold text-info-foreground">
               AI Overview
-            </Typography>
-          </Box>
-        </Box>
+            </h3>
+          </div>
+        </div>
 
-        {/* List of AI Overview items */}
-        <List disablePadding>
-          {aiOverviews.map((item, index) => (
-            <ListItem
+        <ul className="divide-y divide-border">
+          {aiOverviews.map((item) => (
+            <li
               key={item.id}
-              sx={{
-                py: 1.5,
-                px: 3,
-                borderBottom:
-                  index < aiOverviews.length - 1 ? "1px solid #E2E8F0" : "none",
-                transition: "all 0.2s ease-in-out",
-                "&:hover": {
-                  bgcolor: "#F1F5F9",
-                  transform: "translateX(4px)",
-                  boxShadow: "inset 4px 0 0 #9592ff",
-                },
-              }}
+              className="flex items-center gap-3 px-5 py-3 transition-all hover:bg-muted hover:shadow-[inset_4px_0_0_var(--info)]"
             >
-              <ListItemText
-                primary={item.title}
-                primaryTypographyProps={{ fontWeight: 600 }}
-                secondary={
-                  <>
-                    {`${item.images.length} รูปภาพ • `}
-                    {new Date(item.displayDate).toLocaleDateString("th-TH", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </>
-                }
-                secondaryTypographyProps={{
-                  variant: "caption",
-                  color: "text.secondary",
-                }}
-              />
-              <ListItemSecondaryAction>
-                <Tooltip title="ดูรูปภาพ">
-                  <IconButton
-                    size="small"
-                    onClick={() => handleOpenDialog(item)}
-                    color="primary"
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-semibold">{item.title}</p>
+                <p className="text-xs text-muted-foreground">
+                  {item.images.length} รูปภาพ • {formatThaiLongDate(item.displayDate)}
+                </p>
+              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="icon-sm"
+                    variant="ghost"
+                    onClick={() => setDialogItem(item)}
+                    aria-label="ดูรูปภาพ"
                   >
-                    <Visibility fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-              </ListItemSecondaryAction>
-            </ListItem>
+                    <Eye className="size-4 text-info" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>ดูรูปภาพ</TooltipContent>
+              </Tooltip>
+            </li>
           ))}
-        </List>
-      </Paper>
+        </ul>
+      </div>
 
-      {/* Image Dialog — full screen on mobile */}
-      <Dialog
-        open={!!dialogItem}
-        onClose={handleCloseDialog}
-        maxWidth="md"
-        fullWidth
-        fullScreen={isMobile}
-        PaperProps={{
-          sx: { borderRadius: { xs: 0, sm: 3 } },
-        }}
-      >
+      {/* Item dialog — แสดงทุกรูปของ item */}
+      <Dialog open={!!dialogItem} onOpenChange={(o) => !o && setDialogItem(null)}>
         {dialogItem && (
-          <>
-            <DialogTitle
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                pb: 2,
-                background: "linear-gradient(135deg, #9592ff 0%, #6c68e8 100%)",
-                color: "white",
-              }}
-            >
-              <Stack spacing={1}>
-                <Stack direction="row" alignItems="center" spacing={1}>
-                  <AutoAwesomeOutlined fontSize="small" />
-                  <Typography variant="h6" fontWeight={600}>
-                    {dialogItem.title}
-                  </Typography>
-                </Stack>
-                <Chip
-                  icon={<CalendarToday sx={{ fontSize: 14 }} />}
-                  label={new Date(dialogItem.displayDate).toLocaleDateString(
-                    "th-TH",
-                    {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    },
-                  )}
-                  size="small"
-                  sx={{
-                    bgcolor: "rgba(255,255,255,0.2)",
-                    color: "white",
-                    width: "fit-content",
-                    "& .MuiChip-icon": {
-                      color: "white",
-                    },
-                  }}
-                />
-              </Stack>
-              <IconButton
-                size="small"
-                onClick={handleCloseDialog}
-                sx={{ color: "white" }}
-              >
-                <Close />
-              </IconButton>
-            </DialogTitle>
-            <DialogContent>
-              <Stack spacing={2}>
-                {dialogItem.images.map((img, imgIndex) => (
-                  <CardMedia
-                    key={img.id}
-                    component="img"
-                    image={img.imageUrl}
-                    alt={`${dialogItem.title} - ${imgIndex + 1}`}
-                    onClick={() =>
-                      handleOpenLightbox(
-                        dialogItem.images.map((i) => i.imageUrl),
-                        imgIndex,
-                      )
-                    }
-                    sx={{
-                      width: "100%",
-                      maxHeight: 400,
-                      objectFit: "contain",
-                      borderRadius: 2,
-                      cursor: "pointer",
-                      border: "1px solid",
-                      borderColor: "divider",
-                      bgcolor: "#F8F9FA",
-                      transition: "box-shadow 0.2s",
-                      "&:hover": {
-                        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                      },
-                    }}
+          <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
+            <DialogHeader className="bg-gradient-to-br from-info to-info/70 -m-4 mb-2 rounded-t-xl p-4 text-info-foreground">
+              <DialogTitle className="flex items-center gap-2 text-info-foreground">
+                <Sparkles className="size-5" />
+                {dialogItem.title}
+              </DialogTitle>
+              <DialogDescription className="sr-only">
+                รูปภาพประกอบ {dialogItem.title}
+              </DialogDescription>
+              <Badge className="w-fit gap-1 bg-white/20 text-info-foreground hover:bg-white/30">
+                <Calendar className="size-3" />
+                {formatThaiLongDate(dialogItem.displayDate)}
+              </Badge>
+            </DialogHeader>
+
+            <div className="flex flex-col gap-3">
+              {dialogItem.images.map((img, idx) => (
+                <button
+                  type="button"
+                  key={img.id}
+                  onClick={() =>
+                    openLightbox(
+                      dialogItem.images.map((i) => i.imageUrl),
+                      idx,
+                    )
+                  }
+                  className="overflow-hidden rounded-lg border border-border bg-card transition-shadow hover:shadow-md"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={img.imageUrl}
+                    alt={`${dialogItem.title} - ${idx + 1}`}
+                    className="max-h-96 w-full object-contain"
                   />
-                ))}
-              </Stack>
-            </DialogContent>
-          </>
+                </button>
+              ))}
+            </div>
+          </DialogContent>
         )}
       </Dialog>
 
-      {/* Lightbox Modal (full-size image) */}
-      <Dialog
-        open={lightboxOpen}
-        onClose={handleCloseLightbox}
-        maxWidth={false}
-        PaperProps={{
-          sx: {
-            bgcolor: "transparent",
-            boxShadow: "none",
-            maxWidth: "90vw",
-            maxHeight: "90vh",
-          },
-        }}
-        slotProps={{
-          backdrop: {
-            sx: { backdropFilter: "blur(8px)", bgcolor: "rgba(0,0,0,0.8)" },
-          },
-        }}
-      >
-        <Box sx={{ position: "relative", outline: "none" }}>
-          <IconButton
-            onClick={handleCloseLightbox}
-            sx={{
-              position: "absolute",
-              top: -40,
-              right: 0,
-              color: "white",
-              bgcolor: "rgba(0,0,0,0.5)",
-              "&:hover": { bgcolor: "rgba(0,0,0,0.7)" },
-            }}
-          >
-            <Close />
-          </IconButton>
-
-          {lightboxImages.length > 1 && (
-            <>
-              <IconButton
-                onClick={handlePrev}
-                aria-label="ภาพก่อนหน้า"
-                size="large"
-                sx={{
-                  position: "absolute",
-                  left: { xs: 8, md: 16 },
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: "white",
-                  bgcolor: "rgba(0,0,0,0.5)",
-                  "&:hover": { bgcolor: "rgba(0,0,0,0.75)" },
-                  width: 48,
-                  height: 48,
-                }}
-              >
-                <ArrowBack />
-              </IconButton>
-              <IconButton
-                onClick={handleNext}
-                aria-label="ภาพถัดไป"
-                size="large"
-                sx={{
-                  position: "absolute",
-                  right: { xs: 8, md: 16 },
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: "white",
-                  bgcolor: "rgba(0,0,0,0.5)",
-                  "&:hover": { bgcolor: "rgba(0,0,0,0.75)" },
-                  width: 48,
-                  height: 48,
-                }}
-              >
-                <ArrowForward />
-              </IconButton>
-            </>
-          )}
-
-          <Box
-            component="img"
-            src={lightboxImages[lightboxIndex]}
-            alt="AI Overview"
-            sx={{
-              maxWidth: "90vw",
-              maxHeight: "85vh",
-              objectFit: "contain",
-              borderRadius: 2,
-            }}
-          />
-
-          {lightboxImages.length > 1 && (
-            <Typography
-              variant="body2"
-              sx={{ textAlign: "center", mt: 1, color: "white" }}
+      {/* Lightbox — ภาพเต็มจอ */}
+      <Dialog open={lightboxImages.length > 0} onOpenChange={(o) => !o && closeLightbox()}>
+        <DialogContent
+          className="max-h-[95vh] max-w-[95vw] border-none bg-transparent p-0 shadow-none"
+          showCloseButton={false}
+        >
+          <DialogTitle className="sr-only">ภาพขยาย</DialogTitle>
+          <div className="relative">
+            <Button
+              size="icon"
+              variant="secondary"
+              aria-label="ปิด"
+              onClick={closeLightbox}
+              className="absolute -top-10 right-0 bg-foreground/50 text-background hover:bg-foreground/70"
             >
-              {lightboxIndex + 1} / {lightboxImages.length}
-            </Typography>
-          )}
-        </Box>
+              <X />
+            </Button>
+
+            {lightboxImages.length > 1 && (
+              <>
+                <Button
+                  size="icon-lg"
+                  variant="secondary"
+                  aria-label="ภาพก่อนหน้า"
+                  onClick={showPrev}
+                  className="absolute top-1/2 left-2 -translate-y-1/2 bg-foreground/50 text-background hover:bg-foreground/70 md:left-4"
+                >
+                  <ChevronLeft />
+                </Button>
+                <Button
+                  size="icon-lg"
+                  variant="secondary"
+                  aria-label="ภาพถัดไป"
+                  onClick={showNext}
+                  className="absolute top-1/2 right-2 -translate-y-1/2 bg-foreground/50 text-background hover:bg-foreground/70 md:right-4"
+                >
+                  <ChevronRight />
+                </Button>
+              </>
+            )}
+
+            {lightboxImages[lightboxIndex] && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={lightboxImages[lightboxIndex]}
+                alt="AI Overview"
+                className="max-h-[85vh] max-w-[95vw] rounded-lg object-contain"
+              />
+            )}
+
+            {lightboxImages.length > 1 && (
+              <p className="mt-2 text-center text-sm text-background">
+                {lightboxIndex + 1} / {lightboxImages.length}
+              </p>
+            )}
+          </div>
+        </DialogContent>
       </Dialog>
     </>
   );

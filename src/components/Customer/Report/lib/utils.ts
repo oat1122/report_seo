@@ -16,37 +16,26 @@ export const getKdColor = (
   }
 };
 
-/**
- * ฟังก์ชันกำหนดสีสำหรับ Domain Rating และ Health Score
- * @param value - ค่าของ metric
- * @returns สีที่ใช้แสดงในกราฟ
- */
+// Returns CSS var() references — mirror จาก src/theme/theme.ts ผ่าน globals.css
+// ใช้กับ style={{ color: getXxxColor(value) }} หรือใส่ใน background
+
+/** Domain Rating / Health Score color */
 export const getRatingColor = (value: number): string => {
-  if (value > 40) return "#2e7d32"; // success.main
-  if (value > 30) return "#66bb6a"; // success.light
-  if (value < 20) return "#ed6c02"; // warning.main
-  return "#9592ff"; // theme info.main
+  if (value > 30) return "var(--success)";
+  if (value < 20) return "var(--warning)";
+  return "var(--info)";
 };
 
-/**
- * ฟังก์ชันกำหนดสีสำหรับ Age (ใช้การคำนวณจากเดือนรวม)
- * @param years - อายุของโดเมนในหน่วยปี
- * @param months - อายุของโดเมนในหน่วยเดือน (0-11)
- * @returns สีที่ใช้แสดงในกราฟ
- */
+/** Age color — ตามอายุโดเมน */
 export const getAgeColor = (years: number, months: number = 0): string => {
   const totalMonths = years * 12 + months;
-  if (totalMonths > 24) return "#2e7d32"; // Green (> 2 years)
-  if (totalMonths >= 12) return "#ed6c02"; // Yellow (1-2 years)
-  return "#d32f2f"; // Red (< 1 year)
+  if (totalMonths > 24) return "var(--success)";
+  if (totalMonths >= 12) return "var(--warning)";
+  return "var(--destructive)";
 };
 
-/**
- * ฟังก์ชันกำหนดสีสำหรับ Spam Score
- * @param score - ค่า Spam Score
- * @returns สีที่ใช้แสดงในกราฟ
- */
+/** Spam Score color */
 export const getSpamColor = (score: number): string => {
-  if (score > 2) return "#d32f2f"; // Red
-  return "#2e7d32"; // Green
+  if (score > 2) return "var(--destructive)";
+  return "var(--success)";
 };

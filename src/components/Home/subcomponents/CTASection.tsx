@@ -1,22 +1,24 @@
-import React from "react";
-import { Box, Container, Typography, Button } from "@mui/material";
+import { Button } from "@/components/ui/button";
 
-export const CTASection: React.FC = () => {
+export const CTASection = () => {
   return (
-    <Box component="section" sx={{ py: 8, textAlign: "center" }}>
-      <Container maxWidth="md">
-        <Typography variant="h2" component="h2" color="primary" gutterBottom>
+    <section className="py-12 text-center">
+      <div className="mx-auto w-full max-w-3xl px-4">
+        <h2 className="mb-3 text-3xl font-bold text-primary md:text-4xl">
           บริการ SEO ช่วยอะไร?
-        </Typography>
-        <Typography variant="h6" color="text.secondary" sx={{ mb: 4 }}>
+        </h2>
+        <p className="mb-6 text-lg text-muted-foreground">
           ช่วยยกระดับเว็บไซต์ของคุณให้เป็นที่รู้จักมากขึ้นในโลกออนไลน์
           ด้วยการปรับปรุงเนื้อหาและโครงสร้างของเว็บไซต์ให้เหมาะสมกับการค้นหา
           เพิ่มการเข้าถึง และทำให้เว็บไซต์ของคุณทำงานได้เต็มประสิทธิภาพ
-        </Typography>
-        <Button variant="contained" color="secondary" size="large">
+        </p>
+        <Button
+          size="lg"
+          className="bg-secondary text-secondary-foreground hover:bg-secondary/90"
+        >
           เช็คราคาแพ็คเกจ
         </Button>
-      </Container>
-    </Box>
+      </div>
+    </section>
   );
 };
