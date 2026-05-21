@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import {
-  enforceCustomerReadAccess,
-  getCustomerAccessByUserId,
-} from "@/lib/api-auth";
+  enforceReadAccess,
+  resolveCustomerAccess,
+} from "@/features/customers";
+import { getCustomerReport } from "@/features/customer-report";
 import { toErrorResponse } from "@/lib/http";
-import { customerService } from "@/services/CustomerService";
 
 export async function GET(
   _req: Request,
@@ -12,20 +12,9 @@ export async function GET(
 ) {
   try {
     const { customerId } = await params;
-    const access = await getCustomerAccessByUserId(customerId);
-
-    if (access.response || !access.context) {
-      return access.response;
-    }
-
-    const permissionError = enforceCustomerReadAccess(access.context);
-    if (permissionError) {
-      return permissionError;
-    }
-
-    const report = await customerService.getCustomerReport(customerId);
-
-    return NextResponse.json(report);
+    const ctx = await resolveCustomerAccess({ byUserId: customerId });
+    enforceReadAccess(ctx);
+    return NextResponse.json(await getCustomerReport(customerId));
   } catch (error) {
     return toErrorResponse(error);
   }

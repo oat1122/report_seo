@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  enforceCustomerManageAccess,
-  getCustomerAccessByUserId,
-} from "@/lib/api-auth";
-import { toErrorResponse } from "@/lib/http";
-import { BadRequestError } from "@/lib/errors";
-import { aiOverviewService } from "@/services/AiOverviewService";
+  enforceManageAccess,
+  resolveCustomerAccess,
+} from "@/features/customers";
 import {
   aiOverviewUpdateSchema,
+  deleteAiOverview,
   imagesToDeleteSchema,
-} from "@/schemas/aiOverview";
+  updateAiOverview,
+} from "@/features/ai-overview";
+import { toErrorResponse } from "@/lib/http";
+import { BadRequestError } from "@/lib/errors";
 
 function parseImagesToDelete(value: string | null): string[] {
   if (!value) return [];
@@ -28,16 +29,8 @@ export async function PUT(
 ) {
   try {
     const { customerId, id } = await params;
-    const access = await getCustomerAccessByUserId(customerId);
-
-    if (access.response || !access.context) {
-      return access.response;
-    }
-
-    const permissionError = enforceCustomerManageAccess(access.context);
-    if (permissionError) {
-      return permissionError;
-    }
+    const ctx = await resolveCustomerAccess({ byUserId: customerId });
+    enforceManageAccess(ctx);
 
     const formData = await req.formData();
     const input = aiOverviewUpdateSchema.parse({
@@ -49,14 +42,13 @@ export async function PUT(
     );
     const files = formData.getAll("files") as File[];
 
-    const updated = await aiOverviewService.update(
-      access.context.customer.id,
+    const updated = await updateAiOverview(
+      ctx.customer.id,
       id,
       input,
       files,
       imageIdsToDelete,
     );
-
     return NextResponse.json(updated);
   } catch (error) {
     return toErrorResponse(error);
@@ -69,19 +61,9 @@ export async function DELETE(
 ) {
   try {
     const { customerId, id } = await params;
-    const access = await getCustomerAccessByUserId(customerId);
-
-    if (access.response || !access.context) {
-      return access.response;
-    }
-
-    const permissionError = enforceCustomerManageAccess(access.context);
-    if (permissionError) {
-      return permissionError;
-    }
-
-    await aiOverviewService.delete(access.context.customer.id, id);
-
+    const ctx = await resolveCustomerAccess({ byUserId: customerId });
+    enforceManageAccess(ctx);
+    await deleteAiOverview(ctx.customer.id, id);
     return NextResponse.json({
       success: true,
       message: "ลบ AI Overview สำเร็จ",

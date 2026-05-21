@@ -1,27 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdminOnly, requireSession } from "@/lib/api-auth";
+import { requireRole } from "@/infrastructure/auth/session";
 import { toErrorResponse } from "@/lib/http";
-import { userService } from "@/services/UserService";
-import { userCreateSchema } from "@/schemas/user";
+import { createUser, listUsers, userCreateSchema } from "@/features/users";
+import { Role } from "@/types/auth";
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = await requireSession();
-    if (auth.response || !auth.session) {
-      return auth.response;
-    }
-
-    const roleError = requireAdminOnly(auth.session);
-    if (roleError) {
-      return roleError;
-    }
-
+    await requireRole([Role.ADMIN]);
     const { searchParams } = new URL(request.url);
     const includeDeleted = searchParams.get("includeDeleted") === "true";
-
-    const users = await userService.getUsers(includeDeleted);
-
-    return NextResponse.json(users);
+    return NextResponse.json(await listUsers(includeDeleted));
   } catch (error) {
     return toErrorResponse(error);
   }
@@ -29,21 +17,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: Request) {
   try {
-    const auth = await requireSession();
-    if (auth.response || !auth.session) {
-      return auth.response;
-    }
-
-    const roleError = requireAdminOnly(auth.session);
-    if (roleError) {
-      return roleError;
-    }
-
-    const body = await request.json();
-    const input = userCreateSchema.parse(body);
-    const newUser = await userService.createUser(input);
-
-    return NextResponse.json(newUser, { status: 201 });
+    await requireRole([Role.ADMIN]);
+    const input = userCreateSchema.parse(await request.json());
+    return NextResponse.json(await createUser(input), { status: 201 });
   } catch (error) {
     return toErrorResponse(error);
   }

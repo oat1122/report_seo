@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import {
-  enforceCustomerManageAccess,
-  getKeywordAccessContext,
-} from "@/lib/api-auth";
+  enforceManageAccess,
+  resolveCustomerAccess,
+} from "@/features/customers";
+import { deleteKeyword, updateKeyword } from "@/features/keywords";
 import { toErrorResponse } from "@/lib/http";
-import { customerService } from "@/services/CustomerService";
 
 export async function PUT(
   req: Request,
@@ -12,21 +12,10 @@ export async function PUT(
 ) {
   try {
     const { keywordId } = await params;
-    const access = await getKeywordAccessContext(keywordId);
-
-    if (access.response || !access.context) {
-      return access.response;
-    }
-
-    const permissionError = enforceCustomerManageAccess(access.context);
-    if (permissionError) {
-      return permissionError;
-    }
-
-    const data = await req.json();
-    const updatedKeyword = await customerService.updateKeyword(keywordId, data);
-
-    return NextResponse.json(updatedKeyword);
+    const ctx = await resolveCustomerAccess({ byKeywordId: keywordId });
+    enforceManageAccess(ctx);
+    const updated = await updateKeyword(keywordId, await req.json());
+    return NextResponse.json(updated);
   } catch (error) {
     return toErrorResponse(error);
   }
@@ -38,18 +27,9 @@ export async function DELETE(
 ) {
   try {
     const { keywordId } = await params;
-    const access = await getKeywordAccessContext(keywordId);
-
-    if (access.response || !access.context) {
-      return access.response;
-    }
-
-    const permissionError = enforceCustomerManageAccess(access.context);
-    if (permissionError) {
-      return permissionError;
-    }
-
-    await customerService.deleteKeyword(keywordId);
+    const ctx = await resolveCustomerAccess({ byKeywordId: keywordId });
+    enforceManageAccess(ctx);
+    await deleteKeyword(keywordId);
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     return toErrorResponse(error);

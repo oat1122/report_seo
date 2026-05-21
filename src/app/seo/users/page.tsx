@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import React from "react";
-import UserManagementSeoDev from "@/components/shared/users/UserManagementSeoDev";
+import UserManagementSeoDev from "@/features/users/presentation/components/UserManagementSeoDev";
 
 const SeoUserManagementPage: React.FC = () => {
   return <UserManagementSeoDev />;

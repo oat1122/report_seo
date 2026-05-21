@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import {
-  enforceCustomerManageAccess,
-  getCustomerAccessByUserId,
-} from "@/lib/api-auth";
+  enforceManageAccess,
+  resolveCustomerAccess,
+} from "@/features/customers";
+import {
+  bulkSetMetricsHistoryVisibility,
+  historyVisibilitySchema,
+  setMetricsHistoryVisibility,
+} from "@/features/metrics";
 import { toErrorResponse } from "@/lib/http";
-import { customerService } from "@/services/CustomerService";
-import { historyVisibilitySchema } from "@/schemas/historyVisibility";
 
 export async function PATCH(
   req: Request,
@@ -13,24 +16,14 @@ export async function PATCH(
 ) {
   try {
     const { customerId } = await params;
-    const access = await getCustomerAccessByUserId(customerId);
+    const ctx = await resolveCustomerAccess({ byUserId: customerId });
+    enforceManageAccess(ctx);
 
-    if (access.response || !access.context) {
-      return access.response;
-    }
-
-    const permissionError = enforceCustomerManageAccess(access.context);
-    if (permissionError) {
-      return permissionError;
-    }
-
-    const body = await req.json();
-    const input = historyVisibilitySchema.parse(body);
-
-    const customerInternalId = access.context.customer.id;
+    const input = historyVisibilitySchema.parse(await req.json());
+    const customerInternalId = ctx.customer.id;
 
     if (input.historyIds) {
-      const result = await customerService.bulkSetMetricsHistoryVisibility(
+      const result = await bulkSetMetricsHistoryVisibility(
         input.historyIds,
         input.isVisible,
         customerInternalId,
@@ -39,7 +32,7 @@ export async function PATCH(
     }
 
     if (input.historyId) {
-      const result = await customerService.setMetricsHistoryVisibility(
+      const result = await setMetricsHistoryVisibility(
         input.historyId,
         input.isVisible,
         customerInternalId,

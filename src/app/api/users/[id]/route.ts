@@ -1,36 +1,31 @@
 import { NextResponse } from "next/server";
-import { requireAdminOnly, requireSession } from "@/lib/api-auth";
+import { requireRole, requireSession } from "@/infrastructure/auth/session";
 import { toErrorResponse } from "@/lib/http";
 import { ForbiddenError, NotFoundError } from "@/lib/errors";
 import { Role } from "@/types/auth";
-import { userService } from "@/services/UserService";
-import { userSelfUpdateSchema, userUpdateSchema } from "@/schemas/user";
+import {
+  getUserById,
+  softDeleteUser,
+  updateUser,
+  userSelfUpdateSchema,
+  userUpdateSchema,
+} from "@/features/users";
 
-// GET /api/users/[id]
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const auth = await requireSession();
-    if (auth.response || !auth.session) {
-      return auth.response;
-    }
-
+    const session = await requireSession();
     const { id } = await params;
-    const isOwner = auth.session.user.id === id;
-    const isAdmin = auth.session.user.role === Role.ADMIN;
+    const isOwner = session.user.id === id;
+    const isAdmin = session.user.role === Role.ADMIN;
 
     if (!isOwner && !isAdmin) {
-      const roleError = requireAdminOnly(auth.session);
-      if (roleError) {
-        return roleError;
-      }
+      throw new ForbiddenError();
     }
 
-    const user = await userService.getUserById(id, {
-      includeAdminFields: isAdmin,
-    });
+    const user = await getUserById(id, { includeAdminFields: isAdmin });
     if (!user) {
       throw new NotFoundError("User not found");
     }
@@ -40,54 +35,38 @@ export async function GET(
   }
 }
 
-// PUT /api/users/[id]
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const auth = await requireSession();
-    if (auth.response || !auth.session) {
-      return auth.response;
-    }
-
+    const session = await requireSession();
     const { id } = await params;
-    const body = await request.json();
-    const isOwner = auth.session.user.id === id;
-    const isAdmin = auth.session.user.role === Role.ADMIN;
+    const isOwner = session.user.id === id;
+    const isAdmin = session.user.role === Role.ADMIN;
 
     if (!isOwner && !isAdmin) {
       throw new ForbiddenError();
     }
 
+    const body = await request.json();
     const input = isAdmin
       ? userUpdateSchema.parse(body)
       : userSelfUpdateSchema.parse(body);
-    const updatedUser = await userService.updateUser(id, input);
-    return NextResponse.json(updatedUser);
+    return NextResponse.json(await updateUser(id, input));
   } catch (error) {
     return toErrorResponse(error);
   }
 }
 
-// DELETE /api/users/[id]
 export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const auth = await requireSession();
-    if (auth.response || !auth.session) {
-      return auth.response;
-    }
-
-    const roleError = requireAdminOnly(auth.session);
-    if (roleError) {
-      return roleError;
-    }
-
+    await requireRole([Role.ADMIN]);
     const { id } = await params;
-    await userService.deleteUser(id);
+    await softDeleteUser(id);
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     return toErrorResponse(error);

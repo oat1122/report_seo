@@ -2,9 +2,9 @@
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
-import ReportPage from "@/components/Customer/Report/ReportPage";
+import ReportPage from "@/features/customer-report/presentation/ReportPage";
 import { requireRole } from "@/lib/auth-utils";
-import { customerService } from "@/services/CustomerService";
+import { getCustomerReport } from "@/features/customer-report";
 import { Role } from "@/types/auth";
 import type { CustomerReportData } from "@/hooks/api/useCustomersApi";
 
@@ -20,7 +20,7 @@ export default async function AdminViewCustomerReportPage({
   if (!userIdSchema.safeParse(userId).success) {
     notFound();
   }
-  const reportData = await customerService.getCustomerReport(userId);
+  const reportData = await getCustomerReport(userId);
   const initialData = JSON.parse(
     JSON.stringify(reportData),
   ) as CustomerReportData;

@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import {
-  enforceCustomerManageAccess,
-  enforceCustomerReadAccess,
-  getCustomerAccessByUserId,
-} from "@/lib/api-auth";
+  enforceManageAccess,
+  enforceReadAccess,
+  resolveCustomerAccess,
+} from "@/features/customers";
+import { getMetrics, saveMetrics } from "@/features/metrics";
 import { toErrorResponse } from "@/lib/http";
-import { customerService } from "@/services/CustomerService";
 
 export async function GET(
   _req: Request,
@@ -13,21 +13,9 @@ export async function GET(
 ) {
   try {
     const { customerId } = await params;
-    const access = await getCustomerAccessByUserId(customerId);
-
-    if (access.response || !access.context) {
-      return access.response;
-    }
-
-    const permissionError = enforceCustomerReadAccess(access.context);
-    if (permissionError) {
-      return permissionError;
-    }
-
-    const metrics = await customerService.getMetrics(
-      access.context.customer.id,
-    );
-    return NextResponse.json(metrics);
+    const ctx = await resolveCustomerAccess({ byUserId: customerId });
+    enforceReadAccess(ctx);
+    return NextResponse.json(await getMetrics(ctx.customer.id));
   } catch (error) {
     return toErrorResponse(error);
   }
@@ -39,22 +27,9 @@ export async function POST(
 ) {
   try {
     const { customerId } = await params;
-    const access = await getCustomerAccessByUserId(customerId);
-
-    if (access.response || !access.context) {
-      return access.response;
-    }
-
-    const permissionError = enforceCustomerManageAccess(access.context);
-    if (permissionError) {
-      return permissionError;
-    }
-
-    const json = await req.json();
-    const metrics = await customerService.saveMetrics(
-      access.context.customer.id,
-      json,
-    );
+    const ctx = await resolveCustomerAccess({ byUserId: customerId });
+    enforceManageAccess(ctx);
+    const metrics = await saveMetrics(ctx.customer.id, await req.json());
     return NextResponse.json(metrics, { status: 201 });
   } catch (error) {
     return toErrorResponse(error);

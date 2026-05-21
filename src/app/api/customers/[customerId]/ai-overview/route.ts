@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  enforceCustomerManageAccess,
-  enforceCustomerReadAccess,
-  getCustomerAccessByUserId,
-} from "@/lib/api-auth";
+  enforceManageAccess,
+  enforceReadAccess,
+  resolveCustomerAccess,
+} from "@/features/customers";
+import {
+  aiOverviewCreateSchema,
+  createAiOverview,
+  listAiOverviews,
+} from "@/features/ai-overview";
 import { toErrorResponse } from "@/lib/http";
-import { aiOverviewService } from "@/services/AiOverviewService";
-import { aiOverviewCreateSchema } from "@/schemas/aiOverview";
 
 export async function GET(
   _req: Request,
@@ -14,22 +17,9 @@ export async function GET(
 ) {
   try {
     const { customerId } = await params;
-    const access = await getCustomerAccessByUserId(customerId);
-
-    if (access.response || !access.context) {
-      return access.response;
-    }
-
-    const permissionError = enforceCustomerReadAccess(access.context);
-    if (permissionError) {
-      return permissionError;
-    }
-
-    const aiOverviews = await aiOverviewService.getByCustomerId(
-      access.context.customer.id,
-    );
-
-    return NextResponse.json(aiOverviews);
+    const ctx = await resolveCustomerAccess({ byUserId: customerId });
+    enforceReadAccess(ctx);
+    return NextResponse.json(await listAiOverviews(ctx.customer.id));
   } catch (error) {
     return toErrorResponse(error);
   }
@@ -41,16 +31,8 @@ export async function POST(
 ) {
   try {
     const { customerId } = await params;
-    const access = await getCustomerAccessByUserId(customerId);
-
-    if (access.response || !access.context) {
-      return access.response;
-    }
-
-    const permissionError = enforceCustomerManageAccess(access.context);
-    if (permissionError) {
-      return permissionError;
-    }
+    const ctx = await resolveCustomerAccess({ byUserId: customerId });
+    enforceManageAccess(ctx);
 
     const formData = await req.formData();
     const input = aiOverviewCreateSchema.parse({
@@ -59,12 +41,7 @@ export async function POST(
     });
     const files = formData.getAll("files") as File[];
 
-    const aiOverview = await aiOverviewService.create(
-      access.context.customer.id,
-      input,
-      files,
-    );
-
+    const aiOverview = await createAiOverview(ctx.customer.id, input, files);
     return NextResponse.json(aiOverview, { status: 201 });
   } catch (error) {
     return toErrorResponse(error);

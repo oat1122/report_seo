@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import {
-  enforceCustomerManageAccess,
-  enforceCustomerReadAccess,
-  getCustomerAccessByUserId,
-} from "@/lib/api-auth";
+  enforceManageAccess,
+  enforceReadAccess,
+  resolveCustomerAccess,
+} from "@/features/customers";
+import {
+  addRecommendation,
+  listRecommendations,
+} from "@/features/recommendations";
 import { toErrorResponse } from "@/lib/http";
-import { customerService } from "@/services/CustomerService";
 
 export async function GET(
   _req: Request,
@@ -13,21 +16,9 @@ export async function GET(
 ) {
   try {
     const { customerId } = await params;
-    const access = await getCustomerAccessByUserId(customerId);
-
-    if (access.response || !access.context) {
-      return access.response;
-    }
-
-    const permissionError = enforceCustomerReadAccess(access.context);
-    if (permissionError) {
-      return permissionError;
-    }
-
-    const keywords = await customerService.getRecommendKeywords(
-      access.context.customer.id,
-    );
-    return NextResponse.json(keywords);
+    const ctx = await resolveCustomerAccess({ byUserId: customerId });
+    enforceReadAccess(ctx);
+    return NextResponse.json(await listRecommendations(ctx.customer.id));
   } catch (error) {
     return toErrorResponse(error);
   }
@@ -39,23 +30,10 @@ export async function POST(
 ) {
   try {
     const { customerId } = await params;
-    const access = await getCustomerAccessByUserId(customerId);
-
-    if (access.response || !access.context) {
-      return access.response;
-    }
-
-    const permissionError = enforceCustomerManageAccess(access.context);
-    if (permissionError) {
-      return permissionError;
-    }
-
-    const body = await req.json();
-    const newKeyword = await customerService.addRecommendKeyword(
-      access.context.customer.id,
-      body,
-    );
-    return NextResponse.json(newKeyword, { status: 201 });
+    const ctx = await resolveCustomerAccess({ byUserId: customerId });
+    enforceManageAccess(ctx);
+    const created = await addRecommendation(ctx.customer.id, await req.json());
+    return NextResponse.json(created, { status: 201 });
   } catch (error) {
     return toErrorResponse(error);
   }

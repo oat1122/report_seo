@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import {
-  enforceCustomerManageAccess,
-  enforceCustomerReadAccess,
-  getCustomerAccessByUserId,
-} from "@/lib/api-auth";
+  enforceManageAccess,
+  enforceReadAccess,
+  resolveCustomerAccess,
+} from "@/features/customers";
+import { addKeyword, getKeywords } from "@/features/keywords";
 import { toErrorResponse } from "@/lib/http";
-import { customerService } from "@/services/CustomerService";
 
 export async function GET(
   _req: Request,
@@ -13,21 +13,9 @@ export async function GET(
 ) {
   try {
     const { customerId } = await params;
-    const access = await getCustomerAccessByUserId(customerId);
-
-    if (access.response || !access.context) {
-      return access.response;
-    }
-
-    const permissionError = enforceCustomerReadAccess(access.context);
-    if (permissionError) {
-      return permissionError;
-    }
-
-    const keywords = await customerService.getKeywords(
-      access.context.customer.id,
-    );
-    return NextResponse.json(keywords);
+    const ctx = await resolveCustomerAccess({ byUserId: customerId });
+    enforceReadAccess(ctx);
+    return NextResponse.json(await getKeywords(ctx.customer.id));
   } catch (error) {
     return toErrorResponse(error);
   }
@@ -39,23 +27,10 @@ export async function POST(
 ) {
   try {
     const { customerId } = await params;
-    const access = await getCustomerAccessByUserId(customerId);
-
-    if (access.response || !access.context) {
-      return access.response;
-    }
-
-    const permissionError = enforceCustomerManageAccess(access.context);
-    if (permissionError) {
-      return permissionError;
-    }
-
-    const body = await req.json();
-    const newKeyword = await customerService.addKeyword(
-      access.context.customer.id,
-      body,
-    );
-    return NextResponse.json(newKeyword, { status: 201 });
+    const ctx = await resolveCustomerAccess({ byUserId: customerId });
+    enforceManageAccess(ctx);
+    const created = await addKeyword(ctx.customer.id, await req.json());
+    return NextResponse.json(created, { status: 201 });
   } catch (error) {
     return toErrorResponse(error);
   }

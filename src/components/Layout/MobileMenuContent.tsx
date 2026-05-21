@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Role } from "@/types";
 import { useState } from "react";
 import { useGetCombinedHistory } from "@/hooks/api/useCustomersApi";
-import { HistoryModal } from "@/components/shared/users/MetricsModal/HistoryModal";
+import { HistoryModal } from "@/features/users/presentation/components/MetricsModal/HistoryModal";
 import { ThemeToggle } from "./ThemeToggle";
 
 interface MobileMenuContentProps {

@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  getCustomerAccessByCustomerId,
-  requireSession,
-} from "@/lib/api-auth";
-import { toErrorResponse } from "@/lib/http";
-import { BadRequestError, ForbiddenError } from "@/lib/errors";
-import { paymentService } from "@/services/PaymentService";
+  enforceReadAccess,
+  resolveCustomerAccess,
+} from "@/features/customers";
 import {
+  listPaymentProofs,
   paymentListQuerySchema,
   paymentUploadSchema,
-} from "@/schemas/payment";
+  uploadPaymentProof,
+} from "@/features/payments";
+import { requireSession } from "@/infrastructure/auth/session";
+import { toErrorResponse } from "@/lib/http";
+import { BadRequestError } from "@/lib/errors";
+import { Role } from "@/types/auth";
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,19 +27,11 @@ export async function POST(request: NextRequest) {
       customerId: formData.get("customerId"),
     });
 
-    const access = await getCustomerAccessByCustomerId(customerId);
-    if (access.response || !access.context) {
-      return access.response;
-    }
-    const { isAdmin, isOwner, isAssignedSeoDev } = access.context;
-    if (!isAdmin && !isOwner && !isAssignedSeoDev) {
-      throw new ForbiddenError();
-    }
+    // admin / seoDev ที่ดูแล / owner สามารถอัปโหลดสลิปได้ (เท่ากับ canRead)
+    const ctx = await resolveCustomerAccess({ byCustomerId: customerId });
+    enforceReadAccess(ctx);
 
-    const paymentProof = await paymentService.uploadProof(
-      file,
-      access.context.customer.id,
-    );
+    const paymentProof = await uploadPaymentProof(file, ctx.customer.id);
 
     return NextResponse.json({
       success: true,
@@ -55,18 +50,19 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = await requireSession();
-    if (auth.response || !auth.session) {
-      return auth.response;
-    }
-
+    const session = await requireSession();
     const { searchParams } = new URL(request.url);
     const query = paymentListQuerySchema.parse({
       status: searchParams.get("status") || undefined,
       customerId: searchParams.get("customerId") || undefined,
     });
 
-    const data = await paymentService.listProofs(query, auth.session);
+    const data = await listPaymentProofs(query, {
+      user: {
+        id: session.user.id,
+        role: session.user.role as Role,
+      },
+    });
 
     return NextResponse.json({ success: true, data });
   } catch (error) {

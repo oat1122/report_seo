@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import {
-  enforceCustomerReadAccess,
-  getKeywordAccessContext,
-} from "@/lib/api-auth";
+  enforceReadAccess,
+  resolveCustomerAccess,
+} from "@/features/customers";
+import { getKeywordHistory } from "@/features/keywords";
 import { toErrorResponse } from "@/lib/http";
-import { customerService } from "@/services/CustomerService";
 
 export async function GET(
   _req: Request,
@@ -12,19 +12,10 @@ export async function GET(
 ) {
   try {
     const { keywordId } = await params;
-    const access = await getKeywordAccessContext(keywordId);
-
-    if (access.response || !access.context) {
-      return access.response;
-    }
-
-    const permissionError = enforceCustomerReadAccess(access.context);
-    if (permissionError) {
-      return permissionError;
-    }
-
-    const history = await customerService.getKeywordHistory(keywordId, {
-      onlyVisible: !access.context.canManage,
+    const ctx = await resolveCustomerAccess({ byKeywordId: keywordId });
+    enforceReadAccess(ctx);
+    const history = await getKeywordHistory(keywordId, {
+      onlyVisible: !ctx.canManage,
     });
     return NextResponse.json(history);
   } catch (error) {

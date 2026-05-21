@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Role } from "@/types";
 import { useGetCombinedHistory } from "@/hooks/api/useCustomersApi";
-import { HistoryModal } from "@/components/shared/users/MetricsModal/HistoryModal";
+import { HistoryModal } from "@/features/users/presentation/components/MetricsModal/HistoryModal";
 
 interface HistoryButtonProps {
   role: Role | undefined;

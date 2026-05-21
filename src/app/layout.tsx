@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 import { Geist, Inter } from "next/font/google";
 import { Kanit } from "next/font/google";
-import { Providers } from "@/components/Login/subcomponents/providers";
+import { Providers } from "@/features/auth/presentation/providers";
 import { ThemedToastContainer } from "@/components/Layout/ThemedToastContainer";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
