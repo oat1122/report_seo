@@ -5,6 +5,8 @@ import axios from "@/infrastructure/http/axios";
 import type { OverallMetricsForm } from "@/types/metrics";
 import type { CombinedHistoryData } from "@/features/customer-report/presentation/hooks/useCustomerReport";
 
+type ApiData<T> = { data: T };
+
 interface VisibilityPayload {
   customerId: string;
   historyId?: string;
@@ -21,11 +23,11 @@ export const useSaveMetrics = () => {
     { customerId: string; metrics: OverallMetricsForm }
   >({
     mutationFn: async ({ customerId, metrics }) => {
-      const { data } = await axios.post(
+      const { data } = await axios.post<ApiData<OverallMetricsForm>>(
         `/customers/${customerId}/metrics`,
         metrics,
       );
-      return data;
+      return data.data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -51,11 +53,11 @@ export const useToggleMetricsHistoryVisibility = () => {
     { previous: CombinedHistoryData | undefined }
   >({
     mutationFn: async ({ customerId, historyId, historyIds, isVisible }) => {
-      const { data } = await axios.patch(
+      const { data } = await axios.patch<ApiData<{ updated: number }>>(
         `/customers/${customerId}/metrics/history/visibility`,
         { historyId, historyIds, isVisible },
       );
-      return data as { updated: number };
+      return data.data;
     },
     onMutate: async (variables) => {
       const queryKey = ["history", variables.customerId];

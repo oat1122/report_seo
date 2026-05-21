@@ -1,37 +1,26 @@
-import { NextResponse } from "next/server";
+import { z } from "zod";
 import {
-  enforceManageAccess,
-  enforceReadAccess,
-  resolveCustomerAccess,
-} from "@/features/customers";
-import { addKeyword, getKeywords } from "@/features/keywords";
-import { toErrorResponse } from "@/lib/http";
+  withApiHandler,
+  customerAccessGuard,
+  ok,
+  created,
+} from "@/infrastructure/http";
+import { addKeyword, getKeywords, keywordSchema } from "@/features/keywords";
 
-export async function GET(
-  _req: Request,
-  { params }: { params: Promise<{ customerId: string }> },
-) {
-  try {
-    const { customerId } = await params;
-    const ctx = await resolveCustomerAccess({ byUserId: customerId });
-    enforceReadAccess(ctx);
-    return NextResponse.json(await getKeywords(ctx.customer.id));
-  } catch (error) {
-    return toErrorResponse(error);
-  }
-}
+const paramsSchema = z.object({ customerId: z.string().min(1) });
 
-export async function POST(
-  req: Request,
-  { params }: { params: Promise<{ customerId: string }> },
-) {
-  try {
-    const { customerId } = await params;
-    const ctx = await resolveCustomerAccess({ byUserId: customerId });
-    enforceManageAccess(ctx);
-    const created = await addKeyword(ctx.customer.id, await req.json());
-    return NextResponse.json(created, { status: 201 });
-  } catch (error) {
-    return toErrorResponse(error);
-  }
-}
+export const GET = withApiHandler(
+  { params: paramsSchema },
+  async ({ params }) => {
+    const ctx = await customerAccessGuard({ byUserId: params.customerId }, "read");
+    return ok(await getKeywords(ctx.customer.id));
+  },
+);
+
+export const POST = withApiHandler(
+  { params: paramsSchema, body: keywordSchema },
+  async ({ params, body }) => {
+    const ctx = await customerAccessGuard({ byUserId: params.customerId }, "manage");
+    return created(await addKeyword(ctx.customer.id, body));
+  },
+);

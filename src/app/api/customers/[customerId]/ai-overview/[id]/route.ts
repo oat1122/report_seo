@@ -1,16 +1,22 @@
-import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import {
-  enforceManageAccess,
-  resolveCustomerAccess,
-} from "@/features/customers";
+  withApiHandler,
+  customerAccessGuard,
+  ok,
+  noContent,
+} from "@/infrastructure/http";
 import {
   aiOverviewUpdateSchema,
   deleteAiOverview,
   imagesToDeleteSchema,
   updateAiOverview,
 } from "@/features/ai-overview";
-import { toErrorResponse } from "@/lib/http";
 import { BadRequestError } from "@/lib/errors";
+
+const paramsSchema = z.object({
+  customerId: z.string().min(1),
+  id: z.string().min(1),
+});
 
 function parseImagesToDelete(value: string | null): string[] {
   if (!value) return [];
@@ -23,14 +29,10 @@ function parseImagesToDelete(value: string | null): string[] {
   return imagesToDeleteSchema.parse(parsed);
 }
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: Promise<{ customerId: string; id: string }> },
-) {
-  try {
-    const { customerId, id } = await params;
-    const ctx = await resolveCustomerAccess({ byUserId: customerId });
-    enforceManageAccess(ctx);
+export const PUT = withApiHandler(
+  { params: paramsSchema },
+  async ({ req, params }) => {
+    const ctx = await customerAccessGuard({ byUserId: params.customerId }, "manage");
 
     const formData = await req.formData();
     const input = aiOverviewUpdateSchema.parse({
@@ -42,33 +44,17 @@ export async function PUT(
     );
     const files = formData.getAll("files") as File[];
 
-    const updated = await updateAiOverview(
-      ctx.customer.id,
-      id,
-      input,
-      files,
-      imageIdsToDelete,
+    return ok(
+      await updateAiOverview(ctx.customer.id, params.id, input, files, imageIdsToDelete),
     );
-    return NextResponse.json(updated);
-  } catch (error) {
-    return toErrorResponse(error);
-  }
-}
+  },
+);
 
-export async function DELETE(
-  _req: Request,
-  { params }: { params: Promise<{ customerId: string; id: string }> },
-) {
-  try {
-    const { customerId, id } = await params;
-    const ctx = await resolveCustomerAccess({ byUserId: customerId });
-    enforceManageAccess(ctx);
-    await deleteAiOverview(ctx.customer.id, id);
-    return NextResponse.json({
-      success: true,
-      message: "ลบ AI Overview สำเร็จ",
-    });
-  } catch (error) {
-    return toErrorResponse(error);
-  }
-}
+export const DELETE = withApiHandler(
+  { params: paramsSchema },
+  async ({ params }) => {
+    const ctx = await customerAccessGuard({ byUserId: params.customerId }, "manage");
+    await deleteAiOverview(ctx.customer.id, params.id);
+    return noContent();
+  },
+);

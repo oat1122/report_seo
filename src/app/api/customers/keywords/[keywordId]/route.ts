@@ -1,37 +1,27 @@
-import { NextResponse } from "next/server";
+import { z } from "zod";
 import {
-  enforceManageAccess,
-  resolveCustomerAccess,
-} from "@/features/customers";
-import { deleteKeyword, updateKeyword } from "@/features/keywords";
-import { toErrorResponse } from "@/lib/http";
+  withApiHandler,
+  customerAccessGuard,
+  ok,
+  noContent,
+} from "@/infrastructure/http";
+import { deleteKeyword, keywordSchema, updateKeyword } from "@/features/keywords";
 
-export async function PUT(
-  req: Request,
-  { params }: { params: Promise<{ keywordId: string }> },
-) {
-  try {
-    const { keywordId } = await params;
-    const ctx = await resolveCustomerAccess({ byKeywordId: keywordId });
-    enforceManageAccess(ctx);
-    const updated = await updateKeyword(keywordId, await req.json());
-    return NextResponse.json(updated);
-  } catch (error) {
-    return toErrorResponse(error);
-  }
-}
+const paramsSchema = z.object({ keywordId: z.string().min(1) });
 
-export async function DELETE(
-  _req: Request,
-  { params }: { params: Promise<{ keywordId: string }> },
-) {
-  try {
-    const { keywordId } = await params;
-    const ctx = await resolveCustomerAccess({ byKeywordId: keywordId });
-    enforceManageAccess(ctx);
-    await deleteKeyword(keywordId);
-    return new NextResponse(null, { status: 204 });
-  } catch (error) {
-    return toErrorResponse(error);
-  }
-}
+export const PUT = withApiHandler(
+  { params: paramsSchema, body: keywordSchema },
+  async ({ params, body }) => {
+    await customerAccessGuard({ byKeywordId: params.keywordId }, "manage");
+    return ok(await updateKeyword(params.keywordId, body));
+  },
+);
+
+export const DELETE = withApiHandler(
+  { params: paramsSchema },
+  async ({ params }) => {
+    await customerAccessGuard({ byKeywordId: params.keywordId }, "manage");
+    await deleteKeyword(params.keywordId);
+    return noContent();
+  },
+);

@@ -4,12 +4,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "@/infrastructure/http/axios";
 import type { AiOverview } from "@/types/metrics";
 
+type ApiData<T> = { data: T };
+
 export const useGetAiOverviews = (customerId: string | null) =>
   useQuery<AiOverview[], Error>({
     queryKey: ["aiOverviews", customerId],
     queryFn: async () => {
-      const { data } = await axios.get(`/customers/${customerId}/ai-overview`);
-      return data;
+      const { data } = await axios.get<ApiData<AiOverview[]>>(
+        `/customers/${customerId}/ai-overview`,
+      );
+      return data.data;
     },
     enabled: !!customerId,
   });
@@ -22,12 +26,12 @@ export const useAddAiOverview = () => {
     { customerId: string; formData: FormData }
   >({
     mutationFn: async ({ customerId, formData }) => {
-      const { data } = await axios.post(
+      const { data } = await axios.post<ApiData<AiOverview>>(
         `/customers/${customerId}/ai-overview`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } },
       );
-      return data;
+      return data.data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -48,12 +52,12 @@ export const useUpdateAiOverview = () => {
     { customerId: string; id: string; formData: FormData }
   >({
     mutationFn: async ({ customerId, id, formData }) => {
-      const { data } = await axios.put(
+      const { data } = await axios.put<ApiData<AiOverview>>(
         `/customers/${customerId}/ai-overview/${id}`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } },
       );
-      return data;
+      return data.data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({

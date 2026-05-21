@@ -1,40 +1,30 @@
-import { NextResponse } from "next/server";
+import { z } from "zod";
 import {
-  enforceManageAccess,
-  enforceReadAccess,
-  resolveCustomerAccess,
-} from "@/features/customers";
+  withApiHandler,
+  customerAccessGuard,
+  ok,
+  created,
+} from "@/infrastructure/http";
 import {
   addRecommendation,
   listRecommendations,
+  recommendKeywordSchema,
 } from "@/features/recommendations";
-import { toErrorResponse } from "@/lib/http";
 
-export async function GET(
-  _req: Request,
-  { params }: { params: Promise<{ customerId: string }> },
-) {
-  try {
-    const { customerId } = await params;
-    const ctx = await resolveCustomerAccess({ byUserId: customerId });
-    enforceReadAccess(ctx);
-    return NextResponse.json(await listRecommendations(ctx.customer.id));
-  } catch (error) {
-    return toErrorResponse(error);
-  }
-}
+const paramsSchema = z.object({ customerId: z.string().min(1) });
 
-export async function POST(
-  req: Request,
-  { params }: { params: Promise<{ customerId: string }> },
-) {
-  try {
-    const { customerId } = await params;
-    const ctx = await resolveCustomerAccess({ byUserId: customerId });
-    enforceManageAccess(ctx);
-    const created = await addRecommendation(ctx.customer.id, await req.json());
-    return NextResponse.json(created, { status: 201 });
-  } catch (error) {
-    return toErrorResponse(error);
-  }
-}
+export const GET = withApiHandler(
+  { params: paramsSchema },
+  async ({ params }) => {
+    const ctx = await customerAccessGuard({ byUserId: params.customerId }, "read");
+    return ok(await listRecommendations(ctx.customer.id));
+  },
+);
+
+export const POST = withApiHandler(
+  { params: paramsSchema, body: recommendKeywordSchema },
+  async ({ params, body }) => {
+    const ctx = await customerAccessGuard({ byUserId: params.customerId }, "manage");
+    return created(await addRecommendation(ctx.customer.id, body));
+  },
+);

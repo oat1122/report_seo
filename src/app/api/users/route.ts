@@ -1,26 +1,21 @@
-import { NextRequest, NextResponse } from "next/server";
-import { requireRole } from "@/infrastructure/auth/session";
-import { toErrorResponse } from "@/lib/http";
+import { z } from "zod";
+import { withApiHandler, ok, created } from "@/infrastructure/http";
 import { createUser, listUsers, userCreateSchema } from "@/features/users";
 import { Role } from "@/types/auth";
 
-export async function GET(request: NextRequest) {
-  try {
-    await requireRole([Role.ADMIN]);
-    const { searchParams } = new URL(request.url);
-    const includeDeleted = searchParams.get("includeDeleted") === "true";
-    return NextResponse.json(await listUsers(includeDeleted));
-  } catch (error) {
-    return toErrorResponse(error);
-  }
-}
+const listUsersQuerySchema = z.object({
+  includeDeleted: z
+    .union([z.literal("true"), z.literal("false")])
+    .optional()
+    .transform((v) => v === "true"),
+});
 
-export async function POST(request: Request) {
-  try {
-    await requireRole([Role.ADMIN]);
-    const input = userCreateSchema.parse(await request.json());
-    return NextResponse.json(await createUser(input), { status: 201 });
-  } catch (error) {
-    return toErrorResponse(error);
-  }
-}
+export const GET = withApiHandler(
+  { roles: [Role.ADMIN], query: listUsersQuerySchema },
+  async ({ query }) => ok(await listUsers(query.includeDeleted)),
+);
+
+export const POST = withApiHandler(
+  { roles: [Role.ADMIN], body: userCreateSchema },
+  async ({ body }) => created(await createUser(body)),
+);

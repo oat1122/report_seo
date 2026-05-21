@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { HttpError } from "@/lib/errors";
+import { logger as rootLogger, type Logger } from "@/lib/logger";
 
 type PrismaKnownError = {
   code: string;
@@ -16,7 +17,7 @@ function isPrismaKnownError(error: unknown): error is PrismaKnownError {
   );
 }
 
-export function toErrorResponse(error: unknown): NextResponse {
+export function toErrorResponse(error: unknown, log: Logger = rootLogger): NextResponse {
   if (error instanceof HttpError) {
     return NextResponse.json(
       { error: error.message },
@@ -49,7 +50,7 @@ export function toErrorResponse(error: unknown): NextResponse {
     }
   }
 
-  console.error("Unhandled error in route handler:", error);
+  log.error({ err: error }, "unhandled route error");
   return NextResponse.json(
     { error: "Internal Server Error" },
     { status: 500 },

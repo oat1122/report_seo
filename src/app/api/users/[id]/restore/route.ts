@@ -1,22 +1,17 @@
-import { NextResponse } from "next/server";
+import { z } from "zod";
 import { restoreUser } from "@/features/users";
-import { requireRole } from "@/infrastructure/auth/session";
-import { toErrorResponse } from "@/lib/http";
+import { withApiHandler, noContent } from "@/infrastructure/http";
 import { Role } from "@/types/auth";
 
-async function handler(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  try {
-    await requireRole([Role.ADMIN]);
-    const { id } = await params;
-    await restoreUser(id);
-    return new NextResponse(null, { status: 204 });
-  } catch (error) {
-    return toErrorResponse(error);
-  }
-}
+const idParamsSchema = z.object({ id: z.string().min(1) });
+
+const handler = withApiHandler(
+  { roles: [Role.ADMIN], params: idParamsSchema },
+  async ({ params }) => {
+    await restoreUser(params.id);
+    return noContent();
+  },
+);
 
 export const PUT = handler;
 export const PATCH = handler;

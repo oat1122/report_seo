@@ -30,8 +30,8 @@ export const useUserModalLogic = () => {
   const handleOpenUserModal = async (user?: User) => {
     if (user && user.role === Role.CUSTOMER) {
       try {
-        const response = await axios.get(`/users/${user.id}`);
-        const apiUserData = response.data;
+        const response = await axios.get<{ data: User }>(`/users/${user.id}`);
+        const apiUserData = response.data.data;
         const flattenedData = {
           ...apiUserData,
           companyName: apiUserData.customerProfile?.name || "",

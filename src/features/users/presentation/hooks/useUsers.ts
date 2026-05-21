@@ -5,6 +5,8 @@ import axios from "@/infrastructure/http/axios";
 import { User, UserFormState } from "@/types/user";
 import { toast } from "react-toastify";
 
+type ApiData<T> = { data: T };
+
 function invalidateUserListQueries(
   queryClient: ReturnType<typeof useQueryClient>,
 ) {
@@ -17,10 +19,10 @@ export const useGetUsers = (includeDeleted = true) =>
   useQuery<User[], Error>({
     queryKey: ["users", includeDeleted],
     queryFn: async () => {
-      const { data } = await axios.get("/users", {
+      const { data } = await axios.get<ApiData<User[]>>("/users", {
         params: { includeDeleted },
       });
-      return data;
+      return data.data;
     },
   });
 
@@ -28,8 +30,8 @@ export const useGetSeoDevs = () =>
   useQuery<User[], Error>({
     queryKey: ["seoDevs"],
     queryFn: async () => {
-      const { data } = await axios.get("/users/seodevs");
-      return data;
+      const { data } = await axios.get<ApiData<User[]>>("/users/seodevs");
+      return data.data;
     },
   });
 
@@ -37,8 +39,8 @@ export const useGetManagedCustomers = () =>
   useQuery<User[], Error>({
     queryKey: ["managedCustomers"],
     queryFn: async () => {
-      const { data } = await axios.get("/users/managed-customers");
-      return data;
+      const { data } = await axios.get<ApiData<User[]>>("/users/managed-customers");
+      return data.data;
     },
   });
 
@@ -46,8 +48,8 @@ export const useAddUser = () => {
   const queryClient = useQueryClient();
   return useMutation<User, Error, UserFormState>({
     mutationFn: async (newUser) => {
-      const { data } = await axios.post("/users", newUser);
-      return data;
+      const { data } = await axios.post<ApiData<User>>("/users", newUser);
+      return data.data;
     },
     onSuccess: () => invalidateUserListQueries(queryClient),
   });
@@ -57,8 +59,8 @@ export const useUpdateUser = () => {
   const queryClient = useQueryClient();
   return useMutation<User, Error, { id: string; user: UserFormState }>({
     mutationFn: async ({ id, user }) => {
-      const { data } = await axios.put(`/users/${id}`, user);
-      return data;
+      const { data } = await axios.put<ApiData<User>>(`/users/${id}`, user);
+      return data.data;
     },
     onSuccess: () => invalidateUserListQueries(queryClient),
   });

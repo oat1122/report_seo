@@ -1,36 +1,34 @@
-import { NextResponse } from "next/server";
+import { z } from "zod";
 import { changePassword } from "@/features/users";
-import { requireSession } from "@/infrastructure/auth/session";
-import { toErrorResponse } from "@/lib/http";
+import {
+  withApiHandler,
+  noContent,
+} from "@/infrastructure/http";
 import { BadRequestError, ForbiddenError } from "@/lib/errors";
 import { Role } from "@/types/auth";
 
-async function handler(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  try {
-    const session = await requireSession();
-    const { id } = await params;
-    const { currentPassword, newPassword, confirmPassword } = await req.json();
+const idParamsSchema = z.object({ id: z.string().min(1) });
+const passwordBodySchema = z
+  .object({
+    currentPassword: z.string().optional(),
+    newPassword: z.string().min(6, "New password must be at least 6 characters"),
+    confirmPassword: z.string().min(1, "Confirm password is required"),
+  })
+  .strict();
 
-    const isOwner = session.user.id === id;
+const handler = withApiHandler(
+  { params: idParamsSchema, body: passwordBodySchema },
+  async ({ session, params, body }) => {
+    const isOwner = session.user.id === params.id;
     const isAdmin = session.user.role === Role.ADMIN;
-
-    if (!isAdmin && !isOwner) {
-      throw new ForbiddenError();
-    }
-
-    if (newPassword !== confirmPassword) {
+    if (!isAdmin && !isOwner) throw new ForbiddenError();
+    if (body.newPassword !== body.confirmPassword) {
       throw new BadRequestError("New passwords do not match");
     }
-
-    await changePassword(id, currentPassword, newPassword, isAdmin);
-    return new NextResponse(null, { status: 204 });
-  } catch (error) {
-    return toErrorResponse(error);
-  }
-}
+    await changePassword(params.id, body.currentPassword, body.newPassword, isAdmin);
+    return noContent();
+  },
+);
 
 export const PUT = handler;
 export const PATCH = handler;

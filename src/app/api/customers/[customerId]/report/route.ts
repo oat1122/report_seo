@@ -1,21 +1,13 @@
-import { NextResponse } from "next/server";
-import {
-  enforceReadAccess,
-  resolveCustomerAccess,
-} from "@/features/customers";
+import { z } from "zod";
+import { withApiHandler, customerAccessGuard, ok } from "@/infrastructure/http";
 import { getCustomerReport } from "@/features/customer-report";
-import { toErrorResponse } from "@/lib/http";
 
-export async function GET(
-  _req: Request,
-  { params }: { params: Promise<{ customerId: string }> },
-) {
-  try {
-    const { customerId } = await params;
-    const ctx = await resolveCustomerAccess({ byUserId: customerId });
-    enforceReadAccess(ctx);
-    return NextResponse.json(await getCustomerReport(customerId));
-  } catch (error) {
-    return toErrorResponse(error);
-  }
-}
+const paramsSchema = z.object({ customerId: z.string().min(1) });
+
+export const GET = withApiHandler(
+  { params: paramsSchema },
+  async ({ params }) => {
+    await customerAccessGuard({ byUserId: params.customerId }, "read");
+    return ok(await getCustomerReport(params.customerId));
+  },
+);

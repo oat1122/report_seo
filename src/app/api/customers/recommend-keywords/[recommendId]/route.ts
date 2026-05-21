@@ -1,40 +1,31 @@
-import { NextResponse } from "next/server";
+import { z } from "zod";
 import {
-  enforceManageAccess,
-  resolveCustomerAccess,
-} from "@/features/customers";
+  withApiHandler,
+  customerAccessGuard,
+  ok,
+  noContent,
+} from "@/infrastructure/http";
 import {
   deleteRecommendation,
+  recommendKeywordSchema,
   updateRecommendation,
 } from "@/features/recommendations";
-import { toErrorResponse } from "@/lib/http";
 
-export async function PUT(
-  req: Request,
-  { params }: { params: Promise<{ recommendId: string }> },
-) {
-  try {
-    const { recommendId } = await params;
-    const ctx = await resolveCustomerAccess({ byRecommendId: recommendId });
-    enforceManageAccess(ctx);
-    const updated = await updateRecommendation(recommendId, await req.json());
-    return NextResponse.json(updated);
-  } catch (error) {
-    return toErrorResponse(error);
-  }
-}
+const paramsSchema = z.object({ recommendId: z.string().min(1) });
 
-export async function DELETE(
-  _req: Request,
-  { params }: { params: Promise<{ recommendId: string }> },
-) {
-  try {
-    const { recommendId } = await params;
-    const ctx = await resolveCustomerAccess({ byRecommendId: recommendId });
-    enforceManageAccess(ctx);
-    await deleteRecommendation(recommendId);
-    return new NextResponse(null, { status: 204 });
-  } catch (error) {
-    return toErrorResponse(error);
-  }
-}
+export const PUT = withApiHandler(
+  { params: paramsSchema, body: recommendKeywordSchema },
+  async ({ params, body }) => {
+    await customerAccessGuard({ byRecommendId: params.recommendId }, "manage");
+    return ok(await updateRecommendation(params.recommendId, body));
+  },
+);
+
+export const DELETE = withApiHandler(
+  { params: paramsSchema },
+  async ({ params }) => {
+    await customerAccessGuard({ byRecommendId: params.recommendId }, "manage");
+    await deleteRecommendation(params.recommendId);
+    return noContent();
+  },
+);

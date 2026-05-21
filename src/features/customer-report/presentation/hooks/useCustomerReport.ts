@@ -13,6 +13,8 @@ import type {
   KeywordReportHistory,
 } from "@/types/history";
 
+type ApiData<T> = { data: T };
+
 export interface CustomerReportData {
   metrics: OverallMetricsForm | null;
   topKeywords: KeywordReport[];
@@ -47,8 +49,10 @@ export const useGetCustomerReport = (
   useQuery<CustomerReportData, Error>({
     queryKey: ["customerReport", customerId],
     queryFn: async () => {
-      const { data } = await axios.get(`/customers/${customerId}/report`);
-      return data;
+      const { data } = await axios.get<ApiData<CustomerReportData>>(
+        `/customers/${customerId}/report`,
+      );
+      return data.data;
     },
     enabled: !!customerId,
     initialData,
@@ -58,10 +62,10 @@ export const useGetCombinedHistory = (customerId: string | null) =>
   useQuery<CombinedHistoryData, Error>({
     queryKey: ["history", customerId],
     queryFn: async () => {
-      const { data } = await axios.get(
+      const { data } = await axios.get<ApiData<CombinedHistoryData>>(
         `/customers/${customerId}/metrics/history`,
       );
-      return data;
+      return data.data;
     },
     enabled: !!customerId,
     staleTime: 5 * 60 * 1000,

@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "@/infrastructure/http/axios";
 import type { KeywordRecommend } from "@/types/metrics";
 
+type ApiData<T> = { data: T };
+
 export interface RecommendKeywordFormData {
   keyword: string;
   kd?: string | null;
@@ -15,10 +17,10 @@ export const useGetRecommendKeywords = (customerId: string) =>
   useQuery<KeywordRecommend[], Error>({
     queryKey: ["recommendKeywords", customerId],
     queryFn: async () => {
-      const { data } = await axios.get(
+      const { data } = await axios.get<ApiData<KeywordRecommend[]>>(
         `/customers/${customerId}/recommend-keywords`,
       );
-      return data;
+      return data.data;
     },
     enabled: !!customerId,
   });
@@ -31,11 +33,11 @@ export const useAddRecommendKeyword = () => {
     { customerId: string; keyword: RecommendKeywordFormData }
   >({
     mutationFn: async ({ customerId, keyword }) => {
-      const { data } = await axios.post(
+      const { data } = await axios.post<ApiData<KeywordRecommend>>(
         `/customers/${customerId}/recommend-keywords`,
         keyword,
       );
-      return data;
+      return data.data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -60,11 +62,11 @@ export const useUpdateRecommendKeyword = () => {
     }
   >({
     mutationFn: async ({ recommendId, keyword }) => {
-      const { data } = await axios.put(
+      const { data } = await axios.put<ApiData<KeywordRecommend>>(
         `/customers/recommend-keywords/${recommendId}`,
         keyword,
       );
-      return data;
+      return data.data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({

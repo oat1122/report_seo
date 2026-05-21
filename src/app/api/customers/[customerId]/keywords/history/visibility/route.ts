@@ -1,47 +1,37 @@
-import { NextResponse } from "next/server";
-import {
-  enforceManageAccess,
-  resolveCustomerAccess,
-} from "@/features/customers";
+import { z } from "zod";
+import { withApiHandler, customerAccessGuard, ok } from "@/infrastructure/http";
 import {
   bulkSetKeywordHistoryVisibility,
   historyVisibilitySchema,
   setKeywordHistoryVisibility,
 } from "@/features/keywords";
-import { toErrorResponse } from "@/lib/http";
 
-export async function PATCH(
-  req: Request,
-  { params }: { params: Promise<{ customerId: string }> },
-) {
-  try {
-    const { customerId } = await params;
-    const ctx = await resolveCustomerAccess({ byUserId: customerId });
-    enforceManageAccess(ctx);
+const paramsSchema = z.object({ customerId: z.string().min(1) });
 
-    const input = historyVisibilitySchema.parse(await req.json());
+export const PATCH = withApiHandler(
+  { params: paramsSchema, body: historyVisibilitySchema },
+  async ({ params, body }) => {
+    const ctx = await customerAccessGuard({ byUserId: params.customerId }, "manage");
     const customerInternalId = ctx.customer.id;
 
-    if (input.historyIds) {
-      const result = await bulkSetKeywordHistoryVisibility(
-        input.historyIds,
-        input.isVisible,
-        customerInternalId,
+    if (body.historyIds) {
+      return ok(
+        await bulkSetKeywordHistoryVisibility(
+          body.historyIds,
+          body.isVisible,
+          customerInternalId,
+        ),
       );
-      return NextResponse.json(result);
     }
-
-    if (input.historyId) {
-      const result = await setKeywordHistoryVisibility(
-        input.historyId,
-        input.isVisible,
-        customerInternalId,
+    if (body.historyId) {
+      return ok(
+        await setKeywordHistoryVisibility(
+          body.historyId,
+          body.isVisible,
+          customerInternalId,
+        ),
       );
-      return NextResponse.json(result);
     }
-
-    return NextResponse.json({ updated: 0 });
-  } catch (error) {
-    return toErrorResponse(error);
-  }
-}
+    return ok({ updated: 0 });
+  },
+);

@@ -6,6 +6,8 @@ import type { KeywordReport } from "@/types/metrics";
 import type { KeywordReportHistory } from "@/types/history";
 import type { CombinedHistoryData } from "@/features/customer-report/presentation/hooks/useCustomerReport";
 
+type ApiData<T> = { data: T };
+
 export interface KeywordFormData {
   keyword: string;
   position?: number | string | null;
@@ -25,8 +27,10 @@ export const useGetKeywords = (customerId: string) =>
   useQuery<KeywordReport[], Error>({
     queryKey: ["keywords", customerId],
     queryFn: async () => {
-      const { data } = await axios.get(`/customers/${customerId}/keywords`);
-      return data;
+      const { data } = await axios.get<ApiData<KeywordReport[]>>(
+        `/customers/${customerId}/keywords`,
+      );
+      return data.data;
     },
     enabled: !!customerId,
   });
@@ -39,11 +43,11 @@ export const useAddKeyword = () => {
     { customerId: string; keyword: KeywordFormData }
   >({
     mutationFn: async ({ customerId, keyword }) => {
-      const { data } = await axios.post(
+      const { data } = await axios.post<ApiData<KeywordReport>>(
         `/customers/${customerId}/keywords`,
         keyword,
       );
-      return data;
+      return data.data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -64,11 +68,11 @@ export const useUpdateKeyword = () => {
     { customerId: string; keywordId: string; keyword: KeywordFormData }
   >({
     mutationFn: async ({ keywordId, keyword }) => {
-      const { data } = await axios.put(
+      const { data } = await axios.put<ApiData<KeywordReport>>(
         `/customers/keywords/${keywordId}`,
         keyword,
       );
-      return data;
+      return data.data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -112,10 +116,10 @@ export const useGetKeywordSpecificHistory = (keywordId: string | null) =>
   useQuery<KeywordReportHistory[], Error>({
     queryKey: ["keywordHistory", keywordId],
     queryFn: async () => {
-      const { data } = await axios.get(
+      const { data } = await axios.get<ApiData<KeywordReportHistory[]>>(
         `/customers/keywords/${keywordId}/history`,
       );
-      return data;
+      return data.data;
     },
     enabled: !!keywordId,
   });
@@ -129,11 +133,11 @@ export const useToggleKeywordHistoryVisibility = () => {
     { previousCombined: CombinedHistoryData | undefined }
   >({
     mutationFn: async ({ customerId, historyId, historyIds, isVisible }) => {
-      const { data } = await axios.patch(
+      const { data } = await axios.patch<ApiData<{ updated: number }>>(
         `/customers/${customerId}/keywords/history/visibility`,
         { historyId, historyIds, isVisible },
       );
-      return data as { updated: number };
+      return data.data;
     },
     onMutate: async (variables) => {
       const queryKey = ["history", variables.customerId];
