@@ -6,12 +6,19 @@ import {
 import { addItemSchema } from "../../../schemas";
 import type { WorkProgressRepository } from "../../ports/WorkProgressRepository";
 import type { WorkProgressMasterRepository } from "../../ports/WorkProgressMasterRepository";
+import type { WorkProgressActivityRepository } from "../../ports/WorkProgressActivityRepository";
 
 export function addItemUseCase(
   repo: WorkProgressRepository,
   masterRepo: WorkProgressMasterRepository,
+  activityRepo: WorkProgressActivityRepository,
 ) {
-  return async (customerId: string, planId: string, raw: unknown) => {
+  return async (
+    customerId: string,
+    planId: string,
+    actorId: string | null,
+    raw: unknown,
+  ) => {
     const parsed = addItemSchema.safeParse(raw);
     if (!parsed.success) {
       const detail = parsed.error.issues
@@ -50,7 +57,7 @@ export function addItemUseCase(
       }
     }
 
-    return repo.addItem({
+    const created = await repo.addItem({
       planId,
       categoryId: input.categoryId,
       statusId,
@@ -63,5 +70,14 @@ export function addItemUseCase(
       startDate: input.startDate ?? null,
       dueDate: input.dueDate ?? null,
     });
+    await activityRepo.log({
+      planId,
+      actorId,
+      action: "ITEM_CREATED",
+      entity: "ITEM",
+      entityId: created.id,
+      diff: { input, after: created },
+    });
+    return created;
   };
 }

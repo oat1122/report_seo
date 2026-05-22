@@ -10,17 +10,20 @@ import {
   assertAssigneeAllowed,
   type AssigneeLookup,
 } from "../../policies/assignee-guard";
+import type { WorkProgressActivityRepository } from "../../ports/WorkProgressActivityRepository";
 
 export function addSubtaskUseCase(
   repo: WorkProgressRepository,
   subtaskRepo: WorkProgressSubtaskRepository,
   lookupAssignee: AssigneeLookup,
+  activityRepo: WorkProgressActivityRepository,
 ) {
   return async (
     customerId: string,
     planId: string,
     itemId: string,
     customerSeoDevId: string | null,
+    actorId: string | null,
     raw: unknown,
   ) => {
     const parsed = addSubtaskSchema.safeParse(raw);
@@ -51,11 +54,20 @@ export function addSubtaskUseCase(
       );
     }
 
-    return subtaskRepo.add({
+    const created = await subtaskRepo.add({
       itemId,
       title: input.title,
       assignedToId,
       orderIndex: input.orderIndex ?? null,
     });
+    await activityRepo.log({
+      planId,
+      actorId,
+      action: "SUBTASK_CREATED",
+      entity: "SUBTASK",
+      entityId: created.id,
+      diff: { input, after: created, itemId },
+    });
+    return created;
   };
 }

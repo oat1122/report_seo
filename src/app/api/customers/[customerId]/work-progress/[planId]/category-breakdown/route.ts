@@ -5,31 +5,24 @@ import {
   ok,
 } from "@/infrastructure/http";
 import {
-  setPeriodMark,
-  setPeriodMarkSchema,
+  categoryBreakdownQuerySchema,
+  getCategoryBreakdown,
 } from "@/features/work-progress";
 
 const paramsSchema = z.object({
   customerId: z.string().uuid(),
   planId: z.string().uuid(),
-  itemId: z.string().uuid(),
 });
 
-export const PUT = withApiHandler(
-  { params: paramsSchema, body: setPeriodMarkSchema },
-  async ({ params, body, session }) => {
+export const GET = withApiHandler(
+  { params: paramsSchema, query: categoryBreakdownQuerySchema },
+  async ({ params, query }) => {
     const ctx = await customerAccessGuard(
       { byUserId: params.customerId },
-      "manage",
+      "read",
     );
     return ok(
-      await setPeriodMark(
-        ctx.customer.id,
-        params.planId,
-        params.itemId,
-        session.user.id,
-        body,
-      ),
+      await getCategoryBreakdown(ctx.customer.id, params.planId, query),
     );
   },
 );

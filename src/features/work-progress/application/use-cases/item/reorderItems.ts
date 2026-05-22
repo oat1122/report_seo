@@ -5,9 +5,18 @@ import {
 } from "@/lib/errors";
 import { reorderItemsSchema } from "../../../schemas";
 import type { WorkProgressRepository } from "../../ports/WorkProgressRepository";
+import type { WorkProgressActivityRepository } from "../../ports/WorkProgressActivityRepository";
 
-export function reorderItemsUseCase(repo: WorkProgressRepository) {
-  return async (customerId: string, planId: string, raw: unknown) => {
+export function reorderItemsUseCase(
+  repo: WorkProgressRepository,
+  activityRepo: WorkProgressActivityRepository,
+) {
+  return async (
+    customerId: string,
+    planId: string,
+    actorId: string | null,
+    raw: unknown,
+  ) => {
     const parsed = reorderItemsSchema.safeParse(raw);
     if (!parsed.success) {
       const detail = parsed.error.issues
@@ -30,5 +39,13 @@ export function reorderItemsUseCase(repo: WorkProgressRepository) {
     }
 
     await repo.reorderItems(planId, parsed.data.order);
+    await activityRepo.log({
+      planId,
+      actorId,
+      action: "ITEM_REORDERED",
+      entity: "ITEM",
+      entityId: null,
+      diff: { input: parsed.data },
+    });
   };
 }

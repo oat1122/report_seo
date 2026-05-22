@@ -9,16 +9,19 @@ import {
   assertAssigneeAllowed,
   type AssigneeLookup,
 } from "../../policies/assignee-guard";
+import type { WorkProgressActivityRepository } from "../../ports/WorkProgressActivityRepository";
 
 export function assignItemUseCase(
   repo: WorkProgressRepository,
   lookupAssignee: AssigneeLookup,
+  activityRepo: WorkProgressActivityRepository,
 ) {
   return async (
     customerId: string,
     planId: string,
     itemId: string,
     customerSeoDevId: string | null,
+    actorId: string | null,
     raw: unknown,
   ) => {
     const parsed = assignItemSchema.safeParse(raw);
@@ -48,6 +51,15 @@ export function assignItemUseCase(
       );
     }
 
-    return repo.assignItem(itemId, assignedToId);
+    const updated = await repo.assignItem(itemId, assignedToId);
+    await activityRepo.log({
+      planId,
+      actorId,
+      action: "ITEM_ASSIGNED",
+      entity: "ITEM",
+      entityId: itemId,
+      diff: { input: parsed.data, after: updated },
+    });
+    return updated;
   };
 }

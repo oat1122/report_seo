@@ -13,12 +13,12 @@ const paramsSchema = z.object({
 
 export const POST = withApiHandler(
   { params: paramsSchema, body: reorderItemsSchema },
-  async ({ params, body }) => {
+  async ({ params, body, session }) => {
     const ctx = await customerAccessGuard(
       { byUserId: params.customerId },
       "manage",
     );
-    await reorderItems(ctx.customer.id, params.planId, body);
+    await reorderItems(ctx.customer.id, params.planId, session.user.id, body);
     return noContent();
   },
 );

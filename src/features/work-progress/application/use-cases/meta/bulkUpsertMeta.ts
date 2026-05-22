@@ -6,15 +6,18 @@ import {
 import { bulkUpsertMetaSchema } from "../../../schemas";
 import type { WorkProgressRepository } from "../../ports/WorkProgressRepository";
 import type { WorkProgressItemMetaRepository } from "../../ports/WorkProgressItemMetaRepository";
+import type { WorkProgressActivityRepository } from "../../ports/WorkProgressActivityRepository";
 
 export function bulkUpsertMetaUseCase(
   repo: WorkProgressRepository,
   metaRepo: WorkProgressItemMetaRepository,
+  activityRepo: WorkProgressActivityRepository,
 ) {
   return async (
     customerId: string,
     planId: string,
     itemId: string,
+    actorId: string | null,
     raw: unknown,
   ) => {
     const parsed = bulkUpsertMetaSchema.safeParse(raw);
@@ -45,6 +48,15 @@ export function bulkUpsertMetaUseCase(
       seen.add(e.key);
     }
 
-    return metaRepo.upsertMany(itemId, entries);
+    const result = await metaRepo.upsertMany(itemId, entries);
+    await activityRepo.log({
+      planId,
+      actorId,
+      action: "META_BULK_UPSERTED",
+      entity: "META",
+      entityId: null,
+      diff: { itemId, input: { entries }, after: result },
+    });
+    return result;
   };
 }

@@ -14,13 +14,19 @@ const paramsSchema = z.object({
 
 export const PUT = withApiHandler(
   { params: paramsSchema, body: upsertMetaSchema },
-  async ({ params, body }) => {
+  async ({ params, body, session }) => {
     const ctx = await customerAccessGuard(
       { byUserId: params.customerId },
       "manage",
     );
     return ok(
-      await upsertMeta(ctx.customer.id, params.planId, params.itemId, body),
+      await upsertMeta(
+        ctx.customer.id,
+        params.planId,
+        params.itemId,
+        session.user.id,
+        body,
+      ),
     );
   },
 );

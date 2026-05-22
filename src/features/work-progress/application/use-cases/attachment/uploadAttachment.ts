@@ -2,11 +2,13 @@ import { ForbiddenError, NotFoundError } from "@/lib/errors";
 import type { WorkProgressRepository } from "../../ports/WorkProgressRepository";
 import type { WorkProgressAttachmentRepository } from "../../ports/WorkProgressAttachmentRepository";
 import type { AttachmentStorage } from "../../ports/AttachmentStorage";
+import type { WorkProgressActivityRepository } from "../../ports/WorkProgressActivityRepository";
 
 export function uploadAttachmentUseCase(
   repo: WorkProgressRepository,
   attachmentRepo: WorkProgressAttachmentRepository,
   storage: AttachmentStorage,
+  activityRepo: WorkProgressActivityRepository,
 ) {
   return async (
     customerId: string,
@@ -27,9 +29,10 @@ export function uploadAttachmentUseCase(
     }
 
     const saved = await storage.validateAndWrite(file);
+    let created;
     try {
       const isImage = saved.mimeType.startsWith("image/");
-      return await attachmentRepo.create({
+      created = await attachmentRepo.create({
         itemId,
         kind: isImage ? "IMAGE" : "FILE",
         url: saved.url,
@@ -44,5 +47,21 @@ export function uploadAttachmentUseCase(
       await storage.removeByAbsolutePath(saved.absolutePath);
       throw err;
     }
+    await activityRepo.log({
+      planId,
+      actorId: uploadedById,
+      action: "ATTACHMENT_UPLOADED",
+      entity: "ATTACHMENT",
+      entityId: created.id,
+      diff: {
+        after: created,
+        itemId,
+        filename: saved.filename,
+        mimeType: saved.mimeType,
+        sizeBytes: saved.sizeBytes,
+        caption,
+      },
+    });
+    return created;
   };
 }

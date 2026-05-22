@@ -1,16 +1,19 @@
 import { ForbiddenError, NotFoundError } from "@/lib/errors";
 import type { WorkProgressRepository } from "../../ports/WorkProgressRepository";
 import type { WorkProgressSubtaskRepository } from "../../ports/WorkProgressSubtaskRepository";
+import type { WorkProgressActivityRepository } from "../../ports/WorkProgressActivityRepository";
 
 export function deleteSubtaskUseCase(
   repo: WorkProgressRepository,
   subtaskRepo: WorkProgressSubtaskRepository,
+  activityRepo: WorkProgressActivityRepository,
 ) {
   return async (
     customerId: string,
     planId: string,
     itemId: string,
     subtaskId: string,
+    actorId: string | null,
   ) => {
     const subtask = await subtaskRepo.findById(subtaskId);
     if (!subtask) throw new NotFoundError("ไม่พบ subtask");
@@ -27,5 +30,13 @@ export function deleteSubtaskUseCase(
     }
 
     await subtaskRepo.delete(subtaskId);
+    await activityRepo.log({
+      planId,
+      actorId,
+      action: "SUBTASK_DELETED",
+      entity: "SUBTASK",
+      entityId: subtaskId,
+      diff: { entity: subtask, itemId },
+    });
   };
 }

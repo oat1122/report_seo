@@ -6,15 +6,18 @@ import {
 import { upsertMetaSchema } from "../../../schemas";
 import type { WorkProgressRepository } from "../../ports/WorkProgressRepository";
 import type { WorkProgressItemMetaRepository } from "../../ports/WorkProgressItemMetaRepository";
+import type { WorkProgressActivityRepository } from "../../ports/WorkProgressActivityRepository";
 
 export function upsertMetaUseCase(
   repo: WorkProgressRepository,
   metaRepo: WorkProgressItemMetaRepository,
+  activityRepo: WorkProgressActivityRepository,
 ) {
   return async (
     customerId: string,
     planId: string,
     itemId: string,
+    actorId: string | null,
     raw: unknown,
   ) => {
     const parsed = upsertMetaSchema.safeParse(raw);
@@ -36,11 +39,20 @@ export function upsertMetaUseCase(
       throw new ForbiddenError("ไม่มีสิทธิ์แก้ไขแผนงานนี้");
     }
 
-    return metaRepo.upsert({
+    const upserted = await metaRepo.upsert({
       itemId,
       key: input.key,
       value: input.value,
       valueType: input.valueType,
     });
+    await activityRepo.log({
+      planId,
+      actorId,
+      action: "META_UPSERTED",
+      entity: "META",
+      entityId: upserted.id,
+      diff: { input, after: upserted, itemId },
+    });
+    return upserted;
   };
 }

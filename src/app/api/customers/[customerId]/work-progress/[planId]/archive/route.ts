@@ -15,13 +15,13 @@ const bodySchema = z.object({ isArchived: z.boolean().optional().default(true) }
 
 export const POST = withApiHandler(
   { params: paramsSchema, body: bodySchema },
-  async ({ params, body }) => {
+  async ({ params, body, session }) => {
     const ctx = await customerAccessGuard(
       { byUserId: params.customerId },
       "manage",
     );
     return ok(
-      await archivePlan(ctx.customer.id, params.planId, {
+      await archivePlan(ctx.customer.id, params.planId, session.user.id, {
         isArchived: body.isArchived,
       }),
     );

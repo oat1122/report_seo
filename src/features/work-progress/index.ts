@@ -10,6 +10,7 @@ import { PrismaWorkProgressTemplateRepository } from "./infrastructure/PrismaWor
 import { PrismaWorkProgressSubtaskRepository } from "./infrastructure/PrismaWorkProgressSubtaskRepository";
 import { PrismaWorkProgressAttachmentRepository } from "./infrastructure/PrismaWorkProgressAttachmentRepository";
 import { PrismaWorkProgressItemMetaRepository } from "./infrastructure/PrismaWorkProgressItemMetaRepository";
+import { PrismaWorkProgressActivityRepository } from "./infrastructure/PrismaWorkProgressActivityRepository";
 import { LocalWorkProgressAttachmentStorage } from "./infrastructure/LocalWorkProgressAttachmentStorage";
 
 import type { AssigneeLookup } from "./application/policies/assignee-guard";
@@ -76,12 +77,19 @@ import { upsertMetaUseCase } from "./application/use-cases/meta/upsertMeta";
 import { bulkUpsertMetaUseCase } from "./application/use-cases/meta/bulkUpsertMeta";
 import { deleteMetaUseCase } from "./application/use-cases/meta/deleteMeta";
 
+// Phase 4 — Audit & Insights
+import { getActivityLogUseCase } from "./application/use-cases/audit/getActivityLog";
+import { getRecentChangesUseCase } from "./application/use-cases/audit/getRecentChanges";
+import { getDashboardSummaryUseCase } from "./application/use-cases/summary/getDashboardSummary";
+import { getCategoryBreakdownUseCase } from "./application/use-cases/summary/getCategoryBreakdown";
+
 const repo = new PrismaWorkProgressRepository();
 const masterRepo = new PrismaWorkProgressMasterRepository();
 const templateRepo = new PrismaWorkProgressTemplateRepository();
 const subtaskRepo = new PrismaWorkProgressSubtaskRepository();
 const attachmentRepo = new PrismaWorkProgressAttachmentRepository();
 const metaRepo = new PrismaWorkProgressItemMetaRepository();
+const activityRepo = new PrismaWorkProgressActivityRepository();
 const attachmentStorage = new LocalWorkProgressAttachmentStorage();
 
 // Lookup user สำหรับ assignee guard — bypass soft-delete filter ผ่าน extended client ก็พอ
@@ -95,24 +103,37 @@ const lookupAssignee: AssigneeLookup = async (userId) => {
 };
 
 // Plan
-export const createPlan = createPlanUseCase(repo, masterRepo, templateRepo);
+export const createPlan = createPlanUseCase(
+  repo,
+  masterRepo,
+  templateRepo,
+  activityRepo,
+);
 export const listPlans = listPlansUseCase(repo);
 export const getPlanDetail = getPlanDetailUseCase(repo);
-export const updatePlan = updatePlanUseCase(repo);
-export const archivePlan = archivePlanUseCase(repo);
+export const updatePlan = updatePlanUseCase(repo, activityRepo);
+export const archivePlan = archivePlanUseCase(repo, activityRepo);
 export const deletePlan = deletePlanUseCase(repo);
 
 // Item
-export const addItem = addItemUseCase(repo, masterRepo);
-export const updateItem = updateItemUseCase(repo, masterRepo);
-export const deleteItem = deleteItemUseCase(repo);
-export const reorderItems = reorderItemsUseCase(repo);
-export const assignItem = assignItemUseCase(repo, lookupAssignee);
+export const addItem = addItemUseCase(repo, masterRepo, activityRepo);
+export const updateItem = updateItemUseCase(repo, masterRepo, activityRepo);
+export const deleteItem = deleteItemUseCase(repo, activityRepo);
+export const reorderItems = reorderItemsUseCase(repo, activityRepo);
+export const assignItem = assignItemUseCase(repo, lookupAssignee, activityRepo);
 
 // Mark
-export const setPeriodMark = setPeriodMarkUseCase(repo, masterRepo);
-export const clearPeriodMark = clearPeriodMarkUseCase(repo);
-export const bulkSetPeriodMarks = bulkSetPeriodMarksUseCase(repo, masterRepo);
+export const setPeriodMark = setPeriodMarkUseCase(
+  repo,
+  masterRepo,
+  activityRepo,
+);
+export const clearPeriodMark = clearPeriodMarkUseCase(repo, activityRepo);
+export const bulkSetPeriodMarks = bulkSetPeriodMarksUseCase(
+  repo,
+  masterRepo,
+  activityRepo,
+);
 
 // Master
 export const listCategories = listCategoriesUseCase(masterRepo);
@@ -148,34 +169,68 @@ export const savePlanAsTemplate = savePlanAsTemplateUseCase(
 );
 
 // Phase 3 — Rich Items
-export const addSubtask = addSubtaskUseCase(repo, subtaskRepo, lookupAssignee);
+export const addSubtask = addSubtaskUseCase(
+  repo,
+  subtaskRepo,
+  lookupAssignee,
+  activityRepo,
+);
 export const updateSubtask = updateSubtaskUseCase(
   repo,
   subtaskRepo,
   lookupAssignee,
+  activityRepo,
 );
-export const toggleSubtask = toggleSubtaskUseCase(repo, subtaskRepo);
-export const reorderSubtasks = reorderSubtasksUseCase(repo, subtaskRepo);
-export const deleteSubtask = deleteSubtaskUseCase(repo, subtaskRepo);
+export const toggleSubtask = toggleSubtaskUseCase(
+  repo,
+  subtaskRepo,
+  activityRepo,
+);
+export const reorderSubtasks = reorderSubtasksUseCase(
+  repo,
+  subtaskRepo,
+  activityRepo,
+);
+export const deleteSubtask = deleteSubtaskUseCase(
+  repo,
+  subtaskRepo,
+  activityRepo,
+);
 
 export const uploadAttachment = uploadAttachmentUseCase(
   repo,
   attachmentRepo,
   attachmentStorage,
+  activityRepo,
 );
 export const addLinkAttachment = addLinkAttachmentUseCase(
   repo,
   attachmentRepo,
+  activityRepo,
 );
 export const deleteAttachment = deleteAttachmentUseCase(
   repo,
   attachmentRepo,
   attachmentStorage,
+  activityRepo,
 );
 
-export const upsertMeta = upsertMetaUseCase(repo, metaRepo);
-export const bulkUpsertMeta = bulkUpsertMetaUseCase(repo, metaRepo);
-export const deleteMeta = deleteMetaUseCase(repo, metaRepo);
+export const upsertMeta = upsertMetaUseCase(repo, metaRepo, activityRepo);
+export const bulkUpsertMeta = bulkUpsertMetaUseCase(
+  repo,
+  metaRepo,
+  activityRepo,
+);
+export const deleteMeta = deleteMetaUseCase(repo, metaRepo, activityRepo);
+
+// Phase 4 — Audit & Insights
+export const getActivityLog = getActivityLogUseCase(repo, activityRepo);
+export const getRecentChanges = getRecentChangesUseCase(activityRepo);
+export const getDashboardSummary = getDashboardSummaryUseCase(
+  repo,
+  activityRepo,
+);
+export const getCategoryBreakdown = getCategoryBreakdownUseCase(repo);
 
 // Re-export schemas + DTO types สำหรับ route handler
 export {
@@ -239,7 +294,32 @@ export {
   type AddLinkAttachmentInput,
   type UpsertMetaInput,
   type BulkUpsertMetaInput,
+  activityLogQuerySchema,
+  recentChangesQuerySchema,
+  dashboardSummaryQuerySchema,
+  categoryBreakdownQuerySchema,
+  type ActivityLogQuery,
+  type RecentChangesQuery,
+  type DashboardSummaryQuery,
+  type CategoryBreakdownQuery,
 } from "./schemas";
+
+// Phase 4 — Audit & Insights domain types
+export {
+  ACTIVITY_ACTIONS,
+  ACTIVITY_ENTITIES,
+} from "./domain/WorkProgressActivity";
+export type {
+  WorkProgressActivity,
+  WorkProgressActivityAction,
+  WorkProgressActivityEntity,
+  WorkProgressActivityDiff,
+} from "./domain/WorkProgressActivity";
+export type { DashboardSummary } from "./application/use-cases/summary/getDashboardSummary";
+export type {
+  CustomerSummary,
+  CategoryBreakdownRow,
+} from "./application/ports/WorkProgressRepository";
 
 export type {
   WorkProgressPlan,

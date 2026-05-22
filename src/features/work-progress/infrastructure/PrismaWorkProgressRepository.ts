@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/infrastructure/prisma/client";
 import type {
   WorkProgressPlan,
@@ -9,9 +10,11 @@ import type {
 } from "../domain/WorkProgressItem";
 import type {
   AddItemData,
+  CategoryBreakdownRow,
   CloneItemSeed,
   CreatePlanData,
   CreatePlanItemSeed,
+  CustomerSummary,
   PlanSummary,
   SetMarkData,
   UpdateItemData,
@@ -351,5 +354,128 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
         markCount: countMap.get(p.id) ?? 0,
       })),
     };
+  }
+
+  // ─── Phase 4 — Customer-wide summary ────────────────────
+  async summarizeCustomer(
+    customerId: string,
+    options: { upcomingDays: number },
+  ): Promise<CustomerSummary> {
+    const now = new Date();
+    const upcomingEnd = new Date(now);
+    upcomingEnd.setDate(upcomingEnd.getDate() + options.upcomingDays);
+
+    // 1) plan counts (active vs archived)
+    const planCounts = await prisma.workProgressPlan.groupBy({
+      by: ["isArchived"],
+      where: { customerId },
+      _count: { _all: true },
+    });
+    let activePlanCount = 0;
+    let archivedPlanCount = 0;
+    for (const row of planCounts) {
+      if (row.isArchived) archivedPlanCount = row._count._all;
+      else activePlanCount = row._count._all;
+    }
+
+    // 2) item aggregate (avg progress + total count) — เฉพาะ active plan
+    const itemAgg = await prisma.workProgressItem.aggregate({
+      where: { plan: { customerId, isArchived: false } },
+      _count: { _all: true },
+      _avg: { progressPercent: true },
+    });
+    const totalItems = itemAgg._count._all;
+    const avgProgressPercent = Math.round(itemAgg._avg.progressPercent ?? 0);
+
+    // 3) upcoming & overdue — Prisma count (ห้าม fetch แล้วนับใน JS, rule 04)
+    const [upcomingDueCount, overdueCount] = await Promise.all([
+      prisma.workProgressItem.count({
+        where: {
+          plan: { customerId, isArchived: false },
+          completedAt: null,
+          dueDate: { gte: now, lte: upcomingEnd },
+        },
+      }),
+      prisma.workProgressItem.count({
+        where: {
+          plan: { customerId, isArchived: false },
+          completedAt: null,
+          dueDate: { lt: now },
+        },
+      }),
+    ]);
+
+    return {
+      activePlanCount,
+      archivedPlanCount,
+      totalItems,
+      avgProgressPercent,
+      upcomingDueCount,
+      overdueCount,
+    };
+  }
+
+  // ─── Phase 4 — Category × markType breakdown ────────────
+  // ใช้ Prisma groupBy ทั้งหมด ห้ามดึง list แล้ว reduce ใน JS (rule 04)
+  async getCategoryBreakdown(
+    planId: string,
+    options: { categoryId?: string },
+  ): Promise<CategoryBreakdownRow[]> {
+    // groupBy ผ่าน relation: ใช้ where { item: { planId, categoryId } }
+    // by: ['markTypeId'] ตรง ๆ ไม่ได้ครอบ category — ต้องใช้ SQL join → Prisma รองรับผ่าน
+    // groupBy ที่ field ของ relation ไม่ได้ ใช้ raw approach: query แบบ aggregate ต่อ category
+    // วิธีที่ทำได้ใน Prisma: ดึง categoryId ของ item แต่ละ mark ผ่าน 2 query แล้ว combine
+    //
+    // 1) ดึง mapping item → category (item-level groupBy)
+    // 2) groupBy(markType, item.categoryId) จำลองด้วย: groupBy markType ต่อ category
+    //
+    // ทำให้สั้น+ตรง spec: groupBy บน markType (ทั่ว plan) + groupBy บน markType+categoryId ผ่าน
+    // findMany select ที่ DB-side (Prisma ไม่ให้ groupBy ข้าม relation field ใน v5) — แต่
+    // กัน rule 04 (ห้าม aggregate ใน JS) ใช้ $queryRaw แบบ tagged template (rule 01: ห้ามใช้
+    // queryRawUnsafe กับ user input — planId/categoryId เป็น UUID ที่ผ่าน Zod แล้ว ปลอดภัย)
+    const rows = options.categoryId
+      ? await prisma.$queryRaw<
+          Array<{
+            categoryId: string;
+            markTypeId: string;
+            count: bigint;
+            sumProgress: bigint | null;
+          }>
+        >(Prisma.sql`
+          SELECT
+            i.categoryId       AS categoryId,
+            m.markTypeId       AS markTypeId,
+            COUNT(*)           AS count,
+            COALESCE(SUM(m.progressPercent), 0) AS sumProgress
+          FROM workprogressitemperiodmark m
+          JOIN workprogressitem i ON i.id = m.itemId
+          WHERE i.planId = ${planId} AND i.categoryId = ${options.categoryId}
+          GROUP BY i.categoryId, m.markTypeId
+        `)
+      : await prisma.$queryRaw<
+          Array<{
+            categoryId: string;
+            markTypeId: string;
+            count: bigint;
+            sumProgress: bigint | null;
+          }>
+        >(Prisma.sql`
+          SELECT
+            i.categoryId       AS categoryId,
+            m.markTypeId       AS markTypeId,
+            COUNT(*)           AS count,
+            COALESCE(SUM(m.progressPercent), 0) AS sumProgress
+          FROM workprogressitemperiodmark m
+          JOIN workprogressitem i ON i.id = m.itemId
+          WHERE i.planId = ${planId}
+          GROUP BY i.categoryId, m.markTypeId
+        `);
+
+    return rows.map((r) => ({
+      categoryId: r.categoryId,
+      markTypeId: r.markTypeId,
+      count: Number(r.count),
+      sumProgress: Number(r.sumProgress ?? 0),
+    }));
   }
 }

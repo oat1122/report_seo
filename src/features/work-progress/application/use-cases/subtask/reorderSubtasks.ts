@@ -6,15 +6,18 @@ import {
 import { reorderSubtasksSchema } from "../../../schemas";
 import type { WorkProgressRepository } from "../../ports/WorkProgressRepository";
 import type { WorkProgressSubtaskRepository } from "../../ports/WorkProgressSubtaskRepository";
+import type { WorkProgressActivityRepository } from "../../ports/WorkProgressActivityRepository";
 
 export function reorderSubtasksUseCase(
   repo: WorkProgressRepository,
   subtaskRepo: WorkProgressSubtaskRepository,
+  activityRepo: WorkProgressActivityRepository,
 ) {
   return async (
     customerId: string,
     planId: string,
     itemId: string,
+    actorId: string | null,
     raw: unknown,
   ) => {
     const parsed = reorderSubtasksSchema.safeParse(raw);
@@ -37,6 +40,14 @@ export function reorderSubtasksUseCase(
     }
 
     await subtaskRepo.reorder(itemId, order);
+    await activityRepo.log({
+      planId,
+      actorId,
+      action: "SUBTASK_REORDERED",
+      entity: "SUBTASK",
+      entityId: null,
+      diff: { itemId, input: parsed.data },
+    });
     return { count: order.length };
   };
 }

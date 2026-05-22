@@ -8,11 +8,13 @@ import type {
 } from "../../ports/WorkProgressRepository";
 import type { WorkProgressMasterRepository } from "../../ports/WorkProgressMasterRepository";
 import type { WorkProgressTemplateRepository } from "../../ports/WorkProgressTemplateRepository";
+import type { WorkProgressActivityRepository } from "../../ports/WorkProgressActivityRepository";
 
 export function createPlanUseCase(
   repo: WorkProgressRepository,
   masterRepo: WorkProgressMasterRepository,
   templateRepo: WorkProgressTemplateRepository,
+  activityRepo: WorkProgressActivityRepository,
 ) {
   return async (
     customerId: string,
@@ -65,7 +67,7 @@ export function createPlanUseCase(
         orderIndex: it.orderIndex ?? i,
       }));
 
-      return repo.createPlanWithItems(
+      const created = await repo.createPlanWithItems(
         {
           customerId,
           title: input.title,
@@ -80,6 +82,15 @@ export function createPlanUseCase(
         periods,
         items,
       );
+      await activityRepo.log({
+        planId: created.id,
+        actorId: createdById,
+        action: "PLAN_CREATED",
+        entity: "PLAN",
+        entityId: created.id,
+        diff: { input, after: created, source: "template", templateId: input.templateId },
+      });
+      return created;
     }
 
     // ───── Branch: clone from existing plan ──────────────────
@@ -122,7 +133,7 @@ export function createPlanUseCase(
         orderIndex: s.orderIndex ?? i,
       }));
 
-      return repo.createPlanWithItems(
+      const created = await repo.createPlanWithItems(
         {
           customerId,
           title: input.title,
@@ -137,6 +148,15 @@ export function createPlanUseCase(
         periods,
         items,
       );
+      await activityRepo.log({
+        planId: created.id,
+        actorId: createdById,
+        action: "PLAN_CREATED",
+        entity: "PLAN",
+        entityId: created.id,
+        diff: { input, after: created, source: "clone", cloneFromPlanId: input.cloneFromPlanId },
+      });
+      return created;
     }
 
     // ───── Branch: empty plan (Phase 1 behavior) ─────────────
@@ -149,7 +169,7 @@ export function createPlanUseCase(
         "ไม่สามารถ generate periods ได้ — โปรดตรวจสอบ periodType / customPeriods",
       );
     }
-    return repo.createPlanWithPeriods(
+    const created = await repo.createPlanWithPeriods(
       {
         customerId,
         title: input.title,
@@ -163,5 +183,14 @@ export function createPlanUseCase(
       },
       periods,
     );
+    await activityRepo.log({
+      planId: created.id,
+      actorId: createdById,
+      action: "PLAN_CREATED",
+      entity: "PLAN",
+      entityId: created.id,
+      diff: { input, after: created, source: "empty" },
+    });
+    return created;
   };
 }

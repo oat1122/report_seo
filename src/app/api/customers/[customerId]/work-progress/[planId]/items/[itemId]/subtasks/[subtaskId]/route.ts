@@ -20,7 +20,7 @@ const paramsSchema = z.object({
 
 export const PATCH = withApiHandler(
   { params: paramsSchema, body: updateSubtaskSchema },
-  async ({ params, body }) => {
+  async ({ params, body, session }) => {
     const ctx = await customerAccessGuard(
       { byUserId: params.customerId },
       "manage",
@@ -32,6 +32,7 @@ export const PATCH = withApiHandler(
         params.itemId,
         params.subtaskId,
         ctx.customer.seoDevId,
+        session.user.id,
         body,
       ),
     );
@@ -40,7 +41,7 @@ export const PATCH = withApiHandler(
 
 export const DELETE = withApiHandler(
   { params: paramsSchema },
-  async ({ params }) => {
+  async ({ params, session }) => {
     const ctx = await customerAccessGuard(
       { byUserId: params.customerId },
       "manage",
@@ -50,6 +51,7 @@ export const DELETE = withApiHandler(
       params.planId,
       params.itemId,
       params.subtaskId,
+      session.user.id,
     );
     return noContent();
   },

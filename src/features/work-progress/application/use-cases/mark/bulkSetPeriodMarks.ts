@@ -6,15 +6,18 @@ import {
 import { bulkSetPeriodMarksSchema } from "../../../schemas";
 import type { WorkProgressRepository } from "../../ports/WorkProgressRepository";
 import type { WorkProgressMasterRepository } from "../../ports/WorkProgressMasterRepository";
+import type { WorkProgressActivityRepository } from "../../ports/WorkProgressActivityRepository";
 
 export function bulkSetPeriodMarksUseCase(
   repo: WorkProgressRepository,
   masterRepo: WorkProgressMasterRepository,
+  activityRepo: WorkProgressActivityRepository,
 ) {
   return async (
     customerId: string,
     planId: string,
     itemId: string,
+    actorId: string | null,
     raw: unknown,
   ) => {
     const parsed = bulkSetPeriodMarksSchema.safeParse(raw);
@@ -54,7 +57,7 @@ export function bulkSetPeriodMarksUseCase(
       }
     }
 
-    return repo.bulkSetPeriodMarks(
+    const result = await repo.bulkSetPeriodMarks(
       itemId,
       marks.map((m) => ({
         periodId: m.periodId,
@@ -63,5 +66,14 @@ export function bulkSetPeriodMarksUseCase(
         note: m.note ?? null,
       })),
     );
+    await activityRepo.log({
+      planId,
+      actorId,
+      action: "MARK_BULK_SET",
+      entity: "MARK",
+      entityId: null,
+      diff: { input: { itemId, marks }, after: result },
+    });
+    return result;
   };
 }

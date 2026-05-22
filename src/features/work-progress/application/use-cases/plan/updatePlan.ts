@@ -5,9 +5,18 @@ import {
 } from "@/lib/errors";
 import { updatePlanSchema } from "../../../schemas";
 import type { WorkProgressRepository } from "../../ports/WorkProgressRepository";
+import type { WorkProgressActivityRepository } from "../../ports/WorkProgressActivityRepository";
 
-export function updatePlanUseCase(repo: WorkProgressRepository) {
-  return async (customerId: string, planId: string, raw: unknown) => {
+export function updatePlanUseCase(
+  repo: WorkProgressRepository,
+  activityRepo: WorkProgressActivityRepository,
+) {
+  return async (
+    customerId: string,
+    planId: string,
+    actorId: string | null,
+    raw: unknown,
+  ) => {
     const parsed = updatePlanSchema.safeParse(raw);
     if (!parsed.success) {
       const detail = parsed.error.issues
@@ -20,6 +29,15 @@ export function updatePlanUseCase(repo: WorkProgressRepository) {
     if (plan.customerId !== customerId) {
       throw new ForbiddenError("ไม่มีสิทธิ์แก้ไขแผนงานนี้");
     }
-    return repo.updatePlan(planId, parsed.data);
+    const updated = await repo.updatePlan(planId, parsed.data);
+    await activityRepo.log({
+      planId,
+      actorId,
+      action: "PLAN_UPDATED",
+      entity: "PLAN",
+      entityId: planId,
+      diff: { input: parsed.data, after: updated },
+    });
+    return updated;
   };
 }

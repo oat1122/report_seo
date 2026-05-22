@@ -4,17 +4,20 @@ import { logger } from "@/lib/logger";
 import type { WorkProgressRepository } from "../../ports/WorkProgressRepository";
 import type { WorkProgressAttachmentRepository } from "../../ports/WorkProgressAttachmentRepository";
 import type { AttachmentStorage } from "../../ports/AttachmentStorage";
+import type { WorkProgressActivityRepository } from "../../ports/WorkProgressActivityRepository";
 
 export function deleteAttachmentUseCase(
   repo: WorkProgressRepository,
   attachmentRepo: WorkProgressAttachmentRepository,
   storage: AttachmentStorage,
+  activityRepo: WorkProgressActivityRepository,
 ) {
   return async (
     customerId: string,
     planId: string,
     itemId: string,
     attachmentId: string,
+    actorId: string | null,
   ) => {
     const attachment = await attachmentRepo.findById(attachmentId);
     if (!attachment) throw new NotFoundError("ไม่พบไฟล์แนบ");
@@ -45,5 +48,14 @@ export function deleteAttachmentUseCase(
         );
       }
     }
+
+    await activityRepo.log({
+      planId,
+      actorId,
+      action: "ATTACHMENT_DELETED",
+      entity: "ATTACHMENT",
+      entityId: attachmentId,
+      diff: { entity: attachment, itemId },
+    });
   };
 }

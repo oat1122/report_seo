@@ -30,12 +30,14 @@ export const GET = withApiHandler(
 
 export const PATCH = withApiHandler(
   { params: paramsSchema, body: updatePlanSchema },
-  async ({ params, body }) => {
+  async ({ params, body, session }) => {
     const ctx = await customerAccessGuard(
       { byUserId: params.customerId },
       "manage",
     );
-    return ok(await updatePlan(ctx.customer.id, params.planId, body));
+    return ok(
+      await updatePlan(ctx.customer.id, params.planId, session.user.id, body),
+    );
   },
 );
 

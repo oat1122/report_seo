@@ -13,11 +13,13 @@ import {
   assertAssigneeAllowed,
   type AssigneeLookup,
 } from "../../policies/assignee-guard";
+import type { WorkProgressActivityRepository } from "../../ports/WorkProgressActivityRepository";
 
 export function updateSubtaskUseCase(
   repo: WorkProgressRepository,
   subtaskRepo: WorkProgressSubtaskRepository,
   lookupAssignee: AssigneeLookup,
+  activityRepo: WorkProgressActivityRepository,
 ) {
   return async (
     customerId: string,
@@ -25,6 +27,7 @@ export function updateSubtaskUseCase(
     itemId: string,
     subtaskId: string,
     customerSeoDevId: string | null,
+    actorId: string | null,
     raw: unknown,
   ) => {
     const parsed = updateSubtaskSchema.safeParse(raw);
@@ -72,6 +75,15 @@ export function updateSubtaskUseCase(
       }
     }
 
-    return subtaskRepo.update(subtaskId, patch);
+    const updated = await subtaskRepo.update(subtaskId, patch);
+    await activityRepo.log({
+      planId,
+      actorId,
+      action: "SUBTASK_UPDATED",
+      entity: "SUBTASK",
+      entityId: subtaskId,
+      diff: { input, patch, after: updated, itemId },
+    });
+    return updated;
   };
 }

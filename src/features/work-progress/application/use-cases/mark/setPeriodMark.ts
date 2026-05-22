@@ -6,15 +6,18 @@ import {
 import { setPeriodMarkSchema } from "../../../schemas";
 import type { WorkProgressRepository } from "../../ports/WorkProgressRepository";
 import type { WorkProgressMasterRepository } from "../../ports/WorkProgressMasterRepository";
+import type { WorkProgressActivityRepository } from "../../ports/WorkProgressActivityRepository";
 
 export function setPeriodMarkUseCase(
   repo: WorkProgressRepository,
   masterRepo: WorkProgressMasterRepository,
+  activityRepo: WorkProgressActivityRepository,
 ) {
   return async (
     customerId: string,
     planId: string,
     itemId: string,
+    actorId: string | null,
     raw: unknown,
   ) => {
     const parsed = setPeriodMarkSchema.safeParse(raw);
@@ -45,12 +48,21 @@ export function setPeriodMarkUseCase(
       throw new BadRequestError("ประเภทเครื่องหมายไม่ถูกต้องหรือถูกปิดใช้งาน");
     }
 
-    return repo.setPeriodMark({
+    const mark = await repo.setPeriodMark({
       itemId,
       periodId: input.periodId,
       markTypeId: input.markTypeId,
       progressPercent: input.progressPercent ?? null,
       note: input.note ?? null,
     });
+    await activityRepo.log({
+      planId,
+      actorId,
+      action: "MARK_SET",
+      entity: "MARK",
+      entityId: mark.id,
+      diff: { input, after: mark, itemId },
+    });
+    return mark;
   };
 }

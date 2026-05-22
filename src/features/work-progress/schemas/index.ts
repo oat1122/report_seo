@@ -85,3 +85,17 @@ export {
   type UpsertMetaInput,
   type BulkUpsertMetaInput,
 } from "./meta";
+
+export {
+  activityLogQuerySchema,
+  recentChangesQuerySchema,
+  type ActivityLogQuery,
+  type RecentChangesQuery,
+} from "./audit";
+
+export {
+  dashboardSummaryQuerySchema,
+  categoryBreakdownQuerySchema,
+  type DashboardSummaryQuery,
+  type CategoryBreakdownQuery,
+} from "./summary";

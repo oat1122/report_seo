@@ -6,10 +6,12 @@ import {
 import { addLinkAttachmentSchema } from "../../../schemas";
 import type { WorkProgressRepository } from "../../ports/WorkProgressRepository";
 import type { WorkProgressAttachmentRepository } from "../../ports/WorkProgressAttachmentRepository";
+import type { WorkProgressActivityRepository } from "../../ports/WorkProgressActivityRepository";
 
 export function addLinkAttachmentUseCase(
   repo: WorkProgressRepository,
   attachmentRepo: WorkProgressAttachmentRepository,
+  activityRepo: WorkProgressActivityRepository,
 ) {
   return async (
     customerId: string,
@@ -37,7 +39,7 @@ export function addLinkAttachmentUseCase(
       throw new ForbiddenError("ไม่มีสิทธิ์แก้ไขแผนงานนี้");
     }
 
-    return attachmentRepo.create({
+    const created = await attachmentRepo.create({
       itemId,
       kind: "LINK",
       url,
@@ -47,5 +49,14 @@ export function addLinkAttachmentUseCase(
       caption: caption ?? null,
       uploadedById,
     });
+    await activityRepo.log({
+      planId,
+      actorId: uploadedById,
+      action: "ATTACHMENT_LINKED",
+      entity: "ATTACHMENT",
+      entityId: created.id,
+      diff: { input: parsed.data, after: created, itemId },
+    });
+    return created;
   };
 }

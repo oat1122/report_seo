@@ -17,7 +17,7 @@ const paramsSchema = z.object({
 
 export const POST = withApiHandler(
   { params: paramsSchema, body: bulkSetPeriodMarksSchema },
-  async ({ params, body }) => {
+  async ({ params, body, session }) => {
     const ctx = await customerAccessGuard(
       { byUserId: params.customerId },
       "manage",
@@ -27,6 +27,7 @@ export const POST = withApiHandler(
         ctx.customer.id,
         params.planId,
         params.itemId,
+        session.user.id,
         body,
       ),
     );

@@ -98,6 +98,24 @@ export interface PlanSummary {
   }>;
 }
 
+// Phase 4 — Customer-wide summary (cross-plan)
+export interface CustomerSummary {
+  activePlanCount: number;
+  archivedPlanCount: number;
+  totalItems: number;
+  avgProgressPercent: number; // 0–100 ของ items ใน active plan
+  upcomingDueCount: number;   // dueDate อยู่ในกรอบ N วันถัดไป + ยังไม่ completed
+  overdueCount: number;       // dueDate ผ่านมาแล้ว + ยังไม่ completed
+}
+
+// Phase 4 — Category × markType breakdown ใน 1 plan
+export interface CategoryBreakdownRow {
+  categoryId: string;
+  markTypeId: string;
+  count: number;
+  sumProgress: number;
+}
+
 export interface WorkProgressRepository {
   // Plan CRUD
   createPlanWithPeriods(
@@ -148,4 +166,14 @@ export interface WorkProgressRepository {
 
   // Summary
   getPlanSummary(planId: string): Promise<PlanSummary>;
+
+  // Phase 4 — Audit & Insights
+  summarizeCustomer(
+    customerId: string,
+    options: { upcomingDays: number },
+  ): Promise<CustomerSummary>;
+  getCategoryBreakdown(
+    planId: string,
+    options: { categoryId?: string },
+  ): Promise<CategoryBreakdownRow[]>;
 }

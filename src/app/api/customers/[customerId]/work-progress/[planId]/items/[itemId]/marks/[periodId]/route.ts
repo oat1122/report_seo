@@ -15,7 +15,7 @@ const paramsSchema = z.object({
 
 export const DELETE = withApiHandler(
   { params: paramsSchema },
-  async ({ params }) => {
+  async ({ params, session }) => {
     const ctx = await customerAccessGuard(
       { byUserId: params.customerId },
       "manage",
@@ -25,6 +25,7 @@ export const DELETE = withApiHandler(
       params.planId,
       params.itemId,
       params.periodId,
+      session.user.id,
     );
     return noContent();
   },

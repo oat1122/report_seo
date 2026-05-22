@@ -9,15 +9,18 @@ import type {
   WorkProgressRepository,
 } from "../../ports/WorkProgressRepository";
 import type { WorkProgressMasterRepository } from "../../ports/WorkProgressMasterRepository";
+import type { WorkProgressActivityRepository } from "../../ports/WorkProgressActivityRepository";
 
 export function updateItemUseCase(
   repo: WorkProgressRepository,
   masterRepo: WorkProgressMasterRepository,
+  activityRepo: WorkProgressActivityRepository,
 ) {
   return async (
     customerId: string,
     planId: string,
     itemId: string,
+    actorId: string | null,
     raw: unknown,
   ) => {
     const parsed = updateItemSchema.safeParse(raw);
@@ -71,6 +74,15 @@ export function updateItemUseCase(
     if (input.startDate !== undefined) patch.startDate = input.startDate;
     if (input.dueDate !== undefined) patch.dueDate = input.dueDate;
 
-    return repo.updateItem(itemId, patch);
+    const updated = await repo.updateItem(itemId, patch);
+    await activityRepo.log({
+      planId,
+      actorId,
+      action: "ITEM_UPDATED",
+      entity: "ITEM",
+      entityId: itemId,
+      diff: { input, patch, after: updated },
+    });
+    return updated;
   };
 }
