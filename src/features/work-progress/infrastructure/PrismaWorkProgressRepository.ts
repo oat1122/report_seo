@@ -300,6 +300,109 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
     return { count: marks.length };
   }
 
+  // ─── Phase 6 — Bulk operations across items ────────────
+  async bulkUpdateItemStatus(
+    planId: string,
+    itemIds: ReadonlyArray<string>,
+    statusId: string,
+    completedAt: Date | null,
+  ): Promise<{ count: number }> {
+    const result = await prisma.workProgressItem.updateMany({
+      where: { planId, id: { in: [...itemIds] } },
+      data: { statusId, completedAt },
+    });
+    return { count: result.count };
+  }
+
+  async bulkDeleteItems(
+    planId: string,
+    itemIds: ReadonlyArray<string>,
+  ): Promise<{ count: number }> {
+    const result = await prisma.workProgressItem.deleteMany({
+      where: { planId, id: { in: [...itemIds] } },
+    });
+    return { count: result.count };
+  }
+
+  async bulkSetPeriodAcrossItems(
+    planId: string,
+    periodId: string,
+    itemIds: ReadonlyArray<string>,
+    mark: {
+      markTypeId: string | null;
+      progressPercent: number | null;
+      note: string | null;
+    },
+  ): Promise<{ count: number }> {
+    return prisma.$transaction(async (tx) => {
+      if (mark.markTypeId === null) {
+        // Clear marks for these items at this period
+        const res = await tx.workProgressItemPeriodMark.deleteMany({
+          where: {
+            periodId,
+            itemId: { in: [...itemIds] },
+            item: { planId },
+          },
+        });
+        return { count: res.count };
+      }
+      let count = 0;
+      for (const itemId of itemIds) {
+        await tx.workProgressItemPeriodMark.upsert({
+          where: { itemId_periodId: { itemId, periodId } },
+          create: {
+            itemId,
+            periodId,
+            markTypeId: mark.markTypeId,
+            progressPercent: mark.progressPercent,
+            note: mark.note,
+          },
+          update: {
+            markTypeId: mark.markTypeId,
+            progressPercent: mark.progressPercent,
+            note: mark.note,
+          },
+        });
+        count++;
+      }
+      return { count };
+    });
+  }
+
+  async createManyItems(
+    planId: string,
+    items: ReadonlyArray<CreatePlanItemSeed>,
+  ): Promise<{ count: number }> {
+    if (items.length === 0) return { count: 0 };
+    const existing = await prisma.workProgressItem.aggregate({
+      where: { planId },
+      _max: { orderIndex: true },
+    });
+    const startIndex = (existing._max.orderIndex ?? -1) + 1;
+    const result = await prisma.workProgressItem.createMany({
+      data: items.map((it, i) => ({
+        planId,
+        categoryId: it.categoryId,
+        statusId: it.statusId,
+        activity: it.activity,
+        description: it.description,
+        duration: it.duration,
+        weight: it.weight,
+        orderIndex: it.orderIndex ?? startIndex + i,
+      })),
+    });
+    return { count: result.count };
+  }
+
+  async countItemsInPlan(
+    planId: string,
+    itemIds: ReadonlyArray<string>,
+  ): Promise<number> {
+    return prisma.workProgressItem.count({
+      where: { planId, id: { in: [...itemIds] } },
+    });
+  }
+
   // ─── Cross-plan validators ──────────────────────────────
   async isPeriodInPlan(periodId: string, planId: string): Promise<boolean> {
     const period = await prisma.workProgressPeriod.findUnique({

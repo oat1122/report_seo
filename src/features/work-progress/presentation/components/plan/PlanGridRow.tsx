@@ -6,6 +6,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +26,8 @@ interface PlanGridRowProps {
   item: WorkProgressItemWithMarks;
   periods: WorkProgressPeriod[];
   gridTemplate: string;
+  selected: boolean;
+  onToggleSelect: (id: string) => void;
   onEdit: (item: WorkProgressItemWithMarks) => void;
   onDelete: (item: WorkProgressItemWithMarks) => void;
   onOpenDetail: (item: WorkProgressItemWithMarks) => void;
@@ -37,6 +40,8 @@ function PlanGridRowInner({
   item,
   periods,
   gridTemplate,
+  selected,
+  onToggleSelect,
   onEdit,
   onDelete,
   onOpenDetail,
@@ -52,18 +57,31 @@ function PlanGridRowInner({
   } as React.CSSProperties;
 
   const marksByPeriod = new Map(item.periodMarks.map((m) => [m.periodId, m]));
+  const rowBg = selected ? "bg-secondary/20" : "bg-card";
 
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={cn(
-        "grid border-b border-border bg-card",
+        "grid border-b border-border",
+        rowBg,
         isDragging && "z-10 opacity-50",
       )}
     >
+      {/* Select */}
+      <div className="flex items-center justify-center border-r border-border">
+        {!readOnly && (
+          <Checkbox
+            checked={selected}
+            onCheckedChange={() => onToggleSelect(item.id)}
+            aria-label={`เลือก ${item.activity}`}
+          />
+        )}
+      </div>
+
       {/* Drag */}
-      <div className="sticky left-0 z-[2] flex items-center justify-center border-r border-border bg-card">
+      <div className="flex items-center justify-center border-r border-border">
         {!readOnly && (
           <button
             type="button"
@@ -78,7 +96,7 @@ function PlanGridRowInner({
       </div>
 
       {/* Category */}
-      <div className="sticky left-10 z-[2] flex items-center gap-2 border-r border-border bg-card px-3 py-2">
+      <div className="flex items-center gap-2 border-r border-border px-3 py-2">
         <span
           className="inline-block size-2.5 rounded-sm"
           style={
@@ -95,7 +113,7 @@ function PlanGridRowInner({
       <button
         type="button"
         onClick={() => onOpenDetail(item)}
-        className="sticky left-[200px] z-[2] flex flex-col justify-center border-r border-border bg-card px-3 py-2 text-left transition hover:bg-muted/30 focus-visible:bg-muted/50"
+        className="flex flex-col justify-center border-r border-border px-3 py-2 text-left transition hover:bg-muted/30 focus-visible:bg-muted/50"
       >
         <span className="line-clamp-2 text-sm font-medium">{item.activity}</span>
         {item.description && (
@@ -106,7 +124,7 @@ function PlanGridRowInner({
       </button>
 
       {/* Status */}
-      <div className="sticky left-[480px] z-[2] flex items-center border-r border-border bg-card px-3 py-2">
+      <div className="flex items-center border-r border-border px-3 py-2">
         <Badge
           variant="outline"
           style={
@@ -121,12 +139,12 @@ function PlanGridRowInner({
       </div>
 
       {/* % */}
-      <div className="sticky left-[600px] z-[2] flex items-center justify-end border-r border-border bg-card px-3 py-2 text-sm font-medium tabular-nums">
+      <div className="flex items-center justify-end border-r border-border px-3 py-2 text-sm font-medium tabular-nums">
         {item.progressPercent}%
       </div>
 
       {/* Duration */}
-      <div className="sticky left-[660px] z-[2] flex items-center border-r border-border bg-card px-3 py-2 text-xs text-muted-foreground">
+      <div className="flex items-center border-r border-border px-3 py-2 text-xs text-muted-foreground">
         {item.duration ?? "—"}
       </div>
 
@@ -147,8 +165,8 @@ function PlanGridRowInner({
         </div>
       ))}
 
-      {/* Actions (sticky right) */}
-      <div className="sticky right-0 z-[2] flex items-center justify-center border-l border-border bg-card">
+      {/* Actions */}
+      <div className="flex items-center justify-center border-l border-border">
         {!readOnly && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

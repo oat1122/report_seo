@@ -5,6 +5,7 @@ import { requireCustomer } from "@/lib/auth-utils";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { CustomerDashboardWidget } from "@/features/work-progress/presentation/components/summary/CustomerDashboardWidget";
 import PromotionSection from "./PromotionSection";
 
 export const metadata: Metadata = {
@@ -116,6 +117,10 @@ export default async function CustomerDashboard() {
         </section>
 
         <PromotionSection />
+
+        <section className="mt-10">
+          <CustomerDashboardWidget userId={session.user.id} />
+        </section>
 
         <section className="mt-10">
           <div className="mb-5 flex items-center gap-2">

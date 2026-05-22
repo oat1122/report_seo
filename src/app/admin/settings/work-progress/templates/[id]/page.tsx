@@ -18,7 +18,7 @@ export default async function TemplateBuilderPage({ params }: PageProps) {
       <div className="mx-auto w-full max-w-5xl">
         <TemplateBuilder
           templateId={id}
-          backHref="/admin/settings/work-progress/templates"
+          backHref="/admin/settings/work-progress?tab=templates"
         />
       </div>
     </DashboardLayout>

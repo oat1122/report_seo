@@ -12,6 +12,7 @@ import { PrismaWorkProgressAttachmentRepository } from "./infrastructure/PrismaW
 import { PrismaWorkProgressItemMetaRepository } from "./infrastructure/PrismaWorkProgressItemMetaRepository";
 import { PrismaWorkProgressActivityRepository } from "./infrastructure/PrismaWorkProgressActivityRepository";
 import { LocalWorkProgressAttachmentStorage } from "./infrastructure/LocalWorkProgressAttachmentStorage";
+import { XlsxPlanExporter } from "./infrastructure/XlsxPlanExporter";
 
 import type { AssigneeLookup } from "./application/policies/assignee-guard";
 
@@ -21,16 +22,21 @@ import { getPlanDetailUseCase } from "./application/use-cases/plan/getPlanDetail
 import { updatePlanUseCase } from "./application/use-cases/plan/updatePlan";
 import { archivePlanUseCase } from "./application/use-cases/plan/archivePlan";
 import { deletePlanUseCase } from "./application/use-cases/plan/deletePlan";
+import { exportPlanUseCase } from "./application/use-cases/plan/exportPlan";
+import { importPlanItemsUseCase } from "./application/use-cases/plan/importPlanItems";
 
 import { addItemUseCase } from "./application/use-cases/item/addItem";
 import { updateItemUseCase } from "./application/use-cases/item/updateItem";
 import { deleteItemUseCase } from "./application/use-cases/item/deleteItem";
 import { reorderItemsUseCase } from "./application/use-cases/item/reorderItems";
 import { assignItemUseCase } from "./application/use-cases/item/assignItem";
+import { bulkUpdateItemStatusUseCase } from "./application/use-cases/item/bulkUpdateItemStatus";
+import { bulkDeleteItemsUseCase } from "./application/use-cases/item/bulkDeleteItems";
 
 import { setPeriodMarkUseCase } from "./application/use-cases/mark/setPeriodMark";
 import { clearPeriodMarkUseCase } from "./application/use-cases/mark/clearPeriodMark";
 import { bulkSetPeriodMarksUseCase } from "./application/use-cases/mark/bulkSetPeriodMarks";
+import { bulkSetPeriodAcrossItemsUseCase } from "./application/use-cases/mark/bulkSetPeriodAcrossItems";
 
 import { listCategoriesUseCase } from "./application/use-cases/master/listCategories";
 import { listStatusesUseCase } from "./application/use-cases/master/listStatuses";
@@ -91,6 +97,7 @@ const attachmentRepo = new PrismaWorkProgressAttachmentRepository();
 const metaRepo = new PrismaWorkProgressItemMetaRepository();
 const activityRepo = new PrismaWorkProgressActivityRepository();
 const attachmentStorage = new LocalWorkProgressAttachmentStorage();
+const planExporter = new XlsxPlanExporter();
 
 // Lookup user สำหรับ assignee guard — bypass soft-delete filter ผ่าน extended client ก็พอ
 // (extended client กรอง deletedAt ให้แล้ว ดังนั้นถ้า user ถูกลบ → คืน null อัตโนมัติ)
@@ -114,6 +121,12 @@ export const getPlanDetail = getPlanDetailUseCase(repo);
 export const updatePlan = updatePlanUseCase(repo, activityRepo);
 export const archivePlan = archivePlanUseCase(repo, activityRepo);
 export const deletePlan = deletePlanUseCase(repo);
+export const exportPlan = exportPlanUseCase(repo, planExporter);
+export const importPlanItems = importPlanItemsUseCase(
+  repo,
+  masterRepo,
+  activityRepo,
+);
 
 // Item
 export const addItem = addItemUseCase(repo, masterRepo, activityRepo);
@@ -121,6 +134,12 @@ export const updateItem = updateItemUseCase(repo, masterRepo, activityRepo);
 export const deleteItem = deleteItemUseCase(repo, activityRepo);
 export const reorderItems = reorderItemsUseCase(repo, activityRepo);
 export const assignItem = assignItemUseCase(repo, lookupAssignee, activityRepo);
+export const bulkUpdateItemStatus = bulkUpdateItemStatusUseCase(
+  repo,
+  masterRepo,
+  activityRepo,
+);
+export const bulkDeleteItems = bulkDeleteItemsUseCase(repo, activityRepo);
 
 // Mark
 export const setPeriodMark = setPeriodMarkUseCase(
@@ -130,6 +149,11 @@ export const setPeriodMark = setPeriodMarkUseCase(
 );
 export const clearPeriodMark = clearPeriodMarkUseCase(repo, activityRepo);
 export const bulkSetPeriodMarks = bulkSetPeriodMarksUseCase(
+  repo,
+  masterRepo,
+  activityRepo,
+);
+export const bulkSetPeriodAcrossItems = bulkSetPeriodAcrossItemsUseCase(
   repo,
   masterRepo,
   activityRepo,
@@ -243,6 +267,9 @@ export {
   assignItemSchema,
   setPeriodMarkSchema,
   bulkSetPeriodMarksSchema,
+  bulkSetPeriodAcrossItemsSchema,
+  bulkUpdateItemStatusSchema,
+  bulkDeleteItemsSchema,
   upsertCategorySchema,
   updateCategorySchema,
   upsertStatusSchema,
@@ -274,6 +301,9 @@ export {
   type AssignItemInput,
   type SetPeriodMarkInput,
   type BulkSetPeriodMarksInput,
+  type BulkSetPeriodAcrossItemsInput,
+  type BulkUpdateItemStatusInput,
+  type BulkDeleteItemsInput,
   type UpsertCategoryInput,
   type UpdateCategoryInput,
   type UpsertStatusInput,
@@ -298,10 +328,14 @@ export {
   recentChangesQuerySchema,
   dashboardSummaryQuerySchema,
   categoryBreakdownQuerySchema,
+  importPlanItemsSchema,
+  importPlanItemRowSchema,
   type ActivityLogQuery,
   type RecentChangesQuery,
   type DashboardSummaryQuery,
   type CategoryBreakdownQuery,
+  type ImportPlanItemsInput,
+  type ImportPlanItemRowInput,
 } from "./schemas";
 
 // Phase 4 — Audit & Insights domain types

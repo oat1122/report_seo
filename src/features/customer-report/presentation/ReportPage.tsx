@@ -2,7 +2,14 @@
 
 import React, { Suspense } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Loader2, LayoutDashboard, Activity, Search, Sparkles } from "lucide-react";
+import {
+  Loader2,
+  LayoutDashboard,
+  Activity,
+  Search,
+  Sparkles,
+  ClipboardList,
+} from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useReportPage } from "@/hooks/ui/useReportPage";
 import { HistoryProvider } from "./contexts/HistoryContext";
@@ -11,6 +18,7 @@ import { OverviewTab } from "./tabs/OverviewTab";
 import { DomainHealthTab } from "./tabs/DomainHealthTab";
 import { KeywordPerformanceTab } from "./tabs/KeywordPerformanceTab";
 import { AiRecommendationsTab } from "./tabs/AiRecommendationsTab";
+import { WorkProgressTab } from "./tabs/WorkProgressTab";
 import type { CustomerReportData } from "@/hooks/api/useCustomersApi";
 
 interface ReportPageProps {
@@ -18,12 +26,18 @@ interface ReportPageProps {
   initialData?: CustomerReportData;
 }
 
-type TabValue = "overview" | "health" | "keywords" | "ai";
+type TabValue =
+  | "overview"
+  | "health"
+  | "keywords"
+  | "ai"
+  | "work-progress";
 const TAB_VALUES: readonly TabValue[] = [
   "overview",
   "health",
   "keywords",
   "ai",
+  "work-progress",
 ] as const;
 const isTabValue = (v: string | null): v is TabValue =>
   v !== null && (TAB_VALUES as readonly string[]).includes(v);
@@ -79,6 +93,13 @@ const ReportTabs = ({ reportData, customerId, customerName }: {
                 <Sparkles className="size-4" />
                 AI &amp; Recommendations
               </TabsTrigger>
+              <TabsTrigger
+                value="work-progress"
+                className="gap-1.5 md:w-full md:justify-start"
+              >
+                <ClipboardList className="size-4" />
+                Work Progress
+              </TabsTrigger>
             </TabsList>
           </div>
         </aside>
@@ -111,6 +132,9 @@ const ReportTabs = ({ reportData, customerId, customerName }: {
               recommendations={reportData?.recommendations ?? []}
               aiOverviews={reportData?.aiOverviews ?? []}
             />
+          </TabsContent>
+          <TabsContent value="work-progress" className="mt-0">
+            <WorkProgressTab customerId={customerId} />
           </TabsContent>
         </div>
       </div>

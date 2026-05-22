@@ -49,3 +49,19 @@ export const assignItemSchema = z.object({
 });
 
 export type AssignItemInput = z.infer<typeof assignItemSchema>;
+
+// Phase 6 — Bulk operations
+export const bulkUpdateItemStatusSchema = z.object({
+  itemIds: z.array(z.string().uuid()).min(1).max(200),
+  statusId: z.string().uuid(),
+});
+
+export type BulkUpdateItemStatusInput = z.infer<
+  typeof bulkUpdateItemStatusSchema
+>;
+
+export const bulkDeleteItemsSchema = z.object({
+  itemIds: z.array(z.string().uuid()).min(1).max(200),
+});
+
+export type BulkDeleteItemsInput = z.infer<typeof bulkDeleteItemsSchema>;

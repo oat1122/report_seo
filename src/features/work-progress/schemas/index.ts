@@ -13,17 +13,23 @@ export {
   updateItemSchema,
   reorderItemsSchema,
   assignItemSchema,
+  bulkUpdateItemStatusSchema,
+  bulkDeleteItemsSchema,
   type AddItemInput,
   type UpdateItemInput,
   type ReorderItemsInput,
   type AssignItemInput,
+  type BulkUpdateItemStatusInput,
+  type BulkDeleteItemsInput,
 } from "./item";
 
 export {
   setPeriodMarkSchema,
   bulkSetPeriodMarksSchema,
+  bulkSetPeriodAcrossItemsSchema,
   type SetPeriodMarkInput,
   type BulkSetPeriodMarksInput,
+  type BulkSetPeriodAcrossItemsInput,
 } from "./mark";
 
 export {
@@ -99,3 +105,10 @@ export {
   type DashboardSummaryQuery,
   type CategoryBreakdownQuery,
 } from "./summary";
+
+export {
+  importPlanItemsSchema,
+  importPlanItemRowSchema,
+  type ImportPlanItemsInput,
+  type ImportPlanItemRowInput,
+} from "./import";

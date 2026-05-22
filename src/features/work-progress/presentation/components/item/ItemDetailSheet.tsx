@@ -37,7 +37,7 @@ export function ItemDetailSheet({
           <>
             <SheetHeader>
               <SheetTitle className="text-base">{item.activity}</SheetTitle>
-              <SheetDescription>
+              <SheetDescription asChild>
                 <div className="mt-1 flex flex-wrap items-center gap-2">
                   <Badge
                     variant="outline"

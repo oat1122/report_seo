@@ -8,6 +8,10 @@ import type {
   UpdateItemInput,
   AssignItemInput,
   ReorderItemsInput,
+  BulkUpdateItemStatusInput,
+  BulkDeleteItemsInput,
+  BulkSetPeriodAcrossItemsInput,
+  ImportPlanItemsInput,
   WorkProgressItemWithMarks,
 } from "@/features/work-progress";
 
@@ -98,6 +102,80 @@ export const useAssignItem = () => {
         body,
       );
       return data;
+    },
+    onSuccess: (_d, vars) => invalidate(vars),
+  });
+};
+
+// Phase 6 — bulk operations
+
+export const useBulkUpdateItemStatus = () => {
+  const invalidate = useInvalidatePlan();
+  return useMutation<
+    { count: number },
+    Error,
+    PlanCtx & { body: BulkUpdateItemStatusInput }
+  >({
+    mutationFn: async ({ userId, planId, body }) => {
+      const { data } = await axios.post<ApiData<{ count: number }>>(
+        `/customers/${userId}/work-progress/${planId}/items/bulk-status`,
+        body,
+      );
+      return data.data;
+    },
+    onSuccess: (_d, vars) => invalidate(vars),
+  });
+};
+
+export const useBulkDeleteItems = () => {
+  const invalidate = useInvalidatePlan();
+  return useMutation<
+    { count: number },
+    Error,
+    PlanCtx & { body: BulkDeleteItemsInput }
+  >({
+    mutationFn: async ({ userId, planId, body }) => {
+      const { data } = await axios.post<ApiData<{ count: number }>>(
+        `/customers/${userId}/work-progress/${planId}/items/bulk-delete`,
+        body,
+      );
+      return data.data;
+    },
+    onSuccess: (_d, vars) => invalidate(vars),
+  });
+};
+
+export const useBulkSetPeriodAcrossItems = () => {
+  const invalidate = useInvalidatePlan();
+  return useMutation<
+    { count: number },
+    Error,
+    PlanCtx & { body: BulkSetPeriodAcrossItemsInput }
+  >({
+    mutationFn: async ({ userId, planId, body }) => {
+      const { data } = await axios.post<ApiData<{ count: number }>>(
+        `/customers/${userId}/work-progress/${planId}/marks/bulk-period`,
+        body,
+      );
+      return data.data;
+    },
+    onSuccess: (_d, vars) => invalidate(vars),
+  });
+};
+
+export const useImportItems = () => {
+  const invalidate = useInvalidatePlan();
+  return useMutation<
+    { count: number },
+    Error,
+    PlanCtx & { body: ImportPlanItemsInput }
+  >({
+    mutationFn: async ({ userId, planId, body }) => {
+      const { data } = await axios.post<ApiData<{ count: number }>>(
+        `/customers/${userId}/work-progress/${planId}/items/import`,
+        body,
+      );
+      return data.data;
     },
     onSuccess: (_d, vars) => invalidate(vars),
   });

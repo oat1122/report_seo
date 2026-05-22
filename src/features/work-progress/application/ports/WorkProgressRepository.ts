@@ -160,6 +160,36 @@ export interface WorkProgressRepository {
     marks: ReadonlyArray<Omit<SetMarkData, "itemId">>,
   ): Promise<{ count: number }>;
 
+  // Phase 6 — Bulk operations across items
+  bulkUpdateItemStatus(
+    planId: string,
+    itemIds: ReadonlyArray<string>,
+    statusId: string,
+    completedAt: Date | null,
+  ): Promise<{ count: number }>;
+  bulkDeleteItems(
+    planId: string,
+    itemIds: ReadonlyArray<string>,
+  ): Promise<{ count: number }>;
+  bulkSetPeriodAcrossItems(
+    planId: string,
+    periodId: string,
+    itemIds: ReadonlyArray<string>,
+    mark: {
+      markTypeId: string | null;
+      progressPercent: number | null;
+      note: string | null;
+    },
+  ): Promise<{ count: number }>;
+  createManyItems(
+    planId: string,
+    items: ReadonlyArray<CreatePlanItemSeed>,
+  ): Promise<{ count: number }>;
+  countItemsInPlan(
+    planId: string,
+    itemIds: ReadonlyArray<string>,
+  ): Promise<number>;
+
   // Cross-plan validators (ใช้ใน use case ก่อน mutate)
   isPeriodInPlan(periodId: string, planId: string): Promise<boolean>;
   isItemInPlan(itemId: string, planId: string): Promise<boolean>;

@@ -7,6 +7,7 @@ import {
   Trash2,
   BarChart3,
   ArchiveRestore,
+  ClipboardList,
   Eye,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -92,6 +93,8 @@ export const UserTable: React.FC<UserTableProps> = ({
   const { data: session } = useSession();
   const canViewReport =
     session?.user?.role === Role.ADMIN || session?.user?.role === Role.SEO_DEV;
+  const workProgressBase =
+    session?.user?.role === Role.ADMIN ? "/admin" : "/seo";
 
   const columns: DataTableColumn<User>[] = [
     {
@@ -159,6 +162,15 @@ export const UserTable: React.FC<UserTableProps> = ({
                 className="text-secondary hover:bg-secondary/10"
               >
                 <Eye className="size-4" />
+              </ActionTooltipButton>
+            )}
+            {user.role === Role.CUSTOMER && canViewReport && (
+              <ActionTooltipButton
+                label="Work Progress"
+                href={`${workProgressBase}/customers/${user.id}/work-progress`}
+                className="text-info hover:bg-info/10"
+              >
+                <ClipboardList className="size-4" />
               </ActionTooltipButton>
             )}
             {user.role === Role.CUSTOMER && (
