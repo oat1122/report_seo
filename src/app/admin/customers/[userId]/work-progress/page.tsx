@@ -1,5 +1,8 @@
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { requireAdmin } from "@/lib/auth-utils";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
+import { Button } from "@/components/ui/button";
 import { PlanList } from "@/features/work-progress/presentation/components/plan/PlanList";
 
 export const metadata = {
@@ -16,14 +19,21 @@ export default async function AdminWorkProgressListPage({ params }: PageProps) {
   return (
     <DashboardLayout>
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-        <header className="flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Work Progress
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            จัดการแผนงานของลูกค้า — สร้าง · ใช้ template · clone จากแผนเดิม
-          </p>
-        </header>
+        <div className="flex items-center gap-3">
+          <Button asChild variant="ghost" size="icon">
+            <Link href="/admin/users">
+              <ArrowLeft className="size-4" />
+            </Link>
+          </Button>
+          <header className="flex flex-col gap-1">
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Work Progress
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              จัดการแผนงานของลูกค้า — สร้าง · ใช้ template · clone จากแผนเดิม
+            </p>
+          </header>
+        </div>
         <PlanList
           userId={userId}
           basePath={`/admin/customers/${userId}/work-progress`}

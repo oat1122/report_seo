@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { GripVertical, MoreHorizontal, Pencil, PanelRight, Trash2 } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -13,8 +13,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { PeriodCell } from "./PeriodCell";
+import { useStatuses } from "../../hooks/useMasterTables";
+import { useUpdateItem } from "../../hooks/useItemMutations";
 import type {
   WorkProgressItemWithMarks,
   WorkProgressPeriod,
@@ -49,6 +58,8 @@ function PlanGridRowInner({
 }: PlanGridRowProps) {
   const sortable = useSortable({ id: item.id, disabled: readOnly });
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = sortable;
+  const { data: statuses } = useStatuses();
+  const updateMut = useUpdateItem();
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -58,6 +69,32 @@ function PlanGridRowInner({
 
   const marksByPeriod = new Map(item.periodMarks.map((m) => [m.periodId, m]));
   const rowBg = selected ? "bg-secondary/20" : "bg-card";
+
+  const subtaskPercent = useMemo(() => {
+    const total = item.subtasks.length;
+    if (total === 0) return null;
+    const done = item.subtasks.filter((s) => s.isDone).length;
+    return Math.round((done / total) * 100);
+  }, [item.subtasks]);
+
+  const statusOptions = useMemo(() => {
+    const list = statuses ?? [];
+    const active = list.filter((s) => s.isActive);
+    const hasCurrent = active.some((s) => s.id === item.status.id);
+    if (hasCurrent) return active;
+    const current = list.find((s) => s.id === item.status.id);
+    return current ? [...active, current] : active;
+  }, [statuses, item.status.id]);
+
+  const handleStatusChange = (statusId: string) => {
+    if (statusId === item.status.id) return;
+    updateMut.mutate({
+      userId,
+      planId,
+      itemId: item.id,
+      body: { statusId },
+    });
+  };
 
   return (
     <div
@@ -124,23 +161,53 @@ function PlanGridRowInner({
       </button>
 
       {/* Status */}
-      <div className="flex items-center border-r border-border px-3 py-2">
-        <Badge
-          variant="outline"
-          style={
-            item.status.color
-              ? { borderColor: item.status.color, color: item.status.color }
-              : undefined
-          }
-          className="text-xs"
-        >
-          {item.status.name}
-        </Badge>
-      </div>
-
-      {/* % */}
-      <div className="flex items-center justify-end border-r border-border px-3 py-2 text-sm font-medium tabular-nums">
-        {item.progressPercent}%
+      <div className="flex items-center border-r border-border px-2 py-1.5">
+        {readOnly ? (
+          <Badge
+            variant="outline"
+            style={
+              item.status.color
+                ? { borderColor: item.status.color, color: item.status.color }
+                : undefined
+            }
+            className="text-xs"
+          >
+            {item.status.name}
+          </Badge>
+        ) : (
+          <Select
+            value={item.status.id}
+            onValueChange={handleStatusChange}
+            disabled={updateMut.isPending || statusOptions.length === 0}
+          >
+            <SelectTrigger
+              size="sm"
+              aria-label="เปลี่ยนสถานะ"
+              className="w-full border-transparent bg-transparent text-xs shadow-none hover:bg-muted/50 focus-visible:ring-1"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {statusOptions.map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  <span
+                    className="inline-block size-2 shrink-0 rounded-full"
+                    style={{
+                      backgroundColor: s.color ?? "var(--muted-foreground)",
+                    }}
+                    aria-hidden
+                  />
+                  <span className="truncate">{s.name}</span>
+                  {!s.isActive && (
+                    <span className="text-[10px] text-muted-foreground">
+                      (ปิด)
+                    </span>
+                  )}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {/* Duration */}
@@ -160,6 +227,8 @@ function PlanGridRowInner({
             itemId={item.id}
             periodId={p.id}
             mark={marksByPeriod.get(p.id)}
+            subtaskPercent={subtaskPercent}
+            statusColor={item.status.color}
             readOnly={readOnly}
           />
         </div>

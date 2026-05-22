@@ -18,6 +18,11 @@ export interface CreatePlanData {
   createdById: string | null;
 }
 
+export interface CreatePlanItemSubtaskSeed {
+  title: string;
+  orderIndex: number;
+}
+
 export interface CreatePlanItemSeed {
   categoryId: string;
   statusId: string;
@@ -26,6 +31,7 @@ export interface CreatePlanItemSeed {
   duration: string | null;
   weight: number;
   orderIndex: number;
+  subtasks?: readonly CreatePlanItemSubtaskSeed[];
 }
 
 export interface CloneItemSeed {

@@ -43,6 +43,7 @@ export function addTemplateItemUseCase(
       weight: input.weight ?? 1,
       orderIndex: nextOrderIndex,
       defaultPeriods: input.defaultPeriods ?? null,
+      subtasks: input.subtasks,
     });
   };
 }

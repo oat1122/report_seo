@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { WorkProgressPeriodType } from "@prisma/client";
 
+const templateSubtaskSeedSchema = z.object({
+  title: z.string().min(1).max(500),
+  orderIndex: z.number().int().min(0).optional(),
+});
+
 const templateItemBaseSchema = z.object({
   categoryId: z.string().uuid(),
   activity: z.string().min(1).max(2000),
@@ -9,6 +14,7 @@ const templateItemBaseSchema = z.object({
   weight: z.number().int().min(1).max(100).optional().default(1),
   orderIndex: z.number().int().min(0).optional(),
   defaultPeriods: z.record(z.string(), z.unknown()).optional().nullable(),
+  subtasks: z.array(templateSubtaskSeedSchema).max(200).optional(),
 });
 
 export const addTemplateItemSchema = templateItemBaseSchema;
@@ -16,6 +22,24 @@ export type AddTemplateItemInput = z.infer<typeof addTemplateItemSchema>;
 
 export const updateTemplateItemSchema = templateItemBaseSchema.partial();
 export type UpdateTemplateItemInput = z.infer<typeof updateTemplateItemSchema>;
+
+export const addTemplateSubtaskSchema = z.object({
+  title: z.string().min(1).max(500),
+  orderIndex: z.number().int().min(0).optional(),
+});
+export type AddTemplateSubtaskInput = z.infer<typeof addTemplateSubtaskSchema>;
+
+export const updateTemplateSubtaskSchema = z
+  .object({
+    title: z.string().min(1).max(500).optional(),
+    orderIndex: z.number().int().min(0).optional(),
+  })
+  .refine((d) => Object.keys(d).length > 0, {
+    message: "ต้องระบุอย่างน้อย 1 field ที่จะแก้ไข",
+  });
+export type UpdateTemplateSubtaskInput = z.infer<
+  typeof updateTemplateSubtaskSchema
+>;
 
 export const upsertTemplateSchema = z.object({
   name: z.string().min(1).max(200),

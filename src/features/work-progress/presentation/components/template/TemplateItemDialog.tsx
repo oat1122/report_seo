@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Plus, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -46,6 +47,7 @@ interface Form {
   description: string;
   duration: string;
   weight: number;
+  subtasks: string[];
 }
 
 const empty: Form = {
@@ -54,6 +56,7 @@ const empty: Form = {
   description: "",
   duration: "",
   weight: 1,
+  subtasks: [],
 };
 
 export function TemplateItemDialog({
@@ -66,9 +69,11 @@ export function TemplateItemDialog({
   const addMut = useAddTemplateItem();
   const updateMut = useUpdateTemplateItem();
   const [form, setForm] = useState<Form>(empty);
+  const [subtaskDraft, setSubtaskDraft] = useState("");
 
   useEffect(() => {
     if (!open) return;
+    setSubtaskDraft("");
     if (!initial) {
       setForm(empty);
       return;
@@ -79,19 +84,43 @@ export function TemplateItemDialog({
       description: initial.description ?? "",
       duration: initial.duration ?? "",
       weight: initial.weight,
+      subtasks: (initial.subtasks ?? [])
+        .slice()
+        .sort((a, b) => a.orderIndex - b.orderIndex)
+        .map((s) => s.title),
     });
   }, [open, initial]);
+
+  const addSubtask = () => {
+    const title = subtaskDraft.trim();
+    if (!title) return;
+    setForm((s) => ({ ...s, subtasks: [...s.subtasks, title] }));
+    setSubtaskDraft("");
+  };
+
+  const removeSubtask = (idx: number) => {
+    setForm((s) => ({
+      ...s,
+      subtasks: s.subtasks.filter((_, i) => i !== idx),
+    }));
+  };
 
   const isEdit = Boolean(initial);
   const activeCategories = (categories ?? []).filter((c) => c.isActive);
 
   const handleSubmit = async () => {
+    const subtasks = form.subtasks
+      .map((t) => t.trim())
+      .filter((t) => t.length > 0)
+      .map((title, idx) => ({ title, orderIndex: idx }));
+
     const body: Record<string, unknown> = {
       categoryId: form.categoryId,
       activity: form.activity.trim(),
       description: form.description.trim() || null,
       duration: form.duration.trim() || null,
       weight: form.weight,
+      subtasks,
     };
 
     if (isEdit && initial) {
@@ -203,6 +232,58 @@ export function TemplateItemDialog({
               />
             </div>
           </div>
+
+          <section className="flex flex-col gap-2">
+            <h3 className="text-xs font-semibold uppercase text-muted-foreground">
+              งานย่อย
+            </h3>
+            <div className="flex flex-col gap-2">
+              {form.subtasks.length > 0 && (
+                <ul className="flex flex-col gap-1">
+                  {form.subtasks.map((title, idx) => (
+                    <li
+                      key={idx}
+                      className="flex items-center gap-2 rounded-md border border-border px-2 py-1.5"
+                    >
+                      <span className="flex-1 text-sm">{title}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        aria-label="ลบ"
+                        onClick={() => removeSubtask(idx)}
+                      >
+                        <Trash2 className="size-3.5" />
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="flex gap-2">
+                <Input
+                  className="h-8"
+                  placeholder="เพิ่มงานย่อย..."
+                  value={subtaskDraft}
+                  maxLength={500}
+                  onChange={(e) => setSubtaskDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addSubtask();
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={addSubtask}
+                  disabled={!subtaskDraft.trim()}
+                >
+                  <Plus className="size-4" />
+                </Button>
+              </div>
+            </div>
+          </section>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>

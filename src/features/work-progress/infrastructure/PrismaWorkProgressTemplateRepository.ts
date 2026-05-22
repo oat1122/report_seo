@@ -3,10 +3,12 @@ import type {
   WorkProgressTemplate,
   WorkProgressTemplateDetail,
   WorkProgressTemplateItem,
+  WorkProgressTemplateSubtask,
 } from "../domain/WorkProgressTemplate";
 import type {
   CreateTemplateData,
   CreateTemplateItemData,
+  TemplateSubtaskSeed,
   UpdateTemplateData,
   UpdateTemplateItemData,
   WorkProgressTemplateRepository,
@@ -28,7 +30,14 @@ export class PrismaWorkProgressTemplateRepository
   async findById(id: string): Promise<WorkProgressTemplateDetail | null> {
     const row = await prisma.workProgressTemplate.findUnique({
       where: { id },
-      include: { items: { orderBy: { orderIndex: "asc" } } },
+      include: {
+        items: {
+          orderBy: { orderIndex: "asc" },
+          include: {
+            subtasks: { orderBy: { orderIndex: "asc" } },
+          },
+        },
+      },
     });
     if (!row) return null;
     return row as unknown as WorkProgressTemplateDetail;
@@ -48,9 +57,9 @@ export class PrismaWorkProgressTemplateRepository
           createdById: data.createdById,
         },
       });
-      if (items.length > 0) {
-        await tx.workProgressTemplateItem.createMany({
-          data: items.map((it, i) => ({
+      for (const [i, it] of items.entries()) {
+        const created = await tx.workProgressTemplateItem.create({
+          data: {
             templateId: template.id,
             categoryId: it.categoryId,
             activity: it.activity,
@@ -59,12 +68,26 @@ export class PrismaWorkProgressTemplateRepository
             weight: it.weight,
             orderIndex: it.orderIndex ?? i,
             defaultPeriods: it.defaultPeriods ?? undefined,
-          })),
+          },
         });
+        if (it.subtasks && it.subtasks.length > 0) {
+          await tx.workProgressTemplateSubtask.createMany({
+            data: it.subtasks.map((s, idx) => ({
+              templateItemId: created.id,
+              title: s.title,
+              orderIndex: s.orderIndex ?? idx,
+            })),
+          });
+        }
       }
       const detail = await tx.workProgressTemplate.findUnique({
         where: { id: template.id },
-        include: { items: { orderBy: { orderIndex: "asc" } } },
+        include: {
+          items: {
+            orderBy: { orderIndex: "asc" },
+            include: { subtasks: { orderBy: { orderIndex: "asc" } } },
+          },
+        },
       });
       return detail as unknown as WorkProgressTemplateDetail;
     });
@@ -89,19 +112,34 @@ export class PrismaWorkProgressTemplateRepository
     templateId: string,
     data: CreateTemplateItemData,
   ): Promise<WorkProgressTemplateItem> {
-    const row = await prisma.workProgressTemplateItem.create({
-      data: {
-        templateId,
-        categoryId: data.categoryId,
-        activity: data.activity,
-        description: data.description,
-        duration: data.duration,
-        weight: data.weight,
-        orderIndex: data.orderIndex,
-        defaultPeriods: data.defaultPeriods ?? undefined,
-      },
+    return prisma.$transaction(async (tx) => {
+      const created = await tx.workProgressTemplateItem.create({
+        data: {
+          templateId,
+          categoryId: data.categoryId,
+          activity: data.activity,
+          description: data.description,
+          duration: data.duration,
+          weight: data.weight,
+          orderIndex: data.orderIndex,
+          defaultPeriods: data.defaultPeriods ?? undefined,
+        },
+      });
+      if (data.subtasks && data.subtasks.length > 0) {
+        await tx.workProgressTemplateSubtask.createMany({
+          data: data.subtasks.map((s, idx) => ({
+            templateItemId: created.id,
+            title: s.title,
+            orderIndex: s.orderIndex ?? idx,
+          })),
+        });
+      }
+      const withSubs = await tx.workProgressTemplateItem.findUnique({
+        where: { id: created.id },
+        include: { subtasks: { orderBy: { orderIndex: "asc" } } },
+      });
+      return withSubs as unknown as WorkProgressTemplateItem;
     });
-    return row as unknown as WorkProgressTemplateItem;
   }
 
   async updateItem(
@@ -119,6 +157,7 @@ export class PrismaWorkProgressTemplateRepository
         orderIndex: data.orderIndex,
         defaultPeriods: data.defaultPeriods ?? undefined,
       },
+      include: { subtasks: { orderBy: { orderIndex: "asc" } } },
     });
     return row as unknown as WorkProgressTemplateItem;
   }
@@ -135,7 +174,10 @@ export class PrismaWorkProgressTemplateRepository
   > {
     const row = await prisma.workProgressTemplateItem.findUnique({
       where: { id: itemId },
-      include: { template: true },
+      include: {
+        template: true,
+        subtasks: { orderBy: { orderIndex: "asc" } },
+      },
     });
     if (!row) return null;
     return row as unknown as WorkProgressTemplateItem & {
@@ -155,5 +197,95 @@ export class PrismaWorkProgressTemplateRepository
         }),
       ),
     );
+  }
+
+  async listItemSubtasks(
+    itemId: string,
+  ): Promise<WorkProgressTemplateSubtask[]> {
+    const rows = await prisma.workProgressTemplateSubtask.findMany({
+      where: { templateItemId: itemId },
+      orderBy: { orderIndex: "asc" },
+    });
+    return rows as unknown as WorkProgressTemplateSubtask[];
+  }
+
+  async addItemSubtask(
+    itemId: string,
+    data: TemplateSubtaskSeed,
+  ): Promise<WorkProgressTemplateSubtask> {
+    const orderIndex =
+      data.orderIndex ??
+      (await prisma.workProgressTemplateSubtask.count({
+        where: { templateItemId: itemId },
+      }));
+    const row = await prisma.workProgressTemplateSubtask.create({
+      data: {
+        templateItemId: itemId,
+        title: data.title,
+        orderIndex,
+      },
+    });
+    return row as unknown as WorkProgressTemplateSubtask;
+  }
+
+  async updateItemSubtask(
+    subtaskId: string,
+    data: { title?: string; orderIndex?: number },
+  ): Promise<WorkProgressTemplateSubtask> {
+    const row = await prisma.workProgressTemplateSubtask.update({
+      where: { id: subtaskId },
+      data,
+    });
+    return row as unknown as WorkProgressTemplateSubtask;
+  }
+
+  async deleteItemSubtask(subtaskId: string): Promise<void> {
+    await prisma.workProgressTemplateSubtask.delete({
+      where: { id: subtaskId },
+    });
+  }
+
+  async findItemSubtaskById(
+    subtaskId: string,
+  ): Promise<
+    | (WorkProgressTemplateSubtask & {
+        templateItem: WorkProgressTemplateItem & {
+          template: WorkProgressTemplate;
+        };
+      })
+    | null
+  > {
+    const row = await prisma.workProgressTemplateSubtask.findUnique({
+      where: { id: subtaskId },
+      include: {
+        templateItem: { include: { template: true } },
+      },
+    });
+    if (!row) return null;
+    return row as unknown as WorkProgressTemplateSubtask & {
+      templateItem: WorkProgressTemplateItem & {
+        template: WorkProgressTemplate;
+      };
+    };
+  }
+
+  async replaceItemSubtasks(
+    itemId: string,
+    subtasks: readonly TemplateSubtaskSeed[],
+  ): Promise<void> {
+    await prisma.$transaction(async (tx) => {
+      await tx.workProgressTemplateSubtask.deleteMany({
+        where: { templateItemId: itemId },
+      });
+      if (subtasks.length > 0) {
+        await tx.workProgressTemplateSubtask.createMany({
+          data: subtasks.map((s, idx) => ({
+            templateItemId: itemId,
+            title: s.title,
+            orderIndex: s.orderIndex ?? idx,
+          })),
+        });
+      }
+    });
   }
 }

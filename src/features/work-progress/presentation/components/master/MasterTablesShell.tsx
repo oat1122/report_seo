@@ -4,7 +4,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { CategoryManager } from "./CategoryManager";
 import { StatusManager } from "./StatusManager";
-import { MarkTypeManager } from "./MarkTypeManager";
 
 export function MasterTablesShell() {
   return (
@@ -12,7 +11,6 @@ export function MasterTablesShell() {
       <TabsList>
         <TabsTrigger value="categories">หมวด</TabsTrigger>
         <TabsTrigger value="statuses">สถานะ</TabsTrigger>
-        <TabsTrigger value="markTypes">สัญลักษณ์ period</TabsTrigger>
       </TabsList>
 
       <TabsContent value="categories">
@@ -27,14 +25,6 @@ export function MasterTablesShell() {
         <Card>
           <CardContent className="pt-6">
             <StatusManager />
-          </CardContent>
-        </Card>
-      </TabsContent>
-
-      <TabsContent value="markTypes">
-        <Card>
-          <CardContent className="pt-6">
-            <MarkTypeManager />
           </CardContent>
         </Card>
       </TabsContent>

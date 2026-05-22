@@ -65,6 +65,10 @@ export function createPlanUseCase(
         duration: it.duration,
         weight: it.weight,
         orderIndex: it.orderIndex ?? i,
+        subtasks: (it.subtasks ?? []).map((s, idx) => ({
+          title: s.title,
+          orderIndex: s.orderIndex ?? idx,
+        })),
       }));
 
       const created = await repo.createPlanWithItems(

@@ -27,6 +27,8 @@ import {
 } from "../../hooks/useItemMutations";
 import type { WorkProgressPeriod } from "@/features/work-progress";
 
+type BulkMarkMode = "set" | "clear";
+
 interface BulkActionToolbarProps {
   userId: string;
   planId: string;
@@ -53,7 +55,10 @@ export function BulkActionToolbar({
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [statusId, setStatusId] = useState<string>("");
   const [periodId, setPeriodId] = useState<string>(periods[0]?.id ?? "");
-  const [markTypeId, setMarkTypeId] = useState<string>("");
+  const [markMode, setMarkMode] = useState<BulkMarkMode>("set");
+
+  const defaultMarkTypeId =
+    markTypes.find((m) => m.isActive)?.id ?? null;
 
   const applyStatus = async () => {
     if (!statusId) return;
@@ -69,13 +74,16 @@ export function BulkActionToolbar({
 
   const applyPeriod = async () => {
     if (!periodId) return;
+    const resolvedMarkTypeId =
+      markMode === "clear" ? null : defaultMarkTypeId;
+    if (markMode === "set" && !resolvedMarkTypeId) return;
     await bulkPeriod.mutateAsync({
       userId,
       planId,
       body: {
         periodId,
         itemIds: selectedIds,
-        markTypeId: markTypeId || null,
+        markTypeId: resolvedMarkTypeId,
       },
     });
     toast.success(`ตั้ง mark ${selectedIds.length} ช่อง`);
@@ -161,25 +169,26 @@ export function BulkActionToolbar({
                     ))}
                   </SelectContent>
                 </Select>
-                <Select value={markTypeId} onValueChange={setMarkTypeId}>
+                <Select
+                  value={markMode}
+                  onValueChange={(v) => setMarkMode(v as BulkMarkMode)}
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder="เลือก mark (ว่าง = ล้าง)" />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">— ล้าง mark —</SelectItem>
-                    {markTypes
-                      .filter((m) => m.isActive)
-                      .map((m) => (
-                        <SelectItem key={m.id} value={m.id}>
-                          {m.name}
-                        </SelectItem>
-                      ))}
+                    <SelectItem value="set">ตั้ง mark</SelectItem>
+                    <SelectItem value="clear">ล้าง mark</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button
                   size="sm"
                   onClick={applyPeriod}
-                  disabled={!periodId || bulkPeriod.isPending}
+                  disabled={
+                    !periodId ||
+                    bulkPeriod.isPending ||
+                    (markMode === "set" && !defaultMarkTypeId)
+                  }
                 >
                   ยืนยัน
                 </Button>

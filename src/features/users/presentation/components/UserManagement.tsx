@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { Loader2, Plus } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, Loader2, Plus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useGetUsers, useGetSeoDevs } from "@/hooks/api/useUsersApi";
 import {
@@ -93,13 +94,20 @@ const UserManagement: React.FC = () => {
     <DashboardLayout>
       <div className="mx-auto w-full max-w-6xl py-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
-              การจัดการผู้ใช้งาน
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              จัดการบัญชีผู้ใช้งานทั้งหมดในระบบ
-            </p>
+          <div className="flex items-center gap-3">
+            <Button asChild variant="ghost" size="icon">
+              <Link href="/admin">
+                <ArrowLeft className="size-4" />
+              </Link>
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
+                การจัดการผู้ใช้งาน
+              </h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                จัดการบัญชีผู้ใช้งานทั้งหมดในระบบ
+              </p>
+            </div>
           </div>
           <Button
             size="lg"

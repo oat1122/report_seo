@@ -69,6 +69,9 @@ import { addTemplateItemUseCase } from "./application/use-cases/template/addTemp
 import { updateTemplateItemUseCase } from "./application/use-cases/template/updateTemplateItem";
 import { deleteTemplateItemUseCase } from "./application/use-cases/template/deleteTemplateItem";
 import { savePlanAsTemplateUseCase } from "./application/use-cases/template/savePlanAsTemplate";
+import { addTemplateItemSubtaskUseCase } from "./application/use-cases/template/addTemplateItemSubtask";
+import { updateTemplateItemSubtaskUseCase } from "./application/use-cases/template/updateTemplateItemSubtask";
+import { deleteTemplateItemSubtaskUseCase } from "./application/use-cases/template/deleteTemplateItemSubtask";
 
 // Phase 3 use cases
 import { addSubtaskUseCase } from "./application/use-cases/subtask/addSubtask";
@@ -191,6 +194,12 @@ export const savePlanAsTemplate = savePlanAsTemplateUseCase(
   repo,
   templateRepo,
 );
+export const addTemplateItemSubtask =
+  addTemplateItemSubtaskUseCase(templateRepo);
+export const updateTemplateItemSubtask =
+  updateTemplateItemSubtaskUseCase(templateRepo);
+export const deleteTemplateItemSubtask =
+  deleteTemplateItemSubtaskUseCase(templateRepo);
 
 // Phase 3 — Rich Items
 export const addSubtask = addSubtaskUseCase(
@@ -286,6 +295,8 @@ export {
   listTemplatesQuerySchema,
   templateIdParamSchema,
   savePlanAsTemplateSchema,
+  addTemplateSubtaskSchema,
+  updateTemplateSubtaskSchema,
   addSubtaskSchema,
   updateSubtaskSchema,
   reorderSubtasksSchema,
@@ -318,6 +329,8 @@ export {
   type ReorderTemplateItemsInput,
   type ListTemplatesQuery,
   type SavePlanAsTemplateInput,
+  type AddTemplateSubtaskInput,
+  type UpdateTemplateSubtaskInput,
   type AddSubtaskInput,
   type UpdateSubtaskInput,
   type ReorderSubtasksInput,
@@ -376,6 +389,7 @@ export type {
   WorkProgressTemplate,
   WorkProgressTemplateItem,
   WorkProgressTemplateDetail,
+  WorkProgressTemplateSubtask,
 } from "./domain/WorkProgressTemplate";
 export type { WorkProgressSubtask } from "./domain/WorkProgressSubtask";
 export type {

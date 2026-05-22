@@ -2,8 +2,14 @@ import type {
   WorkProgressTemplate,
   WorkProgressTemplateDetail,
   WorkProgressTemplateItem,
+  WorkProgressTemplateSubtask,
 } from "../../domain/WorkProgressTemplate";
 import type { PeriodTypeCode } from "../../domain/types";
+
+export interface TemplateSubtaskSeed {
+  title: string;
+  orderIndex?: number;
+}
 
 export interface CreateTemplateData {
   name: string;
@@ -28,6 +34,7 @@ export interface CreateTemplateItemData {
   weight: number;
   orderIndex: number;
   defaultPeriods: Record<string, unknown> | null;
+  subtasks?: readonly TemplateSubtaskSeed[];
 }
 
 export interface UpdateTemplateItemData {
@@ -67,5 +74,31 @@ export interface WorkProgressTemplateRepository {
   reorderItems(
     templateId: string,
     order: ReadonlyArray<{ itemId: string; orderIndex: number }>,
+  ): Promise<void>;
+
+  // Template item subtask
+  listItemSubtasks(itemId: string): Promise<WorkProgressTemplateSubtask[]>;
+  addItemSubtask(
+    itemId: string,
+    data: TemplateSubtaskSeed,
+  ): Promise<WorkProgressTemplateSubtask>;
+  updateItemSubtask(
+    subtaskId: string,
+    data: { title?: string; orderIndex?: number },
+  ): Promise<WorkProgressTemplateSubtask>;
+  deleteItemSubtask(subtaskId: string): Promise<void>;
+  findItemSubtaskById(
+    subtaskId: string,
+  ): Promise<
+    | (WorkProgressTemplateSubtask & {
+        templateItem: WorkProgressTemplateItem & {
+          template: WorkProgressTemplate;
+        };
+      })
+    | null
+  >;
+  replaceItemSubtasks(
+    itemId: string,
+    subtasks: readonly TemplateSubtaskSeed[],
   ): Promise<void>;
 }

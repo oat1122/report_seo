@@ -13,11 +13,10 @@ export default async function AdminDashboardPage() {
       color: "secondary" as const,
     },
     {
-      title: "ตั้งค่าระบบ",
-      description: "กำหนดค่าการทำงานของระบบ",
-      href: "/admin/settings",
+      title: "ตั้งค่า Work Progress",
+      description: "จัดการ master tables และ templates ของ plan",
+      href: "/admin/settings/work-progress",
       color: "success" as const,
-      disabled: true,
     },
     {
       title: "รายงาน",

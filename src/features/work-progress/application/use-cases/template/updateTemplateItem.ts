@@ -37,6 +37,11 @@ export function updateTemplateItemUseCase(
       }
     }
 
-    return templateRepo.updateItem(itemId, input);
+    const { subtasks, ...itemUpdate } = input;
+    const updated = await templateRepo.updateItem(itemId, itemUpdate);
+    if (subtasks) {
+      await templateRepo.replaceItemSubtasks(itemId, subtasks);
+    }
+    return updated;
   };
 }

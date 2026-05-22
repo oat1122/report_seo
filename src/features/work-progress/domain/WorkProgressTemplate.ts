@@ -13,6 +13,13 @@ export interface WorkProgressTemplate {
   updatedAt: Date;
 }
 
+export interface WorkProgressTemplateSubtask {
+  id: string;
+  templateItemId: string;
+  title: string;
+  orderIndex: number;
+}
+
 export interface WorkProgressTemplateItem {
   id: string;
   templateId: string;
@@ -23,6 +30,7 @@ export interface WorkProgressTemplateItem {
   weight: number;
   orderIndex: number;
   defaultPeriods: Record<string, unknown> | null;
+  subtasks: WorkProgressTemplateSubtask[];
 }
 
 export interface WorkProgressTemplateDetail extends WorkProgressTemplate {

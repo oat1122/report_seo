@@ -46,7 +46,6 @@ const COL_WIDTH = {
   category: 160,
   activity: 280,
   status: 120,
-  percent: 60,
   duration: 100,
   period: 80,
   actions: 48,
@@ -106,7 +105,7 @@ export function PlanGrid({ userId, planId, readOnly }: PlanGridProps) {
 
   const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
 
-  const gridTemplate = `${COL_WIDTH.select}px ${COL_WIDTH.drag}px ${COL_WIDTH.category}px ${COL_WIDTH.activity}px ${COL_WIDTH.status}px ${COL_WIDTH.percent}px ${COL_WIDTH.duration}px repeat(${periods.length}, ${COL_WIDTH.period}px) ${COL_WIDTH.actions}px`;
+  const gridTemplate = `${COL_WIDTH.select}px ${COL_WIDTH.drag}px ${COL_WIDTH.category}px ${COL_WIDTH.activity}px ${COL_WIDTH.status}px ${COL_WIDTH.duration}px repeat(${periods.length}, ${COL_WIDTH.period}px) ${COL_WIDTH.actions}px`;
   const allSelected = items.length > 0 && selectedIds.size === items.length;
   const someSelected = selectedIds.size > 0 && selectedIds.size < items.length;
 
@@ -197,9 +196,6 @@ export function PlanGrid({ userId, planId, readOnly }: PlanGridProps) {
             <div className="border-r border-border px-3 py-2">หมวด</div>
             <div className="border-r border-border px-3 py-2">กิจกรรม</div>
             <div className="border-r border-border px-3 py-2">สถานะ</div>
-            <div className="border-r border-border px-3 py-2 text-right">
-              %
-            </div>
             <div className="border-r border-border px-3 py-2">ระยะ</div>
             {periods.map((p) => (
               <div

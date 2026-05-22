@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { GripVertical, Pencil, Trash2 } from "lucide-react";
+import { GripVertical, ListChecks, Pencil, Trash2 } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
@@ -67,6 +67,12 @@ function TemplateItemRowInner({
         {item.description && (
           <p className="truncate text-xs text-muted-foreground">
             {item.description}
+          </p>
+        )}
+        {item.subtasks && item.subtasks.length > 0 && (
+          <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+            <ListChecks className="size-3" />
+            {item.subtasks.length} งานย่อย
           </p>
         )}
       </div>

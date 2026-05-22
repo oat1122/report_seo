@@ -17,10 +17,7 @@ import {
   useClearPeriodMark,
   useSetPeriodMark,
 } from "../../hooks/useSetPeriodMark";
-import type {
-  WorkProgressMarkType,
-  WorkProgressPeriodMarkWithType,
-} from "@/features/work-progress";
+import type { WorkProgressPeriodMarkWithType } from "@/features/work-progress";
 
 interface PeriodCellProps {
   userId: string;
@@ -28,6 +25,8 @@ interface PeriodCellProps {
   itemId: string;
   periodId: string;
   mark: WorkProgressPeriodMarkWithType | undefined;
+  subtaskPercent: number | null;
+  statusColor: string | null;
   readOnly?: boolean;
 }
 
@@ -37,10 +36,11 @@ function PeriodCellInner({
   itemId,
   periodId,
   mark,
+  subtaskPercent,
+  statusColor,
   readOnly,
 }: PeriodCellProps) {
   const [open, setOpen] = useState(false);
-  const [markTypeId, setMarkTypeId] = useState<string>(mark?.markTypeId ?? "");
   const [percent, setPercent] = useState<string>(
     mark?.progressPercent != null ? String(mark.progressPercent) : "",
   );
@@ -51,7 +51,6 @@ function PeriodCellInner({
   const clearMut = useClearPeriodMark();
 
   const reset = () => {
-    setMarkTypeId(mark?.markTypeId ?? "");
     setPercent(mark?.progressPercent != null ? String(mark.progressPercent) : "");
     setNote(mark?.note ?? "");
   };
@@ -62,11 +61,12 @@ function PeriodCellInner({
   };
 
   const activeMarkTypes = (markTypes ?? []).filter((m) => m.isActive);
-  const selectedType: WorkProgressMarkType | null =
-    activeMarkTypes.find((m) => m.id === markTypeId) ?? null;
+  const defaultMarkType = activeMarkTypes[0] ?? null;
+  const effectiveMarkType =
+    activeMarkTypes.find((m) => m.id === mark?.markTypeId) ?? defaultMarkType;
 
   const handleSave = async () => {
-    if (!markTypeId) return;
+    if (!effectiveMarkType) return;
     const p = percent.trim();
     const parsedPercent = p ? Number(p) : null;
     if (p && (Number.isNaN(parsedPercent) || parsedPercent! < 0 || parsedPercent! > 100)) {
@@ -78,11 +78,11 @@ function PeriodCellInner({
       itemId,
       body: {
         periodId,
-        markTypeId,
+        markTypeId: effectiveMarkType.id,
         progressPercent: parsedPercent,
         note: note.trim() || null,
       },
-      markType: selectedType,
+      markType: effectiveMarkType,
     });
     setOpen(false);
   };
@@ -96,8 +96,8 @@ function PeriodCellInner({
     setOpen(false);
   };
 
-  const bgStyle = mark?.markType.color
-    ? { backgroundColor: mark.markType.color }
+  const bgStyle = mark
+    ? { backgroundColor: statusColor ?? mark.markType.color ?? undefined }
     : undefined;
 
   if (readOnly) {
@@ -108,12 +108,12 @@ function PeriodCellInner({
           !mark && "text-muted-foreground/40",
         )}
         style={bgStyle}
-        title={mark ? `${mark.markType.name}${mark.progressPercent != null ? ` · ${mark.progressPercent}%` : ""}` : ""}
+        title={mark ? `${mark.markType.name}${subtaskPercent != null ? ` · ${subtaskPercent}%` : ""}` : ""}
       >
         {mark ? (
-          mark.progressPercent != null ? (
+          subtaskPercent != null ? (
             <span className="font-medium text-white drop-shadow">
-              {mark.progressPercent}%
+              {subtaskPercent}%
             </span>
           ) : (
             <Check className="size-4 text-white drop-shadow" />
@@ -138,9 +138,9 @@ function PeriodCellInner({
           aria-label={mark ? `mark: ${mark.markType.name}` : "ว่าง"}
         >
           {mark ? (
-            mark.progressPercent != null ? (
+            subtaskPercent != null ? (
               <span className="text-xs font-medium text-white drop-shadow">
-                {mark.progressPercent}%
+                {subtaskPercent}%
               </span>
             ) : (
               <Check className="mx-auto size-4 text-white drop-shadow" />
@@ -152,28 +152,6 @@ function PeriodCellInner({
       </PopoverTrigger>
       <PopoverContent className="w-72" align="start">
         <div className="grid gap-3">
-          <div className="grid gap-2">
-            <Label className="text-xs">สัญลักษณ์</Label>
-            <div className="flex flex-wrap gap-1">
-              {activeMarkTypes.map((mt) => (
-                <button
-                  key={mt.id}
-                  type="button"
-                  onClick={() => setMarkTypeId(mt.id)}
-                  className={cn(
-                    "flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs transition",
-                    markTypeId === mt.id
-                      ? "ring-2 ring-primary"
-                      : "hover:border-primary/40",
-                  )}
-                  style={mt.color ? { backgroundColor: mt.color, color: "#fff" } : undefined}
-                >
-                  {mt.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
           <div className="grid grid-cols-2 gap-2">
             <div className="grid gap-1">
               <Label htmlFor={`pc-pct-${itemId}-${periodId}`} className="text-xs">
@@ -232,7 +210,7 @@ function PeriodCellInner({
                 type="button"
                 size="sm"
                 onClick={handleSave}
-                disabled={!markTypeId || setMut.isPending}
+                disabled={!effectiveMarkType || setMut.isPending}
               >
                 บันทึก
               </Button>

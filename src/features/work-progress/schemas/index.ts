@@ -59,6 +59,8 @@ export {
   listTemplatesQuerySchema,
   templateIdParamSchema,
   savePlanAsTemplateSchema,
+  addTemplateSubtaskSchema,
+  updateTemplateSubtaskSchema,
   type UpsertTemplateInput,
   type UpdateTemplateInput,
   type AddTemplateItemInput,
@@ -66,6 +68,8 @@ export {
   type ReorderTemplateItemsInput,
   type ListTemplatesQuery,
   type SavePlanAsTemplateInput,
+  type AddTemplateSubtaskInput,
+  type UpdateTemplateSubtaskInput,
 } from "./template";
 
 export {

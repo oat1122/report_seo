@@ -486,9 +486,25 @@ model WorkProgressTemplateItem {
   orderIndex     Int                  @default(0)
   defaultPeriods Json?
 
+  subtasks WorkProgressTemplateSubtask[]
+
   @@index([templateId])
   @@index([categoryId])
   @@map("workprogresstemplateitem")
+}
+
+// 16.1 Subtask ของ Template Item (จะถูก copy ตอน gen plan จาก template)
+model WorkProgressTemplateSubtask {
+  id             String                   @id @default(uuid())
+  templateItemId String
+  templateItem   WorkProgressTemplateItem @relation(fields: [templateItemId], references: [id], onDelete: Cascade)
+  title          String                   @db.Text
+  orderIndex     Int                      @default(0)
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+
+  @@index([templateItemId])
+  @@map("workprogresstemplatesubtask")
 }
 
 // ----------------------------------------------------

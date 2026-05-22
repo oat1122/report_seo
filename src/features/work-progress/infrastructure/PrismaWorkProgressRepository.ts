@@ -93,18 +93,30 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
         });
       }
       if (items.length > 0) {
-        await tx.workProgressItem.createMany({
-          data: items.map((it, i) => ({
-            planId: plan.id,
-            categoryId: it.categoryId,
-            statusId: it.statusId,
-            activity: it.activity,
-            description: it.description,
-            duration: it.duration,
-            weight: it.weight,
-            orderIndex: it.orderIndex ?? i,
-          })),
-        });
+        // create items one-by-one so we can attach subtasks when present
+        for (const [i, it] of items.entries()) {
+          const createdItem = await tx.workProgressItem.create({
+            data: {
+              planId: plan.id,
+              categoryId: it.categoryId,
+              statusId: it.statusId,
+              activity: it.activity,
+              description: it.description,
+              duration: it.duration,
+              weight: it.weight,
+              orderIndex: it.orderIndex ?? i,
+            },
+          });
+          if (it.subtasks && it.subtasks.length > 0) {
+            await tx.workProgressSubtask.createMany({
+              data: it.subtasks.map((s, idx) => ({
+                itemId: createdItem.id,
+                title: s.title,
+                orderIndex: s.orderIndex ?? idx,
+              })),
+            });
+          }
+        }
       }
       return plan;
     });
