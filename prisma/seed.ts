@@ -81,6 +81,56 @@ async function main() {
     },
   });
 
+  // 5️ Work Progress master tables (Phase 1)
+  // หมวดหมู่งาน SEO 7 หมวด (จาก CSV SEO_Work_Progress_2026_12Months) — isSystem ลบไม่ได้
+  const wpCategories = [
+    { code: "KEYWORD_INTENT", name: "Keyword & Intent", icon: "Search", orderIndex: 1 },
+    { code: "SETUP_TRACKING", name: "SETUP GSC / Analytics / TAG", icon: "Settings", orderIndex: 2 },
+    { code: "ON_PAGE_SEO", name: "On-Page SEO", icon: "FileText", orderIndex: 3 },
+    { code: "TECHNICAL_SEO", name: "Technical SEO", icon: "Wrench", orderIndex: 4 },
+    { code: "OFF_PAGE_BACKLINKS", name: "Off-Page (Backlinks)", icon: "Link", orderIndex: 5 },
+    { code: "MONITORING_AUDIT", name: "Monitoring & Audit", icon: "Activity", orderIndex: 6 },
+    { code: "REPORT", name: "Report", icon: "FileBarChart", orderIndex: 7 },
+  ];
+  for (const c of wpCategories) {
+    await prisma.workProgressCategory.upsert({
+      where: { code: c.code },
+      update: { name: c.name, icon: c.icon, orderIndex: c.orderIndex, isSystem: true, isActive: true },
+      create: { ...c, isSystem: true, isActive: true },
+    });
+  }
+
+  // 5 สถานะ — NOT_STARTED = default, COMPLETED + CANCELLED = terminal
+  const wpStatuses = [
+    { code: "NOT_STARTED", name: "ยังไม่เริ่ม", orderIndex: 1, isDefault: true, isTerminal: false },
+    { code: "IN_PROGRESS", name: "กำลังดำเนินการ", color: "#9592ff", orderIndex: 2, isDefault: false, isTerminal: false },
+    { code: "COMPLETED", name: "เสร็จสิ้น", color: "#31fb4c", orderIndex: 3, isDefault: false, isTerminal: true },
+    { code: "ON_HOLD", name: "ระงับชั่วคราว", orderIndex: 4, isDefault: false, isTerminal: false },
+    { code: "CANCELLED", name: "ยกเลิก", orderIndex: 5, isDefault: false, isTerminal: true },
+  ];
+  for (const s of wpStatuses) {
+    await prisma.workProgressStatus.upsert({
+      where: { code: s.code },
+      update: { name: s.name, orderIndex: s.orderIndex, isDefault: s.isDefault, isTerminal: s.isTerminal, color: s.color ?? null, isSystem: true, isActive: true },
+      create: { ...s, color: s.color ?? null, isSystem: true, isActive: true },
+    });
+  }
+
+  // 4 ประเภทเครื่องหมายเซลล์ (Mark Type)
+  const wpMarkTypes = [
+    { code: "PLANNED", name: "วางแผน", orderIndex: 1 },
+    { code: "IN_PROGRESS", name: "กำลังทำ", color: "#9592ff", orderIndex: 2 },
+    { code: "COMPLETED", name: "เสร็จแล้ว", color: "#31fb4c", orderIndex: 3 },
+    { code: "MISSED", name: "พลาด", orderIndex: 4 },
+  ];
+  for (const m of wpMarkTypes) {
+    await prisma.workProgressMarkType.upsert({
+      where: { code: m.code },
+      update: { name: m.name, orderIndex: m.orderIndex, color: m.color ?? null, isSystem: true, isActive: true },
+      create: { ...m, color: m.color ?? null, isSystem: true, isActive: true },
+    });
+  }
+
   console.log(" Seed ข้อมูลเสร็จสมบูรณ์");
   console.log("--- ข้อมูลผู้ใช้งานหลัก ---");
   console.table({
@@ -92,6 +142,12 @@ async function main() {
   console.table({
     CustomerDomain: customerProfile.domain,
     AssignedSeoDev: seoDevUser.email,
+  });
+  console.log("--- Work Progress masters ---");
+  console.table({
+    Categories: wpCategories.length,
+    Statuses: wpStatuses.length,
+    MarkTypes: wpMarkTypes.length,
   });
 }
 

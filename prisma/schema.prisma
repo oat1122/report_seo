@@ -35,6 +35,14 @@ enum PaymentStatus {
   REJECTED
 }
 
+// กำหนดประเภทของช่วงเวลาในแผนงาน (Work Progress Plan)
+enum WorkProgressPeriodType {
+  YEAR_12_MONTHS  // แผนรายปี แบ่ง 12 เดือน
+  YEAR_4_QUARTERS // แผนรายปี แบ่ง 4 ไตรมาส
+  HALF_2_PERIODS  // แบ่งครึ่งปี 2 ช่วง
+  CUSTOM          // กำหนดเอง
+}
+
 // ----------------------------------------------------
 // Models
 // ----------------------------------------------------
@@ -83,6 +91,7 @@ model Customer {
   payments        PaymentProof[]      // ลูกค้า 1 คน มีประวัติการชำระเงินได้หลายครั้ง
   recommendations KeywordRecommend[]  // ลูกค้า 1 คน มี Keyword แนะนำได้หลายรายการ
   aiOverviews     AiOverview[]        // ลูกค้า 1 คน มี AI Overview ได้หลายรายการ
+  workProgressPlans WorkProgressPlan[] // แผนงาน SEO ของลูกค้า (Phase 1+)
 
   @@map("customer")
 }
@@ -246,6 +255,170 @@ model AiOverviewImage {
   @@index([aiOverviewId])
 
   @@map("aioverviewimage")
+}
+
+// ----------------------------------------------------
+// Work Progress Feature (Phase 1 — Foundation)
+// ----------------------------------------------------
+
+// 8. Master: หมวดหมู่กิจกรรม (Category)
+//    - กำหนดหมวดของงาน SEO เช่น Keyword & Intent, On-Page SEO, Technical SEO
+model WorkProgressCategory {
+  id          String   @id @default(uuid())
+  code        String   @unique // รหัสสำหรับอ้างอิงทางโปรแกรม (UPPER_SNAKE_CASE)
+  name        String   // ชื่อแสดงผล
+  description String?  @db.Text
+  color       String?  // hex color (#rrggbb); null → fallback theme
+  icon        String?  // ชื่อ icon จาก lucide-react
+  orderIndex  Int      @default(0)
+  isActive    Boolean  @default(true)
+  isSystem    Boolean  @default(false) // true = ลบไม่ได้
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  items WorkProgressItem[]
+
+  @@index([isActive])
+  @@map("workprogresscategory")
+}
+
+// 9. Master: สถานะของกิจกรรม (Status)
+//    - เช่น NOT_STARTED (default) / IN_PROGRESS / COMPLETED (terminal) / ON_HOLD / CANCELLED
+model WorkProgressStatus {
+  id         String   @id @default(uuid())
+  code       String   @unique
+  name       String
+  color      String?
+  orderIndex Int      @default(0)
+  isTerminal Boolean  @default(false) // true = ถือว่าจบ → auto set completedAt
+  isDefault  Boolean  @default(false) // true = ใช้เป็นค่าเริ่มต้นของ item ใหม่ (use case enforce 1 row only)
+  isActive   Boolean  @default(true)
+  isSystem   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  items WorkProgressItem[]
+
+  @@index([isActive])
+  @@map("workprogressstatus")
+}
+
+// 10. Master: ประเภทของเครื่องหมายในแต่ละช่วง (Mark Type)
+//     - ใช้กับ cell ในตารางรายเดือน เช่น PLANNED / IN_PROGRESS / COMPLETED / MISSED
+model WorkProgressMarkType {
+  id         String   @id @default(uuid())
+  code       String   @unique
+  name       String
+  color      String?
+  icon       String?
+  orderIndex Int      @default(0)
+  isActive   Boolean  @default(true)
+  isSystem   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  periodMarks WorkProgressItemPeriodMark[]
+
+  @@index([isActive])
+  @@map("workprogressmarktype")
+}
+
+// 11. แผนงาน (Work Progress Plan)
+//     - แผนรายปี / รายไตรมาส / ครึ่งปี / กำหนดเอง สำหรับลูกค้า 1 ราย
+model WorkProgressPlan {
+  id          String                 @id @default(uuid())
+  title       String
+  periodType  WorkProgressPeriodType @default(YEAR_12_MONTHS)
+  year        Int?
+  startDate   DateTime?
+  endDate     DateTime?
+  packageName String?
+  note        String?  @db.Text
+  isArchived  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  periods WorkProgressPeriod[]
+  items   WorkProgressItem[]
+
+  @@index([customerId])
+  @@index([customerId, isArchived])
+  @@map("workprogressplan")
+}
+
+// 12. ช่วงเวลาภายใน plan (Period)
+//     - เช่น ม.ค.-ธ.ค. (12 rows) หรือ Q1-Q4 (4 rows)
+model WorkProgressPeriod {
+  id        String   @id @default(uuid())
+  planId    String
+  plan      WorkProgressPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  seq       Int      // 1..N
+  label     String   // "ม.ค." / "Q1" / "Sprint 1"
+  startDate DateTime?
+  endDate   DateTime?
+
+  marks WorkProgressItemPeriodMark[]
+
+  @@unique([planId, seq])
+  @@index([planId])
+  @@map("workprogressperiod")
+}
+
+// 13. กิจกรรมย่อยภายใน plan (Item)
+//     - 1 บรรทัดในตาราง เช่น "วิเคราะห์คีย์เวิร์ดหลัก" ใต้หมวด Keyword & Intent
+model WorkProgressItem {
+  id              String   @id @default(uuid())
+  planId          String
+  plan            WorkProgressPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  categoryId String
+  category   WorkProgressCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  statusId String
+  status   WorkProgressStatus @relation(fields: [statusId], references: [id], onDelete: Restrict)
+
+  activity        String   @db.Text
+  description     String?  @db.Text
+  progressPercent Int      @default(0)
+  duration        String?
+  note            String?  @db.Text
+  orderIndex      Int      @default(0)
+  weight          Int      @default(1)
+  startDate       DateTime?
+  dueDate         DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  periodMarks WorkProgressItemPeriodMark[]
+
+  @@index([planId])
+  @@index([categoryId])
+  @@index([statusId])
+  @@map("workprogressitem")
+}
+
+// 14. เครื่องหมายของ item × period (Period Mark)
+//     - เก็บ "การติ๊กในเซลล์" — 1 item × 1 period = 1 mark
+model WorkProgressItemPeriodMark {
+  id              String   @id @default(uuid())
+  itemId          String
+  item            WorkProgressItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  periodId        String
+  period          WorkProgressPeriod @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  markTypeId      String
+  markType        WorkProgressMarkType @relation(fields: [markTypeId], references: [id], onDelete: Restrict)
+  progressPercent Int?
+  note            String?  @db.Text
+  updatedAt       DateTime @updatedAt
+
+  @@unique([itemId, periodId])
+  @@index([itemId])
+  @@index([periodId])
+  @@map("workprogressitemperiodmark")
 }
 
 // ----------------------------------------------------
