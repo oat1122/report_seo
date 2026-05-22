@@ -1,15 +1,39 @@
 /**
  * File Upload Validation Utility
- * ป้องกันการอัปโหลดไฟล์อันตราย เช่น .php, .sh, xmrig
- * อนุญาตเฉพาะไฟล์รูปภาพ .jpg, .jpeg, .png เท่านั้น
+ * ป้องกันการอัปโหลดไฟล์อันตราย (script/binary/polyglot) ผ่าน magic-byte sniffing
+ *
+ * รองรับ 2 kind:
+ * - IMAGE (default): .jpg/.jpeg/.png (image/jpeg, image/png)
+ * - FILE: .pdf/.doc/.docx/.xls/.xlsx (Office + PDF)
+ *
+ * เพื่อ backward compat: ถ้าไม่ส่ง options.allowedKinds → default = ["IMAGE"]
+ * (caller เดิม payments / ai-overview รับเฉพาะ IMAGE จึงไม่ต้องปรับ)
  */
 
 import { fileTypeFromBuffer } from "file-type";
 import crypto from "crypto";
 
-const ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png"] as const;
-const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png"] as const;
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+export type UploadKind = "IMAGE" | "FILE";
+
+const IMAGE_EXT = [".jpg", ".jpeg", ".png"] as const;
+const IMAGE_MIME = ["image/jpeg", "image/png"] as const;
+
+const FILE_EXT = [".pdf", ".doc", ".docx", ".xls", ".xlsx"] as const;
+const FILE_MIME = [
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+] as const;
+
+const DEFAULT_MAX_SIZE = 5 * 1024 * 1024; // 5MB
+const DEFAULT_KINDS: readonly UploadKind[] = ["IMAGE"];
+
+export interface ValidateOptions {
+  allowedKinds?: readonly UploadKind[];
+  maxSizeBytes?: number;
+}
 
 export interface FileValidationResult {
   isValid: boolean;
@@ -20,19 +44,42 @@ export interface FileValidationResult {
 export interface ValidatedFile {
   buffer: Buffer;
   filename: string;
-  mimeType: "image/jpeg" | "image/png";
+  mimeType: string;
   size: number;
 }
 
-export function validateExtension(filename: string): FileValidationResult {
-  const ext = filename.toLowerCase().slice(filename.lastIndexOf("."));
+function buildAllowedSets(kinds: readonly UploadKind[]): {
+  extensions: readonly string[];
+  mimeTypes: readonly string[];
+} {
+  const extensions: string[] = [];
+  const mimeTypes: string[] = [];
+  for (const kind of kinds) {
+    if (kind === "IMAGE") {
+      extensions.push(...IMAGE_EXT);
+      mimeTypes.push(...IMAGE_MIME);
+    } else if (kind === "FILE") {
+      extensions.push(...FILE_EXT);
+      mimeTypes.push(...FILE_MIME);
+    }
+  }
+  return { extensions, mimeTypes };
+}
 
-  if (
-    !ALLOWED_EXTENSIONS.includes(ext as (typeof ALLOWED_EXTENSIONS)[number])
-  ) {
+export function validateExtension(
+  filename: string,
+  allowedExtensions: readonly string[] = IMAGE_EXT,
+): FileValidationResult {
+  const lastDot = filename.lastIndexOf(".");
+  if (lastDot < 0) {
+    return { isValid: false, error: "ไฟล์ไม่มีนามสกุล" };
+  }
+  const ext = filename.toLowerCase().slice(lastDot);
+
+  if (!allowedExtensions.includes(ext)) {
     return {
       isValid: false,
-      error: `ไฟล์ประเภท ${ext} ไม่ได้รับอนุญาต อนุญาตเฉพาะ ${ALLOWED_EXTENSIONS.join(
+      error: `ไฟล์ประเภท ${ext} ไม่ได้รับอนุญาต อนุญาตเฉพาะ ${allowedExtensions.join(
         ", ",
       )}`,
     };
@@ -41,32 +88,30 @@ export function validateExtension(filename: string): FileValidationResult {
   return { isValid: true };
 }
 
-export function validateMimeType(mimeType: string): FileValidationResult {
-  if (
-    !ALLOWED_MIME_TYPES.includes(
-      mimeType as (typeof ALLOWED_MIME_TYPES)[number],
-    )
-  ) {
+export function validateMimeType(
+  mimeType: string,
+  allowedMimeTypes: readonly string[] = IMAGE_MIME,
+): FileValidationResult {
+  if (!allowedMimeTypes.includes(mimeType)) {
     return {
       isValid: false,
-      error: `MIME type ${mimeType} ไม่ได้รับอนุญาต อนุญาตเฉพาะ ${ALLOWED_MIME_TYPES.join(
-        ", ",
-      )}`,
+      error: `MIME type ${mimeType} ไม่ได้รับอนุญาต`,
     };
   }
-
   return { isValid: true };
 }
 
-export function validateFileSize(size: number): FileValidationResult {
-  if (size > MAX_FILE_SIZE) {
-    const maxSizeMB = MAX_FILE_SIZE / (1024 * 1024);
+export function validateFileSize(
+  size: number,
+  maxSizeBytes: number = DEFAULT_MAX_SIZE,
+): FileValidationResult {
+  if (size > maxSizeBytes) {
+    const maxSizeMB = maxSizeBytes / (1024 * 1024);
     return {
       isValid: false,
       error: `ไฟล์มีขนาดใหญ่เกินไป (ไม่เกิน ${maxSizeMB}MB)`,
     };
   }
-
   return { isValid: true };
 }
 
@@ -76,6 +121,7 @@ export function validateFileSize(size: number): FileValidationResult {
 export async function validateMagicBytes(
   buffer: Buffer,
   expectedMimeType: string,
+  allowedMimeTypes: readonly string[] = IMAGE_MIME,
 ): Promise<FileValidationResult> {
   const detected = await fileTypeFromBuffer(buffer);
 
@@ -86,21 +132,19 @@ export async function validateMagicBytes(
     };
   }
 
+  // Office DOCX/XLSX มี magic byte เป็น ZIP (PK..) — file-type จะคืน mime ของ office จริงเมื่อ sniff ได้
+  // แต่ DOC/XLS เก่า (CFB) อาจคืน mime แยก — ตรวจกับ whitelist ที่อนุญาตเท่านั้น
+  if (!allowedMimeTypes.includes(detected.mime)) {
+    return {
+      isValid: false,
+      error: `ประเภทไฟล์จริง ${detected.mime} ไม่ได้รับอนุญาต`,
+    };
+  }
+
   if (detected.mime !== expectedMimeType) {
     return {
       isValid: false,
       error: `ไฟล์ไม่ตรงกับประเภทที่ระบุ (พบ ${detected.mime} แต่ต้องการ ${expectedMimeType})`,
-    };
-  }
-
-  if (
-    !ALLOWED_MIME_TYPES.includes(
-      detected.mime as (typeof ALLOWED_MIME_TYPES)[number],
-    )
-  ) {
-    return {
-      isValid: false,
-      error: `ประเภทไฟล์จริง ${detected.mime} ไม่ได้รับอนุญาต`,
     };
   }
 
@@ -124,24 +168,29 @@ export function sanitizeFilename(filename: string): string {
 
 export async function validateUploadFile(
   file: File,
+  options: ValidateOptions = {},
 ): Promise<FileValidationResult & { validatedFile?: ValidatedFile }> {
   if (!file || !file.name) {
     return { isValid: false, error: "ไม่พบไฟล์" };
   }
 
-  const extResult = validateExtension(file.name);
+  const kinds = options.allowedKinds ?? DEFAULT_KINDS;
+  const { extensions, mimeTypes } = buildAllowedSets(kinds);
+  const maxSizeBytes = options.maxSizeBytes ?? DEFAULT_MAX_SIZE;
+
+  const extResult = validateExtension(file.name, extensions);
   if (!extResult.isValid) return extResult;
 
-  const mimeResult = validateMimeType(file.type);
+  const mimeResult = validateMimeType(file.type, mimeTypes);
   if (!mimeResult.isValid) return mimeResult;
 
-  const sizeResult = validateFileSize(file.size);
+  const sizeResult = validateFileSize(file.size, maxSizeBytes);
   if (!sizeResult.isValid) return sizeResult;
 
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
 
-  const magicResult = await validateMagicBytes(buffer, file.type);
+  const magicResult = await validateMagicBytes(buffer, file.type, mimeTypes);
   if (!magicResult.isValid) return magicResult;
 
   const sanitizedFilename = sanitizeFilename(file.name);
@@ -152,7 +201,7 @@ export async function validateUploadFile(
     validatedFile: {
       buffer,
       filename: sanitizedFilename,
-      mimeType: file.type as "image/jpeg" | "image/png",
+      mimeType: file.type,
       size: file.size,
     },
   };
@@ -162,17 +211,22 @@ export async function validateUploadBuffer(
   buffer: Buffer,
   filename: string,
   mimeType: string,
+  options: ValidateOptions = {},
 ): Promise<FileValidationResult & { validatedFile?: ValidatedFile }> {
-  const extResult = validateExtension(filename);
+  const kinds = options.allowedKinds ?? DEFAULT_KINDS;
+  const { extensions, mimeTypes } = buildAllowedSets(kinds);
+  const maxSizeBytes = options.maxSizeBytes ?? DEFAULT_MAX_SIZE;
+
+  const extResult = validateExtension(filename, extensions);
   if (!extResult.isValid) return extResult;
 
-  const mimeResult = validateMimeType(mimeType);
+  const mimeResult = validateMimeType(mimeType, mimeTypes);
   if (!mimeResult.isValid) return mimeResult;
 
-  const sizeResult = validateFileSize(buffer.length);
+  const sizeResult = validateFileSize(buffer.length, maxSizeBytes);
   if (!sizeResult.isValid) return sizeResult;
 
-  const magicResult = await validateMagicBytes(buffer, mimeType);
+  const magicResult = await validateMagicBytes(buffer, mimeType, mimeTypes);
   if (!magicResult.isValid) return magicResult;
 
   const sanitizedFilename = sanitizeFilename(filename);
@@ -183,7 +237,7 @@ export async function validateUploadBuffer(
     validatedFile: {
       buffer,
       filename: sanitizedFilename,
-      mimeType: mimeType as "image/jpeg" | "image/png",
+      mimeType,
       size: buffer.length,
     },
   };

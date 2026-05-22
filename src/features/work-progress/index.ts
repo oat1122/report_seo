@@ -2,9 +2,17 @@
 // Public API: export เฉพาะ use case (bound function) + schema + DTO type
 // ห้าม leak Prisma type ออกผ่านที่นี่ (rule 09)
 
+import { prisma } from "@/infrastructure/prisma/client";
+
 import { PrismaWorkProgressMasterRepository } from "./infrastructure/PrismaWorkProgressMasterRepository";
 import { PrismaWorkProgressRepository } from "./infrastructure/PrismaWorkProgressRepository";
 import { PrismaWorkProgressTemplateRepository } from "./infrastructure/PrismaWorkProgressTemplateRepository";
+import { PrismaWorkProgressSubtaskRepository } from "./infrastructure/PrismaWorkProgressSubtaskRepository";
+import { PrismaWorkProgressAttachmentRepository } from "./infrastructure/PrismaWorkProgressAttachmentRepository";
+import { PrismaWorkProgressItemMetaRepository } from "./infrastructure/PrismaWorkProgressItemMetaRepository";
+import { LocalWorkProgressAttachmentStorage } from "./infrastructure/LocalWorkProgressAttachmentStorage";
+
+import type { AssigneeLookup } from "./application/policies/assignee-guard";
 
 import { createPlanUseCase } from "./application/use-cases/plan/createPlan";
 import { listPlansUseCase } from "./application/use-cases/plan/listPlans";
@@ -17,6 +25,7 @@ import { addItemUseCase } from "./application/use-cases/item/addItem";
 import { updateItemUseCase } from "./application/use-cases/item/updateItem";
 import { deleteItemUseCase } from "./application/use-cases/item/deleteItem";
 import { reorderItemsUseCase } from "./application/use-cases/item/reorderItems";
+import { assignItemUseCase } from "./application/use-cases/item/assignItem";
 
 import { setPeriodMarkUseCase } from "./application/use-cases/mark/setPeriodMark";
 import { clearPeriodMarkUseCase } from "./application/use-cases/mark/clearPeriodMark";
@@ -54,9 +63,36 @@ import { updateTemplateItemUseCase } from "./application/use-cases/template/upda
 import { deleteTemplateItemUseCase } from "./application/use-cases/template/deleteTemplateItem";
 import { savePlanAsTemplateUseCase } from "./application/use-cases/template/savePlanAsTemplate";
 
+// Phase 3 use cases
+import { addSubtaskUseCase } from "./application/use-cases/subtask/addSubtask";
+import { updateSubtaskUseCase } from "./application/use-cases/subtask/updateSubtask";
+import { toggleSubtaskUseCase } from "./application/use-cases/subtask/toggleSubtask";
+import { reorderSubtasksUseCase } from "./application/use-cases/subtask/reorderSubtasks";
+import { deleteSubtaskUseCase } from "./application/use-cases/subtask/deleteSubtask";
+import { uploadAttachmentUseCase } from "./application/use-cases/attachment/uploadAttachment";
+import { addLinkAttachmentUseCase } from "./application/use-cases/attachment/addLinkAttachment";
+import { deleteAttachmentUseCase } from "./application/use-cases/attachment/deleteAttachment";
+import { upsertMetaUseCase } from "./application/use-cases/meta/upsertMeta";
+import { bulkUpsertMetaUseCase } from "./application/use-cases/meta/bulkUpsertMeta";
+import { deleteMetaUseCase } from "./application/use-cases/meta/deleteMeta";
+
 const repo = new PrismaWorkProgressRepository();
 const masterRepo = new PrismaWorkProgressMasterRepository();
 const templateRepo = new PrismaWorkProgressTemplateRepository();
+const subtaskRepo = new PrismaWorkProgressSubtaskRepository();
+const attachmentRepo = new PrismaWorkProgressAttachmentRepository();
+const metaRepo = new PrismaWorkProgressItemMetaRepository();
+const attachmentStorage = new LocalWorkProgressAttachmentStorage();
+
+// Lookup user สำหรับ assignee guard — bypass soft-delete filter ผ่าน extended client ก็พอ
+// (extended client กรอง deletedAt ให้แล้ว ดังนั้นถ้า user ถูกลบ → คืน null อัตโนมัติ)
+const lookupAssignee: AssigneeLookup = async (userId) => {
+  const u = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, role: true, deletedAt: true },
+  });
+  return u ? { id: u.id, role: u.role, deletedAt: u.deletedAt } : null;
+};
 
 // Plan
 export const createPlan = createPlanUseCase(repo, masterRepo, templateRepo);
@@ -71,6 +107,7 @@ export const addItem = addItemUseCase(repo, masterRepo);
 export const updateItem = updateItemUseCase(repo, masterRepo);
 export const deleteItem = deleteItemUseCase(repo);
 export const reorderItems = reorderItemsUseCase(repo);
+export const assignItem = assignItemUseCase(repo, lookupAssignee);
 
 // Mark
 export const setPeriodMark = setPeriodMarkUseCase(repo, masterRepo);
@@ -110,6 +147,36 @@ export const savePlanAsTemplate = savePlanAsTemplateUseCase(
   templateRepo,
 );
 
+// Phase 3 — Rich Items
+export const addSubtask = addSubtaskUseCase(repo, subtaskRepo, lookupAssignee);
+export const updateSubtask = updateSubtaskUseCase(
+  repo,
+  subtaskRepo,
+  lookupAssignee,
+);
+export const toggleSubtask = toggleSubtaskUseCase(repo, subtaskRepo);
+export const reorderSubtasks = reorderSubtasksUseCase(repo, subtaskRepo);
+export const deleteSubtask = deleteSubtaskUseCase(repo, subtaskRepo);
+
+export const uploadAttachment = uploadAttachmentUseCase(
+  repo,
+  attachmentRepo,
+  attachmentStorage,
+);
+export const addLinkAttachment = addLinkAttachmentUseCase(
+  repo,
+  attachmentRepo,
+);
+export const deleteAttachment = deleteAttachmentUseCase(
+  repo,
+  attachmentRepo,
+  attachmentStorage,
+);
+
+export const upsertMeta = upsertMetaUseCase(repo, metaRepo);
+export const bulkUpsertMeta = bulkUpsertMetaUseCase(repo, metaRepo);
+export const deleteMeta = deleteMetaUseCase(repo, metaRepo);
+
 // Re-export schemas + DTO types สำหรับ route handler
 export {
   createPlanSchema,
@@ -118,6 +185,7 @@ export {
   addItemSchema,
   updateItemSchema,
   reorderItemsSchema,
+  assignItemSchema,
   setPeriodMarkSchema,
   bulkSetPeriodMarksSchema,
   upsertCategorySchema,
@@ -136,11 +204,19 @@ export {
   listTemplatesQuerySchema,
   templateIdParamSchema,
   savePlanAsTemplateSchema,
+  addSubtaskSchema,
+  updateSubtaskSchema,
+  reorderSubtasksSchema,
+  addLinkAttachmentSchema,
+  upsertMetaSchema,
+  bulkUpsertMetaSchema,
+  metaKeyParamSchema,
   type CreatePlanInput,
   type UpdatePlanInput,
   type AddItemInput,
   type UpdateItemInput,
   type ReorderItemsInput,
+  type AssignItemInput,
   type SetPeriodMarkInput,
   type BulkSetPeriodMarksInput,
   type UpsertCategoryInput,
@@ -157,6 +233,12 @@ export {
   type ReorderTemplateItemsInput,
   type ListTemplatesQuery,
   type SavePlanAsTemplateInput,
+  type AddSubtaskInput,
+  type UpdateSubtaskInput,
+  type ReorderSubtasksInput,
+  type AddLinkAttachmentInput,
+  type UpsertMetaInput,
+  type BulkUpsertMetaInput,
 } from "./schemas";
 
 export type {
@@ -181,4 +263,13 @@ export type {
   WorkProgressTemplateItem,
   WorkProgressTemplateDetail,
 } from "./domain/WorkProgressTemplate";
+export type { WorkProgressSubtask } from "./domain/WorkProgressSubtask";
+export type {
+  WorkProgressAttachment,
+  AttachmentKind,
+} from "./domain/WorkProgressAttachment";
+export type {
+  WorkProgressItemMeta,
+  MetaValueType,
+} from "./domain/WorkProgressItemMeta";
 export type { PeriodTypeCode } from "./domain/types";

@@ -9,6 +9,9 @@ import type {
   WorkProgressStatus,
   WorkProgressMarkType,
 } from "./WorkProgressMaster";
+import type { WorkProgressSubtask } from "./WorkProgressSubtask";
+import type { WorkProgressAttachment } from "./WorkProgressAttachment";
+import type { WorkProgressItemMeta } from "./WorkProgressItemMeta";
 
 export interface WorkProgressPlan {
   id: string;
@@ -35,6 +38,9 @@ export interface WorkProgressItemWithMarks extends WorkProgressItem {
   category: WorkProgressCategory;
   status: WorkProgressStatus;
   periodMarks: WorkProgressPeriodMarkWithType[];
+  subtasks: WorkProgressSubtask[];
+  attachments: WorkProgressAttachment[];
+  meta: WorkProgressItemMeta[];
 }
 
 export interface WorkProgressPeriodMarkWithType

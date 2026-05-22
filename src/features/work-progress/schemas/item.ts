@@ -42,3 +42,10 @@ export const reorderItemsSchema = z.object({
 });
 
 export type ReorderItemsInput = z.infer<typeof reorderItemsSchema>;
+
+// Phase 3: assignee
+export const assignItemSchema = z.object({
+  assignedToId: z.string().uuid().nullable(),
+});
+
+export type AssignItemInput = z.infer<typeof assignItemSchema>;

@@ -13,6 +13,7 @@ export interface WorkProgressItem {
   startDate: Date | null;
   dueDate: Date | null;
   completedAt: Date | null;
+  assignedToId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

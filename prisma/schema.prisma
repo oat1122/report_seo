@@ -67,6 +67,11 @@ model User {
   workProgressTemplatesCreated WorkProgressTemplate[] @relation("WorkProgressTemplateCreator")
   workProgressPlansCreated     WorkProgressPlan[]     @relation("WorkProgressPlanCreator")
 
+  // Work Progress assignee / uploader backrefs (Phase 3)
+  workProgressItemsAssigned    WorkProgressItem[]       @relation("WorkProgressItemAssignee")
+  workProgressSubtasksAssigned WorkProgressSubtask[]    @relation("WorkProgressSubtaskAssignee")
+  workProgressAttachments      WorkProgressAttachment[] @relation("WorkProgressAttachmentUploader")
+
   // NextAuth.js relations
   accounts Account[]
   sessions Session[]
@@ -401,11 +406,19 @@ model WorkProgressItem {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  // Phase 3: assignee + rich children
+  assignedToId String?
+  assignedTo   User?   @relation("WorkProgressItemAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+
   periodMarks WorkProgressItemPeriodMark[]
+  subtasks    WorkProgressSubtask[]
+  attachments WorkProgressAttachment[]
+  meta        WorkProgressItemMeta[]
 
   @@index([planId])
   @@index([categoryId])
   @@index([statusId])
+  @@index([assignedToId])
   @@map("workprogressitem")
 }
 
@@ -430,7 +443,7 @@ model WorkProgressItemPeriodMark {
 }
 
 // ----------------------------------------------------
-// Work Progress Feature (Phase 2 — Template System)
+// Work Progress Feature 
 // ----------------------------------------------------
 
 // 15. แม่แบบของแผนงาน (Template)
@@ -472,6 +485,68 @@ model WorkProgressTemplateItem {
   @@index([templateId])
   @@index([categoryId])
   @@map("workprogresstemplateitem")
+}
+
+// ----------------------------------------------------
+// Work Progress Feature 
+// ----------------------------------------------------
+
+// 17. Subtask ของกิจกรรมหลัก (Subtask / Checklist)
+//     - 1 WorkProgressItem มี subtask ได้หลายชิ้น เพื่อเก็บ checklist ย่อย
+model WorkProgressSubtask {
+  id           String   @id @default(uuid())
+  itemId       String
+  item         WorkProgressItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  title        String
+  isDone       Boolean  @default(false)
+  orderIndex   Int      @default(0)
+  assignedToId String?
+  assignedTo   User?    @relation("WorkProgressSubtaskAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  completedAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([itemId])
+  @@index([assignedToId])
+  @@map("workprogresssubtask")
+}
+
+// 18. หลักฐาน/ไฟล์แนบ/ลิงก์ของกิจกรรม (Attachment)
+//     - kind: IMAGE = ไฟล์ภาพ, FILE = ไฟล์เอกสาร, LINK = URL ภายนอก (filename/mimeType/sizeBytes = null)
+model WorkProgressAttachment {
+  id           String   @id @default(uuid())
+  itemId       String
+  item         WorkProgressItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  kind         String   // "IMAGE" | "FILE" | "LINK"
+  url          String   @db.Text
+  filename     String?
+  mimeType     String?
+  sizeBytes    Int?
+  caption      String?  @db.Text
+  uploadedById String?
+  uploadedBy   User?    @relation("WorkProgressAttachmentUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+
+  @@index([itemId])
+  @@map("workprogressattachment")
+}
+
+// 19. Custom field ของกิจกรรม (Meta key-value)
+//     - 1 item × 1 key = 1 row (unique) → upsert pattern
+//     - valueType ใช้ตอน parse ที่ฝั่ง app เท่านั้น (DB เก็บเป็น string เสมอ)
+model WorkProgressItemMeta {
+  id        String   @id @default(uuid())
+  itemId    String
+  item      WorkProgressItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  key       String
+  value     String   @db.Text
+  valueType String   @default("string") // "string" | "number" | "date" | "json"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([itemId, key])
+  @@index([itemId])
+  @@map("workprogressitemmeta")
 }
 
 // ----------------------------------------------------

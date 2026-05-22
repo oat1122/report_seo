@@ -12,9 +12,11 @@ export {
   addItemSchema,
   updateItemSchema,
   reorderItemsSchema,
+  assignItemSchema,
   type AddItemInput,
   type UpdateItemInput,
   type ReorderItemsInput,
+  type AssignItemInput,
 } from "./item";
 
 export {
@@ -59,3 +61,27 @@ export {
   type ListTemplatesQuery,
   type SavePlanAsTemplateInput,
 } from "./template";
+
+export {
+  addSubtaskSchema,
+  updateSubtaskSchema,
+  reorderSubtasksSchema,
+  type AddSubtaskInput,
+  type UpdateSubtaskInput,
+  type ReorderSubtasksInput,
+} from "./subtask";
+
+export {
+  addLinkAttachmentSchema,
+  uploadAttachmentCaptionSchema,
+  type AddLinkAttachmentInput,
+} from "./attachment";
+
+export {
+  upsertMetaSchema,
+  bulkUpsertMetaSchema,
+  metaValueTypeSchema,
+  metaKeyParamSchema,
+  type UpsertMetaInput,
+  type BulkUpsertMetaInput,
+} from "./meta";

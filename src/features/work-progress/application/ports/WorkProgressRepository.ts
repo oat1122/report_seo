@@ -70,6 +70,7 @@ export interface UpdateItemData {
   startDate?: Date | null;
   dueDate?: Date | null;
   completedAt?: Date | null; // ตั้งโดย use case ตอน status terminal
+  assignedToId?: string | null;
 }
 
 export interface SetMarkData {
@@ -123,6 +124,10 @@ export interface WorkProgressRepository {
   addItem(data: AddItemData): Promise<WorkProgressItem>;
   findItemById(itemId: string): Promise<WorkProgressItem | null>;
   updateItem(itemId: string, data: UpdateItemData): Promise<WorkProgressItem>;
+  assignItem(
+    itemId: string,
+    assignedToId: string | null,
+  ): Promise<WorkProgressItem>;
   deleteItem(itemId: string): Promise<void>;
   reorderItems(
     planId: string,

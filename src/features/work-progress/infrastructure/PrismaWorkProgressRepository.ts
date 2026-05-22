@@ -152,6 +152,9 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
             category: true,
             status: true,
             periodMarks: { include: { markType: true } },
+            subtasks: { orderBy: { orderIndex: "asc" } },
+            attachments: { orderBy: { createdAt: "desc" } },
+            meta: { orderBy: { key: "asc" } },
           },
         },
       },
@@ -213,6 +216,16 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
 
   updateItem(itemId: string, data: UpdateItemData): Promise<WorkProgressItem> {
     return prisma.workProgressItem.update({ where: { id: itemId }, data });
+  }
+
+  assignItem(
+    itemId: string,
+    assignedToId: string | null,
+  ): Promise<WorkProgressItem> {
+    return prisma.workProgressItem.update({
+      where: { id: itemId },
+      data: { assignedToId },
+    });
   }
 
   async deleteItem(itemId: string): Promise<void> {

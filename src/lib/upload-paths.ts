@@ -4,6 +4,7 @@ import { BadRequestError } from "@/lib/errors";
 export const UPLOAD_DIRS = {
   "ai-overview": "ai-overview",
   payments: "payments",
+  "work-progress": "work-progress",
 } as const;
 
 export type UploadCategory = keyof typeof UPLOAD_DIRS;
