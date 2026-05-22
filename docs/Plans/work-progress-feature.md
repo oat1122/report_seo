@@ -842,7 +842,7 @@ meta/{upsertMeta, bulkUpsertMeta, deleteMeta}.ts
 
 ---
 
-# Phase 4 — Audit & Insights
+# ✅ Phase 4 — Audit & Insights
 
 **Goal**: ActivityLog + dashboard summary endpoint
 **Pre-flight skills**: `data-analysis`, `clean-reusable-code`
@@ -916,7 +916,7 @@ summary/getCategoryBreakdown.ts  # by category × period pivot
 
 ---
 
-# Phase 5 — UI for ADMIN / SEO_DEV
+# ✅ Phase 5 — UI for ADMIN / SEO_DEV
 
 **Goal**: ตาราง 12-month แทน Excel ได้บน UI + master settings page
 **Pre-flight skills**: `dashboard-uxui-design`, `shadcn-ui`, `report-charts`, `clean-reusable-code`
