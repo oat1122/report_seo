@@ -4,6 +4,7 @@
 
 import { PrismaWorkProgressMasterRepository } from "./infrastructure/PrismaWorkProgressMasterRepository";
 import { PrismaWorkProgressRepository } from "./infrastructure/PrismaWorkProgressRepository";
+import { PrismaWorkProgressTemplateRepository } from "./infrastructure/PrismaWorkProgressTemplateRepository";
 
 import { createPlanUseCase } from "./application/use-cases/plan/createPlan";
 import { listPlansUseCase } from "./application/use-cases/plan/listPlans";
@@ -40,11 +41,25 @@ import { deactivateMasterRowUseCase } from "./application/use-cases/master/deact
 
 import { getPlanSummaryUseCase } from "./application/use-cases/summary/getPlanSummary";
 
+import { listTemplatesUseCase } from "./application/use-cases/template/listTemplates";
+import { getTemplateUseCase } from "./application/use-cases/template/getTemplate";
+import {
+  createTemplateUseCase,
+  updateTemplateUseCase,
+} from "./application/use-cases/template/upsertTemplate";
+import { deleteTemplateUseCase } from "./application/use-cases/template/deleteTemplate";
+import { reorderTemplateItemsUseCase } from "./application/use-cases/template/reorderTemplateItems";
+import { addTemplateItemUseCase } from "./application/use-cases/template/addTemplateItem";
+import { updateTemplateItemUseCase } from "./application/use-cases/template/updateTemplateItem";
+import { deleteTemplateItemUseCase } from "./application/use-cases/template/deleteTemplateItem";
+import { savePlanAsTemplateUseCase } from "./application/use-cases/template/savePlanAsTemplate";
+
 const repo = new PrismaWorkProgressRepository();
 const masterRepo = new PrismaWorkProgressMasterRepository();
+const templateRepo = new PrismaWorkProgressTemplateRepository();
 
 // Plan
-export const createPlan = createPlanUseCase(repo);
+export const createPlan = createPlanUseCase(repo, masterRepo, templateRepo);
 export const listPlans = listPlansUseCase(repo);
 export const getPlanDetail = getPlanDetailUseCase(repo);
 export const updatePlan = updatePlanUseCase(repo);
@@ -77,6 +92,24 @@ export const deactivateMasterRow = deactivateMasterRowUseCase(masterRepo);
 // Summary
 export const getPlanSummary = getPlanSummaryUseCase(repo);
 
+// Template (Phase 2)
+export const listTemplates = listTemplatesUseCase(templateRepo);
+export const getTemplate = getTemplateUseCase(templateRepo);
+export const createTemplate = createTemplateUseCase(templateRepo, masterRepo);
+export const updateTemplate = updateTemplateUseCase(templateRepo);
+export const deleteTemplate = deleteTemplateUseCase(templateRepo);
+export const reorderTemplateItems = reorderTemplateItemsUseCase(templateRepo);
+export const addTemplateItem = addTemplateItemUseCase(templateRepo, masterRepo);
+export const updateTemplateItem = updateTemplateItemUseCase(
+  templateRepo,
+  masterRepo,
+);
+export const deleteTemplateItem = deleteTemplateItemUseCase(templateRepo);
+export const savePlanAsTemplate = savePlanAsTemplateUseCase(
+  repo,
+  templateRepo,
+);
+
 // Re-export schemas + DTO types สำหรับ route handler
 export {
   createPlanSchema,
@@ -95,6 +128,14 @@ export {
   updateMarkTypeSchema,
   masterIdParamSchema,
   masterKindSchema,
+  upsertTemplateSchema,
+  updateTemplateSchema,
+  addTemplateItemSchema,
+  updateTemplateItemSchema,
+  reorderTemplateItemsSchema,
+  listTemplatesQuerySchema,
+  templateIdParamSchema,
+  savePlanAsTemplateSchema,
   type CreatePlanInput,
   type UpdatePlanInput,
   type AddItemInput,
@@ -109,6 +150,13 @@ export {
   type UpsertMarkTypeInput,
   type UpdateMarkTypeInput,
   type MasterKindCode,
+  type UpsertTemplateInput,
+  type UpdateTemplateInput,
+  type AddTemplateItemInput,
+  type UpdateTemplateItemInput,
+  type ReorderTemplateItemsInput,
+  type ListTemplatesQuery,
+  type SavePlanAsTemplateInput,
 } from "./schemas";
 
 export type {
@@ -128,4 +176,9 @@ export type {
   WorkProgressMarkType,
   MasterKind,
 } from "./domain/WorkProgressMaster";
+export type {
+  WorkProgressTemplate,
+  WorkProgressTemplateItem,
+  WorkProgressTemplateDetail,
+} from "./domain/WorkProgressTemplate";
 export type { PeriodTypeCode } from "./domain/types";

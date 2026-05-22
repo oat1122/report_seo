@@ -9,7 +9,9 @@ import type {
 } from "../domain/WorkProgressItem";
 import type {
   AddItemData,
+  CloneItemSeed,
   CreatePlanData,
+  CreatePlanItemSeed,
   PlanSummary,
   SetMarkData,
   UpdateItemData,
@@ -39,6 +41,7 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
           endDate: data.endDate,
           packageName: data.packageName,
           note: data.note,
+          createdById: data.createdById,
         },
       });
       if (periods.length > 0) {
@@ -54,6 +57,70 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
       }
       return plan;
     });
+  }
+
+  async createPlanWithItems(
+    data: CreatePlanData,
+    periods: readonly PeriodSeed[],
+    items: readonly CreatePlanItemSeed[],
+  ): Promise<WorkProgressPlan> {
+    return prisma.$transaction(async (tx) => {
+      const plan = await tx.workProgressPlan.create({
+        data: {
+          customerId: data.customerId,
+          title: data.title,
+          periodType: data.periodType,
+          year: data.year,
+          startDate: data.startDate,
+          endDate: data.endDate,
+          packageName: data.packageName,
+          note: data.note,
+          createdById: data.createdById,
+        },
+      });
+      if (periods.length > 0) {
+        await tx.workProgressPeriod.createMany({
+          data: periods.map((p) => ({
+            planId: plan.id,
+            seq: p.seq,
+            label: p.label,
+            startDate: p.startDate ?? null,
+            endDate: p.endDate ?? null,
+          })),
+        });
+      }
+      if (items.length > 0) {
+        await tx.workProgressItem.createMany({
+          data: items.map((it, i) => ({
+            planId: plan.id,
+            categoryId: it.categoryId,
+            statusId: it.statusId,
+            activity: it.activity,
+            description: it.description,
+            duration: it.duration,
+            weight: it.weight,
+            orderIndex: it.orderIndex ?? i,
+          })),
+        });
+      }
+      return plan;
+    });
+  }
+
+  async findItemsForClone(planId: string): Promise<CloneItemSeed[]> {
+    const rows = await prisma.workProgressItem.findMany({
+      where: { planId },
+      orderBy: { orderIndex: "asc" },
+      select: {
+        categoryId: true,
+        activity: true,
+        description: true,
+        duration: true,
+        weight: true,
+        orderIndex: true,
+      },
+    });
+    return rows;
   }
 
   listByCustomer(

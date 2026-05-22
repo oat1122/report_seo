@@ -27,11 +27,18 @@ export const GET = withApiHandler(
 
 export const POST = withApiHandler(
   { params: paramsSchema, body: createPlanSchema },
-  async ({ params, body }) => {
+  async ({ params, body, session }) => {
     const ctx = await customerAccessGuard(
       { byUserId: params.customerId },
       "manage",
     );
-    return created(await createPlan(ctx.customer.id, body));
+    return created(
+      await createPlan(
+        ctx.customer.id,
+        session.user.id,
+        session.user.role,
+        body,
+      ),
+    );
   },
 );

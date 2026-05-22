@@ -15,6 +15,26 @@ export interface CreatePlanData {
   endDate: Date | null;
   packageName: string | null;
   note: string | null;
+  createdById: string | null;
+}
+
+export interface CreatePlanItemSeed {
+  categoryId: string;
+  statusId: string;
+  activity: string;
+  description: string | null;
+  duration: string | null;
+  weight: number;
+  orderIndex: number;
+}
+
+export interface CloneItemSeed {
+  categoryId: string;
+  activity: string;
+  description: string | null;
+  duration: string | null;
+  weight: number;
+  orderIndex: number;
 }
 
 export interface UpdatePlanData {
@@ -83,6 +103,12 @@ export interface WorkProgressRepository {
     data: CreatePlanData,
     periods: readonly PeriodSeed[],
   ): Promise<WorkProgressPlan>;
+  createPlanWithItems(
+    data: CreatePlanData,
+    periods: readonly PeriodSeed[],
+    items: readonly CreatePlanItemSeed[],
+  ): Promise<WorkProgressPlan>;
+  findItemsForClone(planId: string): Promise<CloneItemSeed[]>;
   listByCustomer(
     customerId: string,
     options: { includeArchived: boolean; limit: number },

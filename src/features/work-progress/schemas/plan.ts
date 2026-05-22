@@ -17,6 +17,8 @@ export const createPlanSchema = z
     customPeriods: z.array(customPeriodSchema).optional(),
     packageName: z.string().max(200).optional().nullable(),
     note: z.string().max(5000).optional().nullable(),
+    templateId: z.string().uuid().optional(),
+    cloneFromPlanId: z.string().uuid().optional(),
   })
   .refine(
     (d) =>
@@ -26,7 +28,11 @@ export const createPlanSchema = z
       message: "CUSTOM periodType ต้องระบุ customPeriods อย่างน้อย 1 รายการ",
       path: ["customPeriods"],
     },
-  );
+  )
+  .refine((d) => !(d.templateId && d.cloneFromPlanId), {
+    message: "templateId กับ cloneFromPlanId ต้องเลือกอย่างใดอย่างหนึ่ง",
+    path: ["templateId"],
+  });
 
 export type CreatePlanInput = z.infer<typeof createPlanSchema>;
 

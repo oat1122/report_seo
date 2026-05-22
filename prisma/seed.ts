@@ -131,6 +131,81 @@ async function main() {
     });
   }
 
+  // 6️ Work Progress system template (Phase 2)
+  // "SEO Standard 12 Months" — แม่แบบมาตรฐาน 23 กิจกรรม จาก SEO_Work_Progress_2026_12Months CSV
+  // ใช้ constant UUID เพื่อให้ idempotent ตอนรัน seed ซ้ำ
+  const SYSTEM_TEMPLATE_ID = "00000000-0000-4000-8000-000000000001";
+  const categoryByCode = new Map(
+    (await prisma.workProgressCategory.findMany({
+      select: { id: true, code: true },
+    })).map((c) => [c.code, c.id]),
+  );
+  const codeOf = (code: string) => {
+    const id = categoryByCode.get(code);
+    if (!id) throw new Error(`Category code not found in seed: ${code}`);
+    return id;
+  };
+
+  await prisma.workProgressTemplate.upsert({
+    where: { id: SYSTEM_TEMPLATE_ID },
+    update: {
+      name: "SEO Standard 12 Months",
+      description: "แม่แบบงาน SEO มาตรฐาน 12 เดือน — ครอบคลุม Keyword, On-Page, Technical, Off-Page, Monitoring และ Report",
+      periodType: "YEAR_12_MONTHS",
+      isActive: true,
+      isSystem: true,
+    },
+    create: {
+      id: SYSTEM_TEMPLATE_ID,
+      name: "SEO Standard 12 Months",
+      description: "แม่แบบงาน SEO มาตรฐาน 12 เดือน — ครอบคลุม Keyword, On-Page, Technical, Off-Page, Monitoring และ Report",
+      periodType: "YEAR_12_MONTHS",
+      isActive: true,
+      isSystem: true,
+    },
+  });
+
+  // 23 items เรียงตามลำดับใน CSV
+  const templateItems: Array<{ categoryCode: string; activity: string }> = [
+    { categoryCode: "KEYWORD_INTENT", activity: "วิเคราะห์คีย์เวิร์ดหลัก เลือกคีย์" },
+    { categoryCode: "SETUP_TRACKING", activity: "ติดตั้ง SEO และ config" },
+    { categoryCode: "KEYWORD_INTENT", activity: "ขยายสู่คีย์เวิร์ดเฉพาะกลุ่ม" },
+    { categoryCode: "KEYWORD_INTENT", activity: "เจาะจง Intent กลุ่มซื้อ" },
+    { categoryCode: "KEYWORD_INTENT", activity: "อัปเดตตามเทรนด์" },
+    { categoryCode: "ON_PAGE_SEO", activity: "ปรับโครงสร้างเนื้อหา" },
+    { categoryCode: "ON_PAGE_SEO", activity: "ทำคอนเทนต์ E-E-A-T" },
+    { categoryCode: "ON_PAGE_SEO", activity: "เพิ่ม Rich Snippets Structured Data" },
+    { categoryCode: "ON_PAGE_SEO", activity: "ปรับปรุงบทความเดิม หรือสร้างบทความเพิ่ม" },
+    { categoryCode: "TECHNICAL_SEO", activity: "แก้ Error (403, 404) หากมีปัญหาเยอะเกินไป" },
+    { categoryCode: "TECHNICAL_SEO", activity: "ปรับความเร็ว (Speed)" },
+    { categoryCode: "TECHNICAL_SEO", activity: "ตรวจสอบ Mobile Friendly" },
+    { categoryCode: "TECHNICAL_SEO", activity: "ตรวจสอบความปลอดภัย" },
+    { categoryCode: "OFF_PAGE_BACKLINKS", activity: "ลงทะเบียน Directory index" },
+    { categoryCode: "OFF_PAGE_BACKLINKS", activity: "เริ่มทำ Digital PR หากมี อาจมีค่าใช้จ่ายเพิ่ม" },
+    { categoryCode: "OFF_PAGE_BACKLINKS", activity: "สร้าง Content Partnership" },
+    { categoryCode: "OFF_PAGE_BACKLINKS", activity: "กระจาย Backlink คุณภาพ" },
+    { categoryCode: "OFF_PAGE_BACKLINKS", activity: "ส่งทราฟฟิกคุณภาพ" },
+    { categoryCode: "MONITORING_AUDIT", activity: "ตั้งค่า GSC / Analytics วิเคราะห์" },
+    { categoryCode: "MONITORING_AUDIT", activity: "ตรวจสอบอันดับ (Rank)" },
+    { categoryCode: "MONITORING_AUDIT", activity: "Crawl Website" },
+    { categoryCode: "MONITORING_AUDIT", activity: "วิเคราะห์ Conversion" },
+    { categoryCode: "REPORT", activity: "เข้าสู่ระบบ seoprime เข้าดูได้ ตลอด 24 ชม" },
+  ];
+
+  // ลบ items เก่าทั้งหมดของ system template ก่อน upsert ใหม่ — กัน drift ตอนแก้ activity/order
+  await prisma.workProgressTemplateItem.deleteMany({
+    where: { templateId: SYSTEM_TEMPLATE_ID },
+  });
+  await prisma.workProgressTemplateItem.createMany({
+    data: templateItems.map((item, idx) => ({
+      templateId: SYSTEM_TEMPLATE_ID,
+      categoryId: codeOf(item.categoryCode),
+      activity: item.activity,
+      orderIndex: idx,
+      weight: 1,
+    })),
+  });
+
   console.log(" Seed ข้อมูลเสร็จสมบูรณ์");
   console.log("--- ข้อมูลผู้ใช้งานหลัก ---");
   console.table({
@@ -148,6 +223,7 @@ async function main() {
     Categories: wpCategories.length,
     Statuses: wpStatuses.length,
     MarkTypes: wpMarkTypes.length,
+    SystemTemplateItems: templateItems.length,
   });
 }
 

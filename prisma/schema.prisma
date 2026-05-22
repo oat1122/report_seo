@@ -62,7 +62,11 @@ model User {
   // ความสัมพันธ์
   customerProfile   Customer? @relation("CustomerUser") // ถ้าเป็น CUSTOMER จะมีข้อมูลลูกค้าผูกอยู่
   assignedCustomers Customer[] @relation("SeoDevCustomers") // ถ้าเป็น SEO_DEV จะมีรายชื่อลูกค้าที่ดูแล
-  
+
+  // Work Progress creator backrefs (Phase 2)
+  workProgressTemplatesCreated WorkProgressTemplate[] @relation("WorkProgressTemplateCreator")
+  workProgressPlansCreated     WorkProgressPlan[]     @relation("WorkProgressPlanCreator")
+
   // NextAuth.js relations
   accounts Account[]
   sessions Session[]
@@ -276,7 +280,8 @@ model WorkProgressCategory {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  items WorkProgressItem[]
+  items         WorkProgressItem[]
+  templateItems WorkProgressTemplateItem[]
 
   @@index([isActive])
   @@map("workprogresscategory")
@@ -340,6 +345,9 @@ model WorkProgressPlan {
 
   customerId String
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  createdById String?
+  createdBy   User? @relation("WorkProgressPlanCreator", fields: [createdById], references: [id])
 
   periods WorkProgressPeriod[]
   items   WorkProgressItem[]
@@ -419,6 +427,51 @@ model WorkProgressItemPeriodMark {
   @@index([itemId])
   @@index([periodId])
   @@map("workprogressitemperiodmark")
+}
+
+// ----------------------------------------------------
+// Work Progress Feature (Phase 2 — Template System)
+// ----------------------------------------------------
+
+// 15. แม่แบบของแผนงาน (Template)
+//     - blueprint สำหรับสร้าง plan ใหม่ใน 1 click
+//     - isSystem=true → ลบ/แก้ items ไม่ได้ (เช่น "SEO Standard 12 Months")
+model WorkProgressTemplate {
+  id          String                 @id @default(uuid())
+  name        String
+  description String?                @db.Text
+  periodType  WorkProgressPeriodType @default(YEAR_12_MONTHS)
+  isActive    Boolean                @default(true)
+  isSystem    Boolean                @default(false)
+  createdById String?
+  createdBy   User?                  @relation("WorkProgressTemplateCreator", fields: [createdById], references: [id])
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+
+  items WorkProgressTemplateItem[]
+
+  @@index([isActive])
+  @@map("workprogresstemplate")
+}
+
+// 16. รายการกิจกรรมในแม่แบบ (Template Item)
+//     - field คล้าย WorkProgressItem แต่ไม่มี status/progress/marks (จะ generate ตอนสร้าง plan)
+model WorkProgressTemplateItem {
+  id             String               @id @default(uuid())
+  templateId     String
+  template       WorkProgressTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  categoryId     String
+  category       WorkProgressCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  activity       String               @db.Text
+  description    String?              @db.Text
+  duration       String?
+  weight         Int                  @default(1)
+  orderIndex     Int                  @default(0)
+  defaultPeriods Json?
+
+  @@index([templateId])
+  @@index([categoryId])
+  @@map("workprogresstemplateitem")
 }
 
 // ----------------------------------------------------
