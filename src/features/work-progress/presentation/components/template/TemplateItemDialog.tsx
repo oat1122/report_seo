@@ -203,34 +203,16 @@ export function TemplateItemDialog({
               maxLength={5000}
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="grid gap-1.5">
-              <Label htmlFor="ti-dur">ระยะ</Label>
-              <Input
-                id="ti-dur"
-                value={form.duration}
-                onChange={(e) =>
-                  setForm((s) => ({ ...s, duration: e.target.value }))
-                }
-                maxLength={100}
-              />
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="ti-w">น้ำหนัก</Label>
-              <Input
-                id="ti-w"
-                type="number"
-                min={1}
-                max={100}
-                value={form.weight}
-                onChange={(e) =>
-                  setForm((s) => ({
-                    ...s,
-                    weight: Math.max(1, Number(e.target.value) || 1),
-                  }))
-                }
-              />
-            </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="ti-dur">ระยะ</Label>
+            <Input
+              id="ti-dur"
+              value={form.duration}
+              onChange={(e) =>
+                setForm((s) => ({ ...s, duration: e.target.value }))
+              }
+              maxLength={100}
+            />
           </div>
 
           <section className="flex flex-col gap-2">

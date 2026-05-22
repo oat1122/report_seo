@@ -81,6 +81,8 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
           createdById: data.createdById,
         },
       });
+
+      const seqToPeriodId = new Map<number, string>();
       if (periods.length > 0) {
         await tx.workProgressPeriod.createMany({
           data: periods.map((p) => ({
@@ -91,9 +93,15 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
             endDate: p.endDate ?? null,
           })),
         });
+        const createdPeriods = await tx.workProgressPeriod.findMany({
+          where: { planId: plan.id },
+          select: { id: true, seq: true },
+        });
+        for (const p of createdPeriods) seqToPeriodId.set(p.seq, p.id);
       }
+
       if (items.length > 0) {
-        // create items one-by-one so we can attach subtasks when present
+        // create items one-by-one so we can attach subtasks + period marks when present
         for (const [i, it] of items.entries()) {
           const createdItem = await tx.workProgressItem.create({
             data: {
@@ -115,6 +123,26 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
                 orderIndex: s.orderIndex ?? idx,
               })),
             });
+          }
+          if (it.periodMarks && it.periodMarks.length > 0) {
+            const markRows = it.periodMarks
+              .map((m) => {
+                const periodId = seqToPeriodId.get(m.seq);
+                if (!periodId) return null;
+                return {
+                  itemId: createdItem.id,
+                  periodId,
+                  markTypeId: m.markTypeId,
+                  progressPercent: null as number | null,
+                  note: null as string | null,
+                };
+              })
+              .filter((r): r is NonNullable<typeof r> => r !== null);
+            if (markRows.length > 0) {
+              await tx.workProgressItemPeriodMark.createMany({
+                data: markRows,
+              });
+            }
           }
         }
       }

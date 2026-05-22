@@ -23,6 +23,11 @@ export interface CreatePlanItemSubtaskSeed {
   orderIndex: number;
 }
 
+export interface CreatePlanItemPeriodMarkSeed {
+  seq: number;
+  markTypeId: string;
+}
+
 export interface CreatePlanItemSeed {
   categoryId: string;
   statusId: string;
@@ -32,6 +37,7 @@ export interface CreatePlanItemSeed {
   weight: number;
   orderIndex: number;
   subtasks?: readonly CreatePlanItemSubtaskSeed[];
+  periodMarks?: readonly CreatePlanItemPeriodMarkSeed[];
 }
 
 export interface CloneItemSeed {

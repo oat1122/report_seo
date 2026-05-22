@@ -2,7 +2,9 @@ import { BadRequestError, ForbiddenError } from "@/lib/errors";
 import { Role } from "@/types/auth";
 import { createPlanSchema } from "../../../schemas";
 import { generatePeriods } from "../../../domain/policies/period-generator";
+import { parseTemplateDefaultPeriods } from "../../../domain/policies/template-default-periods";
 import type {
+  CreatePlanItemPeriodMarkSeed,
   CreatePlanItemSeed,
   WorkProgressRepository,
 } from "../../ports/WorkProgressRepository";
@@ -57,19 +59,36 @@ export function createPlanUseCase(
         );
       }
 
-      const items: CreatePlanItemSeed[] = template.items.map((it, i) => ({
-        categoryId: it.categoryId,
-        statusId: defaultStatus.id,
-        activity: it.activity,
-        description: it.description,
-        duration: it.duration,
-        weight: it.weight,
-        orderIndex: it.orderIndex ?? i,
-        subtasks: (it.subtasks ?? []).map((s, idx) => ({
-          title: s.title,
-          orderIndex: s.orderIndex ?? idx,
-        })),
-      }));
+      const activeMarkTypes = await masterRepo.listMarkTypes({
+        onlyActive: true,
+      });
+      const validMarkTypeIds = new Set(activeMarkTypes.map((m) => m.id));
+      const validSeqs = new Set(periods.map((p) => p.seq));
+
+      const items: CreatePlanItemSeed[] = template.items.map((it, i) => {
+        const defaults = parseTemplateDefaultPeriods(it.defaultPeriods);
+        const periodMarks: CreatePlanItemPeriodMarkSeed[] = [];
+        for (const [seqStr, entry] of Object.entries(defaults)) {
+          const seq = Number(seqStr);
+          if (!Number.isInteger(seq) || !validSeqs.has(seq)) continue;
+          if (!validMarkTypeIds.has(entry.markTypeId)) continue;
+          periodMarks.push({ seq, markTypeId: entry.markTypeId });
+        }
+        return {
+          categoryId: it.categoryId,
+          statusId: defaultStatus.id,
+          activity: it.activity,
+          description: it.description,
+          duration: it.duration,
+          weight: it.weight,
+          orderIndex: it.orderIndex ?? i,
+          subtasks: (it.subtasks ?? []).map((s, idx) => ({
+            title: s.title,
+            orderIndex: s.orderIndex ?? idx,
+          })),
+          periodMarks,
+        };
+      });
 
       const created = await repo.createPlanWithItems(
         {

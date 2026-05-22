@@ -25,32 +25,46 @@ import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmAlert } from "@/components/shared/ConfirmAlert";
 import { toast } from "react-toastify";
-import { TemplateItemRow } from "./TemplateItemRow";
+import { TemplateGridRow } from "./TemplateGridRow";
 import { TemplateItemDialog } from "./TemplateItemDialog";
 import {
   useDeleteTemplateItem,
   useReorderTemplateItems,
   useTemplate,
   useUpdateTemplate,
+  useUpdateTemplateItem,
 } from "../../hooks/useTemplates";
-import { useCategories } from "../../hooks/useMasterTables";
+import { useCategories, useMarkTypes } from "../../hooks/useMasterTables";
 import {
   updateTemplateSchema,
   type UpdateTemplateInput,
 } from "@/features/work-progress/schemas";
 import type { WorkProgressTemplateItem } from "@/features/work-progress/domain/WorkProgressTemplate";
+import { generatePeriods } from "../../../domain/policies/period-generator";
+import type { TemplateDefaultPeriods } from "../../../domain/policies/template-default-periods";
 
 interface TemplateBuilderProps {
   templateId: string;
   backHref: string;
 }
 
+const COL_WIDTH = {
+  drag: 32,
+  category: 140,
+  activity: 280,
+  duration: 90,
+  period: 56,
+  actions: 80,
+} as const;
+
 export function TemplateBuilder({ templateId, backHref }: TemplateBuilderProps) {
   const { data, isLoading } = useTemplate(templateId);
   const { data: categories } = useCategories();
+  const { data: markTypes } = useMarkTypes();
   const updateMut = useUpdateTemplate();
   const deleteItemMut = useDeleteTemplateItem();
   const reorderMut = useReorderTemplateItems();
+  const updateItemMut = useUpdateTemplateItem();
 
   const [itemDialogOpen, setItemDialogOpen] = useState(false);
   const [editingItem, setEditingItem] =
@@ -91,6 +105,29 @@ export function TemplateBuilder({ templateId, backHref }: TemplateBuilderProps) 
       .map((id) => byId.get(id))
       .filter((i): i is WorkProgressTemplateItem => !!i);
   }, [data, localOrder]);
+
+  const periodSeeds = useMemo(() => {
+    if (!data) return [];
+    return generatePeriods(data.periodType, {});
+  }, [data]);
+
+  const activeMarkTypes = useMemo(
+    () => (markTypes ?? []).filter((m) => m.isActive),
+    [markTypes],
+  );
+
+  const gridTemplate = `${COL_WIDTH.drag}px ${COL_WIDTH.category}px ${COL_WIDTH.activity}px ${COL_WIDTH.duration}px repeat(${periodSeeds.length}, ${COL_WIDTH.period}px) ${COL_WIDTH.actions}px`;
+
+  const handleChangePeriodMark = (
+    itemId: string,
+    nextDefaultPeriods: TemplateDefaultPeriods,
+  ) => {
+    updateItemMut.mutate({
+      templateId,
+      itemId,
+      body: { defaultPeriods: nextDefaultPeriods },
+    });
+  };
 
   const handleSaveMeta = async () => {
     const body = {
@@ -231,31 +268,59 @@ export function TemplateBuilder({ templateId, backHref }: TemplateBuilderProps) 
               ยังไม่มี item
             </p>
           ) : (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={sortedItems.map((i) => i.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                <ul className="flex flex-col gap-1.5">
-                  {sortedItems.map((i) => (
-                    <TemplateItemRow
-                      key={i.id}
-                      item={i}
-                      category={categoryById.get(i.categoryId)}
-                      onEdit={() => {
-                        setEditingItem(i);
-                        setItemDialogOpen(true);
-                      }}
-                      onDelete={() => setDeleteItemId(i.id)}
-                    />
+            <div className="overflow-x-auto rounded-md border border-border">
+              <div className="min-w-fit">
+                <div
+                  className="grid border-b border-border bg-muted/50 text-xs font-medium text-muted-foreground"
+                  style={{ gridTemplateColumns: gridTemplate }}
+                  role="row"
+                >
+                  <div className="border-r border-border" />
+                  <div className="border-r border-border px-2 py-2">หมวด</div>
+                  <div className="border-r border-border px-2 py-2">
+                    กิจกรรม
+                  </div>
+                  <div className="border-r border-border px-2 py-2">ระยะ</div>
+                  {periodSeeds.map((p) => (
+                    <div
+                      key={p.seq}
+                      className="border-r border-border px-1 py-2 text-center"
+                    >
+                      {p.label}
+                    </div>
                   ))}
-                </ul>
-              </SortableContext>
-            </DndContext>
+                  <div />
+                </div>
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={sortedItems.map((i) => i.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {sortedItems.map((i) => (
+                      <TemplateGridRow
+                        key={i.id}
+                        item={i}
+                        category={categoryById.get(i.categoryId)}
+                        periodSeqs={periodSeeds.map((p) => p.seq)}
+                        markTypes={activeMarkTypes}
+                        gridTemplate={gridTemplate}
+                        disabled={data.isSystem}
+                        onEdit={() => {
+                          setEditingItem(i);
+                          setItemDialogOpen(true);
+                        }}
+                        onDelete={() => setDeleteItemId(i.id)}
+                        onChangePeriodMark={handleChangePeriodMark}
+                      />
+                    ))}
+                  </SortableContext>
+                </DndContext>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>
