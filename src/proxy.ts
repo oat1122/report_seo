@@ -1,11 +1,11 @@
-// src/middleware.ts
+// src/proxy.ts
 import { withAuth, NextRequestWithAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 import { Role } from "@/types/auth";
 
 export default withAuth(
   // `withAuth` จะเพิ่มข้อมูล token ของผู้ใช้เข้ามาใน `Request`
-  function middleware(request: NextRequestWithAuth) {
+  function proxy(request: NextRequestWithAuth) {
     const { token } = request.nextauth;
     const { pathname } = request.nextUrl;
 
@@ -55,7 +55,7 @@ export default withAuth(
   },
   {
     callbacks: {
-      // Callback นี้จะถูกเรียกก่อน middleware หลักทำงาน
+      // Callback นี้จะถูกเรียกก่อน proxy หลักทำงาน
       // ถ้า return false ผู้ใช้จะถูก redirect ไปยังหน้า signIn ใน authOptions
       authorized: ({ token }) => !!token,
     },
@@ -63,7 +63,7 @@ export default withAuth(
 );
 
 // --- Matcher Configuration ---
-// ระบุ path ทั้งหมดที่ต้องการให้ middleware นี้ทำงาน
+// ระบุ path ทั้งหมดที่ต้องการให้ proxy นี้ทำงาน
 export const config = {
   matcher: ["/admin/:path*", "/seo/:path*", "/customer/:path*"],
 };
