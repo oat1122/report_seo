@@ -6,7 +6,7 @@ import {
   setMetricsHistoryVisibility,
 } from "@/features/metrics";
 
-const paramsSchema = z.object({ customerId: z.string().min(1) });
+const paramsSchema = z.object({ customerId: z.uuid() });
 
 export const PATCH = withApiHandler(
   { params: paramsSchema, body: historyVisibilitySchema },

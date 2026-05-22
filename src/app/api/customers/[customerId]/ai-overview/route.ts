@@ -11,7 +11,7 @@ import {
   listAiOverviews,
 } from "@/features/ai-overview";
 
-const paramsSchema = z.object({ customerId: z.string().min(1) });
+const paramsSchema = z.object({ customerId: z.uuid() });
 
 export const GET = withApiHandler(
   { params: paramsSchema },

@@ -1,10 +1,12 @@
 // src/app/customer/[userId]/report/page.tsx
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import ReportPage from "@/features/customer-report/presentation/ReportPage";
 import { requireRole } from "@/lib/auth-utils";
 import { getCustomerReport } from "@/features/customer-report";
+import { customerAccessGuard } from "@/infrastructure/http";
+import { ForbiddenError, NotFoundError, UnauthorizedError } from "@/lib/errors";
 import { Role } from "@/types/auth";
 import type { CustomerReportData } from "@/hooks/api/useCustomersApi";
 
@@ -20,6 +22,19 @@ export default async function AdminViewCustomerReportPage({
   if (!userIdSchema.safeParse(userId).success) {
     notFound();
   }
+
+  // ปิด IDOR: CUSTOMER A ห้ามดู report ของ CUSTOMER B ผ่าน URL
+  // canRead = ADMIN | owner | assigned SEO_DEV
+  try {
+    await customerAccessGuard({ byUserId: userId }, "read");
+  } catch (err) {
+    if (err instanceof NotFoundError) notFound();
+    if (err instanceof ForbiddenError || err instanceof UnauthorizedError) {
+      redirect("/unauthorized");
+    }
+    throw err;
+  }
+
   const reportData = await getCustomerReport(userId);
   const initialData = JSON.parse(
     JSON.stringify(reportData),

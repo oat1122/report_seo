@@ -14,8 +14,8 @@ import {
 import { BadRequestError } from "@/lib/errors";
 
 const paramsSchema = z.object({
-  customerId: z.string().min(1),
-  id: z.string().min(1),
+  customerId: z.uuid(),
+  id: z.uuid(),
 });
 
 function parseImagesToDelete(value: string | null): string[] {

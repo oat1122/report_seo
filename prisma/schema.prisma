@@ -104,7 +104,7 @@ model OverallMetrics {
 
   // ความสัมพันธ์: ข้อมูลนี้เป็นของลูกค้าคนไหน
   customerId String   @unique
-  customer   Customer @relation(fields: [customerId], references: [id])
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
   @@map("overallmetrics")
 }
@@ -148,8 +148,8 @@ model KeywordReport {
 
   // ความสัมพันธ์: ข้อมูลนี้เป็นของลูกค้าคนไหน
   customerId String
-  customer   Customer @relation(fields: [customerId], references: [id])
-  
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
   // ความสัมพันธ์กับประวัติ
   history    KeywordReportHistory[] // ประวัติการเปลี่ยนแปลง
 
@@ -188,7 +188,7 @@ model PaymentProof {
 
   // ความสัมพันธ์: ข้อมูลนี้เป็นของลูกค้าคนไหน
   customerId String
-  customer   Customer @relation(fields: [customerId], references: [id])
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
   @@map("paymentproof")
 }

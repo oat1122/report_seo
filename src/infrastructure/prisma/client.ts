@@ -63,72 +63,82 @@ export const prisma = prismaBase.$extends({
     },
 
     // --- Middleware สำหรับ OverallMetrics (history snapshot) ---
+    // history.create + update อยู่ใน $transaction เดียวกัน — กัน history row ผีตอน update fail
+    // dateRecorded ใน history ใช้ default now() = เวลาทำ snapshot (เวลาที่ค่าเดิมหมดอายุ)
+    // ห้าม copy จาก existingMetrics.dateRecorded — จะทำให้ snapshot หลายครั้งในวันเดียวกัน
+    // มี dateRecorded เท่ากันหมด กราฟ trend collapse เป็น point เดียว
     overallMetrics: {
-      async update({ args, query }) {
-        const existingMetrics = await prismaBase.overallMetrics.findUnique({
-          where: args.where,
-        });
-        if (existingMetrics) {
-          await prismaBase.overallMetricsHistory.create({
-            data: {
-              domainRating: existingMetrics.domainRating,
-              healthScore: existingMetrics.healthScore,
-              ageInYears: existingMetrics.ageInYears,
-              ageInMonths: existingMetrics.ageInMonths,
-              spamScore: existingMetrics.spamScore,
-              organicTraffic: existingMetrics.organicTraffic,
-              organicKeywords: existingMetrics.organicKeywords,
-              backlinks: existingMetrics.backlinks,
-              refDomains: existingMetrics.refDomains,
-              customerId: existingMetrics.customerId,
-            },
+      async update({ args }) {
+        return prismaBase.$transaction(async (tx) => {
+          const existingMetrics = await tx.overallMetrics.findUnique({
+            where: args.where,
           });
-        }
-        return query(args);
+          if (existingMetrics) {
+            await tx.overallMetricsHistory.create({
+              data: {
+                domainRating: existingMetrics.domainRating,
+                healthScore: existingMetrics.healthScore,
+                ageInYears: existingMetrics.ageInYears,
+                ageInMonths: existingMetrics.ageInMonths,
+                spamScore: existingMetrics.spamScore,
+                organicTraffic: existingMetrics.organicTraffic,
+                organicKeywords: existingMetrics.organicKeywords,
+                backlinks: existingMetrics.backlinks,
+                refDomains: existingMetrics.refDomains,
+                customerId: existingMetrics.customerId,
+              },
+            });
+          }
+          return tx.overallMetrics.update(args);
+        });
       },
-      async upsert({ args, query }) {
-        const existingMetrics = await prismaBase.overallMetrics.findUnique({
-          where: args.where,
-        });
-        if (existingMetrics) {
-          await prismaBase.overallMetricsHistory.create({
-            data: {
-              domainRating: existingMetrics.domainRating,
-              healthScore: existingMetrics.healthScore,
-              ageInYears: existingMetrics.ageInYears,
-              ageInMonths: existingMetrics.ageInMonths,
-              spamScore: existingMetrics.spamScore,
-              organicTraffic: existingMetrics.organicTraffic,
-              organicKeywords: existingMetrics.organicKeywords,
-              backlinks: existingMetrics.backlinks,
-              refDomains: existingMetrics.refDomains,
-              customerId: existingMetrics.customerId,
-            },
+      async upsert({ args }) {
+        return prismaBase.$transaction(async (tx) => {
+          const existingMetrics = await tx.overallMetrics.findUnique({
+            where: args.where,
           });
-        }
-        return query(args);
+          if (existingMetrics) {
+            await tx.overallMetricsHistory.create({
+              data: {
+                domainRating: existingMetrics.domainRating,
+                healthScore: existingMetrics.healthScore,
+                ageInYears: existingMetrics.ageInYears,
+                ageInMonths: existingMetrics.ageInMonths,
+                spamScore: existingMetrics.spamScore,
+                organicTraffic: existingMetrics.organicTraffic,
+                organicKeywords: existingMetrics.organicKeywords,
+                backlinks: existingMetrics.backlinks,
+                refDomains: existingMetrics.refDomains,
+                customerId: existingMetrics.customerId,
+              },
+            });
+          }
+          return tx.overallMetrics.upsert(args);
+        });
       },
     },
 
     // --- Middleware สำหรับ KeywordReport (history snapshot) ---
     keywordReport: {
-      async update({ args, query }) {
-        const existingKeyword = await prismaBase.keywordReport.findUnique({
-          where: args.where,
-        });
-        if (existingKeyword) {
-          await prismaBase.keywordReportHistory.create({
-            data: {
-              keyword: existingKeyword.keyword,
-              position: existingKeyword.position,
-              traffic: existingKeyword.traffic,
-              kd: existingKeyword.kd,
-              isTopReport: existingKeyword.isTopReport,
-              reportId: existingKeyword.id,
-            },
+      async update({ args }) {
+        return prismaBase.$transaction(async (tx) => {
+          const existingKeyword = await tx.keywordReport.findUnique({
+            where: args.where,
           });
-        }
-        return query(args);
+          if (existingKeyword) {
+            await tx.keywordReportHistory.create({
+              data: {
+                keyword: existingKeyword.keyword,
+                position: existingKeyword.position,
+                traffic: existingKeyword.traffic,
+                kd: existingKeyword.kd,
+                isTopReport: existingKeyword.isTopReport,
+                reportId: existingKeyword.id,
+              },
+            });
+          }
+          return tx.keywordReport.update(args);
+        });
       },
     },
   },

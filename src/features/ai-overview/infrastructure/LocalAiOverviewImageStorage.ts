@@ -53,15 +53,22 @@ export class LocalAiOverviewImageStorage implements ImageStorage {
     await ensureUploadDir();
 
     const saved: SavedImage[] = [];
-    for (const file of validated) {
-      const absolutePath = path.join(UPLOAD_DIR, file.filename);
-      await writeFile(absolutePath, file.buffer);
-      saved.push({
-        url: buildPublicUrl(UPLOAD_CATEGORY, file.filename),
-        absolutePath,
-      });
+    try {
+      for (const file of validated) {
+        const absolutePath = path.join(UPLOAD_DIR, file.filename);
+        await writeFile(absolutePath, file.buffer);
+        saved.push({
+          url: buildPublicUrl(UPLOAD_CATEGORY, file.filename),
+          absolutePath,
+        });
+      }
+      return saved;
+    } catch (error) {
+      // ถ้า write ล้มกลางทาง (เช่น disk full ตอนรูปที่ 3) — ลบรูปที่เพิ่งเขียนไปแล้ว
+      // ไม่งั้น caller (createAiOverview try/catch) ไม่เห็น saved[] เลยเพราะ throw มาก่อน return
+      await Promise.all(saved.map((s) => safeUnlink(s.absolutePath)));
+      throw error;
     }
-    return saved;
   }
 
   async removeByAbsolutePath(absolutePath: string): Promise<void> {

@@ -33,7 +33,7 @@ CREATE TABLE `overallmetrics` (
     `healthScore` INTEGER NOT NULL,
     `ageInYears` INTEGER NOT NULL,
     `ageInMonths` INTEGER NOT NULL DEFAULT 0,
-    `spamScore` INTEGER NOT NULL,
+    `spamScore` DOUBLE NOT NULL,
     `organicTraffic` DOUBLE NOT NULL,
     `organicKeywords` DOUBLE NOT NULL,
     `backlinks` INTEGER NOT NULL,
@@ -52,7 +52,7 @@ CREATE TABLE `overallmetricshistory` (
     `healthScore` INTEGER NOT NULL,
     `ageInYears` INTEGER NOT NULL,
     `ageInMonths` INTEGER NOT NULL DEFAULT 0,
-    `spamScore` INTEGER NOT NULL,
+    `spamScore` DOUBLE NOT NULL,
     `organicTraffic` DOUBLE NOT NULL,
     `organicKeywords` DOUBLE NOT NULL,
     `backlinks` INTEGER NOT NULL,
@@ -192,19 +192,19 @@ ALTER TABLE `customer` ADD CONSTRAINT `customer_userId_fkey` FOREIGN KEY (`userI
 ALTER TABLE `customer` ADD CONSTRAINT `customer_seoDevId_fkey` FOREIGN KEY (`seoDevId`) REFERENCES `user`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `overallmetrics` ADD CONSTRAINT `overallmetrics_customerId_fkey` FOREIGN KEY (`customerId`) REFERENCES `customer`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `overallmetrics` ADD CONSTRAINT `overallmetrics_customerId_fkey` FOREIGN KEY (`customerId`) REFERENCES `customer`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `overallmetricshistory` ADD CONSTRAINT `overallmetricshistory_customerId_fkey` FOREIGN KEY (`customerId`) REFERENCES `customer`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `keywordreport` ADD CONSTRAINT `keywordreport_customerId_fkey` FOREIGN KEY (`customerId`) REFERENCES `customer`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `keywordreport` ADD CONSTRAINT `keywordreport_customerId_fkey` FOREIGN KEY (`customerId`) REFERENCES `customer`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `keywordreporthistory` ADD CONSTRAINT `keywordreporthistory_reportId_fkey` FOREIGN KEY (`reportId`) REFERENCES `keywordreport`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `paymentproof` ADD CONSTRAINT `paymentproof_customerId_fkey` FOREIGN KEY (`customerId`) REFERENCES `customer`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `paymentproof` ADD CONSTRAINT `paymentproof_customerId_fkey` FOREIGN KEY (`customerId`) REFERENCES `customer`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `keywordrecommend` ADD CONSTRAINT `keywordrecommend_customerId_fkey` FOREIGN KEY (`customerId`) REFERENCES `customer`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;

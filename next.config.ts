@@ -15,6 +15,10 @@ const contentSecurityPolicy = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  // pino-pretty transport ใช้ thread-stream worker ที่ dynamic-require target ตามชื่อ
+  // bundler resolve string path ไม่ได้ ต้อง externalize ใส่ pino ด้วยเป็น belt-and-suspenders
+  // ตามคำแนะนำของ Next docs
+  serverExternalPackages: ["pino", "pino-pretty"],
   images: {
     remotePatterns: [
       {

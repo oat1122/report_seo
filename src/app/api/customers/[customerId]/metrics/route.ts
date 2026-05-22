@@ -7,7 +7,7 @@ import {
 } from "@/infrastructure/http";
 import { getMetrics, metricsSchema, saveMetrics } from "@/features/metrics";
 
-const paramsSchema = z.object({ customerId: z.string().min(1) });
+const paramsSchema = z.object({ customerId: z.uuid() });
 
 export const GET = withApiHandler(
   { params: paramsSchema },

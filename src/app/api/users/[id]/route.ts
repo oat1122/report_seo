@@ -14,7 +14,7 @@ import {
   userUpdateSchema,
 } from "@/features/users";
 
-const idParamsSchema = z.object({ id: z.string().min(1) });
+const idParamsSchema = z.object({ id: z.uuid() });
 
 export const GET = withApiHandler(
   { params: idParamsSchema },

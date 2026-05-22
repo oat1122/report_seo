@@ -3,7 +3,7 @@ import { restoreUser } from "@/features/users";
 import { withApiHandler, noContent } from "@/infrastructure/http";
 import { Role } from "@/types/auth";
 
-const idParamsSchema = z.object({ id: z.string().min(1) });
+const idParamsSchema = z.object({ id: z.uuid() });
 
 const handler = withApiHandler(
   { roles: [Role.ADMIN], params: idParamsSchema },

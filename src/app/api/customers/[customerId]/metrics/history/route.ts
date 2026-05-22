@@ -2,7 +2,7 @@ import { z } from "zod";
 import { withApiHandler, customerAccessGuard, ok } from "@/infrastructure/http";
 import { getCustomerHistoryReport } from "@/features/customer-report";
 
-const paramsSchema = z.object({ customerId: z.string().min(1) });
+const paramsSchema = z.object({ customerId: z.uuid() });
 
 export const GET = withApiHandler(
   { params: paramsSchema },

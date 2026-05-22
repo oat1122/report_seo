@@ -4,6 +4,7 @@ import path from "path";
 import { validateUploadFile } from "@/infrastructure/upload/validators";
 import { buildPublicUrl, getUploadDir } from "@/lib/upload-paths";
 import { BadRequestError } from "@/lib/errors";
+import { logger } from "@/lib/logger";
 import type {
   PaymentImageStorage,
   SavedPaymentImage,
@@ -38,7 +39,8 @@ export class LocalPaymentImageStorage implements PaymentImageStorage {
         await unlink(absolutePath);
       }
     } catch (err) {
-      console.error("Failed to cleanup payment file:", err);
+      // ลบไฟล์ orphan ไม่สำเร็จ — log warn ไว้ให้ cron sweep หรือคน on-call ตามเก็บ
+      logger.warn({ err, absolutePath }, "failed to cleanup payment upload file");
     }
   }
 }

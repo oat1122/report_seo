@@ -7,11 +7,11 @@ import {
 import { BadRequestError, ForbiddenError } from "@/lib/errors";
 import { Role } from "@/types/auth";
 
-const idParamsSchema = z.object({ id: z.string().min(1) });
+const idParamsSchema = z.object({ id: z.uuid() });
 const passwordBodySchema = z
   .object({
     currentPassword: z.string().optional(),
-    newPassword: z.string().min(6, "New password must be at least 6 characters"),
+    newPassword: z.string().min(10, "New password must be at least 10 characters"),
     confirmPassword: z.string().min(1, "Confirm password is required"),
   })
   .strict();
@@ -25,7 +25,13 @@ const handler = withApiHandler(
     if (body.newPassword !== body.confirmPassword) {
       throw new BadRequestError("New passwords do not match");
     }
-    await changePassword(params.id, body.currentPassword, body.newPassword, isAdmin);
+    await changePassword(
+      params.id,
+      body.currentPassword,
+      body.newPassword,
+      isAdmin,
+      session.user.id,
+    );
     return noContent();
   },
 );
