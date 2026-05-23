@@ -36,15 +36,6 @@ export const createPlanSchema = z
 
 export type CreatePlanInput = z.infer<typeof createPlanSchema>;
 
-export const updatePlanSchema = z.object({
-  title: z.string().min(1).max(200).optional(),
-  year: z.number().int().min(2020).max(2099).optional().nullable(),
-  packageName: z.string().max(200).optional().nullable(),
-  note: z.string().max(5000).optional().nullable(),
-});
-
-export type UpdatePlanInput = z.infer<typeof updatePlanSchema>;
-
 export const listPlansQuerySchema = z.object({
   includeArchived: z.coerce.boolean().optional().default(false),
   limit: z.coerce.number().int().min(1).max(100).optional().default(50),

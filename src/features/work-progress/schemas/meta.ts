@@ -16,12 +16,6 @@ export const upsertMetaSchema = z.object({
 
 export type UpsertMetaInput = z.infer<typeof upsertMetaSchema>;
 
-export const bulkUpsertMetaSchema = z.object({
-  entries: z.array(upsertMetaSchema).min(1).max(50),
-});
-
-export type BulkUpsertMetaInput = z.infer<typeof bulkUpsertMetaSchema>;
-
 export const metaKeyParamSchema = z.object({
   key: z
     .string()

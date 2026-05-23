@@ -9,19 +9,14 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useWorkProgressPlan } from "../../hooks/useWorkProgressPlan";
+import {
+  calcPlanOverallPercent,
+  isItemCompleted,
+} from "@/features/work-progress/domain/policies/progress-calculator";
 
 interface ProgressSummaryCardsProps {
   userId: string;
   planId: string;
-}
-
-function calcOverall(items: { weight: number; progressPercent: number }[]) {
-  if (!items.length) return 0;
-  const totalW = items.reduce((s, i) => s + i.weight, 0);
-  if (!totalW) return 0;
-  return Math.round(
-    items.reduce((s, i) => s + i.progressPercent * i.weight, 0) / totalW,
-  );
 }
 
 export function ProgressSummaryCards({
@@ -41,11 +36,9 @@ export function ProgressSummaryCards({
   }
   if (!data) return null;
 
-  const overall = calcOverall(data.items);
+  const overall = calcPlanOverallPercent(data.items);
   const totalItems = data.items.length;
-  const completed = data.items.filter(
-    (i) => i.status.isTerminal && i.progressPercent === 100,
-  ).length;
+  const completed = data.items.filter(isItemCompleted).length;
   const inProgress = totalItems - completed;
   const totalMarks = data.items.reduce(
     (s, i) => s + i.periodMarks.length,

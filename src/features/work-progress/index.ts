@@ -12,17 +12,14 @@ import { PrismaWorkProgressAttachmentRepository } from "./infrastructure/PrismaW
 import { PrismaWorkProgressItemMetaRepository } from "./infrastructure/PrismaWorkProgressItemMetaRepository";
 import { PrismaWorkProgressActivityRepository } from "./infrastructure/PrismaWorkProgressActivityRepository";
 import { LocalWorkProgressAttachmentStorage } from "./infrastructure/LocalWorkProgressAttachmentStorage";
-import { XlsxPlanExporter } from "./infrastructure/XlsxPlanExporter";
 
 import type { AssigneeLookup } from "./application/policies/assignee-guard";
 
 import { createPlanUseCase } from "./application/use-cases/plan/createPlan";
 import { listPlansUseCase } from "./application/use-cases/plan/listPlans";
 import { getPlanDetailUseCase } from "./application/use-cases/plan/getPlanDetail";
-import { updatePlanUseCase } from "./application/use-cases/plan/updatePlan";
 import { archivePlanUseCase } from "./application/use-cases/plan/archivePlan";
 import { deletePlanUseCase } from "./application/use-cases/plan/deletePlan";
-import { exportPlanUseCase } from "./application/use-cases/plan/exportPlan";
 import { importPlanItemsUseCase } from "./application/use-cases/plan/importPlanItems";
 
 import { addItemUseCase } from "./application/use-cases/item/addItem";
@@ -35,7 +32,6 @@ import { bulkDeleteItemsUseCase } from "./application/use-cases/item/bulkDeleteI
 
 import { setPeriodMarkUseCase } from "./application/use-cases/mark/setPeriodMark";
 import { clearPeriodMarkUseCase } from "./application/use-cases/mark/clearPeriodMark";
-import { bulkSetPeriodMarksUseCase } from "./application/use-cases/mark/bulkSetPeriodMarks";
 import { bulkSetPeriodAcrossItemsUseCase } from "./application/use-cases/mark/bulkSetPeriodAcrossItems";
 
 import { listCategoriesUseCase } from "./application/use-cases/master/listCategories";
@@ -55,8 +51,6 @@ import {
 } from "./application/use-cases/master/upsertMarkType";
 import { deactivateMasterRowUseCase } from "./application/use-cases/master/deactivateMasterRow";
 
-import { getPlanSummaryUseCase } from "./application/use-cases/summary/getPlanSummary";
-
 import { listTemplatesUseCase } from "./application/use-cases/template/listTemplates";
 import { getTemplateUseCase } from "./application/use-cases/template/getTemplate";
 import {
@@ -68,10 +62,6 @@ import { reorderTemplateItemsUseCase } from "./application/use-cases/template/re
 import { addTemplateItemUseCase } from "./application/use-cases/template/addTemplateItem";
 import { updateTemplateItemUseCase } from "./application/use-cases/template/updateTemplateItem";
 import { deleteTemplateItemUseCase } from "./application/use-cases/template/deleteTemplateItem";
-import { savePlanAsTemplateUseCase } from "./application/use-cases/template/savePlanAsTemplate";
-import { addTemplateItemSubtaskUseCase } from "./application/use-cases/template/addTemplateItemSubtask";
-import { updateTemplateItemSubtaskUseCase } from "./application/use-cases/template/updateTemplateItemSubtask";
-import { deleteTemplateItemSubtaskUseCase } from "./application/use-cases/template/deleteTemplateItemSubtask";
 
 // Phase 3 use cases
 import { addSubtaskUseCase } from "./application/use-cases/subtask/addSubtask";
@@ -83,14 +73,10 @@ import { uploadAttachmentUseCase } from "./application/use-cases/attachment/uplo
 import { addLinkAttachmentUseCase } from "./application/use-cases/attachment/addLinkAttachment";
 import { deleteAttachmentUseCase } from "./application/use-cases/attachment/deleteAttachment";
 import { upsertMetaUseCase } from "./application/use-cases/meta/upsertMeta";
-import { bulkUpsertMetaUseCase } from "./application/use-cases/meta/bulkUpsertMeta";
 import { deleteMetaUseCase } from "./application/use-cases/meta/deleteMeta";
 
 // Phase 4 — Audit & Insights
-import { getActivityLogUseCase } from "./application/use-cases/audit/getActivityLog";
-import { getRecentChangesUseCase } from "./application/use-cases/audit/getRecentChanges";
 import { getDashboardSummaryUseCase } from "./application/use-cases/summary/getDashboardSummary";
-import { getCategoryBreakdownUseCase } from "./application/use-cases/summary/getCategoryBreakdown";
 
 const repo = new PrismaWorkProgressRepository();
 const masterRepo = new PrismaWorkProgressMasterRepository();
@@ -100,7 +86,6 @@ const attachmentRepo = new PrismaWorkProgressAttachmentRepository();
 const metaRepo = new PrismaWorkProgressItemMetaRepository();
 const activityRepo = new PrismaWorkProgressActivityRepository();
 const attachmentStorage = new LocalWorkProgressAttachmentStorage();
-const planExporter = new XlsxPlanExporter();
 
 // Lookup user สำหรับ assignee guard — bypass soft-delete filter ผ่าน extended client ก็พอ
 // (extended client กรอง deletedAt ให้แล้ว ดังนั้นถ้า user ถูกลบ → คืน null อัตโนมัติ)
@@ -121,10 +106,8 @@ export const createPlan = createPlanUseCase(
 );
 export const listPlans = listPlansUseCase(repo);
 export const getPlanDetail = getPlanDetailUseCase(repo);
-export const updatePlan = updatePlanUseCase(repo, activityRepo);
 export const archivePlan = archivePlanUseCase(repo, activityRepo);
 export const deletePlan = deletePlanUseCase(repo);
-export const exportPlan = exportPlanUseCase(repo, planExporter);
 export const importPlanItems = importPlanItemsUseCase(
   repo,
   masterRepo,
@@ -151,11 +134,6 @@ export const setPeriodMark = setPeriodMarkUseCase(
   activityRepo,
 );
 export const clearPeriodMark = clearPeriodMarkUseCase(repo, activityRepo);
-export const bulkSetPeriodMarks = bulkSetPeriodMarksUseCase(
-  repo,
-  masterRepo,
-  activityRepo,
-);
 export const bulkSetPeriodAcrossItems = bulkSetPeriodAcrossItemsUseCase(
   repo,
   masterRepo,
@@ -174,9 +152,6 @@ export const createMarkType = createMarkTypeUseCase(masterRepo);
 export const updateMarkType = updateMarkTypeUseCase(masterRepo);
 export const deactivateMasterRow = deactivateMasterRowUseCase(masterRepo);
 
-// Summary
-export const getPlanSummary = getPlanSummaryUseCase(repo);
-
 // Template (Phase 2)
 export const listTemplates = listTemplatesUseCase(templateRepo);
 export const getTemplate = getTemplateUseCase(templateRepo);
@@ -190,16 +165,6 @@ export const updateTemplateItem = updateTemplateItemUseCase(
   masterRepo,
 );
 export const deleteTemplateItem = deleteTemplateItemUseCase(templateRepo);
-export const savePlanAsTemplate = savePlanAsTemplateUseCase(
-  repo,
-  templateRepo,
-);
-export const addTemplateItemSubtask =
-  addTemplateItemSubtaskUseCase(templateRepo);
-export const updateTemplateItemSubtask =
-  updateTemplateItemSubtaskUseCase(templateRepo);
-export const deleteTemplateItemSubtask =
-  deleteTemplateItemSubtaskUseCase(templateRepo);
 
 // Phase 3 — Rich Items
 export const addSubtask = addSubtaskUseCase(
@@ -249,33 +214,23 @@ export const deleteAttachment = deleteAttachmentUseCase(
 );
 
 export const upsertMeta = upsertMetaUseCase(repo, metaRepo, activityRepo);
-export const bulkUpsertMeta = bulkUpsertMetaUseCase(
-  repo,
-  metaRepo,
-  activityRepo,
-);
 export const deleteMeta = deleteMetaUseCase(repo, metaRepo, activityRepo);
 
 // Phase 4 — Audit & Insights
-export const getActivityLog = getActivityLogUseCase(repo, activityRepo);
-export const getRecentChanges = getRecentChangesUseCase(activityRepo);
 export const getDashboardSummary = getDashboardSummaryUseCase(
   repo,
   activityRepo,
 );
-export const getCategoryBreakdown = getCategoryBreakdownUseCase(repo);
 
 // Re-export schemas + DTO types สำหรับ route handler
 export {
   createPlanSchema,
-  updatePlanSchema,
   listPlansQuerySchema,
   addItemSchema,
   updateItemSchema,
   reorderItemsSchema,
   assignItemSchema,
   setPeriodMarkSchema,
-  bulkSetPeriodMarksSchema,
   bulkSetPeriodAcrossItemsSchema,
   bulkUpdateItemStatusSchema,
   bulkDeleteItemsSchema,
@@ -294,24 +249,18 @@ export {
   reorderTemplateItemsSchema,
   listTemplatesQuerySchema,
   templateIdParamSchema,
-  savePlanAsTemplateSchema,
-  addTemplateSubtaskSchema,
-  updateTemplateSubtaskSchema,
   addSubtaskSchema,
   updateSubtaskSchema,
   reorderSubtasksSchema,
   addLinkAttachmentSchema,
   upsertMetaSchema,
-  bulkUpsertMetaSchema,
   metaKeyParamSchema,
   type CreatePlanInput,
-  type UpdatePlanInput,
   type AddItemInput,
   type UpdateItemInput,
   type ReorderItemsInput,
   type AssignItemInput,
   type SetPeriodMarkInput,
-  type BulkSetPeriodMarksInput,
   type BulkSetPeriodAcrossItemsInput,
   type BulkUpdateItemStatusInput,
   type BulkDeleteItemsInput,
@@ -328,40 +277,21 @@ export {
   type UpdateTemplateItemInput,
   type ReorderTemplateItemsInput,
   type ListTemplatesQuery,
-  type SavePlanAsTemplateInput,
-  type AddTemplateSubtaskInput,
-  type UpdateTemplateSubtaskInput,
   type AddSubtaskInput,
   type UpdateSubtaskInput,
   type ReorderSubtasksInput,
   type AddLinkAttachmentInput,
   type UpsertMetaInput,
-  type BulkUpsertMetaInput,
-  activityLogQuerySchema,
-  recentChangesQuerySchema,
   dashboardSummaryQuerySchema,
-  categoryBreakdownQuerySchema,
   importPlanItemsSchema,
   importPlanItemRowSchema,
-  type ActivityLogQuery,
-  type RecentChangesQuery,
   type DashboardSummaryQuery,
-  type CategoryBreakdownQuery,
   type ImportPlanItemsInput,
   type ImportPlanItemRowInput,
 } from "./schemas";
 
 // Phase 4 — Audit & Insights domain types
-export {
-  ACTIVITY_ACTIONS,
-  ACTIVITY_ENTITIES,
-} from "./domain/WorkProgressActivity";
-export type {
-  WorkProgressActivity,
-  WorkProgressActivityAction,
-  WorkProgressActivityEntity,
-  WorkProgressActivityDiff,
-} from "./domain/WorkProgressActivity";
+export type { WorkProgressActivity } from "./domain/WorkProgressActivity";
 export type { DashboardSummary } from "./application/use-cases/summary/getDashboardSummary";
 export type {
   CustomerSummary,

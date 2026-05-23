@@ -5,8 +5,6 @@ import axios from "@/infrastructure/http/axios";
 import type {
   WorkProgressPlan,
   CreatePlanInput,
-  UpdatePlanInput,
-  SavePlanAsTemplateInput,
 } from "@/features/work-progress";
 
 type ApiData<T> = { data: T };
@@ -56,29 +54,6 @@ export const useCreatePlan = () => {
   });
 };
 
-export const useUpdatePlan = () => {
-  const qc = useQueryClient();
-  return useMutation<
-    WorkProgressPlan,
-    Error,
-    { userId: string; planId: string; body: UpdatePlanInput }
-  >({
-    mutationFn: async ({ userId, planId, body }) => {
-      const { data } = await axios.patch<ApiData<WorkProgressPlan>>(
-        `/customers/${userId}/work-progress/${planId}`,
-        body,
-      );
-      return data.data;
-    },
-    onSuccess: (_d, { userId, planId }) => {
-      invalidatePlansFor(qc, userId);
-      qc.invalidateQueries({
-        queryKey: ["workProgress", "plan", userId, planId],
-      });
-    },
-  });
-};
-
 export const useArchivePlan = () => {
   const qc = useQueryClient();
   return useMutation<
@@ -109,25 +84,5 @@ export const useDeletePlan = () => {
       await axios.delete(`/customers/${userId}/work-progress/${planId}`);
     },
     onSuccess: (_d, { userId }) => invalidatePlansFor(qc, userId),
-  });
-};
-
-export const useSavePlanAsTemplate = () => {
-  const qc = useQueryClient();
-  return useMutation<
-    unknown,
-    Error,
-    { userId: string; planId: string; body: SavePlanAsTemplateInput }
-  >({
-    mutationFn: async ({ userId, planId, body }) => {
-      const { data } = await axios.post(
-        `/customers/${userId}/work-progress/${planId}/save-as-template`,
-        body,
-      );
-      return data;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["workProgress", "templates"] });
-    },
   });
 };

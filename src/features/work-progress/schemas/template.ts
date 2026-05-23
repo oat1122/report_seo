@@ -23,24 +23,6 @@ export type AddTemplateItemInput = z.infer<typeof addTemplateItemSchema>;
 export const updateTemplateItemSchema = templateItemBaseSchema.partial();
 export type UpdateTemplateItemInput = z.infer<typeof updateTemplateItemSchema>;
 
-export const addTemplateSubtaskSchema = z.object({
-  title: z.string().min(1).max(500),
-  orderIndex: z.number().int().min(0).optional(),
-});
-export type AddTemplateSubtaskInput = z.infer<typeof addTemplateSubtaskSchema>;
-
-export const updateTemplateSubtaskSchema = z
-  .object({
-    title: z.string().min(1).max(500).optional(),
-    orderIndex: z.number().int().min(0).optional(),
-  })
-  .refine((d) => Object.keys(d).length > 0, {
-    message: "ต้องระบุอย่างน้อย 1 field ที่จะแก้ไข",
-  });
-export type UpdateTemplateSubtaskInput = z.infer<
-  typeof updateTemplateSubtaskSchema
->;
-
 export const upsertTemplateSchema = z.object({
   name: z.string().min(1).max(200),
   description: z.string().max(5000).optional().nullable(),
@@ -81,10 +63,3 @@ export const listTemplatesQuerySchema = z.object({
 export type ListTemplatesQuery = z.infer<typeof listTemplatesQuerySchema>;
 
 export const templateIdParamSchema = z.object({ id: z.string().uuid() });
-
-export const savePlanAsTemplateSchema = z.object({
-  name: z.string().min(1).max(200),
-  description: z.string().max(5000).optional().nullable(),
-  isActive: z.boolean().optional().default(true),
-});
-export type SavePlanAsTemplateInput = z.infer<typeof savePlanAsTemplateSchema>;

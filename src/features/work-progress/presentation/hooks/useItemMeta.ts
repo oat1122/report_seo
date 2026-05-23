@@ -3,10 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "@/infrastructure/http/axios";
 import { planDetailKey } from "./useWorkProgressPlan";
-import type {
-  UpsertMetaInput,
-  BulkUpsertMetaInput,
-} from "@/features/work-progress";
+import type { UpsertMetaInput } from "@/features/work-progress";
 
 interface MetaCtx {
   userId: string;
@@ -28,20 +25,6 @@ export const useUpsertMeta = () => {
     mutationFn: async ({ userId, planId, itemId, body }) => {
       const { data } = await axios.put(
         `/customers/${userId}/work-progress/${planId}/items/${itemId}/meta`,
-        body,
-      );
-      return data;
-    },
-    onSuccess: (_d, vars) => invalidate(vars),
-  });
-};
-
-export const useBulkUpsertMeta = () => {
-  const invalidate = useInvalidate();
-  return useMutation<unknown, Error, MetaCtx & { body: BulkUpsertMetaInput }>({
-    mutationFn: async ({ userId, planId, itemId, body }) => {
-      const { data } = await axios.post(
-        `/customers/${userId}/work-progress/${planId}/items/${itemId}/meta/bulk`,
         body,
       );
       return data;

@@ -5,7 +5,6 @@ import axios from "@/infrastructure/http/axios";
 import { planDetailKey } from "./useWorkProgressPlan";
 import type {
   SetPeriodMarkInput,
-  BulkSetPeriodMarksInput,
   WorkProgressPlanDetail,
   WorkProgressPeriodMarkWithType,
   WorkProgressMarkType,
@@ -144,24 +143,3 @@ export const useClearPeriodMark = () => {
   });
 };
 
-export const useBulkSetPeriodMarks = () => {
-  const qc = useQueryClient();
-  return useMutation<
-    unknown,
-    Error,
-    MarkCtx & { body: BulkSetPeriodMarksInput }
-  >({
-    mutationFn: async ({ userId, planId, itemId, body }) => {
-      const { data } = await axios.post(
-        `/customers/${userId}/work-progress/${planId}/items/${itemId}/marks/bulk`,
-        body,
-      );
-      return data;
-    },
-    onSuccess: (_d, vars) => {
-      qc.invalidateQueries({
-        queryKey: planDetailKey(vars.userId, vars.planId) as unknown as string[],
-      });
-    },
-  });
-};

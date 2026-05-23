@@ -6,9 +6,3 @@ export const dashboardSummaryQuerySchema = z.object({
 });
 
 export type DashboardSummaryQuery = z.infer<typeof dashboardSummaryQuerySchema>;
-
-export const categoryBreakdownQuerySchema = z.object({
-  categoryId: z.string().uuid().optional(),
-});
-
-export type CategoryBreakdownQuery = z.infer<typeof categoryBreakdownQuerySchema>;

@@ -11,7 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import axios from "@/infrastructure/http/axios";
 import { useWorkProgressPlan } from "../../hooks/useWorkProgressPlan";
 import { useArchivePlan } from "../../hooks/useWorkProgressPlans";
-import { calcOverallPercent } from "@/features/work-progress/domain/policies/progress-calculator";
+import { calcPlanOverallPercent } from "@/features/work-progress/domain/policies/progress-calculator";
 
 const PERIOD_LABEL: Record<string, string> = {
   YEAR_12_MONTHS: "12 เดือน",
@@ -42,7 +42,7 @@ export function PlanHeaderBar({
   }
   if (!data) return null;
 
-  const overall = calcOverallPercent(data.items);
+  const overall = calcPlanOverallPercent(data.items);
 
   const handleExport = async () => {
     setExporting(true);

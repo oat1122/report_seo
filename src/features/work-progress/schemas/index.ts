@@ -1,10 +1,8 @@
 export {
   createPlanSchema,
-  updatePlanSchema,
   listPlansQuerySchema,
   customPeriodSchema,
   type CreatePlanInput,
-  type UpdatePlanInput,
   type ListPlansQuery,
 } from "./plan";
 
@@ -25,10 +23,8 @@ export {
 
 export {
   setPeriodMarkSchema,
-  bulkSetPeriodMarksSchema,
   bulkSetPeriodAcrossItemsSchema,
   type SetPeriodMarkInput,
-  type BulkSetPeriodMarksInput,
   type BulkSetPeriodAcrossItemsInput,
 } from "./mark";
 
@@ -58,18 +54,12 @@ export {
   reorderTemplateItemsSchema,
   listTemplatesQuerySchema,
   templateIdParamSchema,
-  savePlanAsTemplateSchema,
-  addTemplateSubtaskSchema,
-  updateTemplateSubtaskSchema,
   type UpsertTemplateInput,
   type UpdateTemplateInput,
   type AddTemplateItemInput,
   type UpdateTemplateItemInput,
   type ReorderTemplateItemsInput,
   type ListTemplatesQuery,
-  type SavePlanAsTemplateInput,
-  type AddTemplateSubtaskInput,
-  type UpdateTemplateSubtaskInput,
 } from "./template";
 
 export {
@@ -89,25 +79,14 @@ export {
 
 export {
   upsertMetaSchema,
-  bulkUpsertMetaSchema,
   metaValueTypeSchema,
   metaKeyParamSchema,
   type UpsertMetaInput,
-  type BulkUpsertMetaInput,
 } from "./meta";
 
 export {
-  activityLogQuerySchema,
-  recentChangesQuerySchema,
-  type ActivityLogQuery,
-  type RecentChangesQuery,
-} from "./audit";
-
-export {
   dashboardSummaryQuerySchema,
-  categoryBreakdownQuerySchema,
   type DashboardSummaryQuery,
-  type CategoryBreakdownQuery,
 } from "./summary";
 
 export {

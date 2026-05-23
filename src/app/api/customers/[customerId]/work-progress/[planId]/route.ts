@@ -5,12 +5,7 @@ import {
   ok,
   noContent,
 } from "@/infrastructure/http";
-import {
-  deletePlan,
-  getPlanDetail,
-  updatePlan,
-  updatePlanSchema,
-} from "@/features/work-progress";
+import { deletePlan, getPlanDetail } from "@/features/work-progress";
 
 const paramsSchema = z.object({
   customerId: z.string().uuid(),
@@ -25,19 +20,6 @@ export const GET = withApiHandler(
       "read",
     );
     return ok(await getPlanDetail(ctx.customer.id, params.planId));
-  },
-);
-
-export const PATCH = withApiHandler(
-  { params: paramsSchema, body: updatePlanSchema },
-  async ({ params, body, session }) => {
-    const ctx = await customerAccessGuard(
-      { byUserId: params.customerId },
-      "manage",
-    );
-    return ok(
-      await updatePlan(ctx.customer.id, params.planId, session.user.id, body),
-    );
   },
 );
 

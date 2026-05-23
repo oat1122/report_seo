@@ -62,67 +62,71 @@ export function TemplateList({ basePath }: TemplateListProps) {
   const { data, isLoading } = useTemplates({ includeInactive });
   const deleteMut = useDeleteTemplate();
 
+  const templates = data ?? [];
+
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Switch
-            id="t-incl-inactive"
-            checked={includeInactive}
-            onCheckedChange={setIncludeInactive}
-          />
-          <Label htmlFor="t-incl-inactive" className="cursor-pointer text-sm">
-            แสดง template ที่ปิดใช้
-          </Label>
-        </div>
-        <Button onClick={() => setCreateOpen(true)}>
-          <Plus className="size-4" />
-          สร้าง template
-        </Button>
-      </div>
-
-      {isLoading ? (
-        <div className="grid gap-4 md:grid-cols-2">
-          {[0, 1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-44" />
-          ))}
-        </div>
-      ) : (data ?? []).length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border p-12 text-center">
-          <FileStack className="size-8 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">ยังไม่มี template</p>
-        </div>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2">
-          {(data ?? []).map((t) => (
-            <TemplateCard
-              key={t.id}
-              tpl={t}
-              href={`${basePath}/${t.id}`}
-              onDelete={() => setDeleteId(t.id)}
+    <Card>
+      <CardContent className="flex flex-col gap-5 pt-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Switch
+              id="t-incl-inactive"
+              checked={includeInactive}
+              onCheckedChange={setIncludeInactive}
             />
-          ))}
+            <Label htmlFor="t-incl-inactive" className="cursor-pointer text-sm">
+              แสดง template ที่ปิดใช้
+            </Label>
+          </div>
+          <Button onClick={() => setCreateOpen(true)}>
+            <Plus className="size-4" />
+            สร้าง template
+          </Button>
         </div>
-      )}
 
-      <CreateTemplateDialog
-        open={createOpen}
-        onOpenChange={setCreateOpen}
-        basePath={basePath}
-      />
+        {isLoading ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+            {[0, 1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-32" />
+            ))}
+          </div>
+        ) : templates.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border p-12 text-center">
+            <FileStack className="size-8 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">ยังไม่มี template</p>
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+            {templates.map((t) => (
+              <TemplateCard
+                key={t.id}
+                tpl={t}
+                href={`${basePath}/${t.id}`}
+                onDelete={() => setDeleteId(t.id)}
+              />
+            ))}
+          </div>
+        )}
 
-      <ConfirmAlert
-        open={deleteId !== null}
-        onClose={() => setDeleteId(null)}
-        onConfirm={async () => {
-          if (!deleteId) return;
-          await deleteMut.mutateAsync({ id: deleteId });
-          setDeleteId(null);
-        }}
-        title="ลบ template"
-        message="ลบ template นี้ (system template ลบไม่ได้)"
-      />
-    </div>
+        <CreateTemplateDialog
+          open={createOpen}
+          onOpenChange={setCreateOpen}
+          basePath={basePath}
+        />
+
+        <ConfirmAlert
+          open={deleteId !== null}
+          onClose={() => setDeleteId(null)}
+          onConfirm={async () => {
+            if (!deleteId) return;
+            await deleteMut.mutateAsync({ id: deleteId });
+            setDeleteId(null);
+          }}
+          title="ลบ template"
+          message="ลบ template นี้ (system template ลบไม่ได้)"
+        />
+      </CardContent>
+    </Card>
   );
 }
 
@@ -135,27 +139,18 @@ interface TemplateCardProps {
 function TemplateCard({ tpl, href, onDelete }: TemplateCardProps) {
   return (
     <Card
-      className={`group relative gap-3 py-5 transition-all hover:shadow-md hover:ring-foreground/20 ${
+      className={`group relative gap-2 py-4 transition-all hover:shadow-md hover:ring-foreground/20 ${
         tpl.isActive ? "" : "opacity-70"
       }`}
     >
-      <CardHeader className="flex flex-row items-start justify-between gap-3 pb-0">
-        <Link href={href} className="flex flex-1 items-start gap-3">
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors group-hover:bg-secondary/30 group-hover:text-foreground">
-            <FileStack className="size-5" />
+      <CardHeader className="flex flex-row items-start justify-between gap-2 pb-0">
+        <Link href={href} className="flex flex-1 items-center gap-3 min-w-0">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground transition-colors group-hover:bg-secondary/30 group-hover:text-foreground">
+            <FileStack className="size-4" />
           </span>
-          <div className="flex min-w-0 flex-col gap-1">
-            <span className="line-clamp-1 text-base font-semibold leading-tight">
-              {tpl.name}
-            </span>
-            <div className="flex flex-wrap items-center gap-1.5 text-xs">
-              <Badge variant="secondary">
-                {PERIOD_LABEL[tpl.periodType] ?? tpl.periodType}
-              </Badge>
-              {tpl.isSystem && <Badge variant="outline">system</Badge>}
-              {!tpl.isActive && <Badge variant="outline">ปิดใช้</Badge>}
-            </div>
-          </div>
+          <span className="line-clamp-1 text-base font-semibold leading-tight">
+            {tpl.name}
+          </span>
         </Link>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -180,10 +175,17 @@ function TemplateCard({ tpl, href, onDelete }: TemplateCardProps) {
         </DropdownMenu>
       </CardHeader>
       <CardContent>
-        <Link href={href} className="block">
-          <p className="line-clamp-2 min-h-[2.5rem] text-sm text-muted-foreground">
+        <Link href={href} className="flex flex-col gap-2">
+          <p className="line-clamp-2 text-sm text-muted-foreground">
             {tpl.description?.trim() ? tpl.description : "ไม่มีรายละเอียด"}
           </p>
+          <div className="flex flex-wrap items-center gap-1.5 text-xs">
+            <Badge variant="secondary">
+              {PERIOD_LABEL[tpl.periodType] ?? tpl.periodType}
+            </Badge>
+            {tpl.isSystem && <Badge variant="outline">system</Badge>}
+            {!tpl.isActive && <Badge variant="outline">ปิดใช้</Badge>}
+          </div>
         </Link>
       </CardContent>
     </Card>
