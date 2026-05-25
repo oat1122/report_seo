@@ -34,13 +34,38 @@ import { useCreatePlan, useWorkProgressPlans } from "../../hooks/useWorkProgress
 import { useTemplates } from "../../hooks/useTemplates";
 
 type SourceTab = "empty" | "template" | "clone";
+type RangeMode = "monthly" | "legacy";
 
 const PERIOD_OPTIONS = [
-  { value: "YEAR_12_MONTHS", label: "12 เดือน" },
+  { value: "YEAR_12_MONTHS", label: "12 เดือน (รายเดือน)" },
   { value: "YEAR_4_QUARTERS", label: "4 ไตรมาส" },
   { value: "HALF_2_PERIODS", label: "ครึ่งปี (2 ช่วง)" },
   { value: "CUSTOM", label: "กำหนดเอง" },
 ] as const;
+
+const THAI_MONTHS = [
+  "ม.ค.",
+  "ก.พ.",
+  "มี.ค.",
+  "เม.ย.",
+  "พ.ค.",
+  "มิ.ย.",
+  "ก.ค.",
+  "ส.ค.",
+  "ก.ย.",
+  "ต.ค.",
+  "พ.ย.",
+  "ธ.ค.",
+] as const;
+
+function countMonths(
+  sm: number,
+  sy: number,
+  em: number,
+  ey: number,
+): number {
+  return (ey - sy) * 12 + (em - sm) + 1;
+}
 
 interface CreatePlanDialogProps {
   userId: string;
@@ -62,9 +87,17 @@ export function CreatePlanDialog({
   const { data: existingPlans, isLoading: plansLoading } =
     useWorkProgressPlans(userId, { enabled: open });
 
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth() + 1;
+
   const [tab, setTab] = useState<SourceTab>("empty");
+  const [rangeMode, setRangeMode] = useState<RangeMode>("monthly");
   const [title, setTitle] = useState("");
-  const [year, setYear] = useState<string>(String(new Date().getFullYear()));
+  const [startMonth, setStartMonth] = useState<number>(currentMonth);
+  const [startYear, setStartYear] = useState<number>(currentYear);
+  const [endMonth, setEndMonth] = useState<number>(currentMonth);
+  const [endYear, setEndYear] = useState<number>(currentYear);
+  const [year, setYear] = useState<string>(String(currentYear));
   const [periodType, setPeriodType] =
     useState<(typeof PERIOD_OPTIONS)[number]["value"]>("YEAR_12_MONTHS");
   const [packageName, setPackageName] = useState("");
@@ -77,8 +110,13 @@ export function CreatePlanDialog({
   useEffect(() => {
     if (!open) return;
     setTab("empty");
+    setRangeMode("monthly");
     setTitle("");
-    setYear(String(new Date().getFullYear()));
+    setStartMonth(currentMonth);
+    setStartYear(currentYear);
+    setEndMonth(currentMonth);
+    setEndYear(currentYear + 1);
+    setYear(String(currentYear));
     setPeriodType("YEAR_12_MONTHS");
     setPackageName("");
     setNote("");
@@ -86,30 +124,57 @@ export function CreatePlanDialog({
     setCloneFromPlanId("");
     setCustomPeriods([""]);
     setErrors({});
-  }, [open]);
+  }, [open, currentMonth, currentYear]);
 
   const activeTemplates = useMemo(
     () => (templates ?? []).filter((t: WorkProgressTemplate) => t.isActive),
     [templates],
   );
 
+  const yearOptions = useMemo(() => {
+    const base = currentYear;
+    return Array.from({ length: 11 }, (_, i) => base - 2 + i);
+  }, [currentYear]);
+
+  const monthCount = useMemo(() => {
+    if (rangeMode !== "monthly") return null;
+    const c = countMonths(startMonth, startYear, endMonth, endYear);
+    return c > 0 ? c : null;
+  }, [rangeMode, startMonth, startYear, endMonth, endYear]);
+
+  const rangeInvalid = useMemo(() => {
+    if (rangeMode !== "monthly") return false;
+    return countMonths(startMonth, startYear, endMonth, endYear) <= 0;
+  }, [rangeMode, startMonth, startYear, endMonth, endYear]);
+
   const handleSubmit = async () => {
     const newErrors: FieldErrors = {};
     const body: Record<string, unknown> = {
       title: title.trim(),
-      periodType,
       packageName: packageName.trim() || null,
       note: note.trim() || null,
     };
-    const yearNum = Number(year);
-    if (year && !Number.isNaN(yearNum)) body.year = yearNum;
 
-    if (periodType === "CUSTOM") {
-      const labels = customPeriods.map((s) => s.trim()).filter(Boolean);
-      if (labels.length === 0) {
-        newErrors.customPeriods = "กรุณาระบุ period อย่างน้อย 1 ช่วง";
+    if (rangeMode === "monthly") {
+      if (rangeInvalid) {
+        newErrors.endMonth = "เดือนจบต้องไม่อยู่ก่อนเดือนเริ่ม";
       }
-      body.customPeriods = labels.map((label) => ({ label }));
+      body.periodType = "YEAR_12_MONTHS";
+      body.startMonth = startMonth;
+      body.startYear = startYear;
+      body.endMonth = endMonth;
+      body.endYear = endYear;
+    } else {
+      body.periodType = periodType;
+      const yearNum = Number(year);
+      if (year && !Number.isNaN(yearNum)) body.year = yearNum;
+      if (periodType === "CUSTOM") {
+        const labels = customPeriods.map((s) => s.trim()).filter(Boolean);
+        if (labels.length === 0) {
+          newErrors.customPeriods = "กรุณาระบุ period อย่างน้อย 1 ช่วง";
+        }
+        body.customPeriods = labels.map((label) => ({ label }));
+      }
     }
 
     if (tab === "template") {
@@ -173,41 +238,161 @@ export function CreatePlanDialog({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label>รูปแบบ period</Label>
-                <Select
-                  value={periodType}
-                  onValueChange={(v) =>
-                    setPeriodType(v as typeof periodType)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PERIOD_OPTIONS.map((o) => (
-                      <SelectItem key={o.value} value={o.value}>
-                        {o.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="cp-year">ปี (optional)</Label>
-                <Input
-                  id="cp-year"
-                  type="number"
-                  min={2020}
-                  max={2099}
-                  value={year}
-                  onChange={(e) => setYear(e.target.value)}
-                />
-              </div>
+            <div className="flex items-center gap-2 text-xs">
+              <button
+                type="button"
+                onClick={() => setRangeMode("monthly")}
+                className={`rounded-md px-2.5 py-1 transition ${
+                  rangeMode === "monthly"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground hover:bg-muted/70"
+                }`}
+              >
+                ช่วงเดือน (ข้ามปีได้)
+              </button>
+              <button
+                type="button"
+                onClick={() => setRangeMode("legacy")}
+                className={`rounded-md px-2.5 py-1 transition ${
+                  rangeMode === "legacy"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground hover:bg-muted/70"
+                }`}
+              >
+                ไตรมาส / ครึ่งปี / กำหนดเอง
+              </button>
             </div>
 
-            {periodType === "CUSTOM" && (
+            {rangeMode === "monthly" ? (
+              <div className="grid gap-3 rounded-md border border-border bg-muted/30 p-3">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  <div className="grid gap-1.5">
+                    <Label className="text-xs">เริ่มเดือน</Label>
+                    <Select
+                      value={String(startMonth)}
+                      onValueChange={(v) => setStartMonth(Number(v))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {THAI_MONTHS.map((m, i) => (
+                          <SelectItem key={i} value={String(i + 1)}>
+                            {m}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label className="text-xs">เริ่มปี</Label>
+                    <Select
+                      value={String(startYear)}
+                      onValueChange={(v) => setStartYear(Number(v))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {yearOptions.map((y) => (
+                          <SelectItem key={y} value={String(y)}>
+                            {y}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label className="text-xs">ถึงเดือน</Label>
+                    <Select
+                      value={String(endMonth)}
+                      onValueChange={(v) => setEndMonth(Number(v))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {THAI_MONTHS.map((m, i) => (
+                          <SelectItem key={i} value={String(i + 1)}>
+                            {m}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label className="text-xs">ถึงปี</Label>
+                    <Select
+                      value={String(endYear)}
+                      onValueChange={(v) => setEndYear(Number(v))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {yearOptions.map((y) => (
+                          <SelectItem key={y} value={String(y)}>
+                            {y}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <FieldError error={errors.endMonth} />
+                <div className="text-xs text-muted-foreground">
+                  {rangeInvalid ? (
+                    <span className="text-destructive">
+                      เดือนจบต้องไม่อยู่ก่อนเดือนเริ่ม
+                    </span>
+                  ) : (
+                    <>
+                      {THAI_MONTHS[startMonth - 1]} {startYear} →{" "}
+                      {THAI_MONTHS[endMonth - 1]} {endYear}
+                      {monthCount !== null && (
+                        <span className="ml-1">({monthCount} เดือน)</span>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>รูปแบบ period</Label>
+                  <Select
+                    value={periodType}
+                    onValueChange={(v) =>
+                      setPeriodType(v as typeof periodType)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PERIOD_OPTIONS.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>
+                          {o.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="cp-year">ปี (optional)</Label>
+                  <Input
+                    id="cp-year"
+                    type="number"
+                    min={2020}
+                    max={2099}
+                    value={year}
+                    onChange={(e) => setYear(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {rangeMode === "legacy" && periodType === "CUSTOM" && (
               <div className="grid gap-2">
                 <Label>Period labels</Label>
                 <FieldError error={errors.customPeriods} />
@@ -304,6 +489,9 @@ export function CreatePlanDialog({
                         activeTemplates.map((t) => (
                           <SelectItem key={t.id} value={t.id}>
                             {t.name}
+                            <span className="ml-2 text-xs text-muted-foreground">
+                              ({t.durationMonths} เดือน)
+                            </span>
                           </SelectItem>
                         ))
                       )}

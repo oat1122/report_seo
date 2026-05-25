@@ -6,6 +6,7 @@ export interface WorkProgressTemplate {
   name: string;
   description: string | null;
   periodType: PeriodTypeCode;
+  durationMonths: number;
   isActive: boolean;
   isSystem: boolean;
   createdById: string | null;

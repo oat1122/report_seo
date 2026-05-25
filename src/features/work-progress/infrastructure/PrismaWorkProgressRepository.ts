@@ -408,31 +408,6 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
     });
   }
 
-  async createManyItems(
-    planId: string,
-    items: ReadonlyArray<CreatePlanItemSeed>,
-  ): Promise<{ count: number }> {
-    if (items.length === 0) return { count: 0 };
-    const existing = await prisma.workProgressItem.aggregate({
-      where: { planId },
-      _max: { orderIndex: true },
-    });
-    const startIndex = (existing._max.orderIndex ?? -1) + 1;
-    const result = await prisma.workProgressItem.createMany({
-      data: items.map((it, i) => ({
-        planId,
-        categoryId: it.categoryId,
-        statusId: it.statusId,
-        activity: it.activity,
-        description: it.description,
-        duration: it.duration,
-        weight: it.weight,
-        orderIndex: it.orderIndex ?? startIndex + i,
-      })),
-    });
-    return { count: result.count };
-  }
-
   async countItemsInPlan(
     planId: string,
     itemIds: ReadonlyArray<string>,

@@ -1,7 +1,11 @@
 import { BadRequestError, ForbiddenError } from "@/lib/errors";
 import { Role } from "@/types/auth";
 import { createPlanSchema } from "../../../schemas";
-import { generatePeriods } from "../../../domain/policies/period-generator";
+import {
+  generatePeriods,
+  generateMonthRangePeriods,
+  type PeriodSeed,
+} from "../../../domain/policies/period-generator";
 import { parseTemplateDefaultPeriods } from "../../../domain/policies/template-default-periods";
 import type {
   CreatePlanItemPeriodMarkSeed,
@@ -11,6 +15,36 @@ import type {
 import type { WorkProgressMasterRepository } from "../../ports/WorkProgressMasterRepository";
 import type { WorkProgressTemplateRepository } from "../../ports/WorkProgressTemplateRepository";
 import type { WorkProgressActivityRepository } from "../../ports/WorkProgressActivityRepository";
+import type { CreatePlanInput } from "../../../schemas";
+
+// คืน periods + ค่า year/start/end สำหรับเก็บใน Plan
+// ถ้ามี monthRange (start/end month+year) จะ override periodType เป็น monthly rolling cross-year
+function resolvePeriods(input: CreatePlanInput, fallbackPeriodType: CreatePlanInput["periodType"]): {
+  periods: PeriodSeed[];
+  yearForRecord: number | null;
+} {
+  const hasRange =
+    input.startMonth !== undefined &&
+    input.startYear !== undefined &&
+    input.endMonth !== undefined &&
+    input.endYear !== undefined;
+
+  if (hasRange) {
+    const periods = generateMonthRangePeriods({
+      startMonth: input.startMonth!,
+      startYear: input.startYear!,
+      endMonth: input.endMonth!,
+      endYear: input.endYear!,
+    });
+    return { periods, yearForRecord: input.startYear ?? null };
+  }
+
+  const periods = generatePeriods(fallbackPeriodType, {
+    year: input.year,
+    customPeriods: input.customPeriods,
+  });
+  return { periods, yearForRecord: input.year ?? null };
+}
 
 export function createPlanUseCase(
   repo: WorkProgressRepository,
@@ -41,14 +75,11 @@ export function createPlanUseCase(
         throw new BadRequestError("template ถูกปิดใช้งานอยู่");
       }
 
-      // ใช้ periodType ของ template เป็นหลัก (override ค่าใน body)
-      const periods = generatePeriods(template.periodType, {
-        year: input.year,
-        customPeriods: input.customPeriods,
-      });
+      // monthRange override → period type effective = YEAR_12_MONTHS (monthly)
+      const { periods, yearForRecord } = resolvePeriods(input, template.periodType);
       if (periods.length === 0) {
         throw new BadRequestError(
-          "ไม่สามารถ generate periods ได้จาก template — โปรดตรวจ periodType / customPeriods",
+          "ไม่สามารถ generate periods ได้จาก template — โปรดตรวจช่วงเดือน / periodType / customPeriods",
         );
       }
 
@@ -95,7 +126,7 @@ export function createPlanUseCase(
           customerId,
           title: input.title,
           periodType: template.periodType,
-          year: input.year ?? null,
+          year: yearForRecord,
           startDate: periods[0]?.startDate ?? null,
           endDate: periods[periods.length - 1]?.endDate ?? null,
           packageName: input.packageName ?? null,
@@ -128,13 +159,10 @@ export function createPlanUseCase(
         );
       }
 
-      const periods = generatePeriods(source.periodType, {
-        year: input.year,
-        customPeriods: input.customPeriods,
-      });
+      const { periods, yearForRecord } = resolvePeriods(input, source.periodType);
       if (periods.length === 0) {
         throw new BadRequestError(
-          "ไม่สามารถ generate periods ได้จากแผนต้นทาง — โปรดตรวจ periodType / customPeriods",
+          "ไม่สามารถ generate periods ได้จากแผนต้นทาง — โปรดตรวจช่วงเดือน / periodType / customPeriods",
         );
       }
 
@@ -161,7 +189,7 @@ export function createPlanUseCase(
           customerId,
           title: input.title,
           periodType: source.periodType,
-          year: input.year ?? null,
+          year: yearForRecord,
           startDate: periods[0]?.startDate ?? null,
           endDate: periods[periods.length - 1]?.endDate ?? null,
           packageName: input.packageName ?? null,
@@ -183,13 +211,10 @@ export function createPlanUseCase(
     }
 
     // ───── Branch: empty plan (Phase 1 behavior) ─────────────
-    const periods = generatePeriods(input.periodType, {
-      year: input.year,
-      customPeriods: input.customPeriods,
-    });
+    const { periods, yearForRecord } = resolvePeriods(input, input.periodType);
     if (periods.length === 0) {
       throw new BadRequestError(
-        "ไม่สามารถ generate periods ได้ — โปรดตรวจสอบ periodType / customPeriods",
+        "ไม่สามารถ generate periods ได้ — โปรดตรวจสอบช่วงเดือน / periodType / customPeriods",
       );
     }
     const created = await repo.createPlanWithPeriods(
@@ -197,7 +222,7 @@ export function createPlanUseCase(
         customerId,
         title: input.title,
         periodType: input.periodType,
-        year: input.year ?? null,
+        year: yearForRecord,
         startDate: periods[0]?.startDate ?? null,
         endDate: periods[periods.length - 1]?.endDate ?? null,
         packageName: input.packageName ?? null,

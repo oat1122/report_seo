@@ -76,7 +76,7 @@ function TemplateGridRowInner({
       ref={setNodeRef}
       style={{ ...style, gridTemplateColumns: gridTemplate }}
       className={cn(
-        "grid items-stretch border-b border-border bg-card text-sm last:border-b-0",
+        "grid items-stretch border-b border-border bg-background text-sm last:border-b-0",
         isDragging && "opacity-50",
       )}
       role="row"

@@ -11,7 +11,6 @@ import type {
   BulkUpdateItemStatusInput,
   BulkDeleteItemsInput,
   BulkSetPeriodAcrossItemsInput,
-  ImportPlanItemsInput,
   WorkProgressItemWithMarks,
 } from "@/features/work-progress";
 
@@ -163,20 +162,3 @@ export const useBulkSetPeriodAcrossItems = () => {
   });
 };
 
-export const useImportItems = () => {
-  const invalidate = useInvalidatePlan();
-  return useMutation<
-    { count: number },
-    Error,
-    PlanCtx & { body: ImportPlanItemsInput }
-  >({
-    mutationFn: async ({ userId, planId, body }) => {
-      const { data } = await axios.post<ApiData<{ count: number }>>(
-        `/customers/${userId}/work-progress/${planId}/items/import`,
-        body,
-      );
-      return data.data;
-    },
-    onSuccess: (_d, vars) => invalidate(vars),
-  });
-};

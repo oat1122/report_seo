@@ -53,6 +53,7 @@ export class PrismaWorkProgressTemplateRepository
           name: data.name,
           description: data.description,
           periodType: data.periodType,
+          durationMonths: data.durationMonths,
           isActive: data.isActive,
           createdById: data.createdById,
         },

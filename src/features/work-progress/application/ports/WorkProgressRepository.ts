@@ -193,10 +193,6 @@ export interface WorkProgressRepository {
       note: string | null;
     },
   ): Promise<{ count: number }>;
-  createManyItems(
-    planId: string,
-    items: ReadonlyArray<CreatePlanItemSeed>,
-  ): Promise<{ count: number }>;
   countItemsInPlan(
     planId: string,
     itemIds: ReadonlyArray<string>,

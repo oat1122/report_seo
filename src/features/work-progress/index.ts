@@ -19,8 +19,6 @@ import { listPlansUseCase } from "./application/use-cases/plan/listPlans";
 import { getPlanDetailUseCase } from "./application/use-cases/plan/getPlanDetail";
 import { archivePlanUseCase } from "./application/use-cases/plan/archivePlan";
 import { deletePlanUseCase } from "./application/use-cases/plan/deletePlan";
-import { importPlanItemsUseCase } from "./application/use-cases/plan/importPlanItems";
-
 import { addItemUseCase } from "./application/use-cases/item/addItem";
 import { updateItemUseCase } from "./application/use-cases/item/updateItem";
 import { deleteItemUseCase } from "./application/use-cases/item/deleteItem";
@@ -104,12 +102,6 @@ export const listPlans = listPlansUseCase(repo);
 export const getPlanDetail = getPlanDetailUseCase(repo);
 export const archivePlan = archivePlanUseCase(repo, activityRepo);
 export const deletePlan = deletePlanUseCase(repo);
-export const importPlanItems = importPlanItemsUseCase(
-  repo,
-  masterRepo,
-  activityRepo,
-);
-
 // Item
 export const addItem = addItemUseCase(repo, masterRepo, activityRepo);
 export const updateItem = updateItemUseCase(repo, masterRepo, activityRepo);
@@ -273,11 +265,7 @@ export {
   type ReorderSubtasksInput,
   type AddLinkAttachmentInput,
   dashboardSummaryQuerySchema,
-  importPlanItemsSchema,
-  importPlanItemRowSchema,
   type DashboardSummaryQuery,
-  type ImportPlanItemsInput,
-  type ImportPlanItemRowInput,
 } from "./schemas";
 
 // Phase 4 — Audit & Insights domain types

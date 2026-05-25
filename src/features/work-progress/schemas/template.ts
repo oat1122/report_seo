@@ -30,6 +30,7 @@ export const upsertTemplateSchema = z.object({
     .nativeEnum(WorkProgressPeriodType)
     .optional()
     .default(WorkProgressPeriodType.YEAR_12_MONTHS),
+  durationMonths: z.number().int().min(1).max(120).optional().default(12),
   isActive: z.boolean().optional().default(true),
   items: z.array(templateItemBaseSchema).optional(),
 });
@@ -39,6 +40,7 @@ export const updateTemplateSchema = z.object({
   name: z.string().min(1).max(200).optional(),
   description: z.string().max(5000).optional().nullable(),
   periodType: z.nativeEnum(WorkProgressPeriodType).optional(),
+  durationMonths: z.number().int().min(1).max(120).optional(),
   isActive: z.boolean().optional(),
 });
 export type UpdateTemplateInput = z.infer<typeof updateTemplateSchema>;

@@ -51,6 +51,7 @@ export function createTemplateUseCase(
         name: input.name,
         description: input.description ?? null,
         periodType: input.periodType,
+        durationMonths: input.durationMonths,
         isActive: input.isActive,
         createdById,
       },

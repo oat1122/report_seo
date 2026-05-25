@@ -453,12 +453,13 @@ model WorkProgressItemPeriodMark {
 //     - blueprint สำหรับสร้าง plan ใหม่ใน 1 click
 //     - isSystem=true → ลบ/แก้ items ไม่ได้ (เช่น "SEO Standard 12 Months")
 model WorkProgressTemplate {
-  id          String                 @id @default(uuid())
-  name        String
-  description String?                @db.Text
-  periodType  WorkProgressPeriodType @default(YEAR_12_MONTHS)
-  isActive    Boolean                @default(true)
-  isSystem    Boolean                @default(false)
+  id             String                 @id @default(uuid())
+  name           String
+  description    String?                @db.Text
+  periodType     WorkProgressPeriodType @default(YEAR_12_MONTHS)
+  durationMonths Int                    @default(12)
+  isActive       Boolean                @default(true)
+  isSystem       Boolean                @default(false)
   createdById String?
   createdBy   User?                  @relation("WorkProgressTemplateCreator", fields: [createdById], references: [id])
   createdAt   DateTime               @default(now())

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { Plus, Upload } from "lucide-react";
+import { Plus } from "lucide-react";
 import {
   DndContext,
   PointerSensor,
@@ -23,7 +23,6 @@ import { PlanGridRow } from "./PlanGridRow";
 import { ItemEditDialog } from "./ItemEditDialog";
 import { ItemDetailSheet } from "../item/ItemDetailSheet";
 import { BulkActionToolbar } from "./BulkActionToolbar";
-import { ImportItemsSheet } from "./ImportItemsSheet";
 import { useWorkProgressPlan } from "../../hooks/useWorkProgressPlan";
 import {
   useDeleteItem,
@@ -58,7 +57,6 @@ export function PlanGrid({ userId, planId, readOnly }: PlanGridProps) {
 
   const [editing, setEditing] = useState<WorkProgressItemWithMarks | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [importOpen, setImportOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] =
     useState<WorkProgressItemWithMarks | null>(null);
   const [detailItem, setDetailItem] =
@@ -154,14 +152,6 @@ export function PlanGrid({ userId, planId, readOnly }: PlanGridProps) {
     <div className="flex flex-col gap-3">
       {!readOnly && (
         <div className="flex justify-end gap-2">
-          <Button
-            onClick={() => setImportOpen(true)}
-            size="sm"
-            variant="outline"
-          >
-            <Upload className="size-4" />
-            Import
-          </Button>
           <Button onClick={openCreate} size="sm">
             <Plus className="size-4" />
             เพิ่ม item
@@ -178,7 +168,7 @@ export function PlanGrid({ userId, planId, readOnly }: PlanGridProps) {
           {/* Header */}
           <div
             role="row"
-            className="grid border-b border-border bg-muted/50 text-xs font-medium text-muted-foreground"
+            className="grid border-b border-border bg-muted text-xs font-medium text-muted-foreground"
             style={{ gridTemplateColumns: gridTemplate }}
           >
             <div className="flex items-center justify-center border-r border-border">
@@ -210,7 +200,7 @@ export function PlanGrid({ userId, planId, readOnly }: PlanGridProps) {
 
           {/* Rows */}
           {items.length === 0 ? (
-            <div className="bg-card px-6 py-12 text-center text-sm text-muted-foreground">
+            <div className="bg-background px-6 py-12 text-center text-sm text-muted-foreground">
               ยังไม่มี item — กด &quot;เพิ่ม item&quot; เพื่อเริ่ม
             </div>
           ) : (
@@ -294,14 +284,6 @@ export function PlanGrid({ userId, planId, readOnly }: PlanGridProps) {
         />
       )}
 
-      {!readOnly && (
-        <ImportItemsSheet
-          userId={userId}
-          planId={planId}
-          open={importOpen}
-          onOpenChange={setImportOpen}
-        />
-      )}
     </div>
   );
 }

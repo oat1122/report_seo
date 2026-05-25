@@ -96,15 +96,16 @@ function PeriodCellInner({
     setOpen(false);
   };
 
-  const bgStyle = mark
-    ? { backgroundColor: statusColor ?? mark.markType.color ?? undefined }
-    : undefined;
+  const markColor = mark ? (statusColor ?? mark.markType.color ?? null) : null;
+  const bgStyle = markColor ? { backgroundColor: markColor } : undefined;
+  const iconCls = markColor ? "text-white drop-shadow" : "text-foreground";
 
   if (readOnly) {
     return (
       <div
         className={cn(
           "flex h-full w-full items-center justify-center text-xs",
+          mark && !markColor && "bg-muted",
           !mark && "text-muted-foreground/40",
         )}
         style={bgStyle}
@@ -112,11 +113,11 @@ function PeriodCellInner({
       >
         {mark ? (
           subtaskPercent != null ? (
-            <span className="font-medium text-white drop-shadow">
+            <span className={cn("font-medium", iconCls)}>
               {subtaskPercent}%
             </span>
           ) : (
-            <Check className="size-4 text-white drop-shadow" />
+            <Check className={cn("size-4", iconCls)} />
           )
         ) : (
           "·"
@@ -132,18 +133,19 @@ function PeriodCellInner({
           type="button"
           className={cn(
             "h-full w-full cursor-pointer transition hover:ring-2 hover:ring-primary/40",
-            !mark && "bg-muted/30",
+            mark && !markColor && "bg-muted",
+            !mark && "bg-muted/50",
           )}
           style={bgStyle}
           aria-label={mark ? `mark: ${mark.markType.name}` : "ว่าง"}
         >
           {mark ? (
             subtaskPercent != null ? (
-              <span className="text-xs font-medium text-white drop-shadow">
+              <span className={cn("text-xs font-medium", iconCls)}>
                 {subtaskPercent}%
               </span>
             ) : (
-              <Check className="mx-auto size-4 text-white drop-shadow" />
+              <Check className={cn("mx-auto size-4", iconCls)} />
             )
           ) : (
             <span className="text-xs text-muted-foreground/40">·</span>

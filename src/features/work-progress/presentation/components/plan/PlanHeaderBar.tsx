@@ -1,14 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { toast } from "sonner";
-import { Archive, ArchiveRestore, ArrowLeft, Download, Loader2 } from "lucide-react";
+import { Archive, ArchiveRestore, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
-import axios from "@/infrastructure/http/axios";
 import { useWorkProgressPlan } from "../../hooks/useWorkProgressPlan";
 import { useArchivePlan } from "../../hooks/useWorkProgressPlans";
 import { calcPlanOverallPercent } from "@/features/work-progress/domain/policies/progress-calculator";
@@ -35,7 +32,6 @@ export function PlanHeaderBar({
 }: PlanHeaderBarProps) {
   const { data, isLoading } = useWorkProgressPlan(userId, planId);
   const archiveMut = useArchivePlan();
-  const [exporting, setExporting] = useState(false);
 
   if (isLoading) {
     return <Skeleton className="h-24 w-full" />;
@@ -43,25 +39,6 @@ export function PlanHeaderBar({
   if (!data) return null;
 
   const overall = calcPlanOverallPercent(data.items);
-
-  const handleExport = async () => {
-    setExporting(true);
-    try {
-      const response = await axios.get<Blob>(
-        `/customers/${userId}/work-progress/${planId}/export`,
-        { responseType: "blob" },
-      );
-      const disposition = response.headers["content-disposition"] as
-        | string
-        | undefined;
-      const filename = parseFilename(disposition) ?? `${data.title}.xlsx`;
-      triggerBrowserDownload(response.data, filename);
-    } catch {
-      // axios interceptor toasts the error — keep silent here
-    } finally {
-      setExporting(false);
-    }
-  };
 
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4">
@@ -92,19 +69,6 @@ export function PlanHeaderBar({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleExport}
-            disabled={exporting}
-          >
-            {exporting ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <Download className="size-4" />
-            )}
-            Export
-          </Button>
           {!readOnly && (
             <Button
               variant="outline"
@@ -148,35 +112,3 @@ export function PlanHeaderBar({
   );
 }
 
-function parseFilename(disposition: string | undefined): string | null {
-  if (!disposition) return null;
-  const utf8Match = /filename\*=UTF-8''([^;]+)/i.exec(disposition);
-  if (utf8Match) {
-    try {
-      return decodeURIComponent(utf8Match[1]);
-    } catch {
-      return utf8Match[1];
-    }
-  }
-  const plainMatch = /filename="?([^";]+)"?/i.exec(disposition);
-  if (plainMatch) {
-    try {
-      return decodeURIComponent(plainMatch[1]);
-    } catch {
-      return plainMatch[1];
-    }
-  }
-  return null;
-}
-
-function triggerBrowserDownload(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
-  toast.success(`บันทึก ${filename}`);
-}

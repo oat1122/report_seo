@@ -15,6 +15,7 @@ export interface CreateTemplateData {
   name: string;
   description: string | null;
   periodType: PeriodTypeCode;
+  durationMonths: number;
   isActive: boolean;
   createdById: string | null;
 }
@@ -23,6 +24,7 @@ export interface UpdateTemplateData {
   name?: string;
   description?: string | null;
   periodType?: PeriodTypeCode;
+  durationMonths?: number;
   isActive?: boolean;
 }
 

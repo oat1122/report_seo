@@ -49,13 +49,6 @@ import {
 } from "@/features/work-progress/schemas";
 import type { WorkProgressTemplate } from "@/features/work-progress/domain/WorkProgressTemplate";
 
-const PERIOD_LABEL: Record<string, string> = {
-  YEAR_12_MONTHS: "12 เดือน",
-  YEAR_4_QUARTERS: "4 ไตรมาส",
-  HALF_2_PERIODS: "ครึ่งปี",
-  CUSTOM: "กำหนดเอง",
-};
-
 interface TemplateListProps {
   basePath: string;
 }
@@ -165,7 +158,7 @@ function TemplateCard({ tpl, href, onDelete }: TemplateCardProps) {
               {tpl.name}
             </span>
             <span className="text-xs text-muted-foreground">
-              {PERIOD_LABEL[tpl.periodType] ?? tpl.periodType}
+              {tpl.durationMonths} เดือน
             </span>
           </div>
         </Link>
@@ -242,14 +235,15 @@ function CreateTemplateDialog({
 }: CreateTemplateDialogProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [periodType, setPeriodType] = useState("YEAR_12_MONTHS");
+  const [durationMonths, setDurationMonths] = useState<number>(12);
   const createMut = useCreateTemplate();
 
   const handleSubmit = async () => {
     const body = {
       name: name.trim(),
       description: description.trim() || null,
-      periodType,
+      periodType: "YEAR_12_MONTHS",
+      durationMonths,
       isActive: true,
     };
     const parsed = upsertTemplateSchema.safeParse(body);
@@ -260,7 +254,7 @@ function CreateTemplateDialog({
     await createMut.mutateAsync(parsed.data as UpsertTemplateInput);
     setName("");
     setDescription("");
-    setPeriodType("YEAR_12_MONTHS");
+    setDurationMonths(12);
     onOpenChange(false);
   };
 
@@ -292,18 +286,25 @@ function CreateTemplateDialog({
             />
           </div>
           <div className="grid gap-1.5">
-            <Label>รูปแบบ period</Label>
-            <Select value={periodType} onValueChange={setPeriodType}>
-              <SelectTrigger>
+            <Label htmlFor="ct-duration">จำนวนเดือน</Label>
+            <Select
+              value={String(durationMonths)}
+              onValueChange={(v) => setDurationMonths(Number(v))}
+            >
+              <SelectTrigger id="ct-duration">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="YEAR_12_MONTHS">12 เดือน</SelectItem>
-                <SelectItem value="YEAR_4_QUARTERS">4 ไตรมาส</SelectItem>
-                <SelectItem value="HALF_2_PERIODS">ครึ่งปี</SelectItem>
-                <SelectItem value="CUSTOM">กำหนดเอง</SelectItem>
+                {[3, 6, 9, 12, 18, 24, 36, 48, 60].map((n) => (
+                  <SelectItem key={n} value={String(n)}>
+                    {n} เดือน
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
+            <p className="text-xs text-muted-foreground">
+              Template เก็บแค่จำนวนเดือน — เดือนเริ่มจริงจะระบุตอนสร้างแผน
+            </p>
           </div>
         </div>
         <DialogFooter>

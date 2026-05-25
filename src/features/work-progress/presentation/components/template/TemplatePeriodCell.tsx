@@ -55,7 +55,7 @@ function TemplatePeriodCellInner({
           type="button"
           className={cn(
             "h-full w-full cursor-pointer transition hover:ring-2 hover:ring-primary/40",
-            !active && "bg-muted/30",
+            !active && "bg-muted/50",
           )}
           style={bgStyle}
           aria-label={active ? `mark: ${active.name}` : "ว่าง"}

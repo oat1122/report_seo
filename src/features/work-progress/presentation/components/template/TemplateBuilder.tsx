@@ -22,6 +22,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmAlert } from "@/components/shared/ConfirmAlert";
 import { toast } from "react-toastify";
@@ -40,7 +47,10 @@ import {
   type UpdateTemplateInput,
 } from "@/features/work-progress/schemas";
 import type { WorkProgressTemplateItem } from "@/features/work-progress/domain/WorkProgressTemplate";
-import { generatePeriods } from "../../../domain/policies/period-generator";
+import {
+  generateTemplateMonthSlots,
+  type PeriodSeed,
+} from "../../../domain/policies/period-generator";
 import type { TemplateDefaultPeriods } from "../../../domain/policies/template-default-periods";
 
 interface TemplateBuilderProps {
@@ -74,6 +84,7 @@ export function TemplateBuilder({ templateId, backHref }: TemplateBuilderProps) 
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [durationMonths, setDurationMonths] = useState<number>(12);
   const [isActive, setIsActive] = useState(true);
   const [dirty, setDirty] = useState(false);
 
@@ -86,6 +97,7 @@ export function TemplateBuilder({ templateId, backHref }: TemplateBuilderProps) 
     if (data) {
       setName(data.name);
       setDescription(data.description ?? "");
+      setDurationMonths(data.durationMonths);
       setIsActive(data.isActive);
       setDirty(false);
     }
@@ -106,9 +118,9 @@ export function TemplateBuilder({ templateId, backHref }: TemplateBuilderProps) 
       .filter((i): i is WorkProgressTemplateItem => !!i);
   }, [data, localOrder]);
 
-  const periodSeeds = useMemo(() => {
+  const periodSeeds = useMemo<PeriodSeed[]>(() => {
     if (!data) return [];
-    return generatePeriods(data.periodType, {});
+    return generateTemplateMonthSlots(data.durationMonths);
   }, [data]);
 
   const activeMarkTypes = useMemo(
@@ -133,6 +145,7 @@ export function TemplateBuilder({ templateId, backHref }: TemplateBuilderProps) 
     const body = {
       name: name.trim(),
       description: description.trim() || null,
+      durationMonths,
       isActive,
     };
     const parsed = updateTemplateSchema.safeParse(body);
@@ -204,6 +217,28 @@ export function TemplateBuilder({ templateId, backHref }: TemplateBuilderProps) 
               />
             </div>
             <div className="grid gap-1.5">
+              <Label htmlFor="tb-duration">จำนวนเดือน</Label>
+              <Select
+                value={String(durationMonths)}
+                onValueChange={(v) => {
+                  setDurationMonths(Number(v));
+                  setDirty(true);
+                }}
+                disabled={data.isSystem}
+              >
+                <SelectTrigger id="tb-duration">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[3, 6, 9, 12, 18, 24, 36, 48, 60].map((n) => (
+                    <SelectItem key={n} value={String(n)}>
+                      {n} เดือน
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-1.5">
               <Label>สถานะ</Label>
               <div className="flex h-9 items-center gap-2 rounded-md border border-input px-3">
                 <Switch
@@ -271,7 +306,7 @@ export function TemplateBuilder({ templateId, backHref }: TemplateBuilderProps) 
             <div className="overflow-x-auto rounded-md border border-border">
               <div className="min-w-fit">
                 <div
-                  className="grid border-b border-border bg-muted/50 text-xs font-medium text-muted-foreground"
+                  className="grid border-b border-border bg-muted text-xs font-medium text-muted-foreground"
                   style={{ gridTemplateColumns: gridTemplate }}
                   role="row"
                 >

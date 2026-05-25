@@ -68,7 +68,7 @@ function PlanGridRowInner({
   } as React.CSSProperties;
 
   const marksByPeriod = new Map(item.periodMarks.map((m) => [m.periodId, m]));
-  const rowBg = selected ? "bg-secondary/20" : "bg-card";
+  const rowBg = selected ? "bg-secondary/20" : "bg-background";
 
   const subtaskPercent = useMemo(() => {
     const total = item.subtasks.length;
