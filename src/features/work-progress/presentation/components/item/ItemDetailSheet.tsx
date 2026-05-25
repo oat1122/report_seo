@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import {
   Sheet,
   SheetContent,
@@ -11,8 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { SubtaskList } from "./SubtaskList";
 import { AttachmentGallery } from "./AttachmentGallery";
-import { ItemMetaEditor } from "./ItemMetaEditor";
 import { AssignItemPopover } from "./AssignItemPopover";
+import { getEffectiveItemPercent } from "../../../domain/policies/progress-calculator";
 import type { WorkProgressItemWithMarks } from "@/features/work-progress";
 
 interface ItemDetailSheetProps {
@@ -30,9 +31,20 @@ export function ItemDetailSheet({
   onClose,
   readOnly,
 }: ItemDetailSheetProps) {
+  const effectivePercent = useMemo(
+    () =>
+      item
+        ? getEffectiveItemPercent({
+            status: { isTerminal: item.status.isTerminal },
+            subtasks: item.subtasks,
+          })
+        : 0,
+    [item],
+  );
+
   return (
     <Sheet open={item !== null} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent className="w-full max-w-2xl overflow-y-auto sm:max-w-2xl">
+      <SheetContent className="w-[100vw]! max-w-[1100px]! overflow-y-auto sm:w-[80vw]!">
         {item && (
           <>
             <SheetHeader>
@@ -53,7 +65,7 @@ export function ItemDetailSheet({
                     {item.category.name}
                   </Badge>
                   <Badge variant="secondary">{item.status.name}</Badge>
-                  <span className="text-xs">{item.progressPercent}%</span>
+                  <span className="text-xs">{effectivePercent}%</span>
                   {item.duration && (
                     <span className="text-xs text-muted-foreground">
                       · {item.duration}
@@ -103,21 +115,6 @@ export function ItemDetailSheet({
                   planId={planId}
                   itemId={item.id}
                   attachments={item.attachments}
-                  readOnly={readOnly}
-                />
-              </section>
-
-              <Separator />
-
-              <section className="flex flex-col gap-2">
-                <h3 className="text-xs font-semibold uppercase text-muted-foreground">
-                  Meta fields
-                </h3>
-                <ItemMetaEditor
-                  userId={userId}
-                  planId={planId}
-                  itemId={item.id}
-                  meta={item.meta}
                   readOnly={readOnly}
                 />
               </section>

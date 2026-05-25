@@ -4,7 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { FileStack, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -85,7 +90,7 @@ export function TemplateList({ basePath }: TemplateListProps) {
         </div>
 
         {isLoading ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {[0, 1, 2, 3].map((i) => (
               <Skeleton key={i} className="h-32" />
             ))}
@@ -96,7 +101,7 @@ export function TemplateList({ basePath }: TemplateListProps) {
             <p className="text-sm text-muted-foreground">ยังไม่มี template</p>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {templates.map((t) => (
               <TemplateCard
                 key={t.id}
@@ -137,24 +142,41 @@ interface TemplateCardProps {
 }
 
 function TemplateCard({ tpl, href, onDelete }: TemplateCardProps) {
+  const hasDescription = Boolean(tpl.description?.trim());
+  const updatedLabel = new Date(tpl.updatedAt).toLocaleDateString("th-TH", {
+    day: "2-digit",
+    month: "short",
+    year: "2-digit",
+  });
+
   return (
     <Card
-      className={`group relative gap-2 py-4 transition-all hover:shadow-md hover:ring-foreground/20 ${
-        tpl.isActive ? "" : "opacity-70"
+      className={`group relative transition-all hover:shadow-md hover:ring-foreground/20 ${
+        tpl.isActive ? "" : "opacity-60"
       }`}
     >
-      <CardHeader className="flex flex-row items-start justify-between gap-2 pb-0">
-        <Link href={href} className="flex flex-1 items-center gap-3 min-w-0">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground transition-colors group-hover:bg-secondary/30 group-hover:text-foreground">
-            <FileStack className="size-4" />
+      <CardHeader className="flex flex-row items-start justify-between gap-3 pb-0">
+        <Link href={href} className="flex min-w-0 flex-1 items-center gap-3">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-secondary/15 text-foreground ring-1 ring-secondary/30 transition-colors group-hover:bg-secondary/30">
+            <FileStack className="size-5" />
           </span>
-          <span className="line-clamp-1 text-base font-semibold leading-tight">
-            {tpl.name}
-          </span>
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <span className="line-clamp-1 text-base font-semibold leading-snug">
+              {tpl.name}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {PERIOD_LABEL[tpl.periodType] ?? tpl.periodType}
+            </span>
+          </div>
         </Link>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button size="icon" variant="ghost" aria-label="เมนู">
+            <Button
+              size="icon"
+              variant="ghost"
+              aria-label="เมนู"
+              className="-mr-1.5 -mt-1.5 opacity-60 transition-opacity group-hover:opacity-100"
+            >
               <MoreHorizontal className="size-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -175,19 +197,35 @@ function TemplateCard({ tpl, href, onDelete }: TemplateCardProps) {
         </DropdownMenu>
       </CardHeader>
       <CardContent>
-        <Link href={href} className="flex flex-col gap-2">
-          <p className="line-clamp-2 text-sm text-muted-foreground">
-            {tpl.description?.trim() ? tpl.description : "ไม่มีรายละเอียด"}
+        <Link href={href} className="block">
+          <p
+            className={`line-clamp-2 min-h-[2.5rem] text-sm leading-relaxed ${
+              hasDescription
+                ? "text-foreground/75"
+                : "italic text-muted-foreground/60"
+            }`}
+          >
+            {hasDescription ? tpl.description : "ยังไม่ได้เพิ่มรายละเอียด"}
           </p>
-          <div className="flex flex-wrap items-center gap-1.5 text-xs">
-            <Badge variant="secondary">
-              {PERIOD_LABEL[tpl.periodType] ?? tpl.periodType}
-            </Badge>
-            {tpl.isSystem && <Badge variant="outline">system</Badge>}
-            {!tpl.isActive && <Badge variant="outline">ปิดใช้</Badge>}
-          </div>
         </Link>
       </CardContent>
+      <CardFooter className="flex items-center justify-between gap-2 bg-muted/30 py-2.5">
+        <div className="flex items-center gap-1.5">
+          {tpl.isSystem && (
+            <Badge variant="outline" className="h-5 px-1.5 text-[10px]">
+              SYSTEM
+            </Badge>
+          )}
+          {!tpl.isActive && (
+            <Badge variant="outline" className="h-5 px-1.5 text-[10px]">
+              ปิดใช้
+            </Badge>
+          )}
+        </div>
+        <span className="text-[11px] text-muted-foreground">
+          อัปเดต {updatedLabel}
+        </span>
+      </CardFooter>
     </Card>
   );
 }

@@ -78,13 +78,6 @@ export {
 } from "./attachment";
 
 export {
-  upsertMetaSchema,
-  metaValueTypeSchema,
-  metaKeyParamSchema,
-  type UpsertMetaInput,
-} from "./meta";
-
-export {
   dashboardSummaryQuerySchema,
   type DashboardSummaryQuery,
 } from "./summary";

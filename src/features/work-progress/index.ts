@@ -9,7 +9,6 @@ import { PrismaWorkProgressRepository } from "./infrastructure/PrismaWorkProgres
 import { PrismaWorkProgressTemplateRepository } from "./infrastructure/PrismaWorkProgressTemplateRepository";
 import { PrismaWorkProgressSubtaskRepository } from "./infrastructure/PrismaWorkProgressSubtaskRepository";
 import { PrismaWorkProgressAttachmentRepository } from "./infrastructure/PrismaWorkProgressAttachmentRepository";
-import { PrismaWorkProgressItemMetaRepository } from "./infrastructure/PrismaWorkProgressItemMetaRepository";
 import { PrismaWorkProgressActivityRepository } from "./infrastructure/PrismaWorkProgressActivityRepository";
 import { LocalWorkProgressAttachmentStorage } from "./infrastructure/LocalWorkProgressAttachmentStorage";
 
@@ -72,8 +71,6 @@ import { deleteSubtaskUseCase } from "./application/use-cases/subtask/deleteSubt
 import { uploadAttachmentUseCase } from "./application/use-cases/attachment/uploadAttachment";
 import { addLinkAttachmentUseCase } from "./application/use-cases/attachment/addLinkAttachment";
 import { deleteAttachmentUseCase } from "./application/use-cases/attachment/deleteAttachment";
-import { upsertMetaUseCase } from "./application/use-cases/meta/upsertMeta";
-import { deleteMetaUseCase } from "./application/use-cases/meta/deleteMeta";
 
 // Phase 4 — Audit & Insights
 import { getDashboardSummaryUseCase } from "./application/use-cases/summary/getDashboardSummary";
@@ -83,7 +80,6 @@ const masterRepo = new PrismaWorkProgressMasterRepository();
 const templateRepo = new PrismaWorkProgressTemplateRepository();
 const subtaskRepo = new PrismaWorkProgressSubtaskRepository();
 const attachmentRepo = new PrismaWorkProgressAttachmentRepository();
-const metaRepo = new PrismaWorkProgressItemMetaRepository();
 const activityRepo = new PrismaWorkProgressActivityRepository();
 const attachmentStorage = new LocalWorkProgressAttachmentStorage();
 
@@ -213,9 +209,6 @@ export const deleteAttachment = deleteAttachmentUseCase(
   activityRepo,
 );
 
-export const upsertMeta = upsertMetaUseCase(repo, metaRepo, activityRepo);
-export const deleteMeta = deleteMetaUseCase(repo, metaRepo, activityRepo);
-
 // Phase 4 — Audit & Insights
 export const getDashboardSummary = getDashboardSummaryUseCase(
   repo,
@@ -253,8 +246,6 @@ export {
   updateSubtaskSchema,
   reorderSubtasksSchema,
   addLinkAttachmentSchema,
-  upsertMetaSchema,
-  metaKeyParamSchema,
   type CreatePlanInput,
   type AddItemInput,
   type UpdateItemInput,
@@ -281,7 +272,6 @@ export {
   type UpdateSubtaskInput,
   type ReorderSubtasksInput,
   type AddLinkAttachmentInput,
-  type UpsertMetaInput,
   dashboardSummaryQuerySchema,
   importPlanItemsSchema,
   importPlanItemRowSchema,
@@ -326,8 +316,4 @@ export type {
   WorkProgressAttachment,
   AttachmentKind,
 } from "./domain/WorkProgressAttachment";
-export type {
-  WorkProgressItemMeta,
-  MetaValueType,
-} from "./domain/WorkProgressItemMeta";
 export type { PeriodTypeCode } from "./domain/types";

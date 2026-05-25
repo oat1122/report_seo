@@ -26,9 +26,6 @@ export const ACTIVITY_ACTIONS = [
   "ATTACHMENT_UPLOADED",
   "ATTACHMENT_LINKED",
   "ATTACHMENT_DELETED",
-  "META_UPSERTED",
-  "META_BULK_UPSERTED",
-  "META_DELETED",
 ] as const;
 
 export type WorkProgressActivityAction = (typeof ACTIVITY_ACTIONS)[number];
@@ -39,7 +36,6 @@ export const ACTIVITY_ENTITIES = [
   "MARK",
   "SUBTASK",
   "ATTACHMENT",
-  "META",
 ] as const;
 
 export type WorkProgressActivityEntity = (typeof ACTIVITY_ENTITIES)[number];

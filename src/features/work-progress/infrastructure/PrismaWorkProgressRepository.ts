@@ -197,7 +197,6 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
             periodMarks: { include: { markType: true } },
             subtasks: { orderBy: { orderIndex: "asc" } },
             attachments: { orderBy: { createdAt: "desc" } },
-            meta: { orderBy: { key: "asc" } },
           },
         },
       },

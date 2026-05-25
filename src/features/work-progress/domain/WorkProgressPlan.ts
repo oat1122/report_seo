@@ -11,7 +11,6 @@ import type {
 } from "./WorkProgressMaster";
 import type { WorkProgressSubtask } from "./WorkProgressSubtask";
 import type { WorkProgressAttachment } from "./WorkProgressAttachment";
-import type { WorkProgressItemMeta } from "./WorkProgressItemMeta";
 
 export interface WorkProgressPlan {
   id: string;
@@ -40,7 +39,6 @@ export interface WorkProgressItemWithMarks extends WorkProgressItem {
   periodMarks: WorkProgressPeriodMarkWithType[];
   subtasks: WorkProgressSubtask[];
   attachments: WorkProgressAttachment[];
-  meta: WorkProgressItemMeta[];
 }
 
 export interface WorkProgressPeriodMarkWithType

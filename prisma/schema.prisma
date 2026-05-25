@@ -417,7 +417,6 @@ model WorkProgressItem {
   periodMarks WorkProgressItemPeriodMark[]
   subtasks    WorkProgressSubtask[]
   attachments WorkProgressAttachment[]
-  meta        WorkProgressItemMeta[]
 
   @@index([planId])
   @@index([categoryId])
@@ -551,26 +550,8 @@ model WorkProgressAttachment {
   @@map("workprogressattachment")
 }
 
-// 19. Custom field ของกิจกรรม (Meta key-value)
-//     - 1 item × 1 key = 1 row (unique) → upsert pattern
-//     - valueType ใช้ตอน parse ที่ฝั่ง app เท่านั้น (DB เก็บเป็น string เสมอ)
-model WorkProgressItemMeta {
-  id        String   @id @default(uuid())
-  itemId    String
-  item      WorkProgressItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  key       String
-  value     String   @db.Text
-  valueType String   @default("string") // "string" | "number" | "date" | "json"
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([itemId, key])
-  @@index([itemId])
-  @@map("workprogressitemmeta")
-}
-
-// 20. Audit trail ของ plan (Phase 4)
-//     - 1 record = 1 mutation event ภายใน plan (item / mark / subtask / attachment / meta / plan เอง)
+// 19. Audit trail ของ plan (Phase 4)
+//     - 1 record = 1 mutation event ภายใน plan (item / mark / subtask / attachment / plan เอง)
 //     - actor = User ที่กระทำ (อาจ null ถ้า system action), SetNull เก็บประวัติแม้ user soft-delete
 //     - diff = snapshot JSON { input?, after?, entity? } — debug aid ไม่ใช่ event sourcing
 model WorkProgressActivity {
