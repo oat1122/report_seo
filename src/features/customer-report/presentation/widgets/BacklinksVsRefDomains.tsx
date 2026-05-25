@@ -19,6 +19,7 @@ import { ChartEmptyState } from "../components/ChartEmptyState";
 import { buildChartConfig } from "../lib/buildChartConfig";
 import {
   computeBacklinkRatio,
+  deduplicateByDay,
   downsampleWide,
   filterHistoryByPeriod,
   hasEnoughDataForChart,
@@ -63,7 +64,14 @@ export const BacklinksVsRefDomains = () => {
   const { period } = useReportFilters();
 
   const { chartData, hasData, currentRatio } = useMemo(() => {
-    const filtered = filterHistoryByPeriod(metricsHistory, period);
+    const visible = metricsHistory.filter((r) => r.isVisible);
+    let filtered = deduplicateByDay(filterHistoryByPeriod(visible, period));
+    if (filtered.length < 3 && visible.length >= 3) {
+      const all = [...visible].sort(
+        (a, b) => new Date(a.dateRecorded).getTime() - new Date(b.dateRecorded).getTime(),
+      );
+      filtered = deduplicateByDay(all);
+    }
     if (!hasEnoughDataForChart(filtered.length)) {
       return { chartData: [], hasData: false, currentRatio: null };
     }
@@ -113,6 +121,7 @@ export const BacklinksVsRefDomains = () => {
                   stroke="var(--muted-foreground)"
                   tick={{ fontSize: 11 }}
                   tickLine={false}
+                  padding={{ left: 20, right: 20 }}
                 />
                 <YAxis
                   yAxisId="count"

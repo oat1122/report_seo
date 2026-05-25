@@ -214,6 +214,29 @@ export const filterHistoryByPeriod = <
 };
 
 /**
+ * Deduplicate history records — keep only the latest record per calendar day.
+ * Prevents clustering of multiple edits on the same day in the chart.
+ * Input must be sorted ascending by dateRecorded.
+ */
+export const deduplicateByDay = <T extends { dateRecorded: Date | string }>(
+  sorted: T[],
+): T[] => {
+  if (sorted.length <= 1) return sorted;
+  const result: T[] = [];
+  let lastKey = "";
+  for (let i = sorted.length - 1; i >= 0; i--) {
+    const d = new Date(sorted[i].dateRecorded);
+    const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    if (key !== lastKey) {
+      result.push(sorted[i]);
+      lastKey = key;
+    }
+  }
+  result.reverse();
+  return result;
+};
+
+/**
  * Format date for chart display (Thai locale)
  * @param date - Date to format
  * @returns Formatted string like "26 พ.ย."

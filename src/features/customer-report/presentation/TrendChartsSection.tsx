@@ -27,6 +27,7 @@ import {
 import { buildChartConfig } from "./lib/buildChartConfig";
 import {
   computeAnomalies,
+  deduplicateByDay,
   downsampleWide,
   filterHistoryByPeriod,
   hasEnoughDataForChart,
@@ -81,10 +82,20 @@ export const TrendChartsSection: React.FC<TrendChartsSectionProps> = ({
     return defaults;
   });
 
-  const filteredHistory = useMemo(
-    () => filterHistoryByPeriod(metricsHistory, period),
-    [metricsHistory, period],
-  );
+  const filteredHistory = useMemo(() => {
+    const visible = metricsHistory.filter((r) => r.isVisible);
+    const byPeriod = filterHistoryByPeriod(visible, period);
+    const deduped = deduplicateByDay(byPeriod);
+    if (deduped.length < 3 && visible.length >= 3) {
+      const all = [...visible].sort(
+        (a, b) =>
+          new Date(a.dateRecorded).getTime() -
+          new Date(b.dateRecorded).getTime(),
+      );
+      return deduplicateByDay(all);
+    }
+    return deduped;
+  }, [metricsHistory, period]);
 
   const hasData = hasEnoughDataForChart(filteredHistory.length);
 

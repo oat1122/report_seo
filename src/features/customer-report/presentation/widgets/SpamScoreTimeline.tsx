@@ -22,6 +22,7 @@ import { ChartEmptyState } from "../components/ChartEmptyState";
 import { buildChartConfig } from "../lib/buildChartConfig";
 import {
   computeAnomalies,
+  deduplicateByDay,
   downsampleWide,
   filterHistoryByPeriod,
   hasEnoughDataForChart,
@@ -53,7 +54,14 @@ export const SpamScoreTimeline = () => {
   const { period } = useReportFilters();
 
   const { chartData, maxValue, hasData } = useMemo(() => {
-    const filtered = filterHistoryByPeriod(metricsHistory, period);
+    const visible = metricsHistory.filter((r) => r.isVisible);
+    let filtered = deduplicateByDay(filterHistoryByPeriod(visible, period));
+    if (filtered.length < 3 && visible.length >= 3) {
+      const all = [...visible].sort(
+        (a, b) => new Date(a.dateRecorded).getTime() - new Date(b.dateRecorded).getTime(),
+      );
+      filtered = deduplicateByDay(all);
+    }
     if (!hasEnoughDataForChart(filtered.length)) {
       return { chartData: [], maxValue: DANGER_THRESHOLD + 1, hasData: false };
     }
