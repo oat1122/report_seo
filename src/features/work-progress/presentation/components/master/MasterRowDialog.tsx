@@ -15,13 +15,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { ColorPickerInput } from "./ColorPickerInput";
-import { toast } from "react-toastify";
 import {
   upsertCategorySchema,
   upsertStatusSchema,
   upsertMarkTypeSchema,
   type MasterKindCode,
 } from "@/features/work-progress/schemas";
+import { FieldError, parseFieldErrors, type FieldErrors } from "../FieldError";
 import type {
   WorkProgressCategory,
   WorkProgressStatus,
@@ -78,9 +78,11 @@ export function MasterRowDialog({
   submitting,
 }: MasterRowDialogProps) {
   const [form, setForm] = useState<FormState>(empty);
+  const [errors, setErrors] = useState<FieldErrors>({});
 
   useEffect(() => {
     if (!open) return;
+    setErrors({});
     if (!initial) {
       setForm(empty);
       return;
@@ -130,11 +132,10 @@ export function MasterRowDialog({
 
     const parsed = schema.safeParse(body);
     if (!parsed.success) {
-      const first = parsed.error.issues[0];
-      toast.error(first?.message ?? "ข้อมูลไม่ถูกต้อง");
+      setErrors(parseFieldErrors(parsed.error));
       return;
     }
-
+    setErrors({});
     await onSubmit(parsed.data);
   };
 
@@ -153,12 +154,14 @@ export function MasterRowDialog({
         <div className="grid gap-4 py-2">
           <div className="grid gap-2">
             <Label htmlFor="mrd-code">Code (UPPER_SNAKE_CASE)</Label>
+            <FieldError error={errors.code} />
             <Input
               id="mrd-code"
               value={form.code}
-              onChange={(e) =>
-                setForm((s) => ({ ...s, code: e.target.value.toUpperCase() }))
-              }
+              onChange={(e) => {
+                setForm((s) => ({ ...s, code: e.target.value.toUpperCase() }));
+                setErrors((prev) => ({ ...prev, code: "" }));
+              }}
               placeholder="เช่น KEYWORD_INTENT"
               maxLength={50}
               className="font-mono"
@@ -168,10 +171,14 @@ export function MasterRowDialog({
 
           <div className="grid gap-2">
             <Label htmlFor="mrd-name">ชื่อ</Label>
+            <FieldError error={errors.name} />
             <Input
               id="mrd-name"
               value={form.name}
-              onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
+              onChange={(e) => {
+                setForm((s) => ({ ...s, name: e.target.value }));
+                setErrors((prev) => ({ ...prev, name: "" }));
+              }}
               maxLength={100}
             />
           </div>
@@ -194,24 +201,30 @@ export function MasterRowDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label>สี</Label>
+              <FieldError error={errors.color} />
               <ColorPickerInput
                 value={form.color}
-                onChange={(v) => setForm((s) => ({ ...s, color: v }))}
+                onChange={(v) => {
+                  setForm((s) => ({ ...s, color: v }));
+                  setErrors((prev) => ({ ...prev, color: "" }));
+                }}
               />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="mrd-order">ลำดับ</Label>
+              <FieldError error={errors.orderIndex} />
               <Input
                 id="mrd-order"
                 type="number"
                 min={0}
                 value={form.orderIndex}
-                onChange={(e) =>
+                onChange={(e) => {
                   setForm((s) => ({
                     ...s,
                     orderIndex: Number(e.target.value) || 0,
-                  }))
-                }
+                  }));
+                  setErrors((prev) => ({ ...prev, orderIndex: "" }));
+                }}
               />
             </div>
           </div>

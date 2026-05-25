@@ -20,13 +20,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "react-toastify";
 import {
   addItemSchema,
   updateItemSchema,
   type AddItemInput,
   type UpdateItemInput,
 } from "@/features/work-progress/schemas";
+import { FieldError, parseFieldErrors, type FieldErrors } from "../FieldError";
 import type { WorkProgressItemWithMarks } from "@/features/work-progress/domain/WorkProgressPlan";
 import { useCategories, useStatuses } from "../../hooks/useMasterTables";
 import { useAddItem, useUpdateItem } from "../../hooks/useItemMutations";
@@ -74,9 +74,11 @@ export function ItemEditDialog({
   const updateMut = useUpdateItem();
 
   const [form, setForm] = useState<FormState>(empty);
+  const [errors, setErrors] = useState<FieldErrors>({});
 
   useEffect(() => {
     if (!open) return;
+    setErrors({});
     if (!initial) {
       setForm(empty);
       return;
@@ -98,12 +100,11 @@ export function ItemEditDialog({
   const activeStatuses = (statuses ?? []).filter((s) => s.isActive);
 
   const handleSubmit = async () => {
-    if (!form.activity.trim()) {
-      toast.error("กรุณาระบุกิจกรรม");
-      return;
-    }
-    if (!form.categoryId) {
-      toast.error("กรุณาเลือกหมวด");
+    const newErrors: FieldErrors = {};
+    if (!form.activity.trim()) newErrors.activity = "กรุณาระบุกิจกรรม";
+    if (!form.categoryId) newErrors.categoryId = "กรุณาเลือกหมวด";
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
@@ -120,7 +121,7 @@ export function ItemEditDialog({
       };
       const parsed = updateItemSchema.safeParse(body);
       if (!parsed.success) {
-        toast.error(parsed.error.issues[0]?.message ?? "ข้อมูลไม่ถูกต้อง");
+        setErrors(parseFieldErrors(parsed.error));
         return;
       }
       await updateMut.mutateAsync({
@@ -141,7 +142,7 @@ export function ItemEditDialog({
       };
       const parsed = addItemSchema.safeParse(body);
       if (!parsed.success) {
-        toast.error(parsed.error.issues[0]?.message ?? "ข้อมูลไม่ถูกต้อง");
+        setErrors(parseFieldErrors(parsed.error));
         return;
       }
       await addMut.mutateAsync({
@@ -168,10 +169,14 @@ export function ItemEditDialog({
         <div className="grid gap-4 py-2">
           <div className="grid gap-2">
             <Label htmlFor="ie-activity">กิจกรรม</Label>
+            <FieldError error={errors.activity} />
             <Input
               id="ie-activity"
               value={form.activity}
-              onChange={(e) => setForm((s) => ({ ...s, activity: e.target.value }))}
+              onChange={(e) => {
+                setForm((s) => ({ ...s, activity: e.target.value }));
+                setErrors((prev) => ({ ...prev, activity: "" }));
+              }}
               maxLength={2000}
               autoFocus={!isEdit}
             />
@@ -180,9 +185,13 @@ export function ItemEditDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label>หมวด</Label>
+              <FieldError error={errors.categoryId} />
               <Select
                 value={form.categoryId}
-                onValueChange={(v) => setForm((s) => ({ ...s, categoryId: v }))}
+                onValueChange={(v) => {
+                  setForm((s) => ({ ...s, categoryId: v }));
+                  setErrors((prev) => ({ ...prev, categoryId: "" }));
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="-- เลือก --" />
@@ -244,38 +253,42 @@ export function ItemEditDialog({
             </div>
             <div className="grid gap-2">
               <Label htmlFor="ie-weight">น้ำหนัก</Label>
+              <FieldError error={errors.weight} />
               <Input
                 id="ie-weight"
                 type="number"
                 min={1}
                 max={100}
                 value={form.weight}
-                onChange={(e) =>
+                onChange={(e) => {
                   setForm((s) => ({
                     ...s,
                     weight: Math.max(1, Number(e.target.value) || 1),
-                  }))
-                }
+                  }));
+                  setErrors((prev) => ({ ...prev, weight: "" }));
+                }}
               />
             </div>
             {isEdit && (
               <div className="grid gap-2">
                 <Label htmlFor="ie-pct">% ตอนนี้</Label>
+                <FieldError error={errors.progressPercent} />
                 <Input
                   id="ie-pct"
                   type="number"
                   min={0}
                   max={100}
                   value={form.progressPercent}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setForm((s) => ({
                       ...s,
                       progressPercent: Math.min(
                         100,
                         Math.max(0, Number(e.target.value) || 0),
                       ),
-                    }))
-                  }
+                    }));
+                    setErrors((prev) => ({ ...prev, progressPercent: "" }));
+                  }}
                 />
               </div>
             )}

@@ -23,11 +23,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "react-toastify";
 import {
   createPlanSchema,
   type CreatePlanInput,
 } from "@/features/work-progress/schemas";
+import { FieldError, parseFieldErrors, type FieldErrors } from "../FieldError";
 import type { WorkProgressTemplate } from "@/features/work-progress/domain/WorkProgressTemplate";
 import type { WorkProgressPlan } from "@/features/work-progress/domain/WorkProgressPlan";
 import { useCreatePlan, useWorkProgressPlans } from "../../hooks/useWorkProgressPlans";
@@ -72,6 +72,7 @@ export function CreatePlanDialog({
   const [templateId, setTemplateId] = useState<string>("");
   const [cloneFromPlanId, setCloneFromPlanId] = useState<string>("");
   const [customPeriods, setCustomPeriods] = useState<string[]>([""]);
+  const [errors, setErrors] = useState<FieldErrors>({});
 
   useEffect(() => {
     if (!open) return;
@@ -84,6 +85,7 @@ export function CreatePlanDialog({
     setTemplateId("");
     setCloneFromPlanId("");
     setCustomPeriods([""]);
+    setErrors({});
   }, [open]);
 
   const activeTemplates = useMemo(
@@ -92,6 +94,7 @@ export function CreatePlanDialog({
   );
 
   const handleSubmit = async () => {
+    const newErrors: FieldErrors = {};
     const body: Record<string, unknown> = {
       title: title.trim(),
       periodType,
@@ -104,29 +107,27 @@ export function CreatePlanDialog({
     if (periodType === "CUSTOM") {
       const labels = customPeriods.map((s) => s.trim()).filter(Boolean);
       if (labels.length === 0) {
-        toast.error("กรุณาระบุ period อย่างน้อย 1 ช่วง");
-        return;
+        newErrors.customPeriods = "กรุณาระบุ period อย่างน้อย 1 ช่วง";
       }
       body.customPeriods = labels.map((label) => ({ label }));
     }
 
     if (tab === "template") {
-      if (!templateId) {
-        toast.error("กรุณาเลือก template");
-        return;
-      }
+      if (!templateId) newErrors.templateId = "กรุณาเลือก template";
       body.templateId = templateId;
     } else if (tab === "clone") {
-      if (!cloneFromPlanId) {
-        toast.error("กรุณาเลือกแผนต้นทาง");
-        return;
-      }
+      if (!cloneFromPlanId) newErrors.cloneFromPlanId = "กรุณาเลือกแผนต้นทาง";
       body.cloneFromPlanId = cloneFromPlanId;
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
     }
 
     const parsed = createPlanSchema.safeParse(body);
     if (!parsed.success) {
-      toast.error(parsed.error.issues[0]?.message ?? "ข้อมูลไม่ถูกต้อง");
+      setErrors(parseFieldErrors(parsed.error));
       return;
     }
 
@@ -158,10 +159,14 @@ export function CreatePlanDialog({
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="cp-title">ชื่อแผน</Label>
+              <FieldError error={errors.title} />
               <Input
                 id="cp-title"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  setErrors((prev) => ({ ...prev, title: "" }));
+                }}
                 placeholder="เช่น SEO Plan 2026"
                 maxLength={200}
                 autoFocus
@@ -205,6 +210,7 @@ export function CreatePlanDialog({
             {periodType === "CUSTOM" && (
               <div className="grid gap-2">
                 <Label>Period labels</Label>
+                <FieldError error={errors.customPeriods} />
                 <div className="flex flex-col gap-2">
                   {customPeriods.map((label, i) => (
                     <div key={i} className="flex items-center gap-2">
@@ -281,6 +287,7 @@ export function CreatePlanDialog({
             <TabsContent value="template" className="m-0 p-0">
               <div className="grid gap-2">
                 <Label>เลือก Template</Label>
+                <FieldError error={errors.templateId} />
                 {templatesLoading ? (
                   <Skeleton className="h-9 w-full" />
                 ) : (
@@ -309,6 +316,7 @@ export function CreatePlanDialog({
             <TabsContent value="clone" className="m-0 p-0">
               <div className="grid gap-2">
                 <Label>Clone จากแผน</Label>
+                <FieldError error={errors.cloneFromPlanId} />
                 {plansLoading ? (
                   <Skeleton className="h-9 w-full" />
                 ) : (

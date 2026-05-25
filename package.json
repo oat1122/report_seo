@@ -13,6 +13,7 @@
     "seed": "tsx prisma/seed.ts",
     "prisma:migrate:prod": "dotenv -e .env.production -- prisma migrate deploy",
     "prisma:migrate:deploy": "npx prisma migrate deploy",
+    "prisma:resolve:prod": "dotenv -e .env.production -- npx prisma migrate resolve --applied 20260522034808_add_work_progress_core && dotenv -e .env.production -- npx prisma migrate resolve --applied 20260522043309_add_work_progress_template && dotenv -e .env.production -- npx prisma migrate resolve --applied 20260522050228_add_work_progress_rich_items && dotenv -e .env.production -- npx prisma migrate resolve --applied 20260522054308_add_work_progress_activity && dotenv -e .env.production -- npx prisma migrate resolve --applied 20260522091634_add_template_subtask && dotenv -e .env.production -- npx prisma migrate resolve --applied 20260523053731_remove_work_progress_item_meta",
     "db:seed:prod": "dotenv -e .env.production -- tsx prisma/seed.ts",
     "deploy:prod": "npm install && npm run prisma:migrate:prod && npm run build",
     "prisma:generate": "npx prisma generate",

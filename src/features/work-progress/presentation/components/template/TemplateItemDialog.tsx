@@ -20,13 +20,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "react-toastify";
 import {
   addTemplateItemSchema,
   updateTemplateItemSchema,
   type AddTemplateItemInput,
   type UpdateTemplateItemInput,
 } from "@/features/work-progress/schemas";
+import { FieldError, parseFieldErrors, type FieldErrors } from "../FieldError";
 import type { WorkProgressTemplateItem } from "@/features/work-progress/domain/WorkProgressTemplate";
 import { useCategories } from "../../hooks/useMasterTables";
 import {
@@ -70,10 +70,12 @@ export function TemplateItemDialog({
   const updateMut = useUpdateTemplateItem();
   const [form, setForm] = useState<Form>(empty);
   const [subtaskDraft, setSubtaskDraft] = useState("");
+  const [errors, setErrors] = useState<FieldErrors>({});
 
   useEffect(() => {
     if (!open) return;
     setSubtaskDraft("");
+    setErrors({});
     if (!initial) {
       setForm(empty);
       return;
@@ -109,6 +111,14 @@ export function TemplateItemDialog({
   const activeCategories = (categories ?? []).filter((c) => c.isActive);
 
   const handleSubmit = async () => {
+    const newErrors: FieldErrors = {};
+    if (!form.activity.trim()) newErrors.activity = "กรุณาระบุกิจกรรม";
+    if (!form.categoryId) newErrors.categoryId = "กรุณาเลือกหมวด";
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
     const subtasks = form.subtasks
       .map((t) => t.trim())
       .filter((t) => t.length > 0)
@@ -126,7 +136,7 @@ export function TemplateItemDialog({
     if (isEdit && initial) {
       const parsed = updateTemplateItemSchema.safeParse(body);
       if (!parsed.success) {
-        toast.error(parsed.error.issues[0]?.message ?? "ข้อมูลไม่ถูกต้อง");
+        setErrors(parseFieldErrors(parsed.error));
         return;
       }
       await updateMut.mutateAsync({
@@ -137,7 +147,7 @@ export function TemplateItemDialog({
     } else {
       const parsed = addTemplateItemSchema.safeParse(body);
       if (!parsed.success) {
-        toast.error(parsed.error.issues[0]?.message ?? "ข้อมูลไม่ถูกต้อง");
+        setErrors(parseFieldErrors(parsed.error));
         return;
       }
       await addMut.mutateAsync({
@@ -161,23 +171,27 @@ export function TemplateItemDialog({
         <div className="grid gap-3 py-2">
           <div className="grid gap-1.5">
             <Label htmlFor="ti-act">กิจกรรม</Label>
+            <FieldError error={errors.activity} />
             <Input
               id="ti-act"
               value={form.activity}
-              onChange={(e) =>
-                setForm((s) => ({ ...s, activity: e.target.value }))
-              }
+              onChange={(e) => {
+                setForm((s) => ({ ...s, activity: e.target.value }));
+                setErrors((prev) => ({ ...prev, activity: "" }));
+              }}
               maxLength={2000}
               autoFocus={!isEdit}
             />
           </div>
           <div className="grid gap-1.5">
             <Label>หมวด</Label>
+            <FieldError error={errors.categoryId} />
             <Select
               value={form.categoryId}
-              onValueChange={(v) =>
-                setForm((s) => ({ ...s, categoryId: v }))
-              }
+              onValueChange={(v) => {
+                setForm((s) => ({ ...s, categoryId: v }));
+                setErrors((prev) => ({ ...prev, categoryId: "" }));
+              }}
             >
               <SelectTrigger>
                 <SelectValue placeholder="-- เลือก --" />
