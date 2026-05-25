@@ -83,11 +83,10 @@ export const TrendChartsSection: React.FC<TrendChartsSectionProps> = ({
   });
 
   const filteredHistory = useMemo(() => {
-    const visible = metricsHistory.filter((r) => r.isVisible);
-    const byPeriod = filterHistoryByPeriod(visible, period);
+    const byPeriod = filterHistoryByPeriod(metricsHistory, period);
     const deduped = deduplicateByDay(byPeriod);
-    if (deduped.length < 3 && visible.length >= 3) {
-      const all = [...visible].sort(
+    if (deduped.length < 3 && metricsHistory.length >= 3) {
+      const all = [...metricsHistory].sort(
         (a, b) =>
           new Date(a.dateRecorded).getTime() -
           new Date(b.dateRecorded).getTime(),

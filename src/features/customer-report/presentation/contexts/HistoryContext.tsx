@@ -1,7 +1,7 @@
 // src/components/Customer/Report/contexts/HistoryContext.tsx
 "use client";
 
-import React, { createContext, useContext, ReactNode } from "react";
+import React, { createContext, useContext, useMemo, ReactNode } from "react";
 import {
   useGetCombinedHistory,
   CurrentKeyword,
@@ -32,16 +32,15 @@ export const HistoryProvider: React.FC<HistoryProviderProps> = ({
   customerId,
   children,
 }) => {
-  // Fetch combined history with 5-minute cache
   const { data, isLoading, error } = useGetCombinedHistory(customerId);
 
-  const value: HistoryContextValue = {
-    metricsHistory: data?.metricsHistory || [],
-    keywordHistory: data?.keywordHistory || [],
+  const value: HistoryContextValue = useMemo(() => ({
+    metricsHistory: (data?.metricsHistory || []).filter((r) => r.isVisible),
+    keywordHistory: (data?.keywordHistory || []).filter((r) => r.isVisible),
     currentKeywords: data?.currentKeywords || [],
     isLoading,
     error: error as Error | null,
-  };
+  }), [data, isLoading, error]);
 
   return (
     <HistoryContext.Provider value={value}>{children}</HistoryContext.Provider>

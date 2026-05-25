@@ -64,10 +64,9 @@ export const BacklinksVsRefDomains = () => {
   const { period } = useReportFilters();
 
   const { chartData, hasData, currentRatio } = useMemo(() => {
-    const visible = metricsHistory.filter((r) => r.isVisible);
-    let filtered = deduplicateByDay(filterHistoryByPeriod(visible, period));
-    if (filtered.length < 3 && visible.length >= 3) {
-      const all = [...visible].sort(
+    let filtered = deduplicateByDay(filterHistoryByPeriod(metricsHistory, period));
+    if (filtered.length < 3 && metricsHistory.length >= 3) {
+      const all = [...metricsHistory].sort(
         (a, b) => new Date(a.dateRecorded).getTime() - new Date(b.dateRecorded).getTime(),
       );
       filtered = deduplicateByDay(all);
