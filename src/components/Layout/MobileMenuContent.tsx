@@ -10,6 +10,7 @@ import { useState } from "react";
 import { useGetCombinedHistory } from "@/hooks/api/useCustomersApi";
 import { HistoryModal } from "@/features/users/presentation/components/MetricsModal/HistoryModal";
 import { ThemeToggle } from "./ThemeToggle";
+import { NotificationBell } from "@/features/notifications/presentation/components/NotificationBell";
 
 interface MobileMenuContentProps {
   userName: string;
@@ -67,6 +68,13 @@ export const MobileMenuContent = ({
         <div className="flex items-center justify-between py-1">
           <span className="text-sm text-muted-foreground">โหมดสี</span>
           <ThemeToggle />
+        </div>
+
+        <Separator />
+
+        <div className="flex items-center justify-between py-1">
+          <span className="text-sm text-muted-foreground">การแจ้งเตือน</span>
+          <NotificationBell />
         </div>
 
         <Separator />

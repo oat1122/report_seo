@@ -19,6 +19,7 @@ import { UserMenu } from "./UserMenu";
 import { HistoryButton } from "./HistoryButton";
 import { MobileMenuContent } from "./MobileMenuContent";
 import { ThemeToggle } from "./ThemeToggle";
+import { NotificationBell } from "@/features/notifications/presentation/components/NotificationBell";
 
 export const DashboardHeader = () => {
   const { data: session, status } = useSession();
@@ -48,6 +49,7 @@ export const DashboardHeader = () => {
           {/* Desktop actions */}
           <div className="hidden items-center gap-2 md:flex">
             <ThemeToggle />
+            <NotificationBell />
             <HistoryButton
               role={userRole}
               customerUserId={customerUserId}
