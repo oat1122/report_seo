@@ -1,0 +1,66 @@
+// Customer — central entity + OverallMetrics + OverallMetricsHistory
+
+model Customer {
+  id     String @id @default(uuid())
+  name   String
+  domain String @unique
+
+  userId   String @unique
+  user     User   @relation("CustomerUser", fields: [userId], references: [id])
+  seoDevId String?
+  seoDev   User?     @relation("SeoDevCustomers", fields: [seoDevId], references: [id])
+
+  reports         KeywordReport[]
+  metrics         OverallMetrics?
+  metricsHistory  OverallMetricsHistory[] @relation("MetricsHistory")
+  payments        PaymentProof[]
+  paymentPlans    PaymentPlan[]
+  contractFiles   ContractFile[]
+  recommendations KeywordRecommend[]
+  aiOverviews     AiOverview[]
+  workProgressPlans WorkProgressPlan[]
+
+  @@map("customer")
+}
+
+model OverallMetrics {
+  id              String   @id @default(uuid())
+  domainRating    Int
+  healthScore     Int
+  ageInYears      Int
+  ageInMonths     Int      @default(0)
+  spamScore       Float
+  organicTraffic  Float
+  organicKeywords Float
+  backlinks       Int
+  refDomains      Int
+  dateRecorded    DateTime @default(now())
+
+  customerId String   @unique
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@map("overallmetrics")
+}
+
+model OverallMetricsHistory {
+  id              String   @id @default(uuid())
+  domainRating    Int
+  healthScore     Int
+  ageInYears      Int
+  ageInMonths     Int      @default(0)
+  spamScore       Float
+  organicTraffic  Float
+  organicKeywords Float
+  backlinks       Int
+  refDomains      Int
+  dateRecorded    DateTime @default(now())
+  isVisible       Boolean  @default(true)
+
+  customerId String
+  customer   Customer @relation("MetricsHistory", fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([dateRecorded])
+
+  @@map("overallmetricshistory")
+}

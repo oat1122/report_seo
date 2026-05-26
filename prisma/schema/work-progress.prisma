@@ -1,0 +1,275 @@
+// Work Progress — Category, Status, MarkType, Plan, Period, Item, PeriodMark,
+//                  Template, TemplateItem, TemplateSubtask,
+//                  Subtask, Attachment, Activity
+
+// Master tables
+
+model WorkProgressCategory {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  name        String
+  description String?  @db.Text
+  color       String?
+  icon        String?
+  orderIndex  Int      @default(0)
+  isActive    Boolean  @default(true)
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  items         WorkProgressItem[]
+  templateItems WorkProgressTemplateItem[]
+
+  @@index([isActive])
+  @@map("workprogresscategory")
+}
+
+model WorkProgressStatus {
+  id         String   @id @default(uuid())
+  code       String   @unique
+  name       String
+  color      String?
+  orderIndex Int      @default(0)
+  isTerminal Boolean  @default(false)
+  isDefault  Boolean  @default(false)
+  isActive   Boolean  @default(true)
+  isSystem   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  items WorkProgressItem[]
+
+  @@index([isActive])
+  @@map("workprogressstatus")
+}
+
+model WorkProgressMarkType {
+  id         String   @id @default(uuid())
+  code       String   @unique
+  name       String
+  color      String?
+  icon       String?
+  orderIndex Int      @default(0)
+  isActive   Boolean  @default(true)
+  isSystem   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  periodMarks WorkProgressItemPeriodMark[]
+
+  @@index([isActive])
+  @@map("workprogressmarktype")
+}
+
+// Plan + Period
+
+model WorkProgressPlan {
+  id          String                 @id @default(uuid())
+  title       String
+  periodType  WorkProgressPeriodType @default(YEAR_12_MONTHS)
+  year        Int?
+  startDate   DateTime?
+  endDate     DateTime?
+  packageName String?
+  note        String?  @db.Text
+  isArchived  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  createdById String?
+  createdBy   User? @relation("WorkProgressPlanCreator", fields: [createdById], references: [id])
+
+  periods    WorkProgressPeriod[]
+  items      WorkProgressItem[]
+  activities WorkProgressActivity[]
+
+  @@index([customerId])
+  @@index([customerId, isArchived])
+  @@map("workprogressplan")
+}
+
+model WorkProgressPeriod {
+  id        String   @id @default(uuid())
+  planId    String
+  plan      WorkProgressPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  seq       Int
+  label     String
+  startDate DateTime?
+  endDate   DateTime?
+
+  marks WorkProgressItemPeriodMark[]
+
+  @@unique([planId, seq])
+  @@index([planId])
+  @@map("workprogressperiod")
+}
+
+// Item + PeriodMark
+
+model WorkProgressItem {
+  id              String   @id @default(uuid())
+  planId          String
+  plan            WorkProgressPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  categoryId String
+  category   WorkProgressCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  statusId String
+  status   WorkProgressStatus @relation(fields: [statusId], references: [id], onDelete: Restrict)
+
+  activity        String   @db.Text
+  description     String?  @db.Text
+  progressPercent Int      @default(0)
+  duration        String?
+  note            String?  @db.Text
+  orderIndex      Int      @default(0)
+  weight          Int      @default(1)
+  startDate       DateTime?
+  dueDate         DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  assignedToId String?
+  assignedTo   User?   @relation("WorkProgressItemAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  periodMarks WorkProgressItemPeriodMark[]
+  subtasks    WorkProgressSubtask[]
+  attachments WorkProgressAttachment[]
+
+  @@index([planId])
+  @@index([categoryId])
+  @@index([statusId])
+  @@index([assignedToId])
+  @@map("workprogressitem")
+}
+
+model WorkProgressItemPeriodMark {
+  id              String   @id @default(uuid())
+  itemId          String
+  item            WorkProgressItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  periodId        String
+  period          WorkProgressPeriod @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  markTypeId      String
+  markType        WorkProgressMarkType @relation(fields: [markTypeId], references: [id], onDelete: Restrict)
+  progressPercent Int?
+  note            String?  @db.Text
+  updatedAt       DateTime @updatedAt
+
+  @@unique([itemId, periodId])
+  @@index([itemId])
+  @@index([periodId])
+  @@map("workprogressitemperiodmark")
+}
+
+// Template
+
+model WorkProgressTemplate {
+  id             String                 @id @default(uuid())
+  name           String
+  description    String?                @db.Text
+  periodType     WorkProgressPeriodType @default(YEAR_12_MONTHS)
+  durationMonths Int                    @default(12)
+  isActive       Boolean                @default(true)
+  isSystem       Boolean                @default(false)
+  createdById String?
+  createdBy   User?                  @relation("WorkProgressTemplateCreator", fields: [createdById], references: [id])
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+
+  items WorkProgressTemplateItem[]
+
+  @@index([isActive])
+  @@map("workprogresstemplate")
+}
+
+model WorkProgressTemplateItem {
+  id             String               @id @default(uuid())
+  templateId     String
+  template       WorkProgressTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  categoryId     String
+  category       WorkProgressCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  activity       String               @db.Text
+  description    String?              @db.Text
+  duration       String?
+  weight         Int                  @default(1)
+  orderIndex     Int                  @default(0)
+  defaultPeriods Json?
+
+  subtasks WorkProgressTemplateSubtask[]
+
+  @@index([templateId])
+  @@index([categoryId])
+  @@map("workprogresstemplateitem")
+}
+
+model WorkProgressTemplateSubtask {
+  id             String                   @id @default(uuid())
+  templateItemId String
+  templateItem   WorkProgressTemplateItem @relation(fields: [templateItemId], references: [id], onDelete: Cascade)
+  title          String                   @db.Text
+  orderIndex     Int                      @default(0)
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+
+  @@index([templateItemId])
+  @@map("workprogresstemplatesubtask")
+}
+
+// Subtask + Attachment + Activity
+
+model WorkProgressSubtask {
+  id           String   @id @default(uuid())
+  itemId       String
+  item         WorkProgressItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  title        String
+  isDone       Boolean  @default(false)
+  orderIndex   Int      @default(0)
+  assignedToId String?
+  assignedTo   User?    @relation("WorkProgressSubtaskAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  completedAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([itemId])
+  @@index([assignedToId])
+  @@map("workprogresssubtask")
+}
+
+model WorkProgressAttachment {
+  id           String   @id @default(uuid())
+  itemId       String
+  item         WorkProgressItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  kind         String
+  url          String   @db.Text
+  filename     String?
+  mimeType     String?
+  sizeBytes    Int?
+  caption      String?  @db.Text
+  uploadedById String?
+  uploadedBy   User?    @relation("WorkProgressAttachmentUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+
+  @@index([itemId])
+  @@map("workprogressattachment")
+}
+
+model WorkProgressActivity {
+  id        String   @id @default(uuid())
+  planId    String
+  plan      WorkProgressPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  actorId   String?
+  actor     User?    @relation("WorkProgressActor", fields: [actorId], references: [id], onDelete: SetNull)
+  action    String
+  entity    String
+  entityId  String?
+  diff      Json?
+  createdAt DateTime @default(now())
+
+  @@index([planId])
+  @@index([planId, createdAt])
+  @@map("workprogressactivity")
+}

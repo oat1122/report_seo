@@ -1,4 +1,4 @@
-// Note: Ensure prisma/schema.prisma has @@map("table_name") if your database uses lowercase table names (e.g. from a dump).
+// Note: Ensure prisma/schema/ has @@map("table_name") if your database uses lowercase table names (e.g. from a dump).
 import { PrismaClient } from "@prisma/client";
 import { randomUUID } from "crypto"; // ใช้ในกรณีที่อยาก set UUID เอง
 import bcrypt from "bcrypt";

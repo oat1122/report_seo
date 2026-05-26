@@ -1,0 +1,53 @@
+// KeywordReport, KeywordReportHistory, KeywordRecommend
+
+model KeywordReport {
+  id           String   @id @default(uuid())
+  keyword      String
+  position     Int?
+  traffic      Int
+  kd           KDLevel
+  isTopReport  Boolean  @default(false)
+  dateRecorded DateTime @default(now())
+
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  history    KeywordReportHistory[]
+
+  @@map("keywordreport")
+}
+
+model KeywordReportHistory {
+  id           String   @id @default(uuid())
+  keyword      String
+  position     Int?
+  traffic      Int
+  kd           KDLevel
+  isTopReport  Boolean
+  dateRecorded DateTime @default(now())
+  isVisible    Boolean  @default(true)
+
+  reportId String
+  report   KeywordReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([reportId])
+  @@index([dateRecorded])
+
+  @@map("keywordreporthistory")
+}
+
+model KeywordRecommend {
+  id          String   @id @default(uuid())
+  keyword     String
+  kd          KDLevel?
+  isTopReport Boolean  @default(false)
+  note        String?  @db.Text
+  createdAt   DateTime @default(now())
+
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+
+  @@map("keywordrecommend")
+}

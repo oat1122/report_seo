@@ -587,7 +587,7 @@ export const upsertCategorySchema = z.object({
 
 ## 1.6 Tasks — Phase 1
 
-1. แก้ `prisma/schema.prisma` + `Customer` backref → แจ้ง user รัน `npx prisma migrate dev --name add_work_progress_core` + `npx prisma generate`
+1. แก้ไฟล์ใน `prisma/schema/` (เช่น `work-progress.prisma`, `customer.prisma`) + `Customer` backref → แจ้ง user รัน `npx prisma migrate dev --name add_work_progress_core` + `npx prisma generate`
 2. แก้ `prisma/seed.ts` (upsert pattern) → แจ้ง user รัน `npm run seed`
 3. สร้าง folder slice ครบ 4 layer + `schemas/` + `index.ts`
 4. เขียน domain entities + policies (pure)
@@ -1107,7 +1107,7 @@ features/work-progress/presentation/
 
 ## 10. Implementation Note สำคัญ
 
-- **Claude ห้ามรัน Prisma CLI เอง** (prisma/CLAUDE.md §6) — ทุก phase แก้ `schema.prisma` + seed เสร็จ → แจ้ง user รัน `migrate dev` + `prisma generate` (+ `npm run seed` ถ้ามี seed ใหม่) เอง
+- **Claude ห้ามรัน Prisma CLI เอง** (prisma/CLAUDE.md §6) — ทุก phase แก้ไฟล์ใน `prisma/schema/` + seed เสร็จ → แจ้ง user รัน `migrate dev` + `prisma generate` (+ `npm run seed` ถ้ามี seed ใหม่) เอง
 - **Run order ต่อ Phase**: schema → seed → code → routes → smoke test → `npm run build` → commit
 - **ทุก phase ที่แตะ slice** invoke `clean-architecture-nextjs` ก่อน · ทุก phase ที่แตะ route invoke `api-foundation`
 - **ก่อน close** → `verify` (test manual) + `code-review` (current diff) + `scrutinize` (สำหรับ phase ใหญ่ 1, 5)

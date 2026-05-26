@@ -1,0 +1,75 @@
+// PaymentProof, PaymentPlan, BillingCycle, ContractFile
+
+model PaymentProof {
+  id         String        @id @default(uuid())
+  uploadUrl  String
+  uploadDate DateTime      @default(now())
+  status     PaymentStatus @default(PENDING)
+
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  billingCycleId String?
+  billingCycle   BillingCycle? @relation(fields: [billingCycleId], references: [id], onDelete: SetNull)
+
+  @@index([billingCycleId])
+  @@map("paymentproof")
+}
+
+model PaymentPlan {
+  id                String            @id @default(uuid())
+  type              PaymentPlanType
+  amount            Decimal           @db.Decimal(10, 2)
+  description       String            @db.Text
+  billingDay        Int?
+  totalInstallments Int?
+  startDate         DateTime
+  endDate           DateTime?
+  status            PaymentPlanStatus @default(ACTIVE)
+  note              String?           @db.Text
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  billingCycles BillingCycle[]
+
+  @@index([customerId])
+  @@index([customerId, status])
+  @@map("paymentplan")
+}
+
+model BillingCycle {
+  id          String             @id @default(uuid())
+  cycleNumber Int
+  dueDate     DateTime
+  amount      Decimal            @db.Decimal(10, 2)
+  status      BillingCycleStatus @default(PENDING)
+  paidDate    DateTime?
+  note        String?            @db.Text
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  planId String
+  plan   PaymentPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  proofs PaymentProof[]
+
+  @@index([planId])
+  @@index([dueDate])
+  @@map("billingcycle")
+}
+
+model ContractFile {
+  id         String   @id @default(uuid())
+  fileUrl    String
+  fileName   String
+  uploadDate DateTime @default(now())
+
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@map("contractfile")
+}

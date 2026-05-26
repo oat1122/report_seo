@@ -1,0 +1,58 @@
+// Prisma base configuration — generator, datasource, enums
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------
+// Enums
+// ----------------------------------------------------
+
+enum Role {
+  ADMIN
+  SEO_DEV
+  CUSTOMER
+}
+
+enum KDLevel {
+  HARD
+  MEDIUM
+  EASY
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PaymentPlanType {
+  MONTHLY
+  INSTALLMENT
+}
+
+enum PaymentPlanStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum BillingCycleStatus {
+  PENDING
+  REVIEWING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum WorkProgressPeriodType {
+  YEAR_12_MONTHS
+  YEAR_4_QUARTERS
+  HALF_2_PERIODS
+  CUSTOM
+}

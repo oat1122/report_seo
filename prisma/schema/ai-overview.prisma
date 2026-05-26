@@ -1,0 +1,30 @@
+// AiOverview, AiOverviewImage
+
+model AiOverview {
+  id          String   @id @default(uuid())
+  title       String
+  displayDate DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  images     AiOverviewImage[]
+
+  @@index([customerId])
+
+  @@map("aioverview")
+}
+
+model AiOverviewImage {
+  id           String   @id @default(uuid())
+  imageUrl     String
+  createdAt    DateTime @default(now())
+
+  aiOverviewId String
+  aiOverview   AiOverview @relation(fields: [aiOverviewId], references: [id], onDelete: Cascade)
+
+  @@index([aiOverviewId])
+
+  @@map("aioverviewimage")
+}
