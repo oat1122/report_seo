@@ -8,6 +8,8 @@ import {
 import {
   getDocument,
   deleteDocument,
+  updateDocument,
+  updateDocumentSchema,
 } from "@/features/billing-documents";
 import { NotFoundError } from "@/lib/errors";
 
@@ -25,6 +27,21 @@ export const GET = withApiHandler(
     );
     const doc = await getDocument(params.documentId);
     if (!doc) throw new NotFoundError("ไม่พบเอกสาร");
+    return ok(doc);
+  },
+);
+
+export const PATCH = withApiHandler(
+  { params: paramsSchema, body: updateDocumentSchema },
+  async ({ params, body }) => {
+    const ctx = await customerAccessGuard(
+      { byUserId: params.customerId },
+      "manage",
+    );
+    const doc = await updateDocument(params.documentId, {
+      customerId: ctx.customer.id,
+      ...body,
+    });
     return ok(doc);
   },
 );

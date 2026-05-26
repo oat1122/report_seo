@@ -1,4 +1,8 @@
-import type { BillingDocument } from "../../domain/BillingDocument";
+import type {
+  BillingDocument,
+  AdminBillingDocument,
+  BillingDocumentWithCycle,
+} from "../../domain/BillingDocument";
 import type { DocumentItem } from "../../domain/DocumentItem";
 import type { BillingDocumentType } from "../../domain/DocumentType";
 
@@ -19,6 +23,19 @@ export interface CreateDocumentInput {
   totalAmount: number;
   note?: string | null;
   billingCycleId?: string | null;
+}
+
+export interface UpdateDocumentInput {
+  type: BillingDocumentType;
+  pdfUrl: string;
+  totalAmount: number;
+  note?: string | null;
+}
+
+export interface AllDocumentsFilter {
+  search?: string;
+  type?: BillingDocumentType;
+  customerId?: string;
 }
 
 export interface CustomerForDocument {
@@ -52,4 +69,17 @@ export interface BillingDocumentRepository {
     type: BillingDocumentType,
     year: number,
   ): Promise<string>;
+
+  updateDocument(
+    documentId: string,
+    input: UpdateDocumentInput,
+  ): Promise<BillingDocument>;
+
+  listAllDocuments(
+    filters?: AllDocumentsFilter,
+  ): Promise<AdminBillingDocument[]>;
+
+  listDocumentsByCycleIds(
+    cycleIds: string[],
+  ): Promise<BillingDocumentWithCycle[]>;
 }

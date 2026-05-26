@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { FileText, Loader2 } from "lucide-react";
+import { useState, useMemo } from "react";
+import { AlertTriangle, FileText, Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { Field, FieldGroup } from "@/components/ui/field";
 import {
   Card,
@@ -22,7 +23,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useGenerateDocument } from "../../hooks/useDocuments";
+import {
+  useGenerateDocument,
+  useGenerateAllForCycle,
+} from "../../hooks/useDocuments";
+import { useListDocumentItems } from "../../hooks/useDocumentItems";
+import { useBillingCyclesForDocuments } from "../../hooks/useBillingCyclesForDocuments";
 import { DOCUMENT_TYPE_LABELS } from "../../../domain/DocumentType";
 import type { BillingDocumentType } from "../../../domain/DocumentType";
 
@@ -30,21 +36,53 @@ interface Props {
   customerId: string;
 }
 
+const NO_CYCLE = "__none__";
+
 export function DocumentGeneratorPanel({ customerId }: Props) {
   const generateMutation = useGenerateDocument(customerId);
+  const generateAllMutation = useGenerateAllForCycle(customerId);
+  const { data: cycles = [] } = useBillingCyclesForDocuments(customerId);
+  const { data: items = [] } = useListDocumentItems(customerId);
 
+  const [selectedCycleId, setSelectedCycleId] = useState<string>(NO_CYCLE);
   const [type, setType] = useState<BillingDocumentType>("INVOICE");
   const [note, setNote] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [paidDate, setPaidDate] = useState("");
+
+  const selectedCycle = useMemo(
+    () => cycles.find((c) => c.id === selectedCycleId),
+    [cycles, selectedCycleId],
+  );
+
+  const itemsTotal = useMemo(
+    () =>
+      items.reduce(
+        (sum, i) => sum + Number(i.quantity) * Number(i.unitPrice),
+        0,
+      ),
+    [items],
+  );
+
+  const hasCycle = selectedCycleId !== NO_CYCLE;
+  const amountMismatch =
+    hasCycle && selectedCycle && Math.abs(itemsTotal - selectedCycle.amount) > 0.01;
+
+  const effectiveDueDate = hasCycle && selectedCycle
+    ? new Date(selectedCycle.dueDate).toISOString().split("T")[0]
+    : dueDate;
+  const effectivePaidDate = hasCycle && selectedCycle?.paidDate
+    ? new Date(selectedCycle.paidDate).toISOString().split("T")[0]
+    : paidDate;
 
   const handleGenerate = () => {
     generateMutation.mutate(
       {
         type,
         note: note || null,
-        dueDate: dueDate || null,
-        paidDate: paidDate || null,
+        dueDate: effectiveDueDate || null,
+        paidDate: effectivePaidDate || null,
+        billingCycleId: hasCycle ? selectedCycleId : undefined,
       },
       {
         onSuccess: (doc) => {
@@ -57,16 +95,85 @@ export function DocumentGeneratorPanel({ customerId }: Props) {
     );
   };
 
+  const handleGenerateAll = () => {
+    if (!hasCycle) return;
+    generateAllMutation.mutate(
+      { billingCycleId: selectedCycleId, note: note || null },
+      {
+        onSuccess: (docs) => {
+          toast.success(`สร้างเอกสาร ${docs.length} ฉบับเรียบร้อย`);
+          setNote("");
+        },
+      },
+    );
+  };
+
+  const isPending =
+    generateMutation.isPending || generateAllMutation.isPending;
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>สร้างเอกสาร</CardTitle>
         <CardDescription>
-          เลือกประเภทเอกสารและกดสร้าง PDF
+          เลือกรอบจ่ายเงิน (ถ้ามี) แล้วสร้าง PDF
         </CardDescription>
       </CardHeader>
       <CardContent>
         <FieldGroup>
+          {cycles.length > 0 && (
+            <Field>
+              <Label>เชื่อมโยงกับรอบจ่ายเงิน (ไม่บังคับ)</Label>
+              <Select
+                value={selectedCycleId}
+                onValueChange={setSelectedCycleId}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="ไม่เชื่อมโยง" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NO_CYCLE}>ไม่เชื่อมโยง</SelectItem>
+                  {cycles.map((cycle) => (
+                    <SelectItem key={cycle.id} value={cycle.id}>
+                      {cycle.plan.description} — งวด {cycle.cycleNumber} (
+                      {new Date(cycle.dueDate).toLocaleDateString("th-TH", {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                      {" · "}
+                      {Number(cycle.amount).toLocaleString("th-TH", {
+                        minimumFractionDigits: 0,
+                      })}{" "}
+                      บาท)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          )}
+
+          {amountMismatch && (
+            <div className="flex items-start gap-2 rounded-md border border-destructive/50 bg-destructive/5 p-3 text-sm">
+              <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
+              <div>
+                <p className="font-medium text-destructive">
+                  ยอดรวมไม่ตรงกับรอบจ่ายเงิน
+                </p>
+                <p className="text-muted-foreground">
+                  ยอดรายการ:{" "}
+                  {itemsTotal.toLocaleString("th-TH", {
+                    minimumFractionDigits: 2,
+                  })}{" "}
+                  บาท · ยอดรอบจ่าย:{" "}
+                  {selectedCycle!.amount.toLocaleString("th-TH", {
+                    minimumFractionDigits: 2,
+                  })}{" "}
+                  บาท
+                </p>
+              </div>
+            </div>
+          )}
+
           <Field>
             <Label>ประเภทเอกสาร</Label>
             <Select
@@ -91,7 +198,7 @@ export function DocumentGeneratorPanel({ customerId }: Props) {
             </Select>
           </Field>
 
-          {(type === "INVOICE" || type === "BILLING_NOTE") && (
+          {!hasCycle && (type === "INVOICE" || type === "BILLING_NOTE") && (
             <Field>
               <Label>กำหนดชำระ</Label>
               <Input
@@ -102,7 +209,7 @@ export function DocumentGeneratorPanel({ customerId }: Props) {
             </Field>
           )}
 
-          {type === "RECEIPT" && (
+          {!hasCycle && type === "RECEIPT" && (
             <Field>
               <Label>วันที่ชำระ</Label>
               <Input
@@ -111,6 +218,12 @@ export function DocumentGeneratorPanel({ customerId }: Props) {
                 onChange={(e) => setPaidDate(e.target.value)}
               />
             </Field>
+          )}
+
+          {hasCycle && (
+            <div className="rounded-md bg-muted/50 p-3 text-sm text-muted-foreground">
+              กำหนดชำระ / วันที่ชำระ จะถูกกำหนดจากรอบจ่ายเงินอัตโนมัติ
+            </div>
           )}
 
           <Field>
@@ -123,18 +236,36 @@ export function DocumentGeneratorPanel({ customerId }: Props) {
             />
           </Field>
 
-          <Button
-            onClick={handleGenerate}
-            disabled={generateMutation.isPending}
-            className="w-full bg-info text-info-foreground hover:bg-info/90"
-          >
-            {generateMutation.isPending ? (
-              <Loader2 className="mr-2 size-4 animate-spin" />
-            ) : (
-              <FileText className="mr-2 size-4" />
+          <div className="flex flex-col gap-2">
+            <Button
+              onClick={handleGenerate}
+              disabled={isPending}
+              className="w-full bg-info text-info-foreground hover:bg-info/90"
+            >
+              {generateMutation.isPending ? (
+                <Loader2 className="mr-2 size-4 animate-spin" />
+              ) : (
+                <FileText className="mr-2 size-4" />
+              )}
+              สร้าง PDF ({DOCUMENT_TYPE_LABELS[type]})
+            </Button>
+
+            {hasCycle && (
+              <Button
+                variant="outline"
+                onClick={handleGenerateAll}
+                disabled={isPending}
+                className="w-full"
+              >
+                {generateAllMutation.isPending ? (
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                ) : (
+                  <FileText className="mr-2 size-4" />
+                )}
+                สร้างทั้ง 4 ประเภท
+              </Button>
             )}
-            สร้าง PDF
-          </Button>
+          </div>
         </FieldGroup>
       </CardContent>
     </Card>

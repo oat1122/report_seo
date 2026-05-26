@@ -12,9 +12,34 @@ export interface BillingDocument {
   billingCycleId: string | null;
 }
 
-export interface BillingDocumentWithCustomer extends BillingDocument {
+export interface BillingDocumentWithCycle extends BillingDocument {
+  billingCycle: {
+    cycleNumber: number;
+    dueDate: Date;
+    paidDate: Date | null;
+    amount: number;
+    plan: {
+      id: string;
+      description: string;
+    };
+  } | null;
+}
+
+export interface AdminBillingDocument extends BillingDocument {
   customer: {
+    id: string;
+    userId: string;
     name: string;
     domain: string;
   };
+  billingCycle: {
+    cycleNumber: number;
+    dueDate: Date;
+    paidDate: Date | null;
+    amount: number;
+    plan: {
+      id: string;
+      description: string;
+    };
+  } | null;
 }

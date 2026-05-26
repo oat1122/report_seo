@@ -109,7 +109,7 @@ export interface ItemData {
   unitPrice: number;
 }
 
-function resolveLogoSrc(logoUrl: string): string {
+export function resolveLogoSrc(logoUrl: string): string {
   const trimmed = logoUrl.startsWith("/") ? logoUrl.slice(1) : logoUrl;
   const absolutePath = path.resolve(process.cwd(), "public", trimmed);
   try {

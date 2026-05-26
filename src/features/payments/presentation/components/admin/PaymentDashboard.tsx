@@ -5,9 +5,7 @@ import { PaymentPlanList } from "./PaymentPlanList";
 import { BillingCycleTable } from "./BillingCycleTable";
 import { ContractFileUpload } from "./ContractFileUpload";
 import { ProofReviewList } from "./ProofReviewList";
-import { DocumentItemEditor } from "@/features/billing-documents/presentation/components/admin/DocumentItemEditor";
-import { DocumentGeneratorPanel } from "@/features/billing-documents/presentation/components/admin/DocumentGeneratorPanel";
-import { DocumentList } from "@/features/billing-documents/presentation/components/admin/DocumentList";
+import { CycleDocumentView } from "@/features/billing-documents/presentation/components/admin/CycleDocumentView";
 
 interface PaymentDashboardProps {
   customerId: string;
@@ -41,15 +39,7 @@ export function PaymentDashboard({ customerId }: PaymentDashboardProps) {
       </TabsContent>
 
       <TabsContent value="documents" className="mt-6">
-        <div className="flex flex-col gap-6">
-          <DocumentItemEditor customerId={customerId} />
-          <div className="grid gap-6 lg:grid-cols-3">
-            <div className="lg:col-span-2">
-              <DocumentList customerId={customerId} />
-            </div>
-            <DocumentGeneratorPanel customerId={customerId} />
-          </div>
-        </div>
+        <CycleDocumentView customerId={customerId} />
       </TabsContent>
     </Tabs>
   );

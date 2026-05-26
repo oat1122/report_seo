@@ -1,6 +1,7 @@
 "use client";
 
-import { Download, Loader2, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { Download, Loader2, Pencil, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,8 +20,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useListDocuments, useDeleteDocument } from "../../hooks/useDocuments";
+import { EditDocumentDialog } from "./EditDocumentDialog";
 import { DOCUMENT_TYPE_LABELS } from "../../../domain/DocumentType";
 import type { BillingDocumentType } from "../../../domain/DocumentType";
+import type { BillingDocument } from "../../../domain/BillingDocument";
 
 interface Props {
   customerId: string;
@@ -29,6 +32,7 @@ interface Props {
 export function DocumentList({ customerId }: Props) {
   const { data: documents = [], isLoading } = useListDocuments(customerId);
   const deleteMutation = useDeleteDocument(customerId);
+  const [editingDoc, setEditingDoc] = useState<BillingDocument | null>(null);
 
   const handleDelete = (documentId: string, docNumber: string) => {
     if (!confirm(`ต้องการลบเอกสาร ${docNumber} ใช่หรือไม่?`)) return;
@@ -61,7 +65,7 @@ export function DocumentList({ customerId }: Props) {
               <TableHead>ประเภท</TableHead>
               <TableHead className="text-right">จำนวนเงิน</TableHead>
               <TableHead>วันที่สร้าง</TableHead>
-              <TableHead className="w-24" />
+              <TableHead className="w-28" />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -102,6 +106,13 @@ export function DocumentList({ customerId }: Props) {
                     <Button
                       variant="ghost"
                       size="icon-sm"
+                      onClick={() => setEditingDoc(doc)}
+                    >
+                      <Pencil className="size-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
                       onClick={() =>
                         handleDelete(doc.id, doc.documentNumber)
                       }
@@ -126,6 +137,17 @@ export function DocumentList({ customerId }: Props) {
           </TableBody>
         </Table>
       </CardContent>
+
+      {editingDoc && (
+        <EditDocumentDialog
+          document={editingDoc}
+          customerId={customerId}
+          open={!!editingDoc}
+          onOpenChange={(open) => {
+            if (!open) setEditingDoc(null);
+          }}
+        />
+      )}
     </Card>
   );
 }
