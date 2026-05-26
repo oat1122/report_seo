@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Eye, EyeOff, Pencil } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { useSession } from "next-auth/react";
 import { Role } from "@/types/auth";
 import { User, UserFormState } from "@/types/user";
@@ -203,6 +204,43 @@ export const UserModal: React.FC<UserModalProps> = ({
                     value={currentUser.domain || ""}
                     onChange={handleInputChange}
                     required={!isEditing}
+                  />
+                </Field>
+
+                <Field>
+                  <Label htmlFor="customer-contactName">ชื่อผู้ติดต่อ</Label>
+                  <Input
+                    id="customer-contactName"
+                    name="contactName"
+                    value={currentUser.contactName || ""}
+                    onChange={handleInputChange}
+                    placeholder="ชื่อ-นามสกุล ผู้ติดต่อ"
+                  />
+                </Field>
+
+                <Field>
+                  <Label htmlFor="customer-address">
+                    ที่อยู่ (สำหรับออกเอกสาร)
+                  </Label>
+                  <Textarea
+                    id="customer-address"
+                    name="address"
+                    value={currentUser.address || ""}
+                    onChange={handleInputChange}
+                    rows={2}
+                    placeholder="ที่อยู่สำหรับออกใบแจ้งหนี้ / ใบเสร็จ"
+                  />
+                </Field>
+
+                <Field>
+                  <Label htmlFor="customer-taxId">เลขผู้เสียภาษี</Label>
+                  <Input
+                    id="customer-taxId"
+                    name="taxId"
+                    value={currentUser.taxId || ""}
+                    onChange={handleInputChange}
+                    placeholder="0000000000000"
+                    maxLength={13}
                   />
                 </Field>
 

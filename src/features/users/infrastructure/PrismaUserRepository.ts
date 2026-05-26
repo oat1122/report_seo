@@ -17,7 +17,14 @@ const adminUserSelect = {
   createdAt: true,
   deletedAt: true,
   customerProfile: {
-    select: { name: true, domain: true, seoDevId: true },
+    select: {
+      name: true,
+      domain: true,
+      seoDevId: true,
+      address: true,
+      taxId: true,
+      contactName: true,
+    },
   },
 } as const;
 
@@ -117,6 +124,9 @@ export class PrismaUserRepository implements UserRepository {
           domain: data.domain!,
           userId: newUser.id,
           seoDevId: data.seoDevId || null,
+          address: data.address || null,
+          taxId: data.taxId || null,
+          contactName: data.contactName || null,
         },
       });
 
@@ -146,9 +156,9 @@ export class PrismaUserRepository implements UserRepository {
     data: UserUpdateInput,
     options: { existingCustomerProfile: boolean },
   ): Promise<User> {
-    const { name, email, role, companyName, domain, seoDevId } = data;
+    const { name, email, role, companyName, domain, seoDevId, address, taxId, contactName } = data;
     const isCustomerWithProfile =
-      role === Role.CUSTOMER && (companyName || domain);
+      role === Role.CUSTOMER && (companyName || domain || address !== undefined || taxId !== undefined || contactName !== undefined);
 
     if (!isCustomerWithProfile) {
       return prisma.user.update({
@@ -169,12 +179,18 @@ export class PrismaUserRepository implements UserRepository {
         name?: string;
         domain?: string;
         seoDevId?: string | null;
+        address?: string | null;
+        taxId?: string | null;
+        contactName?: string | null;
       } = {};
       if (companyName) customerData.name = companyName;
       if (domain) customerData.domain = domain;
       if (seoDevId !== undefined) {
         customerData.seoDevId = seoDevId === "" ? null : seoDevId;
       }
+      if (address !== undefined) customerData.address = address || null;
+      if (taxId !== undefined) customerData.taxId = taxId || null;
+      if (contactName !== undefined) customerData.contactName = contactName || null;
 
       if (options.existingCustomerProfile) {
         await tx.customer.update({
@@ -188,6 +204,9 @@ export class PrismaUserRepository implements UserRepository {
             domain: domain!,
             userId: id,
             seoDevId: seoDevId || null,
+            address: address || null,
+            taxId: taxId || null,
+            contactName: contactName || null,
           },
         });
       }

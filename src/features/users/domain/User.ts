@@ -6,6 +6,9 @@ export interface CustomerProfile {
   name: string;
   domain: string;
   seoDevId?: string | null;
+  address?: string | null;
+  taxId?: string | null;
+  contactName?: string | null;
 }
 
 export interface User {

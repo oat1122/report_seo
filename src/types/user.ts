@@ -6,6 +6,9 @@ export interface CustomerProfile {
   name?: string;
   domain?: string;
   seoDevId?: string | null;
+  address?: string | null;
+  taxId?: string | null;
+  contactName?: string | null;
 }
 
 export interface User {
@@ -27,4 +30,7 @@ export interface UserFormState extends Partial<User> {
   companyName?: string;
   domain?: string;
   seoDevId?: string | null;
+  address?: string;
+  taxId?: string;
+  contactName?: string;
 }

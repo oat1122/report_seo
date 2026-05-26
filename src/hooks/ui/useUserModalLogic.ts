@@ -37,6 +37,9 @@ export const useUserModalLogic = () => {
           companyName: apiUserData.customerProfile?.name || "",
           domain: apiUserData.customerProfile?.domain || "",
           seoDevId: apiUserData.customerProfile?.seoDevId || null,
+          address: apiUserData.customerProfile?.address || "",
+          taxId: apiUserData.customerProfile?.taxId || "",
+          contactName: apiUserData.customerProfile?.contactName || "",
         };
         dispatch(openUserModal(flattenedData));
       } catch (err) {

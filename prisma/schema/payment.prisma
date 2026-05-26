@@ -54,7 +54,8 @@ model BillingCycle {
   planId String
   plan   PaymentPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
 
-  proofs PaymentProof[]
+  proofs    PaymentProof[]
+  documents BillingDocument[]
 
   @@index([planId])
   @@index([dueDate])

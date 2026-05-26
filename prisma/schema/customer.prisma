@@ -10,6 +10,10 @@ model Customer {
   seoDevId String?
   seoDev   User?     @relation("SeoDevCustomers", fields: [seoDevId], references: [id])
 
+  address     String?  @db.Text
+  taxId       String?
+  contactName String?
+
   reports         KeywordReport[]
   metrics         OverallMetrics?
   metricsHistory  OverallMetricsHistory[] @relation("MetricsHistory")
@@ -19,6 +23,8 @@ model Customer {
   recommendations KeywordRecommend[]
   aiOverviews     AiOverview[]
   workProgressPlans WorkProgressPlan[]
+  documentItems    DocumentItem[]
+  billingDocuments BillingDocument[]
 
   @@map("customer")
 }

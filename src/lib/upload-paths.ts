@@ -6,6 +6,8 @@ export const UPLOAD_DIRS = {
   payments: "payments",
   "work-progress": "work-progress",
   contracts: "contracts",
+  documents: "documents",
+  "company-logo": "company-logo",
 } as const;
 
 export type UploadCategory = keyof typeof UPLOAD_DIRS;

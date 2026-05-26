@@ -10,6 +10,9 @@ export const userCreateSchema = z
     companyName: z.string().trim().min(1).optional(),
     domain: z.string().trim().min(1).optional(),
     seoDevId: z.uuid().nullable().optional(),
+    address: z.string().trim().max(500).optional(),
+    taxId: z.string().trim().max(13).optional(),
+    contactName: z.string().trim().max(100).optional(),
   })
   .strict()
   .refine(
@@ -40,6 +43,9 @@ export const userUpdateSchema = z
     companyName: z.string().trim().min(1).optional(),
     domain: z.string().trim().min(1).optional(),
     seoDevId: z.uuid().nullable().optional(),
+    address: z.string().trim().max(500).optional(),
+    taxId: z.string().trim().max(13).optional(),
+    contactName: z.string().trim().max(100).optional(),
   })
   .strict();
 

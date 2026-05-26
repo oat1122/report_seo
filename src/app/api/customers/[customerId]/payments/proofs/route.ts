@@ -67,7 +67,7 @@ export const POST = withApiHandler(
           actorId: ctx.customer.userId,
           title: "อัปโหลดหลักฐานชำระเงิน",
           body: "ลูกค้าอัปโหลดหลักฐานการชำระเงิน รอตรวจสอบ",
-          metadata: { url: `/admin/payments` },
+          metadata: { url: `/admin/customers/${params.customerId}/payments` },
         }).catch(() => {});
       }
     }).catch(() => {});
