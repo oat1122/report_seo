@@ -34,6 +34,7 @@ export function useNotifications() {
       const { page, totalPages } = lastPage.pagination;
       return page < totalPages ? page + 1 : undefined;
     },
+    staleTime: 60_000,
   });
 }
 
@@ -47,6 +48,7 @@ export function useUnreadCount() {
       return data.data.count;
     },
     refetchInterval: 60_000,
+    staleTime: 30_000,
   });
 }
 
@@ -98,6 +100,7 @@ export function useNotificationPreferences() {
       );
       return data.data;
     },
+    staleTime: 5 * 60_000,
   });
 }
 

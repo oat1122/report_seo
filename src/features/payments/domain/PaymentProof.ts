@@ -8,6 +8,7 @@ export interface PaymentProof {
   uploadUrl: string;
   uploadDate: Date;
   status: PaymentStatus;
+  billingCycleId: string | null;
 }
 
 export interface PaymentProofWithCustomer extends PaymentProof {

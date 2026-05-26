@@ -35,6 +35,27 @@ enum PaymentStatus {
   REJECTED
 }
 
+// กำหนดประเภทแผนชำระเงิน
+enum PaymentPlanType {
+  MONTHLY     // รายเดือน เรียกเก็บวันที่กำหนดทุกเดือน
+  INSTALLMENT // ผ่อนชำระ จำนวนงวดคงที่
+}
+
+// กำหนดสถานะแผนชำระเงิน
+enum PaymentPlanStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+// กำหนดสถานะรอบจ่ายเงิน
+enum BillingCycleStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
 // กำหนดประเภทของช่วงเวลาในแผนงาน (Work Progress Plan)
 enum WorkProgressPeriodType {
   YEAR_12_MONTHS  // แผนรายปี แบ่ง 12 เดือน
@@ -106,6 +127,8 @@ model Customer {
   metrics         OverallMetrics?     // ลูกค้า 1 คน มีข้อมูลภาพรวมล่าสุดได้ 1 ชุด
   metricsHistory  OverallMetricsHistory[] @relation("MetricsHistory") // ประวัติการเปลี่ยนแปลง Metrics
   payments        PaymentProof[]      // ลูกค้า 1 คน มีประวัติการชำระเงินได้หลายครั้ง
+  paymentPlans    PaymentPlan[]       // แผนชำระเงินของลูกค้า
+  contractFiles   ContractFile[]      // ไฟล์สัญญาของลูกค้า
   recommendations KeywordRecommend[]  // ลูกค้า 1 คน มี Keyword แนะนำได้หลายรายการ
   aiOverviews     AiOverview[]        // ลูกค้า 1 คน มี AI Overview ได้หลายรายการ
   workProgressPlans WorkProgressPlan[] // แผนงาน SEO ของลูกค้า (Phase 1+)
@@ -216,7 +239,76 @@ model PaymentProof {
   customerId String
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
+  // ผูกกับรอบจ่ายเงิน (optional เพื่อ backward compat)
+  billingCycleId String?
+  billingCycle   BillingCycle? @relation(fields: [billingCycleId], references: [id], onDelete: SetNull)
+
+  @@index([billingCycleId])
   @@map("paymentproof")
+}
+
+// 5.1 แผนชำระเงิน (สัญญา)
+//     - ADMIN สร้างให้ลูกค้า กำหนดรอบเก็บเงินรายเดือนหรือผ่อนจำนวนครั้ง
+model PaymentPlan {
+  id                String            @id @default(uuid())
+  type              PaymentPlanType   // MONTHLY หรือ INSTALLMENT
+  amount            Decimal           @db.Decimal(10, 2) // จำนวนเงินต่อรอบ
+  description       String            @db.Text // ชื่อแพ็กเกจ/บริการ
+  billingDay        Int?              // วันที่เก็บเงิน 1-31 (ใช้กับ MONTHLY)
+  totalInstallments Int?              // จำนวนงวดทั้งหมด (ใช้กับ INSTALLMENT)
+  startDate         DateTime
+  endDate           DateTime?
+  status            PaymentPlanStatus @default(ACTIVE)
+  note              String?           @db.Text
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  billingCycles BillingCycle[]
+
+  @@index([customerId])
+  @@index([customerId, status])
+  @@map("paymentplan")
+}
+
+// 5.2 รอบจ่ายเงิน (งวด)
+//     - auto-generated จาก PaymentPlan เมื่อสร้างแผน
+model BillingCycle {
+  id          String             @id @default(uuid())
+  cycleNumber Int                // ลำดับงวดที่ 1, 2, 3...
+  dueDate     DateTime           // วันครบกำหนดชำระ
+  amount      Decimal            @db.Decimal(10, 2)
+  status      BillingCycleStatus @default(PENDING)
+  paidDate    DateTime?
+  note        String?            @db.Text
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  planId String
+  plan   PaymentPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  proofs PaymentProof[]
+
+  @@index([planId])
+  @@index([dueDate])
+  @@map("billingcycle")
+}
+
+// 5.3 ไฟล์สัญญา
+//     - ADMIN อัปโหลดไฟล์สัญญาผูกกับลูกค้า (PDF/DOC/DOCX)
+model ContractFile {
+  id         String   @id @default(uuid())
+  fileUrl    String   // URL เช่น /uploads/contracts/xxx.pdf
+  fileName   String   // ชื่อไฟล์ต้นฉบับ
+  uploadDate DateTime @default(now())
+
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@map("contractfile")
 }
 
 // 6. Keyword แนะนำสำหรับลูกค้า

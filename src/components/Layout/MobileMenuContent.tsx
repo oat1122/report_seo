@@ -10,7 +10,7 @@ import { useState } from "react";
 import { useGetCombinedHistory } from "@/hooks/api/useCustomersApi";
 import { HistoryModal } from "@/features/users/presentation/components/MetricsModal/HistoryModal";
 import { ThemeToggle } from "./ThemeToggle";
-import { NotificationBell } from "@/features/notifications/presentation/components/NotificationBell";
+import { NotificationBell } from "@/features/notifications";
 
 interface MobileMenuContentProps {
   userName: string;

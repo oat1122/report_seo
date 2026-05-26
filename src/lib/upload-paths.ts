@@ -5,6 +5,7 @@ export const UPLOAD_DIRS = {
   "ai-overview": "ai-overview",
   payments: "payments",
   "work-progress": "work-progress",
+  contracts: "contracts",
 } as const;
 
 export type UploadCategory = keyof typeof UPLOAD_DIRS;

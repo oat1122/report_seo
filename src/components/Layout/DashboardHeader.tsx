@@ -19,7 +19,7 @@ import { UserMenu } from "./UserMenu";
 import { HistoryButton } from "./HistoryButton";
 import { MobileMenuContent } from "./MobileMenuContent";
 import { ThemeToggle } from "./ThemeToggle";
-import { NotificationBell } from "@/features/notifications/presentation/components/NotificationBell";
+import { NotificationBell } from "@/features/notifications";
 
 export const DashboardHeader = () => {
   const { data: session, status } = useSession();

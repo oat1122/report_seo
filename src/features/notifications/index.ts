@@ -47,3 +47,6 @@ export {
   type NotificationType,
 } from "./domain/NotificationTypes";
 export type { PreferenceWithLabel } from "./application/use-cases/getPreferences";
+
+export { NotificationBell } from "./presentation/components/NotificationBell";
+export { NotificationSocketInit } from "./presentation/components/NotificationSocketInit";

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { th } from "date-fns/locale";
 import { Trash2 } from "lucide-react";
@@ -18,13 +19,19 @@ export function NotificationItem({
   onMarkRead,
   onDelete,
 }: NotificationItemProps) {
+  const router = useRouter();
+
   const handleClick = () => {
     if (!notification.isRead) {
       onMarkRead(notification.id);
     }
     const url = (notification.metadata as Record<string, unknown> | null)?.url;
     if (typeof url === "string") {
-      window.location.href = url;
+      if (url.startsWith("/")) {
+        router.push(url);
+      } else {
+        window.location.href = url;
+      }
     }
   };
 

@@ -23,7 +23,7 @@ export function getPreferencesUseCase(
     const allTypes = Object.values(NOTIFICATION_TYPES) as NotificationType[];
     return allTypes.map((type) => ({
       type,
-      enabled: map.has(type) ? map.get(type)!.enabled : true,
+      enabled: map.get(type)?.enabled ?? true,
     }));
   };
 }

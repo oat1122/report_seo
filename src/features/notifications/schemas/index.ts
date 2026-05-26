@@ -1,5 +1,11 @@
 import { z } from "zod";
 import { paginationQuerySchema } from "@/lib/pagination";
+import { NOTIFICATION_TYPES } from "../domain/NotificationTypes";
+
+const notificationTypeValues = Object.values(NOTIFICATION_TYPES) as [
+  string,
+  ...string[],
+];
 
 export const listNotificationsQuerySchema = paginationQuerySchema.extend({
   unreadOnly: z.coerce.boolean().optional().default(false),
@@ -17,7 +23,7 @@ export const updatePreferencesSchema = z.object({
   items: z
     .array(
       z.object({
-        type: z.string().min(1),
+        type: z.enum(notificationTypeValues),
         enabled: z.boolean(),
       }),
     )
@@ -27,7 +33,7 @@ export const updatePreferencesSchema = z.object({
 export type UpdatePreferencesInput = z.infer<typeof updatePreferencesSchema>;
 
 export const createNotificationSchema = z.object({
-  type: z.string().min(1),
+  type: z.enum(notificationTypeValues),
   recipientUserIds: z.array(z.uuid()).min(1),
   actorId: z.uuid().optional(),
   title: z.string().min(1).max(200),

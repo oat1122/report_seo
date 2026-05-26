@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 import {
   Dialog,
@@ -35,16 +35,22 @@ export function NotificationPreferencesDialog({
   const [localState, setLocalState] = useState<
     Record<string, boolean>
   >({});
+  const initializedRef = useRef(false);
 
   useEffect(() => {
-    if (preferences) {
+    if (!open) {
+      initializedRef.current = false;
+      return;
+    }
+    if (preferences && !initializedRef.current) {
       const state: Record<string, boolean> = {};
       for (const pref of preferences) {
         state[pref.type] = pref.enabled;
       }
       setLocalState(state);
+      initializedRef.current = true;
     }
-  }, [preferences]);
+  }, [preferences, open]);
 
   const handleToggle = (type: string) => {
     setLocalState((prev) => ({ ...prev, [type]: !prev[type] }));

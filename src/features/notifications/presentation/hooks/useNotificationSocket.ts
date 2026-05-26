@@ -8,10 +8,13 @@ import { toast } from "sonner";
 import type { Notification } from "../../domain/Notification";
 import { NOTIFICATION_QUERY_KEYS } from "./useNotifications";
 
+const MAX_RECONNECT_ATTEMPTS = 3;
+
 export function useNotificationSocket() {
   const { status } = useSession();
   const queryClient = useQueryClient();
   const socketRef = useRef<Socket | null>(null);
+  const failCountRef = useRef(0);
 
   const handleNewNotification = useCallback(
     (notification: Notification) => {
@@ -36,12 +39,20 @@ export function useNotificationSocket() {
       path: "/api/socket",
       withCredentials: true,
       transports: ["websocket", "polling"],
+      reconnectionAttempts: MAX_RECONNECT_ATTEMPTS,
     });
 
     socket.on("notification:new", handleNewNotification);
 
-    socket.on("connect_error", (err) => {
-      console.error("Socket connection error:", err.message);
+    socket.on("connect", () => {
+      failCountRef.current = 0;
+    });
+
+    socket.on("connect_error", () => {
+      failCountRef.current += 1;
+      if (failCountRef.current >= MAX_RECONNECT_ATTEMPTS) {
+        socket.disconnect();
+      }
     });
 
     socketRef.current = socket;
