@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Clock, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
+import { Clock, CheckCircle, AlertTriangle, XCircle, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,6 +23,7 @@ interface MyBillingCyclesProps {
 
 const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive"; icon: typeof Clock }> = {
   PENDING: { label: "รอชำระ", variant: "outline", icon: Clock },
+  REVIEWING: { label: "กำลังตรวจสอบหลักฐาน", variant: "default", icon: Search },
   PAID: { label: "ชำระแล้ว", variant: "secondary", icon: CheckCircle },
   OVERDUE: { label: "เกินกำหนด", variant: "destructive", icon: AlertTriangle },
   CANCELLED: { label: "ยกเลิก", variant: "default", icon: XCircle },

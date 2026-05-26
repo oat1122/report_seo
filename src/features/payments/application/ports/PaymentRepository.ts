@@ -35,7 +35,7 @@ export interface UpdatePlanData {
 }
 
 export interface UpdateCycleData {
-  status: "PENDING" | "PAID" | "OVERDUE" | "CANCELLED";
+  status: "PENDING" | "REVIEWING" | "PAID" | "OVERDUE" | "CANCELLED";
   paidDate?: Date | null | undefined;
   note?: string | null | undefined;
 }

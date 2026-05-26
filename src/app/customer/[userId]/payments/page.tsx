@@ -1,6 +1,9 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { requireCustomer } from "@/lib/auth-utils";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
+import { Button } from "@/components/ui/button";
 import { CustomerPaymentPage } from "@/features/payments/presentation/components/customer/CustomerPaymentPage";
 
 export const metadata = {
@@ -19,6 +22,12 @@ export default async function CustomerPaymentsPage({ params }: PageProps) {
   return (
     <DashboardLayout>
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8">
+        <Button variant="ghost" size="sm" className="w-fit" asChild>
+          <Link href="/customer">
+            <ArrowLeft className="mr-1.5 size-4" />
+            กลับหน้าหลัก
+          </Link>
+        </Button>
         <header className="flex flex-col gap-1">
           <h1 className="text-2xl font-semibold tracking-tight">
             การชำระเงิน

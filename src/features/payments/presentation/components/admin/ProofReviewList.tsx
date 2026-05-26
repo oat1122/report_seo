@@ -77,6 +77,12 @@ export function ProofReviewList({ customerId }: ProofReviewListProps) {
                   </Badge>
                 </div>
 
+                {proof.billingCycle && (
+                  <p className="text-xs text-muted-foreground">
+                    งวดที่ {proof.billingCycle.cycleNumber} — {proof.billingCycle.plan.description}
+                  </p>
+                )}
+
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={proof.uploadUrl}

@@ -51,6 +51,7 @@ enum PaymentPlanStatus {
 // กำหนดสถานะรอบจ่ายเงิน
 enum BillingCycleStatus {
   PENDING
+  REVIEWING
   PAID
   OVERDUE
   CANCELLED

@@ -60,7 +60,7 @@ export type ListPaymentPlansQuery = z.infer<typeof listPaymentPlansQuerySchema>;
 // --- Billing Cycle ---
 
 export const updateBillingCycleSchema = z.object({
-  status: z.enum(["PENDING", "PAID", "OVERDUE", "CANCELLED"]),
+  status: z.enum(["PENDING", "REVIEWING", "PAID", "OVERDUE", "CANCELLED"]),
   paidDate: z.coerce.date().optional().nullable(),
   note: z.string().max(2000).optional().nullable(),
 });

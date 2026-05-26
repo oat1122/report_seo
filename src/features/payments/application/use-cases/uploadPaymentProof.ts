@@ -12,7 +12,16 @@ export function uploadPaymentProofUseCase(
   ) => {
     const saved = await storage.validateAndWrite(file);
     try {
-      return await repo.createProof(customerInternalId, saved.url, billingCycleId);
+      const proof = await repo.createProof(customerInternalId, saved.url, billingCycleId);
+
+      if (billingCycleId) {
+        const cycle = await repo.findCycleById(billingCycleId);
+        if (cycle && (cycle.status === "PENDING" || cycle.status === "OVERDUE")) {
+          await repo.updateCycle(billingCycleId, { status: "REVIEWING" });
+        }
+      }
+
+      return proof;
     } catch (error) {
       await storage.removeByAbsolutePath(saved.absolutePath);
       throw error;

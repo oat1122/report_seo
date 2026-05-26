@@ -8,10 +8,10 @@ export function approveRejectProofUseCase(repo: PaymentRepository) {
 
     const updated = await repo.updateProofStatus(proofId, status);
 
-    // ถ้า approve + ผูกกับ billing cycle → auto-mark cycle เป็น PAID
-    if (status === "APPROVED" && proof.billingCycleId) {
+    if (proof.billingCycleId) {
       const cycle = await repo.findCycleById(proof.billingCycleId);
-      if (cycle && cycle.status === "PENDING") {
+
+      if (status === "APPROVED" && cycle && (cycle.status === "PENDING" || cycle.status === "REVIEWING")) {
         await repo.updateCycle(proof.billingCycleId, {
           status: "PAID",
           paidDate: new Date(),
@@ -21,6 +21,10 @@ export function approveRejectProofUseCase(repo: PaymentRepository) {
         if (pendingCount === 0) {
           await repo.completePlan(cycle.planId);
         }
+      }
+
+      if (status === "REJECTED" && cycle && cycle.status === "REVIEWING") {
+        await repo.updateCycle(proof.billingCycleId, { status: "PENDING" });
       }
     }
 

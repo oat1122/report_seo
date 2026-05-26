@@ -6,6 +6,7 @@ import {
   Clock,
   XCircle,
   AlertTriangle,
+  Search,
   Undo2,
   Upload,
 } from "lucide-react";
@@ -31,6 +32,7 @@ interface BillingCycleTableProps {
 
 const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive"; icon: typeof Clock }> = {
   PENDING: { label: "รอชำระ", variant: "outline", icon: Clock },
+  REVIEWING: { label: "กำลังตรวจสอบหลักฐาน", variant: "default", icon: Search },
   PAID: { label: "ชำระแล้ว", variant: "secondary", icon: CheckCircle },
   OVERDUE: { label: "เกินกำหนด", variant: "destructive", icon: AlertTriangle },
   CANCELLED: { label: "ยกเลิก", variant: "default", icon: XCircle },
@@ -156,7 +158,8 @@ export function BillingCycleTable({ customerId, planId }: BillingCycleTableProps
                           </Button>
                         </>
                       )}
-                      {(cycle.status === "PAID" ||
+                      {(cycle.status === "REVIEWING" ||
+                        cycle.status === "PAID" ||
                         cycle.status === "OVERDUE" ||
                         cycle.status === "CANCELLED") && (
                         <Button

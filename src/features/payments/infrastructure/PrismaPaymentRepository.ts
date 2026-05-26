@@ -55,6 +55,12 @@ export class PrismaPaymentRepository implements PaymentRepository {
       where,
       include: {
         customer: { select: { id: true, name: true, domain: true } },
+        billingCycle: {
+          select: {
+            cycleNumber: true,
+            plan: { select: { description: true } },
+          },
+        },
       },
       orderBy: { uploadDate: "desc" },
     });
@@ -62,6 +68,9 @@ export class PrismaPaymentRepository implements PaymentRepository {
     return rows.map((r) => ({
       ...r,
       billingCycleId: r.billingCycleId ?? null,
+      billingCycle: r.billingCycle
+        ? { cycleNumber: r.billingCycle.cycleNumber, plan: r.billingCycle.plan }
+        : null,
     }));
   }
 
@@ -176,7 +185,7 @@ export class PrismaPaymentRepository implements PaymentRepository {
   async cancelPlan(planId: string): Promise<PaymentPlan> {
     const row = await prisma.$transaction(async (tx) => {
       await tx.billingCycle.updateMany({
-        where: { planId, status: "PENDING" },
+        where: { planId, status: { in: ["PENDING", "REVIEWING"] } },
         data: { status: "CANCELLED" },
       });
 
@@ -248,14 +257,14 @@ export class PrismaPaymentRepository implements PaymentRepository {
 
   async updatePendingCyclesAmount(planId: string, amount: number): Promise<void> {
     await prisma.billingCycle.updateMany({
-      where: { planId, status: { in: ["PENDING", "OVERDUE"] } },
+      where: { planId, status: { in: ["PENDING", "REVIEWING", "OVERDUE"] } },
       data: { amount },
     });
   }
 
   async countPendingCyclesByPlan(planId: string): Promise<number> {
     return prisma.billingCycle.count({
-      where: { planId, status: { in: ["PENDING", "OVERDUE"] } },
+      where: { planId, status: { in: ["PENDING", "REVIEWING", "OVERDUE"] } },
     });
   }
 

@@ -17,4 +17,8 @@ export interface PaymentProofWithCustomer extends PaymentProof {
     name: string;
     domain: string;
   };
+  billingCycle: {
+    cycleNumber: number;
+    plan: { description: string };
+  } | null;
 }

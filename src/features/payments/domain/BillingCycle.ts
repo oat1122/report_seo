@@ -1,6 +1,6 @@
 import type { PaymentProof } from "./PaymentProof";
 
-export type BillingCycleStatus = "PENDING" | "PAID" | "OVERDUE" | "CANCELLED";
+export type BillingCycleStatus = "PENDING" | "REVIEWING" | "PAID" | "OVERDUE" | "CANCELLED";
 
 export interface BillingCycle {
   id: string;
