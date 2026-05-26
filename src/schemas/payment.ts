@@ -41,6 +41,8 @@ export type CreatePaymentPlanInput = z.infer<typeof createPaymentPlanSchema>;
 
 export const updatePaymentPlanSchema = z.object({
   description: z.string().min(1).max(500).optional(),
+  amount: z.number().positive().optional(),
+  billingDay: z.number().int().min(1).max(31).optional().nullable(),
   endDate: z.coerce.date().optional().nullable(),
   note: z.string().max(2000).optional().nullable(),
 });

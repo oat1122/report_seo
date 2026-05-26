@@ -1,6 +1,15 @@
 "use client";
 
-import { Loader2, CheckCircle, Clock, XCircle, AlertTriangle } from "lucide-react";
+import { useState } from "react";
+import {
+  Loader2,
+  CheckCircle,
+  Clock,
+  XCircle,
+  AlertTriangle,
+  Undo2,
+  Upload,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,6 +23,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useListBillingCycles, useUpdateBillingCycle } from "../../hooks/useBillingCycles";
+import { UploadProofDialog } from "../customer/UploadProofDialog";
 
 interface BillingCycleTableProps {
   customerId: string;
@@ -43,6 +53,7 @@ function formatCurrency(amount: number): string {
 }
 
 export function BillingCycleTable({ customerId, planId }: BillingCycleTableProps) {
+  const [uploadCycleId, setUploadCycleId] = useState<string | null>(null);
   const { data: cycles, isLoading } = useListBillingCycles(customerId, planId);
   const updateMutation = useUpdateBillingCycle();
 
@@ -62,6 +73,14 @@ export function BillingCycleTable({ customerId, planId }: BillingCycleTableProps
     });
   };
 
+  const handleRevertToPending = (cycleId: string) => {
+    updateMutation.mutate({
+      customerId,
+      cycleId,
+      data: { status: "PENDING", paidDate: null },
+    });
+  };
+
   if (isLoading) {
     return <Skeleton className="h-64 w-full" />;
   }
@@ -77,6 +96,7 @@ export function BillingCycleTable({ customerId, planId }: BillingCycleTableProps
   }
 
   return (
+    <>
     <Card>
       <CardContent className="p-0">
         <Table>
@@ -115,31 +135,49 @@ export function BillingCycleTable({ customerId, planId }: BillingCycleTableProps
                     {cycle.paidDate ? formatDate(cycle.paidDate) : "—"}
                   </TableCell>
                   <TableCell className="text-right">
-                    {cycle.status === "PENDING" && (
-                      <div className="flex justify-end gap-1">
+                    <div className="flex justify-end gap-1">
+                      {cycle.status === "PENDING" && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleMarkPaid(cycle.id)}
+                            disabled={updateMutation.isPending}
+                          >
+                            ชำระแล้ว
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-destructive"
+                            onClick={() => handleMarkOverdue(cycle.id)}
+                            disabled={updateMutation.isPending}
+                          >
+                            เกินกำหนด
+                          </Button>
+                        </>
+                      )}
+                      {(cycle.status === "PAID" ||
+                        cycle.status === "OVERDUE" ||
+                        cycle.status === "CANCELLED") && (
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => handleMarkPaid(cycle.id)}
+                          onClick={() => handleRevertToPending(cycle.id)}
                           disabled={updateMutation.isPending}
                         >
-                          {updateMutation.isPending ? (
-                            <Loader2 className="size-3 animate-spin" />
-                          ) : (
-                            "ชำระแล้ว"
-                          )}
+                          <Undo2 className="mr-1 size-3" />
+                          ย้อนสถานะ
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-destructive"
-                          onClick={() => handleMarkOverdue(cycle.id)}
-                          disabled={updateMutation.isPending}
-                        >
-                          เกินกำหนด
-                        </Button>
-                      </div>
-                    )}
+                      )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setUploadCycleId(cycle.id)}
+                      >
+                        <Upload className="size-3" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               );
@@ -148,5 +186,15 @@ export function BillingCycleTable({ customerId, planId }: BillingCycleTableProps
         </Table>
       </CardContent>
     </Card>
+
+    <UploadProofDialog
+      customerId={customerId}
+      billingCycleId={uploadCycleId}
+      open={!!uploadCycleId}
+      onOpenChange={(open) => {
+        if (!open) setUploadCycleId(null);
+      }}
+    />
+    </>
   );
 }

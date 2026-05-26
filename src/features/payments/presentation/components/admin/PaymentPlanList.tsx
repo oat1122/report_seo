@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -45,8 +45,14 @@ function formatCurrency(amount: number): string {
 
 export function PaymentPlanList({ customerId }: PaymentPlanListProps) {
   const [showForm, setShowForm] = useState(false);
+  const [editingPlan, setEditingPlan] = useState<PaymentPlan | null>(null);
   const { data: plans, isLoading } = useListPaymentPlans(customerId);
   const cancelMutation = useCancelPaymentPlan();
+
+  const handleEdit = (plan: PaymentPlan) => {
+    setEditingPlan(plan);
+    setShowForm(true);
+  };
 
   const handleCancel = (plan: PaymentPlan) => {
     if (!confirm("ยืนยันยกเลิกแผนชำระเงินนี้?")) return;
@@ -117,18 +123,28 @@ export function PaymentPlanList({ customerId }: PaymentPlanListProps) {
                   {plan.endDate && ` — สิ้นสุด ${formatDate(plan.endDate)}`}
                 </span>
                 {plan.status === "ACTIVE" && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-destructive"
-                    onClick={() => handleCancel(plan)}
-                    disabled={cancelMutation.isPending}
-                  >
-                    {cancelMutation.isPending && (
-                      <Loader2 className="mr-1 size-3 animate-spin" />
-                    )}
-                    ยกเลิก
-                  </Button>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(plan)}
+                    >
+                      <Pencil className="mr-1 size-3" />
+                      แก้ไข
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive"
+                      onClick={() => handleCancel(plan)}
+                      disabled={cancelMutation.isPending}
+                    >
+                      {cancelMutation.isPending && (
+                        <Loader2 className="mr-1 size-3 animate-spin" />
+                      )}
+                      ยกเลิก
+                    </Button>
+                  </div>
                 )}
               </div>
               {plan.note && (
@@ -142,7 +158,11 @@ export function PaymentPlanList({ customerId }: PaymentPlanListProps) {
       <PaymentPlanForm
         customerId={customerId}
         open={showForm}
-        onOpenChange={setShowForm}
+        onOpenChange={(open) => {
+          setShowForm(open);
+          if (!open) setEditingPlan(null);
+        }}
+        editPlan={editingPlan}
       />
     </div>
   );

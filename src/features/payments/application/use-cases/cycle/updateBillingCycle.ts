@@ -8,11 +8,18 @@ export function updateBillingCycleUseCase(repo: PaymentRepository) {
 
     const updated = await repo.updateCycle(cycleId, data);
 
-    // ถ้า mark PAID → ตรวจว่าทุกงวดใน plan จ่ายครบหรือยัง → auto-complete
     if (data.status === "PAID") {
       const pendingCount = await repo.countPendingCyclesByPlan(existing.planId);
       if (pendingCount === 0) {
         await repo.completePlan(existing.planId);
+      }
+    }
+
+    // ย้อนจาก PAID → PENDING/OVERDUE: ถ้า plan COMPLETED อยู่ → reactivate
+    if (existing.status === "PAID" && data.status !== "PAID") {
+      const plan = await repo.findPlanById(existing.planId);
+      if (plan?.status === "COMPLETED") {
+        await repo.reactivatePlan(existing.planId);
       }
     }
 

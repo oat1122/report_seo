@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,19 +19,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCreatePaymentPlan } from "../../hooks/usePaymentPlans";
+import {
+  useCreatePaymentPlan,
+  useUpdatePaymentPlan,
+} from "../../hooks/usePaymentPlans";
+import type { PaymentPlan } from "../../../index";
 
 interface PaymentPlanFormProps {
   customerId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  editPlan?: PaymentPlan | null;
 }
 
 export function PaymentPlanForm({
   customerId,
   open,
   onOpenChange,
+  editPlan,
 }: PaymentPlanFormProps) {
+  const isEdit = !!editPlan;
+
   const [type, setType] = useState<"MONTHLY" | "INSTALLMENT">("MONTHLY");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
@@ -43,6 +51,22 @@ export function PaymentPlanForm({
   const [note, setNote] = useState("");
 
   const createMutation = useCreatePaymentPlan();
+  const updateMutation = useUpdatePaymentPlan();
+  const isPending = createMutation.isPending || updateMutation.isPending;
+
+  useEffect(() => {
+    if (editPlan && open) {
+      setType(editPlan.type as "MONTHLY" | "INSTALLMENT");
+      setAmount(String(editPlan.amount));
+      setDescription(editPlan.description);
+      setBillingDay(String(editPlan.billingDay ?? 1));
+      setTotalInstallments(String(editPlan.totalInstallments ?? 12));
+      setStartDate(new Date(editPlan.startDate).toISOString().split("T")[0]);
+      setNote(editPlan.note ?? "");
+    } else if (!editPlan && open) {
+      resetForm();
+    }
+  }, [editPlan, open]);
 
   const resetForm = () => {
     setType("MONTHLY");
@@ -56,54 +80,79 @@ export function PaymentPlanForm({
 
   const handleSubmit = () => {
     const parsedAmount = parseFloat(amount);
-    if (!parsedAmount || !description.trim() || !startDate) return;
+    if (!parsedAmount || !description.trim()) return;
 
-    createMutation.mutate(
-      {
-        customerId,
-        plan: {
-          type,
-          amount: parsedAmount,
-          description: description.trim(),
-          billingDay: type === "MONTHLY" ? parseInt(billingDay, 10) : null,
-          totalInstallments:
-            type === "INSTALLMENT" ? parseInt(totalInstallments, 10) : null,
-          startDate: new Date(startDate),
-          note: note.trim() || null,
+    if (isEdit) {
+      updateMutation.mutate(
+        {
+          customerId,
+          planId: editPlan.id,
+          data: {
+            description: description.trim(),
+            amount: parsedAmount,
+            billingDay:
+              editPlan.type === "MONTHLY" ? parseInt(billingDay, 10) : null,
+            endDate: null,
+            note: note.trim() || null,
+          },
         },
-      },
-      {
-        onSuccess: () => {
-          resetForm();
-          onOpenChange(false);
+        { onSuccess: () => onOpenChange(false) },
+      );
+    } else {
+      if (!startDate) return;
+      createMutation.mutate(
+        {
+          customerId,
+          plan: {
+            type,
+            amount: parsedAmount,
+            description: description.trim(),
+            billingDay: type === "MONTHLY" ? parseInt(billingDay, 10) : null,
+            totalInstallments:
+              type === "INSTALLMENT" ? parseInt(totalInstallments, 10) : null,
+            startDate: new Date(startDate),
+            note: note.trim() || null,
+          },
         },
-      },
-    );
+        {
+          onSuccess: () => {
+            resetForm();
+            onOpenChange(false);
+          },
+        },
+      );
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>สร้างแผนชำระเงิน</DialogTitle>
+          <DialogTitle>
+            {isEdit ? "แก้ไขแผนชำระเงิน" : "สร้างแผนชำระเงิน"}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>ประเภท</Label>
-            <Select
-              value={type}
-              onValueChange={(v) => setType(v as "MONTHLY" | "INSTALLMENT")}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="MONTHLY">รายเดือน</SelectItem>
-                <SelectItem value="INSTALLMENT">ผ่อนชำระ (จำนวนงวด)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {!isEdit && (
+            <div className="space-y-2">
+              <Label>ประเภท</Label>
+              <Select
+                value={type}
+                onValueChange={(v) => setType(v as "MONTHLY" | "INSTALLMENT")}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="MONTHLY">รายเดือน</SelectItem>
+                  <SelectItem value="INSTALLMENT">
+                    ผ่อนชำระ (จำนวนงวด)
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label>ชื่อแพ็กเกจ / บริการ</Label>
@@ -126,7 +175,7 @@ export function PaymentPlanForm({
             />
           </div>
 
-          {type === "MONTHLY" && (
+          {(isEdit ? editPlan.type === "MONTHLY" : type === "MONTHLY") && (
             <div className="space-y-2">
               <Label>วันที่เก็บเงินทุกเดือน</Label>
               <Input
@@ -139,7 +188,7 @@ export function PaymentPlanForm({
             </div>
           )}
 
-          {type === "INSTALLMENT" && (
+          {!isEdit && type === "INSTALLMENT" && (
             <div className="space-y-2">
               <Label>จำนวนงวดทั้งหมด</Label>
               <Input
@@ -152,14 +201,16 @@ export function PaymentPlanForm({
             </div>
           )}
 
-          <div className="space-y-2">
-            <Label>วันเริ่มต้น</Label>
-            <Input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-            />
-          </div>
+          {!isEdit && (
+            <div className="space-y-2">
+              <Label>วันเริ่มต้น</Label>
+              <Input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label>หมายเหตุ (ไม่บังคับ)</Label>
@@ -178,12 +229,10 @@ export function PaymentPlanForm({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={createMutation.isPending || !amount || !description.trim()}
+            disabled={isPending || !amount || !description.trim()}
           >
-            {createMutation.isPending && (
-              <Loader2 className="mr-1 size-3 animate-spin" />
-            )}
-            สร้างแผน
+            {isPending && <Loader2 className="mr-1 size-3 animate-spin" />}
+            {isEdit ? "บันทึก" : "สร้างแผน"}
           </Button>
         </div>
       </DialogContent>

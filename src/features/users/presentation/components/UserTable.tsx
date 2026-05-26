@@ -9,6 +9,7 @@ import {
   ArchiveRestore,
   ClipboardList,
   Eye,
+  CreditCard,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { User } from "@/types/user";
@@ -180,6 +181,15 @@ export const UserTable: React.FC<UserTableProps> = ({
                 className="text-info hover:bg-info/10"
               >
                 <BarChart3 className="size-4" />
+              </ActionTooltipButton>
+            )}
+            {user.role === Role.CUSTOMER && !isSeoDevView && (
+              <ActionTooltipButton
+                label="จัดการการชำระเงิน"
+                href={`/admin/customers/${user.id}/payments`}
+                className="text-info hover:bg-info/10"
+              >
+                <CreditCard className="size-4" />
               </ActionTooltipButton>
             )}
             {!isSeoDevView && (

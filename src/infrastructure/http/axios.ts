@@ -8,9 +8,6 @@ interface ApiError {
 
 const axiosInstance = axios.create({
   baseURL: "/api",
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 axiosInstance.interceptors.response.use(

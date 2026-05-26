@@ -1,6 +1,7 @@
 "use client";
 
 import { BellOff, CheckCheck, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -13,10 +14,12 @@ import { NotificationItem } from "./NotificationItem";
 
 interface NotificationCenterProps {
   onOpenPreferences: () => void;
+  className?: string;
 }
 
 export function NotificationCenter({
   onOpenPreferences,
+  className,
 }: NotificationCenterProps) {
   const {
     data,
@@ -33,7 +36,7 @@ export function NotificationCenter({
   const isEmpty = !isLoading && notifications.length === 0;
 
   return (
-    <div className="flex w-80 flex-col sm:w-96">
+    <div className={cn("flex w-80 flex-col sm:w-96", className)}>
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3">
         <h3 className="text-sm font-semibold">การแจ้งเตือน</h3>

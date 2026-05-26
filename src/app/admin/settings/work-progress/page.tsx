@@ -1,8 +1,6 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { requireAdmin } from "@/lib/auth-utils";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
-import { Button } from "@/components/ui/button";
+import { BackButton } from "@/components/shared/BackButton";
 import { WorkProgressSettingsTabs } from "@/features/work-progress/presentation/components/WorkProgressSettingsTabs";
 
 export const metadata = {
@@ -15,11 +13,7 @@ export default async function WorkProgressSettingsPage() {
     <DashboardLayout>
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
         <div className="flex items-center gap-3">
-          <Button asChild variant="ghost" size="icon">
-            <Link href="/admin">
-              <ArrowLeft className="size-4" />
-            </Link>
-          </Button>
+          <BackButton />
           <header className="flex flex-col gap-1">
             <h1 className="text-2xl font-semibold tracking-tight">
               ตั้งค่า Work Progress

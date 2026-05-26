@@ -1,8 +1,13 @@
-import AdminDashboardPage from "@/components/Admin/subcomponents/dashboard/AdminDashboardPage";
-import React from "react";
+import { requireAdmin } from "@/lib/auth-utils";
+import { DashboardLayout } from "@/components/Layout/DashboardLayout";
+import { AdminHubClient } from "@/features/admin-hub/presentation/components/AdminHubClient";
 
-const AdminDashboard = () => {
-  return <AdminDashboardPage />;
-};
+export default async function AdminDashboard() {
+  await requireAdmin();
 
-export default AdminDashboard;
+  return (
+    <DashboardLayout>
+      <AdminHubClient />
+    </DashboardLayout>
+  );
+}

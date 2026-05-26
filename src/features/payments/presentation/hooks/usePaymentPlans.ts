@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "@/infrastructure/http/axios";
-import type { PaymentPlan, PaymentPlanWithCycles, CreatePaymentPlanInput } from "../../index";
+import type { PaymentPlan, PaymentPlanWithCycles, CreatePaymentPlanInput, UpdatePaymentPlanInput } from "../../index";
 
 type ApiData<T> = { data: T };
 
@@ -64,7 +64,7 @@ export const useUpdatePaymentPlan = () => {
   return useMutation<
     PaymentPlan,
     Error,
-    { customerId: string; planId: string; data: Partial<PaymentPlan> }
+    { customerId: string; planId: string; data: UpdatePaymentPlanInput }
   >({
     mutationFn: async ({ customerId, planId, data: body }) => {
       const { data } = await axios.patch<ApiData<PaymentPlan>>(
@@ -76,6 +76,9 @@ export const useUpdatePaymentPlan = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["payments", "plans", variables.customerId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["payments", "cycles", variables.customerId],
       });
     },
   });

@@ -246,6 +246,13 @@ export class PrismaPaymentRepository implements PaymentRepository {
     return this.mapCycle(row);
   }
 
+  async updatePendingCyclesAmount(planId: string, amount: number): Promise<void> {
+    await prisma.billingCycle.updateMany({
+      where: { planId, status: { in: ["PENDING", "OVERDUE"] } },
+      data: { amount },
+    });
+  }
+
   async countPendingCyclesByPlan(planId: string): Promise<number> {
     return prisma.billingCycle.count({
       where: { planId, status: { in: ["PENDING", "OVERDUE"] } },
@@ -256,6 +263,13 @@ export class PrismaPaymentRepository implements PaymentRepository {
     await prisma.paymentPlan.update({
       where: { id: planId },
       data: { status: "COMPLETED" },
+    });
+  }
+
+  async reactivatePlan(planId: string): Promise<void> {
+    await prisma.paymentPlan.update({
+      where: { id: planId },
+      data: { status: "ACTIVE" },
     });
   }
 

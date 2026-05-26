@@ -26,6 +26,8 @@ export interface CreatePlanData {
 
 export interface UpdatePlanData {
   description?: string;
+  amount?: number;
+  billingDay?: number | null;
   endDate?: Date | null | undefined;
   note?: string | null | undefined;
 }
@@ -69,8 +71,10 @@ export interface PaymentRepository {
   listCyclesByPlan(planId: string): Promise<BillingCycleWithPlan[]>;
   listCyclesByCustomer(customerId: string): Promise<BillingCycleWithPlan[]>;
   updateCycle(cycleId: string, data: UpdateCycleData): Promise<BillingCycle>;
+  updatePendingCyclesAmount(planId: string, amount: number): Promise<void>;
   countPendingCyclesByPlan(planId: string): Promise<number>;
   completePlan(planId: string): Promise<void>;
+  reactivatePlan(planId: string): Promise<void>;
 
   // --- Contract File ---
   createContractFile(
