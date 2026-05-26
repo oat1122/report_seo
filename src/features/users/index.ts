@@ -16,6 +16,7 @@ const hasher = new BcryptPasswordHasher();
 export const listUsers = listUsersUseCase(repo);
 export const getUserById = getUserByIdUseCase(repo);
 export const listSeoDevs = listSeoDevsUseCase(repo);
+export const listUserIdsByRole = (role: string) => repo.findUserIdsByRole(role);
 export const listManagedCustomers = listManagedCustomersUseCase(repo);
 export const createUser = createUserUseCase(repo, hasher);
 export const updateUser = updateUserUseCase(repo);

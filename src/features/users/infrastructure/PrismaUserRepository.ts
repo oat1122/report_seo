@@ -55,6 +55,14 @@ export class PrismaUserRepository implements UserRepository {
     }) as Promise<User | null>;
   }
 
+  async findUserIdsByRole(role: string): Promise<string[]> {
+    const users = await prisma.user.findMany({
+      where: { role: role as Role },
+      select: { id: true },
+    });
+    return users.map((u) => u.id);
+  }
+
   async findSeoDevs(): Promise<User[]> {
     return prisma.user.findMany({
       where: { role: Role.SEO_DEV },

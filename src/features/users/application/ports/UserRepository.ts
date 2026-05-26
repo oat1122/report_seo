@@ -15,6 +15,8 @@ export interface UserRepository {
     options: { includeAdminFields: boolean },
   ): Promise<User | null>;
 
+  findUserIdsByRole(role: string): Promise<string[]>;
+
   findSeoDevs(): Promise<User[]>;
 
   findManagedCustomers(seoDevId: string): Promise<User[]>;

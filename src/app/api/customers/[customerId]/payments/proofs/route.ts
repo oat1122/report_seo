@@ -13,6 +13,11 @@ import {
 } from "@/features/payments";
 import { BadRequestError } from "@/lib/errors";
 import { Role } from "@/types/auth";
+import {
+  createNotification,
+  NOTIFICATION_TYPES,
+} from "@/features/notifications";
+import { listUserIdsByRole } from "@/features/users";
 
 const paramsSchema = z.object({ customerId: z.string().uuid() });
 
@@ -53,6 +58,19 @@ export const POST = withApiHandler(
       parsed.customerId,
       parsed.billingCycleId,
     );
+
+    listUserIdsByRole(Role.ADMIN).then((adminIds) => {
+      if (adminIds.length > 0) {
+        createNotification({
+          type: NOTIFICATION_TYPES.PAYMENT_UPLOADED,
+          recipientUserIds: adminIds,
+          actorId: ctx.customer.userId,
+          title: "อัปโหลดหลักฐานชำระเงิน",
+          body: "ลูกค้าอัปโหลดหลักฐานการชำระเงิน รอตรวจสอบ",
+          metadata: { url: `/admin/payments` },
+        }).catch(() => {});
+      }
+    }).catch(() => {});
 
     return created({
       id: proof.id,

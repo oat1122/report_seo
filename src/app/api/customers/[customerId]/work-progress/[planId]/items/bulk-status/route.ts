@@ -8,6 +8,10 @@ import {
   bulkUpdateItemStatus,
   bulkUpdateItemStatusSchema,
 } from "@/features/work-progress";
+import {
+  createNotification,
+  NOTIFICATION_TYPES,
+} from "@/features/notifications";
 
 const paramsSchema = z.object({
   customerId: z.string().uuid(),
@@ -21,13 +25,22 @@ export const POST = withApiHandler(
       { byUserId: params.customerId },
       "manage",
     );
-    return ok(
-      await bulkUpdateItemStatus(
-        ctx.customer.id,
-        params.planId,
-        session.user.id,
-        body,
-      ),
+    const result = await bulkUpdateItemStatus(
+      ctx.customer.id,
+      params.planId,
+      session.user.id,
+      body,
     );
+
+    createNotification({
+      type: NOTIFICATION_TYPES.WORK_ITEM_STATUS_CHANGED,
+      recipientUserIds: [ctx.customer.userId],
+      actorId: session.user.id,
+      title: "เปลี่ยนสถานะแผนงาน",
+      body: `อัปเดตสถานะ ${body.itemIds.length} รายการ`,
+      metadata: { url: `/customer/${params.customerId}/work-progress` },
+    }).catch(() => {});
+
+    return ok(result);
   },
 );

@@ -8,6 +8,10 @@ import {
   setPeriodMark,
   setPeriodMarkSchema,
 } from "@/features/work-progress";
+import {
+  createNotification,
+  NOTIFICATION_TYPES,
+} from "@/features/notifications";
 
 const paramsSchema = z.object({
   customerId: z.string().uuid(),
@@ -22,14 +26,23 @@ export const PUT = withApiHandler(
       { byUserId: params.customerId },
       "manage",
     );
-    return ok(
-      await setPeriodMark(
-        ctx.customer.id,
-        params.planId,
-        params.itemId,
-        session.user.id,
-        body,
-      ),
+    const result = await setPeriodMark(
+      ctx.customer.id,
+      params.planId,
+      params.itemId,
+      session.user.id,
+      body,
     );
+
+    createNotification({
+      type: NOTIFICATION_TYPES.WORK_ITEM_UPDATED,
+      recipientUserIds: [ctx.customer.userId],
+      actorId: session.user.id,
+      title: "อัปเดตแผนงาน",
+      body: "มีการอัปเดตความคืบหน้าของแผนงาน",
+      metadata: { url: `/customer/${params.customerId}/work-progress` },
+    }).catch(() => {});
+
+    return ok(result);
   },
 );

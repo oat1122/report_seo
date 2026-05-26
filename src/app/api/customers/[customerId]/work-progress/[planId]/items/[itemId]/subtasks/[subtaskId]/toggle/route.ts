@@ -5,6 +5,10 @@ import {
   ok,
 } from "@/infrastructure/http";
 import { toggleSubtask } from "@/features/work-progress";
+import {
+  createNotification,
+  NOTIFICATION_TYPES,
+} from "@/features/notifications";
 
 const paramsSchema = z.object({
   customerId: z.string().uuid(),
@@ -20,14 +24,23 @@ export const POST = withApiHandler(
       { byUserId: params.customerId },
       "manage",
     );
-    return ok(
-      await toggleSubtask(
-        ctx.customer.id,
-        params.planId,
-        params.itemId,
-        params.subtaskId,
-        session.user.id,
-      ),
+    const result = await toggleSubtask(
+      ctx.customer.id,
+      params.planId,
+      params.itemId,
+      params.subtaskId,
+      session.user.id,
     );
+
+    createNotification({
+      type: NOTIFICATION_TYPES.WORK_ITEM_UPDATED,
+      recipientUserIds: [ctx.customer.userId],
+      actorId: session.user.id,
+      title: "อัปเดตแผนงาน",
+      body: `Subtask "${result.title}" ${result.isDone ? "เสร็จสิ้น" : "ยังไม่เสร็จ"}`,
+      metadata: { url: `/customer/${params.customerId}/work-progress` },
+    }).catch(() => {});
+
+    return ok(result);
   },
 );
