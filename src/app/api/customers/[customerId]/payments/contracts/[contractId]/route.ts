@@ -1,10 +1,10 @@
 import { z } from "zod";
 import {
   withApiHandler,
-  customerAccessGuard,
   noContent,
 } from "@/infrastructure/http";
 import { deleteContractFile } from "@/features/payments";
+import { Role } from "@/types/auth";
 
 const paramsSchema = z.object({
   customerId: z.string().uuid(),
@@ -12,9 +12,8 @@ const paramsSchema = z.object({
 });
 
 export const DELETE = withApiHandler(
-  { params: paramsSchema },
+  { params: paramsSchema, roles: [Role.ADMIN] },
   async ({ params }) => {
-    await customerAccessGuard({ byUserId: params.customerId }, "manage");
     await deleteContractFile(params.contractId);
     return noContent();
   },

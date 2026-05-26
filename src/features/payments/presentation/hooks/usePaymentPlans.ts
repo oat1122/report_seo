@@ -107,3 +107,27 @@ export const useCancelPaymentPlan = () => {
     },
   });
 };
+
+export const useReactivatePaymentPlan = () => {
+  const queryClient = useQueryClient();
+  return useMutation<
+    PaymentPlan,
+    Error,
+    { customerId: string; planId: string }
+  >({
+    mutationFn: async ({ customerId, planId }) => {
+      const { data } = await axios.post<ApiData<PaymentPlan>>(
+        `/customers/${customerId}/payments/plans/${planId}/reactivate`,
+      );
+      return data.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["payments", "plans", variables.customerId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["payments", "cycles", variables.customerId],
+      });
+    },
+  });
+};

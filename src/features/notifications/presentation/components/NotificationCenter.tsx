@@ -15,11 +15,15 @@ import { NotificationItem } from "./NotificationItem";
 interface NotificationCenterProps {
   onOpenPreferences: () => void;
   className?: string;
+  hideHeader?: boolean;
+  hideFooter?: boolean;
 }
 
 export function NotificationCenter({
   onOpenPreferences,
   className,
+  hideHeader,
+  hideFooter,
 }: NotificationCenterProps) {
   const {
     data,
@@ -36,23 +40,25 @@ export function NotificationCenter({
   const isEmpty = !isLoading && notifications.length === 0;
 
   return (
-    <div className={cn("flex w-80 flex-col sm:w-96", className)}>
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3">
-        <h3 className="text-sm font-semibold">การแจ้งเตือน</h3>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-auto px-2 py-1 text-xs"
-          onClick={() => markAllAsRead.mutate()}
-          disabled={markAllAsRead.isPending}
-        >
-          <CheckCheck className="mr-1 size-3.5" />
-          อ่านทั้งหมด
-        </Button>
-      </div>
-
-      <Separator />
+    <div className={cn("flex flex-col", !hideHeader && "w-80 sm:w-96", className)}>
+      {!hideHeader && (
+        <>
+          <div className="flex items-center justify-between px-4 py-3">
+            <h3 className="text-sm font-semibold">การแจ้งเตือน</h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-auto px-2 py-1 text-xs"
+              onClick={() => markAllAsRead.mutate()}
+              disabled={markAllAsRead.isPending}
+            >
+              <CheckCheck className="mr-1 size-3.5" />
+              อ่านทั้งหมด
+            </Button>
+          </div>
+          <Separator />
+        </>
+      )}
 
       {/* List */}
       <div className="max-h-96 overflow-y-auto">
@@ -96,19 +102,21 @@ export function NotificationCenter({
         )}
       </div>
 
-      <Separator />
-
-      {/* Footer */}
-      <div className="px-4 py-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full text-xs text-muted-foreground"
-          onClick={onOpenPreferences}
-        >
-          ตั้งค่าการแจ้งเตือน
-        </Button>
-      </div>
+      {!hideFooter && (
+        <>
+          <Separator />
+          <div className="px-4 py-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full text-xs text-muted-foreground"
+              onClick={onOpenPreferences}
+            >
+              ตั้งค่าการแจ้งเตือน
+            </Button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -1,11 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { th } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import {
   useCreatePaymentPlan,
   useUpdatePaymentPlan,
@@ -45,14 +54,16 @@ export function PaymentPlanForm({
   const [description, setDescription] = useState("");
   const [billingDay, setBillingDay] = useState("1");
   const [totalInstallments, setTotalInstallments] = useState("12");
-  const [startDate, setStartDate] = useState(
-    new Date().toISOString().split("T")[0],
-  );
+  const [startDate, setStartDate] = useState<Date | undefined>(new Date());
   const [note, setNote] = useState("");
 
   const createMutation = useCreatePaymentPlan();
   const updateMutation = useUpdatePaymentPlan();
   const isPending = createMutation.isPending || updateMutation.isPending;
+
+  const activeType = isEdit
+    ? (editPlan.type as "MONTHLY" | "INSTALLMENT")
+    : type;
 
   useEffect(() => {
     if (editPlan && open) {
@@ -61,7 +72,7 @@ export function PaymentPlanForm({
       setDescription(editPlan.description);
       setBillingDay(String(editPlan.billingDay ?? 1));
       setTotalInstallments(String(editPlan.totalInstallments ?? 12));
-      setStartDate(new Date(editPlan.startDate).toISOString().split("T")[0]);
+      setStartDate(new Date(editPlan.startDate));
       setNote(editPlan.note ?? "");
     } else if (!editPlan && open) {
       resetForm();
@@ -74,13 +85,13 @@ export function PaymentPlanForm({
     setDescription("");
     setBillingDay("1");
     setTotalInstallments("12");
-    setStartDate(new Date().toISOString().split("T")[0]);
+    setStartDate(new Date());
     setNote("");
   };
 
   const handleSubmit = () => {
     const parsedAmount = parseFloat(amount);
-    if (!parsedAmount || !description.trim()) return;
+    if (!parsedAmount || !description.trim() || !startDate) return;
 
     if (isEdit) {
       updateMutation.mutate(
@@ -90,8 +101,12 @@ export function PaymentPlanForm({
           data: {
             description: description.trim(),
             amount: parsedAmount,
-            billingDay:
-              editPlan.type === "MONTHLY" ? parseInt(billingDay, 10) : null,
+            billingDay: parseInt(billingDay, 10),
+            totalInstallments:
+              activeType === "INSTALLMENT"
+                ? parseInt(totalInstallments, 10)
+                : null,
+            startDate,
             endDate: null,
             note: note.trim() || null,
           },
@@ -99,7 +114,6 @@ export function PaymentPlanForm({
         { onSuccess: () => onOpenChange(false) },
       );
     } else {
-      if (!startDate) return;
       createMutation.mutate(
         {
           customerId,
@@ -107,10 +121,10 @@ export function PaymentPlanForm({
             type,
             amount: parsedAmount,
             description: description.trim(),
-            billingDay: type === "MONTHLY" ? parseInt(billingDay, 10) : null,
+            billingDay: parseInt(billingDay, 10),
             totalInstallments:
               type === "INSTALLMENT" ? parseInt(totalInstallments, 10) : null,
-            startDate: new Date(startDate),
+            startDate,
             note: note.trim() || null,
           },
         },
@@ -134,25 +148,24 @@ export function PaymentPlanForm({
         </DialogHeader>
 
         <div className="space-y-4">
-          {!isEdit && (
-            <div className="space-y-2">
-              <Label>ประเภท</Label>
-              <Select
-                value={type}
-                onValueChange={(v) => setType(v as "MONTHLY" | "INSTALLMENT")}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="MONTHLY">รายเดือน</SelectItem>
-                  <SelectItem value="INSTALLMENT">
-                    ผ่อนชำระ (จำนวนงวด)
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+          <div className="space-y-2">
+            <Label>ประเภท</Label>
+            <Select
+              value={activeType}
+              onValueChange={(v) => setType(v as "MONTHLY" | "INSTALLMENT")}
+              disabled={isEdit}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="MONTHLY">รายเดือน</SelectItem>
+                <SelectItem value="INSTALLMENT">
+                  ผ่อนชำระ (จำนวนงวด)
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           <div className="space-y-2">
             <Label>ชื่อแพ็กเกจ / บริการ</Label>
@@ -175,20 +188,18 @@ export function PaymentPlanForm({
             />
           </div>
 
-          {(isEdit ? editPlan.type === "MONTHLY" : type === "MONTHLY") && (
-            <div className="space-y-2">
-              <Label>วันที่เก็บเงินทุกเดือน</Label>
-              <Input
-                type="number"
-                min={1}
-                max={31}
-                value={billingDay}
-                onChange={(e) => setBillingDay(e.target.value)}
-              />
-            </div>
-          )}
+          <div className="space-y-2">
+            <Label>วันที่เก็บเงินทุกเดือน (1-31)</Label>
+            <Input
+              type="number"
+              min={1}
+              max={31}
+              value={billingDay}
+              onChange={(e) => setBillingDay(e.target.value)}
+            />
+          </div>
 
-          {!isEdit && type === "INSTALLMENT" && (
+          {activeType === "INSTALLMENT" && (
             <div className="space-y-2">
               <Label>จำนวนงวดทั้งหมด</Label>
               <Input
@@ -201,16 +212,33 @@ export function PaymentPlanForm({
             </div>
           )}
 
-          {!isEdit && (
-            <div className="space-y-2">
-              <Label>วันเริ่มต้น</Label>
-              <Input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-              />
-            </div>
-          )}
+          <div className="space-y-2">
+            <Label>วันเริ่มต้น</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !startDate && "text-muted-foreground",
+                  )}
+                >
+                  <CalendarIcon className="mr-2 size-4" />
+                  {startDate
+                    ? format(startDate, "d MMM yyyy", { locale: th })
+                    : "เลือกวันที่"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={startDate}
+                  onSelect={setStartDate}
+                  defaultMonth={startDate}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
 
           <div className="space-y-2">
             <Label>หมายเหตุ (ไม่บังคับ)</Label>
@@ -229,7 +257,7 @@ export function PaymentPlanForm({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={isPending || !amount || !description.trim()}
+            disabled={isPending || !amount || !description.trim() || !startDate}
           >
             {isPending && <Loader2 className="mr-1 size-3 animate-spin" />}
             {isEdit ? "บันทึก" : "สร้างแผน"}

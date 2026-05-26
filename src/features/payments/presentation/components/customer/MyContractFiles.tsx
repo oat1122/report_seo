@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, Download } from "lucide-react";
+import { FileText, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -51,8 +51,8 @@ export function MyContractFiles({ customerId }: MyContractFilesProps) {
             </div>
             <Button size="sm" variant="ghost" asChild>
               <a href={file.fileUrl} target="_blank" rel="noopener noreferrer">
-                <Download className="mr-1 size-4" />
-                ดาวน์โหลด
+                <Eye className="mr-1 size-4" />
+                เปิดไฟล์
               </a>
             </Button>
           </CardContent>

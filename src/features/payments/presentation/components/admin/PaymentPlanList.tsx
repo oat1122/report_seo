@@ -1,14 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Loader2, Pencil } from "lucide-react";
+import { Plus, Loader2, Pencil, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   useListPaymentPlans,
   useCancelPaymentPlan,
+  useReactivatePaymentPlan,
 } from "../../hooks/usePaymentPlans";
 import { PaymentPlanForm } from "./PaymentPlanForm";
 import type { PaymentPlan } from "../../../index";
@@ -43,21 +54,41 @@ function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
+type ConfirmAction = { type: "cancel" | "reactivate"; plan: PaymentPlan };
+
 export function PaymentPlanList({ customerId }: PaymentPlanListProps) {
   const [showForm, setShowForm] = useState(false);
   const [editingPlan, setEditingPlan] = useState<PaymentPlan | null>(null);
+  const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
   const { data: plans, isLoading } = useListPaymentPlans(customerId);
   const cancelMutation = useCancelPaymentPlan();
+  const reactivateMutation = useReactivatePaymentPlan();
 
   const handleEdit = (plan: PaymentPlan) => {
     setEditingPlan(plan);
     setShowForm(true);
   };
 
-  const handleCancel = (plan: PaymentPlan) => {
-    if (!confirm("ยืนยันยกเลิกแผนชำระเงินนี้?")) return;
-    cancelMutation.mutate({ customerId, planId: plan.id });
+  const handleConfirm = () => {
+    if (!confirmAction) return;
+    const { type, plan } = confirmAction;
+    if (type === "cancel") {
+      cancelMutation.mutate({ customerId, planId: plan.id });
+    } else {
+      reactivateMutation.mutate({ customerId, planId: plan.id });
+    }
+    setConfirmAction(null);
   };
+
+  const confirmTitle =
+    confirmAction?.type === "cancel"
+      ? "ยืนยันยกเลิกแผน"
+      : "ยืนยันย้อนสถานะ";
+
+  const confirmDescription =
+    confirmAction?.type === "cancel"
+      ? `ยืนยันยกเลิกแผนชำระเงิน "${confirmAction?.plan.description}" ? รอบจ่ายที่ยังไม่ชำระจะถูกยกเลิกด้วย`
+      : `ยืนยันย้อนสถานะแผน "${confirmAction?.plan.description}" กลับเป็นใช้งาน? รอบจ่ายที่ถูกยกเลิกจะกลับเป็นรอชำระ`;
 
   if (isLoading) {
     return (
@@ -99,7 +130,7 @@ export function PaymentPlanList({ customerId }: PaymentPlanListProps) {
                     <span>{TYPE_LABEL[plan.type]}</span>
                     <span>·</span>
                     <span>{formatCurrency(plan.amount)}/งวด</span>
-                    {plan.type === "MONTHLY" && plan.billingDay && (
+                    {plan.billingDay && (
                       <>
                         <span>·</span>
                         <span>ทุกวันที่ {plan.billingDay}</span>
@@ -136,7 +167,9 @@ export function PaymentPlanList({ customerId }: PaymentPlanListProps) {
                       variant="ghost"
                       size="sm"
                       className="text-destructive"
-                      onClick={() => handleCancel(plan)}
+                      onClick={() =>
+                        setConfirmAction({ type: "cancel", plan })
+                      }
                       disabled={cancelMutation.isPending}
                     >
                       {cancelMutation.isPending && (
@@ -145,6 +178,23 @@ export function PaymentPlanList({ customerId }: PaymentPlanListProps) {
                       ยกเลิก
                     </Button>
                   </div>
+                )}
+                {plan.status === "CANCELLED" && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      setConfirmAction({ type: "reactivate", plan })
+                    }
+                    disabled={reactivateMutation.isPending}
+                  >
+                    {reactivateMutation.isPending ? (
+                      <Loader2 className="mr-1 size-3 animate-spin" />
+                    ) : (
+                      <Undo2 className="mr-1 size-3" />
+                    )}
+                    ย้อนสถานะ
+                  </Button>
                 )}
               </div>
               {plan.note && (
@@ -164,6 +214,33 @@ export function PaymentPlanList({ customerId }: PaymentPlanListProps) {
         }}
         editPlan={editingPlan}
       />
+
+      <AlertDialog
+        open={!!confirmAction}
+        onOpenChange={(open) => {
+          if (!open) setConfirmAction(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{confirmTitle}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmDescription}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
+            <AlertDialogAction
+              variant={
+                confirmAction?.type === "cancel" ? "destructive" : "default"
+              }
+              onClick={handleConfirm}
+            >
+              ยืนยัน
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

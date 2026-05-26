@@ -220,7 +220,7 @@ export class PrismaPaymentRepository implements PaymentRepository {
 
   async listCyclesByCustomer(customerId: string): Promise<BillingCycleWithPlan[]> {
     const rows = await prisma.billingCycle.findMany({
-      where: { plan: { customerId } },
+      where: { plan: { customerId, status: { not: "CANCELLED" } } },
       include: {
         plan: { select: { id: true, description: true, type: true } },
         proofs: { orderBy: { uploadDate: "desc" } },
@@ -271,6 +271,21 @@ export class PrismaPaymentRepository implements PaymentRepository {
       where: { id: planId },
       data: { status: "ACTIVE" },
     });
+  }
+
+  async reactivateCancelledPlan(planId: string): Promise<PaymentPlan> {
+    const row = await prisma.$transaction(async (tx) => {
+      await tx.billingCycle.updateMany({
+        where: { planId, status: "CANCELLED" },
+        data: { status: "PENDING" },
+      });
+
+      return tx.paymentPlan.update({
+        where: { id: planId },
+        data: { status: "ACTIVE" },
+      });
+    });
+    return this.mapPlan(row);
   }
 
   // --- Contract File ---

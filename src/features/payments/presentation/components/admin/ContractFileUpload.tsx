@@ -1,10 +1,20 @@
 "use client";
 
-import { useRef } from "react";
-import { Upload, FileText, Trash2, Loader2, Download } from "lucide-react";
+import { useRef, useState } from "react";
+import { Upload, FileText, Trash2, Loader2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   useListContractFiles,
   useUploadContractFile,
@@ -25,6 +35,10 @@ function formatDate(date: Date | string): string {
 
 export function ContractFileUpload({ customerId }: ContractFileUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const { data: files, isLoading } = useListContractFiles(customerId);
   const uploadMutation = useUploadContractFile();
   const deleteMutation = useDeleteContractFile();
@@ -36,9 +50,10 @@ export function ContractFileUpload({ customerId }: ContractFileUploadProps) {
     e.target.value = "";
   };
 
-  const handleDelete = (contractId: string, fileName: string) => {
-    if (!confirm(`ลบไฟล์ "${fileName}" ?`)) return;
-    deleteMutation.mutate({ customerId, contractId });
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return;
+    deleteMutation.mutate({ customerId, contractId: deleteTarget.id });
+    setDeleteTarget(null);
   };
 
   if (isLoading) {
@@ -95,15 +110,21 @@ export function ContractFileUpload({ customerId }: ContractFileUploadProps) {
               </div>
               <div className="flex items-center gap-1">
                 <Button size="sm" variant="ghost" asChild>
-                  <a href={file.fileUrl} target="_blank" rel="noopener noreferrer">
-                    <Download className="size-4" />
+                  <a
+                    href={file.fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Eye className="size-4" />
                   </a>
                 </Button>
                 <Button
                   size="sm"
                   variant="ghost"
                   className="text-destructive"
-                  onClick={() => handleDelete(file.id, file.fileName)}
+                  onClick={() =>
+                    setDeleteTarget({ id: file.id, name: file.fileName })
+                  }
                   disabled={deleteMutation.isPending}
                 >
                   <Trash2 className="size-4" />
@@ -113,6 +134,31 @@ export function ContractFileUpload({ customerId }: ContractFileUploadProps) {
           </Card>
         ))}
       </div>
+
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>ยืนยันการลบ</AlertDialogTitle>
+            <AlertDialogDescription>
+              คุณแน่ใจหรือไม่ว่าต้องการลบไฟล์ &quot;{deleteTarget?.name}&quot; ?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={handleConfirmDelete}
+            >
+              ยืนยัน
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

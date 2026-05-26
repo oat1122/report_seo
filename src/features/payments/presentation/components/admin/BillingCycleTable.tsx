@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import {
-  Loader2,
   CheckCircle,
   Clock,
   XCircle,

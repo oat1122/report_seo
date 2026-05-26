@@ -9,6 +9,7 @@ import { listPaymentPlansUseCase } from "./application/use-cases/plan/listPaymen
 import { getPaymentPlanUseCase } from "./application/use-cases/plan/getPaymentPlan";
 import { updatePaymentPlanUseCase } from "./application/use-cases/plan/updatePaymentPlan";
 import { cancelPaymentPlanUseCase } from "./application/use-cases/plan/cancelPaymentPlan";
+import { reactivatePaymentPlanUseCase } from "./application/use-cases/plan/reactivatePaymentPlan";
 import { listBillingCyclesUseCase } from "./application/use-cases/cycle/listBillingCycles";
 import { updateBillingCycleUseCase } from "./application/use-cases/cycle/updateBillingCycle";
 import { uploadContractFileUseCase } from "./application/use-cases/contract/uploadContractFile";
@@ -31,6 +32,7 @@ export const listPaymentPlans = listPaymentPlansUseCase(repo);
 export const getPaymentPlan = getPaymentPlanUseCase(repo);
 export const updatePaymentPlan = updatePaymentPlanUseCase(repo);
 export const cancelPaymentPlan = cancelPaymentPlanUseCase(repo);
+export const reactivatePaymentPlan = reactivatePaymentPlanUseCase(repo);
 
 // Billing Cycle
 export const listBillingCycles = listBillingCyclesUseCase(repo);

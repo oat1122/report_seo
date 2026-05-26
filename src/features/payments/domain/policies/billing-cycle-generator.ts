@@ -40,12 +40,13 @@ export function generateBillingCycles(params: GenerateParams): BillingCycleSeed[
     }
   } else {
     const total = params.totalInstallments ?? 1;
+    const baseDay = params.billingDay ?? startDate.getDate();
     for (let i = 0; i < total; i++) {
       const year = startDate.getFullYear();
       const month = startDate.getMonth() + i;
       const targetYear = year + Math.floor(month / 12);
       const targetMonth = month % 12;
-      const day = clampDay(targetYear, targetMonth, startDate.getDate());
+      const day = clampDay(targetYear, targetMonth, baseDay);
       seeds.push({
         cycleNumber: i + 1,
         dueDate: new Date(targetYear, targetMonth, day),
