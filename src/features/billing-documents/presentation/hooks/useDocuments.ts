@@ -1,8 +1,8 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axios from "@/infrastructure/http";
-import type { ApiSuccess } from "@/infrastructure/http";
+import axios from "@/infrastructure/http/axios";
+import type { ApiSuccess } from "@/infrastructure/http/responses";
 import type { BillingDocument } from "../../domain/BillingDocument";
 import type { GenerateDocumentInput } from "../../schemas";
 

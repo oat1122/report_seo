@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Loader2, Plus, Save, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
@@ -40,7 +40,8 @@ function nextKey() {
 }
 
 export function DocumentItemEditor({ customerId }: Props) {
-  const { data: items = [], isLoading } = useListDocumentItems(customerId);
+  const { data, isLoading } = useListDocumentItems(customerId);
+  const items = useMemo(() => data ?? [], [data]);
   const upsertMutation = useUpsertDocumentItems(customerId);
   const [localItems, setLocalItems] = useState<LocalItem[]>([]);
 

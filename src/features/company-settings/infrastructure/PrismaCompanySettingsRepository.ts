@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { BadRequestError } from "@/lib/errors";
 import type { CompanySettings } from "../domain/CompanySettings";
 import type {
   CompanySettingsInput,
@@ -28,7 +29,7 @@ export class PrismaCompanySettingsRepository
   async updateLogoUrl(logoUrl: string | null): Promise<CompanySettings> {
     const existing = await prisma.companySettings.findFirst();
     if (!existing) {
-      throw new Error("Company settings not found — create settings first");
+      throw new BadRequestError("กรุณาตั้งค่าข้อมูลบริษัทก่อนอัปโหลดโลโก้");
     }
 
     return prisma.companySettings.update({

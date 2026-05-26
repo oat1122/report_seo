@@ -35,28 +35,24 @@ export const userCreateSchema = z
 export type UserCreateInput = z.infer<typeof userCreateSchema>;
 
 // Update payload — admin only field set; CUSTOMER fields optional
-export const userUpdateSchema = z
-  .object({
-    name: z.string().trim().min(1).optional(),
-    email: z.email().optional(),
-    role: z.enum(Role).optional(),
-    companyName: z.string().trim().min(1).optional(),
-    domain: z.string().trim().min(1).optional(),
-    seoDevId: z.uuid().nullable().optional(),
-    address: z.string().trim().max(500).optional(),
-    taxId: z.string().trim().max(13).optional(),
-    contactName: z.string().trim().max(100).optional(),
-  })
-  .strict();
+export const userUpdateSchema = z.object({
+  name: z.string().trim().min(1).optional(),
+  email: z.email().optional(),
+  role: z.enum(Role).optional(),
+  companyName: z.string().trim().min(1).optional(),
+  domain: z.string().trim().min(1).optional(),
+  seoDevId: z.uuid().nullable().optional(),
+  address: z.string().trim().max(500).optional(),
+  taxId: z.string().trim().max(13).optional(),
+  contactName: z.string().trim().max(100).optional(),
+});
 
 export type UserUpdateInput = z.infer<typeof userUpdateSchema>;
 
 // CUSTOMER/SEO_DEV self-update — name + email เท่านั้น
-export const userSelfUpdateSchema = z
-  .object({
-    name: z.string().trim().min(1).optional(),
-    email: z.email().optional(),
-  })
-  .strict();
+export const userSelfUpdateSchema = z.object({
+  name: z.string().trim().min(1).optional(),
+  email: z.email().optional(),
+});
 
 export type UserSelfUpdateInput = z.infer<typeof userSelfUpdateSchema>;
