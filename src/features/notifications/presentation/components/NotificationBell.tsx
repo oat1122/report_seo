@@ -44,7 +44,7 @@ export function NotificationBell() {
         <PopoverContent
           align="end"
           sideOffset={8}
-          className="p-0"
+          className="w-80 p-0 sm:w-96"
         >
           <NotificationCenter onOpenPreferences={() => setPrefOpen(true)} />
         </PopoverContent>

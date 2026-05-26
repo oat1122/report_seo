@@ -2,7 +2,7 @@
 
 import React from "react";
 import { DashboardHeader } from "./DashboardHeader";
-import { NotificationSocketInit } from "@/features/notifications";
+import { NotificationSocketInit } from "@/features/notifications/presentation/components/NotificationSocketInit";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
