@@ -17,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { getEffectiveItemPercent } from "@/features/work-progress";
+import { getEffectiveItemPercent } from "@/features/work-progress/domain/policies/progress-calculator";
 import { calendarTypes } from "./calendar-config";
 import { useCalendarEvents } from "./useCalendarEvents";
 import { CalendarLegend } from "./CalendarLegend";

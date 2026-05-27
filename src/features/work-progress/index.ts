@@ -309,4 +309,3 @@ export type {
   AttachmentKind,
 } from "./domain/WorkProgressAttachment";
 export type { PeriodTypeCode } from "./domain/types";
-export { getEffectiveItemPercent } from "./domain/policies/progress-calculator";
