@@ -1,5 +1,5 @@
 // src/app/layout.tsx (โค้ดที่สะอาด)
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Inter } from "next/font/google";
 import { Kanit } from "next/font/google";
 import { Providers } from "@/features/auth/presentation/providers";
@@ -24,6 +24,14 @@ const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   title: "SEO Report Dashboard",
