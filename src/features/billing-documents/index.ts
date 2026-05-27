@@ -7,6 +7,7 @@ import { renderDocumentHtml } from "./infrastructure/templates/render-document";
 import { getCompanySettings } from "@/features/company-settings";
 
 import { generateDocumentUseCase } from "./application/use-cases/generateDocument";
+import { generateStandaloneDocumentUseCase } from "./application/use-cases/generateStandaloneDocument";
 import { listDocumentsUseCase } from "./application/use-cases/listDocuments";
 import { getDocumentUseCase } from "./application/use-cases/getDocument";
 import { deleteDocumentUseCase } from "./application/use-cases/deleteDocument";
@@ -49,6 +50,8 @@ export const upsertDocumentTemplateItems =
 
 // Documents
 export const generateDocument = generateDocumentUseCase(commonDeps);
+export const generateStandaloneDocument =
+  generateStandaloneDocumentUseCase(commonDeps);
 export const listDocuments = listDocumentsUseCase(repo);
 export const getDocument = getDocumentUseCase(repo);
 export const deleteDocument = deleteDocumentUseCase(repo, storage);
@@ -60,6 +63,10 @@ export const listDocumentsByCycles = listDocumentsByCyclesUseCase(
   repo,
   cycleProvider,
 );
+
+export async function searchCustomers(query: string) {
+  return repo.searchCustomers(query);
+}
 
 // Schemas
 export {
@@ -73,6 +80,8 @@ export {
   upsertTemplateItemsSchema,
   documentTemplateItemSchema,
   listTemplatesQuerySchema,
+  generateStandaloneDocumentSchema,
+  searchCustomersQuerySchema,
 } from "./schemas";
 export type {
   GenerateDocumentInput,
@@ -85,6 +94,8 @@ export type {
   UpsertTemplateItemsInput,
   DocumentTemplateItemInput,
   ListTemplatesQuery,
+  GenerateStandaloneDocumentInput,
+  SearchCustomersQuery,
 } from "./schemas";
 
 // Domain types
@@ -102,3 +113,4 @@ export type {
 export type { BillingDocumentType } from "./domain/DocumentType";
 export { DOCUMENT_TYPE_LABELS } from "./domain/DocumentType";
 export type { BillingCycleInfo } from "./application/ports/BillingCycleProvider";
+export type { CustomerForDocument } from "./application/ports/BillingDocumentRepository";

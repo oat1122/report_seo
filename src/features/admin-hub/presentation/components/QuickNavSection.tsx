@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Users, Settings, LayoutTemplate, FileBarChart, Building2, FileText, FileStack } from "lucide-react";
+import { Users, Settings, LayoutTemplate, FileBarChart, Building2, FileText, FileStack, FilePlus } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -41,6 +41,12 @@ const navItems = [
     label: "จัดการเอกสาร",
     href: "/admin/documents",
     icon: FileText,
+    disabled: false,
+  },
+  {
+    label: "สร้างเอกสารใหม่",
+    href: "/admin/create-document",
+    icon: FilePlus,
     disabled: false,
   },
   {

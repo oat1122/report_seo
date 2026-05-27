@@ -59,8 +59,9 @@ model BillingDocument {
   note           String?             @db.Text
   generatedAt    DateTime            @default(now())
 
-  customerId     String
-  customer       Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customerId     String?
+  customer       Customer?     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customerName   String?
   billingCycleId String?
   billingCycle   BillingCycle? @relation(fields: [billingCycleId], references: [id], onDelete: SetNull)
 

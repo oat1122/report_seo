@@ -124,9 +124,11 @@ export function AllDocumentsTable() {
                 </TableCell>
                 <TableCell>
                   <div>
-                    <div className="font-medium">{doc.customer.name}</div>
+                    <div className="font-medium">
+                      {doc.customer?.name ?? doc.customerName ?? "ลูกค้าภายนอก"}
+                    </div>
                     <div className="text-xs text-muted-foreground">
-                      {doc.customer.domain}
+                      {doc.customer?.domain ?? "—"}
                     </div>
                   </div>
                 </TableCell>
@@ -175,19 +177,21 @@ export function AllDocumentsTable() {
                         <Download className="size-4" />
                       </a>
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => setEditingDoc(doc)}
-                    >
-                      <Pencil className="size-4" />
-                    </Button>
+                    {doc.customer && (
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => setEditingDoc(doc)}
+                      >
+                        <Pencil className="size-4" />
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="icon-sm"
                       onClick={() =>
                         handleDelete(
-                          doc.customer.userId,
+                          doc.customer?.userId ?? "",
                           doc.id,
                           doc.documentNumber,
                         )
@@ -214,7 +218,7 @@ export function AllDocumentsTable() {
         </Table>
       )}
 
-      {editingDoc && (
+      {editingDoc && editingDoc.customer && (
         <EditDocumentDialog
           document={editingDoc}
           customerId={editingDoc.customer.userId}

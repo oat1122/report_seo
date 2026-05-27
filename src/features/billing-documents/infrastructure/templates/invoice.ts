@@ -4,17 +4,22 @@ import {
   formatCurrency,
   formatDate,
   escapeHtml,
-  resolveLogoSrc
+  resolveLogoSrc,
 } from "./base-template";
 
 export function renderInvoice(data: RenderData): string {
-  const subtotal = data.items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0);
+  const subtotal = data.items.reduce(
+    (sum, i) => sum + i.quantity * i.unitPrice,
+    0,
+  );
 
   const logoHtml = data.company.logoUrl
     ? `<img src="${escapeHtml(resolveLogoSrc(data.company.logoUrl))}" class="new-logo" alt="logo" />`
     : `<h2 class="new-company-name">${escapeHtml(data.company.name)}</h2>`;
 
-  const rowsHtml = data.items.map((item, i) => `
+  const rowsHtml = data.items
+    .map(
+      (item, i) => `
     <tr>
       <td class="text-center">${i + 1}</td>
       <td class="text-left">
@@ -24,7 +29,9 @@ export function renderInvoice(data: RenderData): string {
       <td class="text-right" style="padding-right: 20px;">${formatCurrency(item.unitPrice)}</td>
       <td class="text-right" style="padding-right: 20px;">${formatCurrency(item.quantity * item.unitPrice)}</td>
     </tr>
-  `).join("");
+  `,
+    )
+    .join("");
 
   const addressLine = [data.customer.address].filter(Boolean).join(" ");
 
@@ -61,23 +68,53 @@ export function renderInvoice(data: RenderData): string {
               <td class="label" style="vertical-align: top;">Address</td>
               <td class="value">: ${escapeHtml(addressLine || "-")}</td>
             </tr>
-            ${data.customer.taxId ? `
+            ${
+              data.customer.taxId
+                ? `
             <tr>
               <td class="label">Tax ID</td>
               <td class="value">: ${escapeHtml(data.customer.taxId)}</td>
-            </tr>` : ""}
+            </tr>`
+                : ""
+            }
           </table>
         </div>
         
         <div class="new-payment-method">
-          <h3>Payment Method.</h3>
-          <div class="new-payment-details">
-            <p class="method-title">Paypal</p>
-            <p class="method-desc">paypaladdress@mail.com</p>
+          <h3>Company Info.</h3>
+          <table class="new-info-table">
+            <tr>
+              <td class="label">Name</td>
+              <td class="value">: ${escapeHtml(data.company.name)}</td>
+            </tr>
+            ${
+              data.company.phone
+                ? `
+            <tr>
+              <td class="label">Phone</td>
+              <td class="value">: ${escapeHtml(data.company.phone)}</td>
+            </tr>`
+                : ""
+            }
+            ${
+              data.company.email
+                ? `
+            <tr>
+              <td class="label">Mail</td>
+              <td class="value">: ${escapeHtml(data.company.email)}</td>
+            </tr>`
+                : ""
+            }
+            <tr>
+              <td class="label" style="vertical-align: top;">Address</td>
+              <td class="value">: ${escapeHtml(data.company.address)}</td>
+            </tr>
             
-            <p class="method-title" style="margin-top: 10px;">Bank Transfer</p>
-            <p class="method-desc">xxx6879663xxx</p>
-          </div>
+            <tr>
+              <td class="label">Tax ID</td>
+              <td class="value">: ${escapeHtml(data.company.taxId)}</td>
+            </tr>
+          </table>
         </div>
       </div>
 

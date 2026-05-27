@@ -8,7 +8,8 @@ export interface BillingDocument {
   totalAmount: number;
   note: string | null;
   generatedAt: Date;
-  customerId: string;
+  customerId: string | null;
+  customerName: string | null;
   billingCycleId: string | null;
 }
 
@@ -31,7 +32,7 @@ export interface AdminBillingDocument extends BillingDocument {
     userId: string;
     name: string;
     domain: string;
-  };
+  } | null;
   billingCycle: {
     cycleNumber: number;
     dueDate: Date;

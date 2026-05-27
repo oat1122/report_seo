@@ -123,6 +123,7 @@ export function generateDocumentUseCase(deps: GenerateDocumentDeps) {
 
     return deps.repo.createDocument({
       customerId: input.customerId,
+      customerName: customer.name,
       documentNumber,
       type: input.type,
       pdfUrl,

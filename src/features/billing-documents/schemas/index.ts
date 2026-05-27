@@ -73,6 +73,39 @@ export const listAllDocumentsQuerySchema = z.object({
   customerId: z.string().uuid().optional(),
 });
 
+// --- Standalone Document ---
+
+export const standaloneCustomerSchema = z.object({
+  name: z.string().trim().min(1, "กรุณาระบุชื่อลูกค้า"),
+  address: z.string().trim().nullable().optional(),
+  taxId: z.string().trim().nullable().optional(),
+  contactName: z.string().trim().nullable().optional(),
+});
+
+export const standaloneItemSchema = z.object({
+  description: z.string().trim().min(1, "กรุณาระบุรายละเอียด"),
+  quantity: z.number().int().min(1).default(1),
+  unit: z.string().trim().default("รายการ"),
+  unitPrice: z.number().min(0, "ราคาต้องไม่ติดลบ"),
+});
+
+export const generateStandaloneDocumentSchema = z.object({
+  customerId: z.string().uuid().nullable().optional(),
+  customer: standaloneCustomerSchema,
+  type: z.enum(["BILLING_NOTE", "INVOICE", "RECEIPT", "TAX_INVOICE"]),
+  templateId: z.string().uuid(),
+  items: z
+    .array(standaloneItemSchema)
+    .min(1, "ต้องมีอย่างน้อย 1 รายการ"),
+  note: z.string().trim().max(500).nullable().optional(),
+  dueDate: z.string().nullable().optional(),
+  paidDate: z.string().nullable().optional(),
+});
+
+export const searchCustomersQuerySchema = z.object({
+  q: z.string().min(1),
+});
+
 // --- Inferred Types ---
 
 export type DocumentTemplateItemInput = z.infer<
@@ -95,3 +128,8 @@ export type GenerateAllForCycleInput = z.infer<
   typeof generateAllForCycleSchema
 >;
 export type ListAllDocumentsQuery = z.infer<typeof listAllDocumentsQuerySchema>;
+export type StandaloneCustomerInfo = z.infer<typeof standaloneCustomerSchema>;
+export type GenerateStandaloneDocumentInput = z.infer<
+  typeof generateStandaloneDocumentSchema
+>;
+export type SearchCustomersQuery = z.infer<typeof searchCustomersQuerySchema>;

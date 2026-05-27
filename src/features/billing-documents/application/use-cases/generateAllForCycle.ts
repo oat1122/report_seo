@@ -106,6 +106,7 @@ export function generateAllForCycleUseCase(deps: GenerateAllForCycleDeps) {
 
       const doc = await deps.repo.createDocument({
         customerId: input.customerId,
+        customerName: customer.name,
         documentNumber,
         type,
         pdfUrl,

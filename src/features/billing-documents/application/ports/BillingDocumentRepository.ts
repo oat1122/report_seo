@@ -6,7 +6,8 @@ import type {
 import type { BillingDocumentType } from "../../domain/DocumentType";
 
 export interface CreateDocumentInput {
-  customerId: string;
+  customerId: string | null;
+  customerName?: string | null;
   documentNumber: string;
   type: BillingDocumentType;
   pdfUrl: string;
@@ -65,4 +66,6 @@ export interface BillingDocumentRepository {
   listDocumentsByCycleIds(
     cycleIds: string[],
   ): Promise<BillingDocumentWithCycle[]>;
+
+  searchCustomers(query: string): Promise<CustomerForDocument[]>;
 }

@@ -22,13 +22,15 @@ function toBillingDocument(row: {
   totalAmount: unknown;
   note: string | null;
   generatedAt: Date;
-  customerId: string;
+  customerId: string | null;
+  customerName?: string | null;
   billingCycleId: string | null;
 }): BillingDocument {
   return {
     ...row,
     type: row.type as BillingDocumentType,
     totalAmount: Number(row.totalAmount),
+    customerName: row.customerName ?? null,
   };
 }
 
@@ -44,6 +46,7 @@ export class PrismaBillingDocumentRepository
         totalAmount: input.totalAmount,
         note: input.note,
         customerId: input.customerId,
+        customerName: input.customerName ?? null,
         billingCycleId: input.billingCycleId,
       },
     });
@@ -122,6 +125,7 @@ export class PrismaBillingDocumentRepository
       where.OR = [
         { documentNumber: { contains: filters.search } },
         { customer: { name: { contains: filters.search } } },
+        { customerName: { contains: filters.search } },
       ];
     }
 
@@ -191,5 +195,25 @@ export class PrismaBillingDocumentRepository
           }
         : null,
     }));
+  }
+
+  async searchCustomers(query: string): Promise<CustomerForDocument[]> {
+    return prisma.customer.findMany({
+      where: {
+        OR: [
+          { name: { contains: query } },
+          { domain: { contains: query } },
+        ],
+      },
+      select: {
+        id: true,
+        name: true,
+        domain: true,
+        address: true,
+        taxId: true,
+        contactName: true,
+      },
+      take: 20,
+    }) as Promise<CustomerForDocument[]>;
   }
 }
