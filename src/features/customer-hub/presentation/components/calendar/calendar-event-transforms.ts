@@ -1,4 +1,4 @@
-import "temporal-spec/global";
+import "temporal-polyfill/global";
 import type { CalendarEvent } from "@schedule-x/calendar";
 import type {
   WorkProgressPlanDetail,
