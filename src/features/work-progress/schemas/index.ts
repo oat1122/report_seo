@@ -1,8 +1,10 @@
 export {
   createPlanSchema,
+  updatePlanSchema,
   listPlansQuerySchema,
   customPeriodSchema,
   type CreatePlanInput,
+  type UpdatePlanInput,
   type ListPlansQuery,
 } from "./plan";
 

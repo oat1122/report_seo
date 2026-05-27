@@ -18,6 +18,7 @@ import { createPlanUseCase } from "./application/use-cases/plan/createPlan";
 import { listPlansUseCase } from "./application/use-cases/plan/listPlans";
 import { getPlanDetailUseCase } from "./application/use-cases/plan/getPlanDetail";
 import { archivePlanUseCase } from "./application/use-cases/plan/archivePlan";
+import { updatePlanUseCase } from "./application/use-cases/plan/updatePlan";
 import { deletePlanUseCase } from "./application/use-cases/plan/deletePlan";
 import { addItemUseCase } from "./application/use-cases/item/addItem";
 import { updateItemUseCase } from "./application/use-cases/item/updateItem";
@@ -100,6 +101,7 @@ export const createPlan = createPlanUseCase(
 );
 export const listPlans = listPlansUseCase(repo);
 export const getPlanDetail = getPlanDetailUseCase(repo);
+export const updatePlan = updatePlanUseCase(repo, activityRepo);
 export const archivePlan = archivePlanUseCase(repo, activityRepo);
 export const deletePlan = deletePlanUseCase(repo);
 // Item
@@ -210,6 +212,7 @@ export const getDashboardSummary = getDashboardSummaryUseCase(
 // Re-export schemas + DTO types สำหรับ route handler
 export {
   createPlanSchema,
+  updatePlanSchema,
   listPlansQuerySchema,
   addItemSchema,
   updateItemSchema,
@@ -239,6 +242,7 @@ export {
   reorderSubtasksSchema,
   addLinkAttachmentSchema,
   type CreatePlanInput,
+  type UpdatePlanInput,
   type AddItemInput,
   type UpdateItemInput,
   type ReorderItemsInput,
@@ -305,3 +309,4 @@ export type {
   AttachmentKind,
 } from "./domain/WorkProgressAttachment";
 export type { PeriodTypeCode } from "./domain/types";
+export { getEffectiveItemPercent } from "./domain/policies/progress-calculator";

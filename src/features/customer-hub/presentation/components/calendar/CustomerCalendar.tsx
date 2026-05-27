@@ -17,10 +17,42 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { getEffectiveItemPercent } from "@/features/work-progress";
 import { calendarTypes } from "./calendar-config";
 import { useCalendarEvents } from "./useCalendarEvents";
 import { CalendarLegend } from "./CalendarLegend";
 import type { CalendarItemLookup } from "./calendar-event-transforms";
+
+const thTH = {
+  Today: "วันนี้",
+  Month: "เดือน",
+  Week: "สัปดาห์",
+  Day: "วัน",
+  List: "รายการ",
+  "Select View": "เลือกมุมมอง",
+  View: "มุมมอง",
+  "+ {{n}} events": "+ {{n}} รายการ",
+  "+ 1 event": "+ 1 รายการ",
+  "No events": "ไม่มีรายการ",
+  "Next period": "ช่วงถัดไป",
+  "Previous period": "ช่วงก่อนหน้า",
+  to: "ถึง",
+  "Full day- and multiple day events": "รายการทั้งวันและหลายวัน",
+  "Link to {{n}} more events on {{date}}":
+    "ลิงก์ไปอีก {{n}} รายการในวันที่ {{date}}",
+  "Link to 1 more event on {{date}}":
+    "ลิงก์ไปอีก 1 รายการในวันที่ {{date}}",
+  CW: "สัปดาห์ที่ {{week}}",
+  Date: "วันที่",
+  "MM/DD/YYYY": "DD/MM/YYYY",
+  "Next month": "เดือนถัดไป",
+  "Previous month": "เดือนก่อนหน้า",
+  "Choose Date": "เลือกวันที่",
+  Time: "เวลา",
+  Cancel: "ยกเลิก",
+  OK: "ตกลง",
+  "Select time": "เลือกเวลา",
+};
 
 const monthView = createViewMonthGrid();
 
@@ -47,6 +79,7 @@ export function CustomerCalendar({ userId }: CustomerCalendarProps) {
     calendars: calendarTypes,
     locale: "th-TH",
     theme: "shadcn",
+    translations: { thTH },
     callbacks: {
       onEventClick: handleEventClick,
     },
@@ -79,6 +112,12 @@ export function CustomerCalendar({ userId }: CustomerCalendarProps) {
 
   const doneCount = selectedItem?.subtasks.filter((s) => s.isDone).length ?? 0;
   const totalCount = selectedItem?.subtasks.length ?? 0;
+  const effectivePercent = selectedItem
+    ? getEffectiveItemPercent({
+        status: { isTerminal: selectedItem.status.isTerminal },
+        subtasks: selectedItem.subtasks,
+      })
+    : 0;
 
   return (
     <>
@@ -135,10 +174,10 @@ export function CustomerCalendar({ userId }: CustomerCalendarProps) {
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">ความคืบหน้า</span>
                 <span className="font-medium">
-                  {selectedItem.progressPercent}%
+                  {effectivePercent}%
                 </span>
               </div>
-              <Progress value={selectedItem.progressPercent} className="h-2" />
+              <Progress value={effectivePercent} className="h-2" />
             </div>
 
             {totalCount > 0 && (

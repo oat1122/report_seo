@@ -7,6 +7,7 @@ import {
   ArchiveRestore,
   ClipboardList,
   MoreHorizontal,
+  Pencil,
   Plus,
   Trash2,
 } from "lucide-react";
@@ -25,6 +26,7 @@ import {
 import { ConfirmAlert } from "@/components/shared/ConfirmAlert";
 import { EmptyPlansState } from "./EmptyPlansState";
 import { CreatePlanDialog } from "./CreatePlanDialog";
+import { EditPlanDialog } from "./EditPlanDialog";
 import {
   useArchivePlan,
   useDeletePlan,
@@ -48,6 +50,7 @@ interface PlanListProps {
 export function PlanList({ userId, basePath, readOnly }: PlanListProps) {
   const [includeArchived, setIncludeArchived] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [editPlan, setEditPlan] = useState<WorkProgressPlan | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const { data, isLoading } = useWorkProgressPlans(userId, {
@@ -103,6 +106,7 @@ export function PlanList({ userId, basePath, readOnly }: PlanListProps) {
               plan={plan}
               href={`${basePath}/${plan.id}`}
               readOnly={readOnly}
+              onEdit={() => setEditPlan(plan)}
               onArchiveToggle={() =>
                 archiveMut.mutate({
                   userId,
@@ -124,6 +128,17 @@ export function PlanList({ userId, basePath, readOnly }: PlanListProps) {
             onOpenChange={setCreateOpen}
           />
 
+          {editPlan && (
+            <EditPlanDialog
+              userId={userId}
+              plan={editPlan}
+              open={!!editPlan}
+              onOpenChange={(open) => {
+                if (!open) setEditPlan(null);
+              }}
+            />
+          )}
+
           <ConfirmAlert
             open={deleteId !== null}
             onClose={() => setDeleteId(null)}
@@ -144,6 +159,7 @@ export function PlanList({ userId, basePath, readOnly }: PlanListProps) {
 interface PlanCardProps {
   plan: WorkProgressPlan;
   href: string;
+  onEdit: () => void;
   onArchiveToggle: () => void;
   onDelete: () => void;
   readOnly?: boolean;
@@ -152,6 +168,7 @@ interface PlanCardProps {
 function PlanCard({
   plan,
   href,
+  onEdit,
   onArchiveToggle,
   onDelete,
   readOnly,
@@ -187,6 +204,10 @@ function PlanCard({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={onEdit}>
+                <Pencil className="size-4" />
+                แก้ไข
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={onArchiveToggle}>
                 {plan.isArchived ? (
                   <>

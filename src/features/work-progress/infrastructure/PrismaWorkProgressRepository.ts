@@ -209,6 +209,26 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
     return prisma.workProgressPlan.update({ where: { id: planId }, data });
   }
 
+  async replacePeriods(
+    planId: string,
+    periods: readonly PeriodSeed[],
+  ): Promise<void> {
+    await prisma.$transaction(async (tx) => {
+      await tx.workProgressPeriod.deleteMany({ where: { planId } });
+      if (periods.length > 0) {
+        await tx.workProgressPeriod.createMany({
+          data: periods.map((p) => ({
+            planId,
+            seq: p.seq,
+            label: p.label,
+            startDate: p.startDate ?? null,
+            endDate: p.endDate ?? null,
+          })),
+        });
+      }
+    });
+  }
+
   archivePlan(
     planId: string,
     isArchived: boolean,

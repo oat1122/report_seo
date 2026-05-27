@@ -52,6 +52,8 @@ export interface CloneItemSeed {
 export interface UpdatePlanData {
   title?: string;
   year?: number | null;
+  startDate?: Date | null;
+  endDate?: Date | null;
   packageName?: string | null;
   note?: string | null;
 }
@@ -147,6 +149,10 @@ export interface WorkProgressRepository {
   findById(planId: string): Promise<WorkProgressPlan | null>;
   findDetail(planId: string): Promise<WorkProgressPlanDetail | null>;
   updatePlan(planId: string, data: UpdatePlanData): Promise<WorkProgressPlan>;
+  replacePeriods(
+    planId: string,
+    periods: readonly PeriodSeed[],
+  ): Promise<void>;
   archivePlan(planId: string, isArchived: boolean): Promise<WorkProgressPlan>;
   deletePlan(planId: string): Promise<void>;
 

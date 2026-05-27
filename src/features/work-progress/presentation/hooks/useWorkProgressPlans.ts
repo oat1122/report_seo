@@ -5,6 +5,7 @@ import axios from "@/infrastructure/http/axios";
 import type {
   WorkProgressPlan,
   CreatePlanInput,
+  UpdatePlanInput,
 } from "@/features/work-progress";
 
 type ApiData<T> = { data: T };
@@ -51,6 +52,29 @@ export const useCreatePlan = () => {
       return data.data;
     },
     onSuccess: (_d, { userId }) => invalidatePlansFor(qc, userId),
+  });
+};
+
+export const useUpdatePlan = () => {
+  const qc = useQueryClient();
+  return useMutation<
+    WorkProgressPlan,
+    Error,
+    { userId: string; planId: string; body: UpdatePlanInput }
+  >({
+    mutationFn: async ({ userId, planId, body }) => {
+      const { data } = await axios.patch<ApiData<WorkProgressPlan>>(
+        `/customers/${userId}/work-progress/${planId}`,
+        body,
+      );
+      return data.data;
+    },
+    onSuccess: (_d, { userId, planId }) => {
+      invalidatePlansFor(qc, userId);
+      qc.invalidateQueries({
+        queryKey: ["workProgress", "plan", userId, planId],
+      });
+    },
   });
 };
 
