@@ -23,7 +23,6 @@ model Customer {
   recommendations KeywordRecommend[]
   aiOverviews     AiOverview[]
   workProgressPlans WorkProgressPlan[]
-  documentItems    DocumentItem[]
   billingDocuments BillingDocument[]
 
   @@map("customer")

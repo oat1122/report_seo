@@ -200,9 +200,10 @@ export const documentStyles = `
   .new-header-left {
     background-color: #00b4a4;
     color: #fff;
-    padding: 50px 40px 50px 50px;
+    padding: 30px 40px 30px 50px;
     width: 55%;
-    min-height: 140px;
+    min-height: 100px;
+    border-bottom-right-radius: 40px;
   }
   .new-header-left h1 {
     font-size: 32px;
@@ -217,12 +218,12 @@ export const documentStyles = `
   }
   .new-header-right {
     width: 45%;
-    padding: 50px 50px 0 20px;
+    padding: 30px 100px 0 20px;
     text-align: right;
   }
   .new-logo {
-    max-height: 50px;
-    max-width: 150px;
+    max-height: 100px;
+    max-width: 250px;
     object-fit: contain;
   }
   .new-company-name {

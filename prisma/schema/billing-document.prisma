@@ -21,20 +21,33 @@ model CompanySettings {
   @@map("companysettings")
 }
 
-model DocumentItem {
-  id          String   @id @default(uuid())
-  customerId  String
-  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  description String
-  quantity    Int      @default(1)
-  unit        String   @default("รายการ")
-  unitPrice   Decimal  @db.Decimal(10, 2)
-  orderIndex  Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model DocumentTemplate {
+  id        String                @id @default(uuid())
+  name      String
+  scope     DocumentTemplateScope @default(GENERAL)
+  isActive  Boolean               @default(true)
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
 
-  @@index([customerId])
-  @@map("documentitem")
+  items        DocumentTemplateItem[]
+  paymentPlans PaymentPlan[]
+
+  @@index([scope])
+  @@map("documenttemplate")
+}
+
+model DocumentTemplateItem {
+  id          String           @id @default(uuid())
+  templateId  String
+  template    DocumentTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  description String
+  quantity    Int              @default(1)
+  unit        String           @default("รายการ")
+  unitPrice   Decimal          @db.Decimal(10, 2)
+  orderIndex  Int              @default(0)
+
+  @@index([templateId])
+  @@map("documenttemplateitem")
 }
 
 model BillingDocument {

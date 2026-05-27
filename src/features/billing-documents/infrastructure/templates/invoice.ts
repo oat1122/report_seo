@@ -38,7 +38,6 @@ export function renderInvoice(data: RenderData): string {
         </div>
         <div class="new-header-right">
           ${logoHtml}
-          ${data.company.logoUrl ? `<p class="new-tagline">${escapeHtml(data.company.name)}</p>` : ''}
         </div>
       </div>
 

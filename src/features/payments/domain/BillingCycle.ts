@@ -24,6 +24,7 @@ export interface BillingCycleWithPlan extends BillingCycle {
     id: string;
     description: string;
     type: string;
+    documentTemplateId: string | null;
   };
   proofs: PaymentProof[];
 }

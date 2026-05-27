@@ -3,17 +3,7 @@ import type {
   AdminBillingDocument,
   BillingDocumentWithCycle,
 } from "../../domain/BillingDocument";
-import type { DocumentItem } from "../../domain/DocumentItem";
 import type { BillingDocumentType } from "../../domain/DocumentType";
-
-export interface DocumentItemInput {
-  id?: string;
-  description: string;
-  quantity: number;
-  unit: string;
-  unitPrice: number;
-  orderIndex: number;
-}
 
 export interface CreateDocumentInput {
   customerId: string;
@@ -48,13 +38,6 @@ export interface CustomerForDocument {
 }
 
 export interface BillingDocumentRepository {
-  listDocumentItems(customerId: string): Promise<DocumentItem[]>;
-  upsertDocumentItems(
-    customerId: string,
-    items: DocumentItemInput[],
-  ): Promise<DocumentItem[]>;
-  deleteDocumentItem(itemId: string): Promise<void>;
-
   createDocument(input: CreateDocumentInput): Promise<BillingDocument>;
   listDocuments(
     customerId: string,

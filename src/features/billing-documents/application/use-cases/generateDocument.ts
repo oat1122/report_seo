@@ -1,6 +1,8 @@
 import type { BillingDocumentRepository } from "../ports/BillingDocumentRepository";
 import type { DocumentStorage } from "../ports/DocumentStorage";
 import type { PdfRenderer } from "../ports/PdfRenderer";
+import type { BillingCycleProvider } from "../ports/BillingCycleProvider";
+import type { DocumentTemplateRepository } from "../ports/DocumentTemplateRepository";
 import type { BillingDocumentType } from "../../domain/DocumentType";
 import type { CompanySettings } from "@/features/company-settings/domain/CompanySettings";
 import { BadRequestError } from "@/lib/errors";
@@ -10,6 +12,8 @@ export interface GenerateDocumentDeps {
   repo: BillingDocumentRepository;
   storage: DocumentStorage;
   renderer: PdfRenderer;
+  cycleProvider: BillingCycleProvider;
+  templateRepo: DocumentTemplateRepository;
   getCompanySettings: () => Promise<CompanySettings | null>;
   renderDocumentHtml: (data: RenderData) => string;
 }
@@ -40,11 +44,32 @@ export function generateDocumentUseCase(deps: GenerateDocumentDeps) {
   return async (input: {
     customerId: string;
     type: BillingDocumentType;
+    templateId?: string | null;
     billingCycleId?: string | null;
     note?: string | null;
     dueDate?: string | null;
     paidDate?: string | null;
   }) => {
+    let templateId = input.templateId ?? null;
+
+    if (!templateId && input.billingCycleId) {
+      const cycle = await deps.cycleProvider.getCycleById(
+        input.billingCycleId,
+      );
+      if (cycle) {
+        templateId = cycle.planDocumentTemplateId;
+      }
+    }
+
+    if (!templateId) {
+      throw new BadRequestError("กรุณาเลือก template เอกสาร");
+    }
+
+    const template = await deps.templateRepo.findById(templateId);
+    if (!template || template.items.length === 0) {
+      throw new BadRequestError("Template ไม่มีรายการสินค้า/บริการ");
+    }
+
     const company = await deps.getCompanySettings();
     if (!company) {
       throw new BadRequestError(
@@ -57,11 +82,7 @@ export function generateDocumentUseCase(deps: GenerateDocumentDeps) {
       throw new BadRequestError("ไม่พบข้อมูลลูกค้า");
     }
 
-    const items = await deps.repo.listDocumentItems(input.customerId);
-    if (items.length === 0) {
-      throw new BadRequestError("ลูกค้ายังไม่มีรายการสินค้า/บริการ");
-    }
-
+    const items = template.items;
     const year = new Date().getFullYear();
     const documentNumber = await deps.repo.getNextDocumentNumber(
       input.type,

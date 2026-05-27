@@ -7,6 +7,7 @@ export interface BillingCycleInfo {
   planId: string;
   planDescription: string;
   planCustomerId: string;
+  planDocumentTemplateId: string | null;
 }
 
 export interface BillingCycleProvider {

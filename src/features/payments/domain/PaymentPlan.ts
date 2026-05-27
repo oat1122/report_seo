@@ -13,6 +13,7 @@ export interface PaymentPlan {
   endDate: Date | null;
   status: PaymentPlanStatus;
   note: string | null;
+  documentTemplateId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -56,3 +56,8 @@ enum WorkProgressPeriodType {
   HALF_2_PERIODS
   CUSTOM
 }
+
+enum DocumentTemplateScope {
+  GENERAL
+  PLAN
+}

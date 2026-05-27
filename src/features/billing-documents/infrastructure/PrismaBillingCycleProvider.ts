@@ -11,7 +11,12 @@ function toInfo(row: {
   paidDate: Date | null;
   amount: unknown;
   planId: string;
-  plan: { id: string; description: string; customerId: string };
+  plan: {
+    id: string;
+    description: string;
+    customerId: string;
+    documentTemplateId: string | null;
+  };
 }): BillingCycleInfo {
   return {
     id: row.id,
@@ -22,11 +27,17 @@ function toInfo(row: {
     planId: row.planId,
     planDescription: row.plan.description,
     planCustomerId: row.plan.customerId,
+    planDocumentTemplateId: row.plan.documentTemplateId,
   };
 }
 
 const planSelect = {
-  select: { id: true, description: true, customerId: true },
+  select: {
+    id: true,
+    description: true,
+    customerId: true,
+    documentTemplateId: true,
+  },
 } as const;
 
 export class PrismaBillingCycleProvider implements BillingCycleProvider {

@@ -1,7 +1,6 @@
 import { requireAdmin } from "@/lib/auth-utils";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { BackButton } from "@/components/shared/BackButton";
-import { DocumentItemEditor } from "@/features/billing-documents/presentation/components/admin/DocumentItemEditor";
 import { DocumentGeneratorPanel } from "@/features/billing-documents/presentation/components/admin/DocumentGeneratorPanel";
 import { DocumentList } from "@/features/billing-documents/presentation/components/admin/DocumentList";
 
@@ -31,7 +30,6 @@ export default async function AdminDocumentsPage({ params }: PageProps) {
             </p>
           </header>
         </div>
-        <DocumentItemEditor customerId={userId} />
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <DocumentList customerId={userId} />

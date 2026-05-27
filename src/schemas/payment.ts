@@ -27,6 +27,7 @@ export const createPaymentPlanSchema = z
     startDate: z.coerce.date(),
     endDate: z.coerce.date().optional().nullable(),
     note: z.string().max(2000).optional().nullable(),
+    documentTemplateId: z.string().uuid().optional().nullable(),
   })
   .refine((d) => d.type !== "MONTHLY" || d.billingDay != null, {
     message: "billingDay จำเป็นสำหรับแผน MONTHLY",
@@ -47,6 +48,7 @@ export const updatePaymentPlanSchema = z.object({
   startDate: z.coerce.date().optional(),
   endDate: z.coerce.date().optional().nullable(),
   note: z.string().max(2000).optional().nullable(),
+  documentTemplateId: z.string().uuid().optional().nullable(),
 });
 
 export type UpdatePaymentPlanInput = z.infer<typeof updatePaymentPlanSchema>;

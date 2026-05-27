@@ -2,6 +2,7 @@ import type { BillingDocumentRepository } from "../ports/BillingDocumentReposito
 import type { DocumentStorage } from "../ports/DocumentStorage";
 import type { PdfRenderer } from "../ports/PdfRenderer";
 import type { BillingCycleProvider } from "../ports/BillingCycleProvider";
+import type { DocumentTemplateRepository } from "../ports/DocumentTemplateRepository";
 import type { BillingDocumentType } from "../../domain/DocumentType";
 import type { BillingDocument } from "../../domain/BillingDocument";
 import type { CompanySettings } from "@/features/company-settings/domain/CompanySettings";
@@ -21,6 +22,7 @@ export interface GenerateAllForCycleDeps {
   storage: DocumentStorage;
   renderer: PdfRenderer;
   cycleProvider: BillingCycleProvider;
+  templateRepo: DocumentTemplateRepository;
   getCompanySettings: () => Promise<CompanySettings | null>;
   renderDocumentHtml: (data: RenderData) => string;
 }
@@ -37,6 +39,19 @@ export function generateAllForCycleUseCase(deps: GenerateAllForCycleDeps) {
       throw new BadRequestError("รอบจ่ายเงินไม่ตรงกับลูกค้า");
     }
 
+    if (!cycle.planDocumentTemplateId) {
+      throw new BadRequestError(
+        "แผนชำระเงินยังไม่ได้เลือก template เอกสาร",
+      );
+    }
+
+    const template = await deps.templateRepo.findById(
+      cycle.planDocumentTemplateId,
+    );
+    if (!template || template.items.length === 0) {
+      throw new BadRequestError("Template ไม่มีรายการสินค้า/บริการ");
+    }
+
     const company = await deps.getCompanySettings();
     if (!company) {
       throw new BadRequestError("กรุณาตั้งค่าข้อมูลบริษัทก่อนสร้างเอกสาร");
@@ -45,11 +60,7 @@ export function generateAllForCycleUseCase(deps: GenerateAllForCycleDeps) {
     const customer = await deps.repo.getCustomerForDocument(input.customerId);
     if (!customer) throw new BadRequestError("ไม่พบข้อมูลลูกค้า");
 
-    const items = await deps.repo.listDocumentItems(input.customerId);
-    if (items.length === 0) {
-      throw new BadRequestError("ลูกค้ายังไม่มีรายการสินค้า/บริการ");
-    }
-
+    const items = template.items;
     const totalAmount = items.reduce(
       (sum, item) => sum + item.quantity * item.unitPrice,
       0,

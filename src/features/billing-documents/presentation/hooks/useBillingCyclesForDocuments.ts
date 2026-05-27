@@ -14,6 +14,7 @@ export interface CycleForDocument {
   plan: {
     id: string;
     description: string;
+    documentTemplateId: string | null;
   };
 }
 

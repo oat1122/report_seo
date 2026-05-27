@@ -4,7 +4,6 @@ import { useState, useMemo } from "react";
 import { AlertTriangle, FileText, Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -23,12 +22,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import {
   useGenerateDocument,
   useGenerateAllForCycle,
 } from "../../hooks/useDocuments";
-import { useListDocumentItems } from "../../hooks/useDocumentItems";
 import { useBillingCyclesForDocuments } from "../../hooks/useBillingCyclesForDocuments";
+import { useDocumentTemplate } from "../../hooks/useDocumentTemplates";
 import { DOCUMENT_TYPE_LABELS } from "../../../domain/DocumentType";
 import type { BillingDocumentType } from "../../../domain/DocumentType";
 
@@ -42,7 +42,6 @@ export function DocumentGeneratorPanel({ customerId }: Props) {
   const generateMutation = useGenerateDocument(customerId);
   const generateAllMutation = useGenerateAllForCycle(customerId);
   const { data: cycles = [] } = useBillingCyclesForDocuments(customerId);
-  const { data: items = [] } = useListDocumentItems(customerId);
 
   const [selectedCycleId, setSelectedCycleId] = useState<string>(NO_CYCLE);
   const [type, setType] = useState<BillingDocumentType>("INVOICE");
@@ -55,25 +54,35 @@ export function DocumentGeneratorPanel({ customerId }: Props) {
     [cycles, selectedCycleId],
   );
 
+  const templateId = selectedCycle?.plan.documentTemplateId ?? null;
+  const { data: template } = useDocumentTemplate(templateId);
+
   const itemsTotal = useMemo(
     () =>
-      items.reduce(
-        (sum, i) => sum + Number(i.quantity) * Number(i.unitPrice),
-        0,
-      ),
-    [items],
+      template
+        ? template.items.reduce(
+            (sum, i) => sum + Number(i.quantity) * Number(i.unitPrice),
+            0,
+          )
+        : 0,
+    [template],
   );
 
   const hasCycle = selectedCycleId !== NO_CYCLE;
   const amountMismatch =
-    hasCycle && selectedCycle && Math.abs(itemsTotal - selectedCycle.amount) > 0.01;
+    hasCycle &&
+    selectedCycle &&
+    template &&
+    Math.abs(itemsTotal - selectedCycle.amount) > 0.01;
 
-  const effectiveDueDate = hasCycle && selectedCycle
-    ? new Date(selectedCycle.dueDate).toISOString().split("T")[0]
-    : dueDate;
-  const effectivePaidDate = hasCycle && selectedCycle?.paidDate
-    ? new Date(selectedCycle.paidDate).toISOString().split("T")[0]
-    : paidDate;
+  const effectiveDueDate =
+    hasCycle && selectedCycle
+      ? new Date(selectedCycle.dueDate).toISOString().split("T")[0]
+      : dueDate;
+  const effectivePaidDate =
+    hasCycle && selectedCycle?.paidDate
+      ? new Date(selectedCycle.paidDate).toISOString().split("T")[0]
+      : paidDate;
 
   const handleGenerate = () => {
     generateMutation.mutate(
@@ -83,6 +92,7 @@ export function DocumentGeneratorPanel({ customerId }: Props) {
         dueDate: effectiveDueDate || null,
         paidDate: effectivePaidDate || null,
         billingCycleId: hasCycle ? selectedCycleId : undefined,
+        templateId: templateId ?? undefined,
       },
       {
         onSuccess: (doc) => {
@@ -150,6 +160,30 @@ export function DocumentGeneratorPanel({ customerId }: Props) {
                 </SelectContent>
               </Select>
             </Field>
+          )}
+
+          {hasCycle && !templateId && (
+            <div className="flex items-start gap-2 rounded-md border border-destructive/50 bg-destructive/5 p-3 text-sm">
+              <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
+              <p className="text-destructive">
+                แผนชำระนี้ยังไม่ได้เลือก template เอกสาร
+              </p>
+            </div>
+          )}
+
+          {hasCycle && template && (
+            <div className="rounded-md bg-muted/50 p-3 text-sm">
+              <p className="font-medium">
+                Template: {template.name}
+              </p>
+              <p className="text-muted-foreground">
+                {template.items.length} รายการ · รวม{" "}
+                {itemsTotal.toLocaleString("th-TH", {
+                  minimumFractionDigits: 2,
+                })}{" "}
+                บาท
+              </p>
+            </div>
           )}
 
           {amountMismatch && (
@@ -239,7 +273,7 @@ export function DocumentGeneratorPanel({ customerId }: Props) {
           <div className="flex flex-col gap-2">
             <Button
               onClick={handleGenerate}
-              disabled={isPending}
+              disabled={isPending || (hasCycle && !templateId)}
               className="w-full bg-info text-info-foreground hover:bg-info/90"
             >
               {generateMutation.isPending ? (
@@ -254,7 +288,7 @@ export function DocumentGeneratorPanel({ customerId }: Props) {
               <Button
                 variant="outline"
                 onClick={handleGenerateAll}
-                disabled={isPending}
+                disabled={isPending || !templateId}
                 className="w-full"
               >
                 {generateAllMutation.isPending ? (
@@ -262,7 +296,7 @@ export function DocumentGeneratorPanel({ customerId }: Props) {
                 ) : (
                   <FileText className="mr-2 size-4" />
                 )}
-                สร้างทั้ง 4 ประเภท
+                สร้างเอกสารทั้ง 4 ประเภท
               </Button>
             )}
           </div>
