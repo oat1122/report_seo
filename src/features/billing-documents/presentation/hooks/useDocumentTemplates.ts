@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient, skipToken } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "@/infrastructure/http/axios";
 import type { ApiSuccess } from "@/infrastructure/http/responses";
 import type {
@@ -34,14 +34,13 @@ export function useListDocumentTemplates(scope?: DocumentTemplateScope) {
 export function useDocumentTemplate(templateId: string | null) {
   return useQuery<DocumentTemplateDetail>({
     queryKey: [...QUERY_KEY, templateId],
-    queryFn: templateId
-      ? async () => {
-          const { data } = await axios.get<ApiSuccess<DocumentTemplateDetail>>(
-            `/admin/document-templates/${templateId}`,
-          );
-          return data.data;
-        }
-      : skipToken,
+    queryFn: async () => {
+      const { data } = await axios.get<ApiSuccess<DocumentTemplateDetail>>(
+        `/admin/document-templates/${templateId}`,
+      );
+      return data.data;
+    },
+    enabled: !!templateId,
     staleTime: 2 * 60 * 1000,
   });
 }

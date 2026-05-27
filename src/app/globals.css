@@ -179,3 +179,96 @@
     @apply font-sans;
     }
 }
+
+/* Schedule-X Customizations */
+.calendar-wrapper .sx__month-grid-day__header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.125rem !important;
+}
+
+@media (min-width: 768px) {
+    .calendar-wrapper .sx__month-grid-day__header {
+        justify-content: space-between;
+        padding: 0.5rem 0.75rem !important;
+    }
+}
+
+.calendar-wrapper .sx__month-grid-day__header-day-name {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .calendar-wrapper .sx__month-grid-day__header-day-name {
+        display: block;
+        color: var(--muted-foreground);
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+}
+
+.calendar-wrapper .sx__month-grid-day__header-date {
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+@media (min-width: 768px) {
+    .calendar-wrapper .sx__month-grid-day__header-date {
+        font-size: 1rem;
+    }
+}
+
+.calendar-wrapper .sx__month-grid-day {
+    min-height: 80px !important;
+}
+
+@media (min-width: 768px) {
+    .calendar-wrapper .sx__month-grid-day {
+        min-height: 140px !important;
+    }
+}
+
+.calendar-wrapper .sx__month-grid-wrapper {
+    height: 100%;
+}
+
+.calendar-wrapper .sx__date-picker-wrapper,
+.calendar-wrapper .sx__date-picker,
+.calendar-wrapper .sx__date-input-wrapper,
+.calendar-wrapper .sx__date-input {
+    display: none !important;
+}
+
+/* Ensure next/prev buttons are visible on mobile */
+.calendar-wrapper .sx__forward-backward-navigation {
+    display: flex !important;
+}
+
+.calendar-wrapper .sx__chevron-wrapper {
+    display: inline-flex !important;
+}
+
+/* Reduce header sizes on mobile */
+@media (max-width: 767px) {
+    .calendar-wrapper .sx__calendar-header-content {
+        gap: 0.25rem !important;
+    }
+    
+    .calendar-wrapper .sx__today-button {
+        font-size: 0.75rem !important;
+        padding: 0.25rem 0.5rem !important;
+        min-height: 28px !important;
+    }
+
+    .calendar-wrapper .sx__chevron-wrapper {
+        padding: 0.25rem !important;
+        height: 28px !important;
+        width: 28px !important;
+    }
+
+    .calendar-wrapper .sx__range-heading {
+        font-size: 0.875rem !important;
+        margin-left: 0.25rem !important;
+    }
+}
