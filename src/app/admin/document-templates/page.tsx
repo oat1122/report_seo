@@ -1,14 +1,14 @@
-import { requireAdmin } from "@/lib/auth-utils";
-import { DashboardLayout } from "@/components/Layout/DashboardLayout";
-import { BackButton } from "@/components/shared/BackButton";
-import { DocumentTemplateList } from "@/features/billing-documents/presentation/components/admin/DocumentTemplateList";
+import { requireAdmin } from '@/lib/auth-utils'
+import { DashboardLayout } from '@/components/Layout/DashboardLayout'
+import { BackButton } from '@/components/shared/BackButton'
+import { DocumentTemplateList } from '@/features/billing-documents/presentation/components/admin/DocumentTemplateList'
 
 export const metadata = {
-  title: "Template เอกสาร · Admin",
-};
+  title: 'Template เอกสาร · Admin',
+}
 
 export default async function DocumentTemplatesPage() {
-  await requireAdmin();
+  await requireAdmin()
 
   return (
     <DashboardLayout>
@@ -16,10 +16,8 @@ export default async function DocumentTemplatesPage() {
         <div className="flex items-center gap-3">
           <BackButton />
           <header className="flex flex-col gap-1">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Template เอกสาร
-            </h1>
-            <p className="text-sm text-muted-foreground">
+            <h1 className="text-2xl font-semibold tracking-tight">Template เอกสาร</h1>
+            <p className="text-muted-foreground text-sm">
               จัดการ template รายการสินค้า/บริการสำหรับสร้างเอกสาร PDF
             </p>
           </header>
@@ -27,5 +25,5 @@ export default async function DocumentTemplatesPage() {
         <DocumentTemplateList />
       </div>
     </DashboardLayout>
-  );
+  )
 }

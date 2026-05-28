@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -8,58 +8,58 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select'
 import {
   addItemSchema,
   updateItemSchema,
   type AddItemInput,
   type UpdateItemInput,
-} from "@/features/work-progress/schemas";
-import { FieldError, parseFieldErrors, type FieldErrors } from "../FieldError";
-import type { WorkProgressItemWithMarks } from "@/features/work-progress/domain/WorkProgressPlan";
-import { useCategories, useStatuses } from "../../hooks/useMasterTables";
-import { useAddItem, useUpdateItem } from "../../hooks/useItemMutations";
+} from '@/features/work-progress/schemas'
+import { FieldError, parseFieldErrors, type FieldErrors } from '../FieldError'
+import type { WorkProgressItemWithMarks } from '@/features/work-progress/domain/WorkProgressPlan'
+import { useCategories, useStatuses } from '../../hooks/useMasterTables'
+import { useAddItem, useUpdateItem } from '../../hooks/useItemMutations'
 
 interface ItemEditDialogProps {
-  userId: string;
-  planId: string;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  initial?: WorkProgressItemWithMarks | null;
+  userId: string
+  planId: string
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  initial?: WorkProgressItemWithMarks | null
 }
 
 interface FormState {
-  categoryId: string;
-  statusId: string;
-  activity: string;
-  description: string;
-  duration: string;
-  weight: number;
-  progressPercent: number;
-  note: string;
+  categoryId: string
+  statusId: string
+  activity: string
+  description: string
+  duration: string
+  weight: number
+  progressPercent: number
+  note: string
 }
 
 const empty: FormState = {
-  categoryId: "",
-  statusId: "",
-  activity: "",
-  description: "",
-  duration: "",
+  categoryId: '',
+  statusId: '',
+  activity: '',
+  description: '',
+  duration: '',
   weight: 1,
   progressPercent: 0,
-  note: "",
-};
+  note: '',
+}
 
 export function ItemEditDialog({
   userId,
@@ -68,44 +68,44 @@ export function ItemEditDialog({
   onOpenChange,
   initial,
 }: ItemEditDialogProps) {
-  const { data: categories } = useCategories();
-  const { data: statuses } = useStatuses();
-  const addMut = useAddItem();
-  const updateMut = useUpdateItem();
+  const { data: categories } = useCategories()
+  const { data: statuses } = useStatuses()
+  const addMut = useAddItem()
+  const updateMut = useUpdateItem()
 
-  const [form, setForm] = useState<FormState>(empty);
-  const [errors, setErrors] = useState<FieldErrors>({});
+  const [form, setForm] = useState<FormState>(empty)
+  const [errors, setErrors] = useState<FieldErrors>({})
 
   useEffect(() => {
-    if (!open) return;
-    setErrors({});
+    if (!open) return
+    setErrors({})
     if (!initial) {
-      setForm(empty);
-      return;
+      setForm(empty)
+      return
     }
     setForm({
       categoryId: initial.categoryId,
       statusId: initial.statusId,
       activity: initial.activity,
-      description: initial.description ?? "",
-      duration: initial.duration ?? "",
+      description: initial.description ?? '',
+      duration: initial.duration ?? '',
       weight: initial.weight,
       progressPercent: initial.progressPercent,
-      note: initial.note ?? "",
-    });
-  }, [open, initial]);
+      note: initial.note ?? '',
+    })
+  }, [open, initial])
 
-  const isEdit = Boolean(initial);
-  const activeCategories = (categories ?? []).filter((c) => c.isActive);
-  const activeStatuses = (statuses ?? []).filter((s) => s.isActive);
+  const isEdit = Boolean(initial)
+  const activeCategories = (categories ?? []).filter((c) => c.isActive)
+  const activeStatuses = (statuses ?? []).filter((s) => s.isActive)
 
   const handleSubmit = async () => {
-    const newErrors: FieldErrors = {};
-    if (!form.activity.trim()) newErrors.activity = "กรุณาระบุกิจกรรม";
-    if (!form.categoryId) newErrors.categoryId = "กรุณาเลือกหมวด";
+    const newErrors: FieldErrors = {}
+    if (!form.activity.trim()) newErrors.activity = 'กรุณาระบุกิจกรรม'
+    if (!form.categoryId) newErrors.categoryId = 'กรุณาเลือกหมวด'
     if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
+      setErrors(newErrors)
+      return
     }
 
     if (isEdit && initial) {
@@ -118,18 +118,18 @@ export function ItemEditDialog({
         weight: form.weight,
         progressPercent: form.progressPercent,
         note: form.note.trim() || null,
-      };
-      const parsed = updateItemSchema.safeParse(body);
+      }
+      const parsed = updateItemSchema.safeParse(body)
       if (!parsed.success) {
-        setErrors(parseFieldErrors(parsed.error));
-        return;
+        setErrors(parseFieldErrors(parsed.error))
+        return
       }
       await updateMut.mutateAsync({
         userId,
         planId,
         itemId: initial.id,
         body: parsed.data as UpdateItemInput,
-      });
+      })
     } else {
       const body: Record<string, unknown> = {
         categoryId: form.categoryId,
@@ -139,31 +139,29 @@ export function ItemEditDialog({
         duration: form.duration.trim() || null,
         weight: form.weight,
         note: form.note.trim() || null,
-      };
-      const parsed = addItemSchema.safeParse(body);
+      }
+      const parsed = addItemSchema.safeParse(body)
       if (!parsed.success) {
-        setErrors(parseFieldErrors(parsed.error));
-        return;
+        setErrors(parseFieldErrors(parsed.error))
+        return
       }
       await addMut.mutateAsync({
         userId,
         planId,
         body: parsed.data as AddItemInput,
-      });
+      })
     }
-    onOpenChange(false);
-  };
+    onOpenChange(false)
+  }
 
-  const submitting = addMut.isPending || updateMut.isPending;
+  const submitting = addMut.isPending || updateMut.isPending
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "แก้ไข item" : "เพิ่ม item"}</DialogTitle>
-          <DialogDescription>
-            กิจกรรมหนึ่งบรรทัดในแผน — เลือกหมวดและสถานะ
-          </DialogDescription>
+          <DialogTitle>{isEdit ? 'แก้ไข item' : 'เพิ่ม item'}</DialogTitle>
+          <DialogDescription>กิจกรรมหนึ่งบรรทัดในแผน — เลือกหมวดและสถานะ</DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 py-2">
@@ -174,8 +172,8 @@ export function ItemEditDialog({
               id="ie-activity"
               value={form.activity}
               onChange={(e) => {
-                setForm((s) => ({ ...s, activity: e.target.value }));
-                setErrors((prev) => ({ ...prev, activity: "" }));
+                setForm((s) => ({ ...s, activity: e.target.value }))
+                setErrors((prev) => ({ ...prev, activity: '' }))
               }}
               maxLength={2000}
               autoFocus={!isEdit}
@@ -189,8 +187,8 @@ export function ItemEditDialog({
               <Select
                 value={form.categoryId}
                 onValueChange={(v) => {
-                  setForm((s) => ({ ...s, categoryId: v }));
-                  setErrors((prev) => ({ ...prev, categoryId: "" }));
+                  setForm((s) => ({ ...s, categoryId: v }))
+                  setErrors((prev) => ({ ...prev, categoryId: '' }))
                 }}
               >
                 <SelectTrigger>
@@ -230,9 +228,7 @@ export function ItemEditDialog({
             <Textarea
               id="ie-desc"
               value={form.description}
-              onChange={(e) =>
-                setForm((s) => ({ ...s, description: e.target.value }))
-              }
+              onChange={(e) => setForm((s) => ({ ...s, description: e.target.value }))}
               rows={2}
               maxLength={5000}
             />
@@ -244,9 +240,7 @@ export function ItemEditDialog({
               <Input
                 id="ie-duration"
                 value={form.duration}
-                onChange={(e) =>
-                  setForm((s) => ({ ...s, duration: e.target.value }))
-                }
+                onChange={(e) => setForm((s) => ({ ...s, duration: e.target.value }))}
                 placeholder="เช่น 2 weeks"
                 maxLength={100}
               />
@@ -264,8 +258,8 @@ export function ItemEditDialog({
                   setForm((s) => ({
                     ...s,
                     weight: Math.max(1, Number(e.target.value) || 1),
-                  }));
-                  setErrors((prev) => ({ ...prev, weight: "" }));
+                  }))
+                  setErrors((prev) => ({ ...prev, weight: '' }))
                 }}
               />
             </div>
@@ -282,12 +276,9 @@ export function ItemEditDialog({
                   onChange={(e) => {
                     setForm((s) => ({
                       ...s,
-                      progressPercent: Math.min(
-                        100,
-                        Math.max(0, Number(e.target.value) || 0),
-                      ),
-                    }));
-                    setErrors((prev) => ({ ...prev, progressPercent: "" }));
+                      progressPercent: Math.min(100, Math.max(0, Number(e.target.value) || 0)),
+                    }))
+                    setErrors((prev) => ({ ...prev, progressPercent: '' }))
                   }}
                 />
               </div>
@@ -311,10 +302,10 @@ export function ItemEditDialog({
             ยกเลิก
           </Button>
           <Button onClick={handleSubmit} disabled={submitting}>
-            {submitting ? "กำลังบันทึก..." : "บันทึก"}
+            {submitting ? 'กำลังบันทึก...' : 'บันทึก'}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

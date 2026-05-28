@@ -1,7 +1,7 @@
-"use client";
+'use client'
 
-import React from "react";
-import Link from "next/link";
+import React from 'react'
+import Link from 'next/link'
 import {
   Pencil,
   Trash2,
@@ -10,40 +10,32 @@ import {
   ClipboardList,
   Eye,
   CreditCard,
-} from "lucide-react";
-import { useSession } from "next-auth/react";
-import { User } from "@/types/user";
-import { Role } from "@/types/auth";
-import {
-  getRoleIcon,
-  getRoleLabel,
-  getRoleBadgeClass,
-} from "@/lib/role-display";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { DataTable, DataTableColumn } from "@/components/shared/DataTable";
-import { cn } from "@/lib/utils";
+} from 'lucide-react'
+import { useSession } from 'next-auth/react'
+import { User } from '@/types/user'
+import { Role } from '@/types/auth'
+import { getRoleIcon, getRoleLabel, getRoleBadgeClass } from '@/lib/role-display'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { DataTable, DataTableColumn } from '@/components/shared/DataTable'
+import { cn } from '@/lib/utils'
 
 interface UserTableProps {
-  users: User[];
-  onEdit: (user: User) => void;
-  onDelete: (id: string) => void;
-  onRestore: (id: string) => void;
-  onOpenMetrics: (user: User) => void;
-  isSeoDevView?: boolean;
+  users: User[]
+  onEdit: (user: User) => void
+  onDelete: (id: string) => void
+  onRestore: (id: string) => void
+  onOpenMetrics: (user: User) => void
+  isSeoDevView?: boolean
 }
 
 const formatThaiDate = (iso: string) =>
-  new Date(iso).toLocaleDateString("th-TH", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  new Date(iso).toLocaleDateString('th-TH', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
 
 const ActionTooltipButton = ({
   label,
@@ -52,17 +44,17 @@ const ActionTooltipButton = ({
   className,
   children,
 }: {
-  label: string;
-  onClick?: () => void;
-  href?: string;
-  className?: string;
-  children: React.ReactNode;
+  label: string
+  onClick?: () => void
+  href?: string
+  className?: string
+  children: React.ReactNode
 }) => {
   const buttonProps = {
-    variant: "ghost" as const,
-    size: "icon-sm" as const,
-    className: cn("hover:bg-muted", className),
-  };
+    variant: 'ghost' as const,
+    size: 'icon-sm' as const,
+    className: cn('hover:bg-muted', className),
+  }
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -80,8 +72,8 @@ const ActionTooltipButton = ({
       </TooltipTrigger>
       <TooltipContent>{label}</TooltipContent>
     </Tooltip>
-  );
-};
+  )
+}
 
 export const UserTable: React.FC<UserTableProps> = ({
   users,
@@ -91,59 +83,46 @@ export const UserTable: React.FC<UserTableProps> = ({
   onOpenMetrics,
   isSeoDevView = false,
 }) => {
-  const { data: session } = useSession();
-  const canViewReport =
-    session?.user?.role === Role.ADMIN || session?.user?.role === Role.SEO_DEV;
-  const workProgressBase =
-    session?.user?.role === Role.ADMIN ? "/admin" : "/seo";
+  const { data: session } = useSession()
+  const canViewReport = session?.user?.role === Role.ADMIN || session?.user?.role === Role.SEO_DEV
+  const workProgressBase = session?.user?.role === Role.ADMIN ? '/admin' : '/seo'
 
   const columns: DataTableColumn<User>[] = [
     {
-      key: "name",
-      header: "ชื่อผู้ใช้",
-      cell: (user) => (
-        <span className="font-semibold">{user.name || "-"}</span>
-      ),
+      key: 'name',
+      header: 'ชื่อผู้ใช้',
+      cell: (user) => <span className="font-semibold">{user.name || '-'}</span>,
     },
     {
-      key: "email",
-      header: "อีเมล",
-      cell: (user) => (
-        <span className="text-sm text-muted-foreground">{user.email}</span>
-      ),
+      key: 'email',
+      header: 'อีเมล',
+      cell: (user) => <span className="text-muted-foreground text-sm">{user.email}</span>,
     },
     {
-      key: "role",
-      header: "บทบาท",
+      key: 'role',
+      header: 'บทบาท',
       cell: (user) => (
-        <Badge
-          className={cn(
-            "gap-1 rounded-md font-semibold",
-            getRoleBadgeClass(user.role),
-          )}
-        >
+        <Badge className={cn('gap-1 rounded-md font-semibold', getRoleBadgeClass(user.role))}>
           {getRoleIcon(user.role)}
           {getRoleLabel(user.role)}
         </Badge>
       ),
     },
     {
-      key: "createdAt",
-      header: "วันที่สร้าง",
+      key: 'createdAt',
+      header: 'วันที่สร้าง',
       cell: (user) => (
-        <span className="text-sm text-muted-foreground">
-          {formatThaiDate(user.createdAt)}
-        </span>
+        <span className="text-muted-foreground text-sm">{formatThaiDate(user.createdAt)}</span>
       ),
     },
     {
-      key: "actions",
-      header: "จัดการ",
-      align: "center",
+      key: 'actions',
+      header: 'จัดการ',
+      align: 'center',
       cell: (user) => {
-        const isDeleted = !!user.deletedAt;
+        const isDeleted = !!user.deletedAt
         if (isDeleted) {
-          if (isSeoDevView) return null;
+          if (isSeoDevView) return null
           return (
             <ActionTooltipButton
               label="กู้คืน"
@@ -152,7 +131,7 @@ export const UserTable: React.FC<UserTableProps> = ({
             >
               <ArchiveRestore className="size-4" />
             </ActionTooltipButton>
-          );
+          )
         }
         return (
           <div className="flex justify-center gap-1">
@@ -211,20 +190,20 @@ export const UserTable: React.FC<UserTableProps> = ({
               </>
             )}
           </div>
-        );
+        )
       },
     },
-  ];
+  ]
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border">
+    <div className="border-border overflow-hidden rounded-2xl border">
       <DataTable
         columns={columns}
         rows={users}
         getRowKey={(user) => user.id}
         emptyState="ไม่พบข้อมูลผู้ใช้งาน"
-        rowClassName={(user) => (user.deletedAt ? "opacity-50" : undefined)}
+        rowClassName={(user) => (user.deletedAt ? 'opacity-50' : undefined)}
       />
     </div>
-  );
-};
+  )
+}

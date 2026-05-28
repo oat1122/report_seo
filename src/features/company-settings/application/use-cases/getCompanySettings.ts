@@ -1,5 +1,5 @@
-import type { CompanySettingsRepository } from "../ports/CompanySettingsRepository";
+import type { CompanySettingsRepository } from '../ports/CompanySettingsRepository'
 
 export function getCompanySettingsUseCase(repo: CompanySettingsRepository) {
-  return () => repo.get();
+  return () => repo.get()
 }

@@ -1,4 +1,4 @@
-import type { RenderData } from "../../application/use-cases/generateDocument";
+import type { RenderData } from '../../application/use-cases/generateDocument'
 import {
   wrapDocument,
   formatCurrency,
@@ -7,20 +7,17 @@ import {
   renderItemsTable,
   renderNote,
   renderSignatureFooter,
-} from "./base-template";
+} from './base-template'
 
-const VAT_RATE = 0.07;
+const VAT_RATE = 0.07
 
 export function renderTaxInvoice(data: RenderData): string {
-  const subtotal = data.items.reduce(
-    (sum, i) => sum + i.quantity * i.unitPrice,
-    0,
-  );
-  const vat = subtotal * VAT_RATE;
-  const grandTotal = subtotal + vat;
+  const subtotal = data.items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)
+  const vat = subtotal * VAT_RATE
+  const grandTotal = subtotal + vat
 
   const body = `
-    ${renderCompanyHeader(data.company, "ใบกำกับภาษี", data.documentNumber, data.generatedAt)}
+    ${renderCompanyHeader(data.company, 'ใบกำกับภาษี', data.documentNumber, data.generatedAt)}
     ${renderCustomerSection(data.customer)}
     ${renderItemsTable(data.items)}
     <div class="totals">
@@ -41,7 +38,7 @@ export function renderTaxInvoice(data: RenderData): string {
     </div>
     ${renderNote(data.note)}
     ${renderSignatureFooter()}
-  `;
+  `
 
-  return wrapDocument(body, `ใบกำกับภาษี ${data.documentNumber}`);
+  return wrapDocument(body, `ใบกำกับภาษี ${data.documentNumber}`)
 }

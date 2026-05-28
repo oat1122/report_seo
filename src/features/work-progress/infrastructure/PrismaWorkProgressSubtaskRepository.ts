@@ -1,34 +1,32 @@
-import { prisma } from "@/infrastructure/prisma/client";
-import type { WorkProgressSubtask } from "../domain/WorkProgressSubtask";
+import { prisma } from '@/infrastructure/prisma/client'
+import type { WorkProgressSubtask } from '../domain/WorkProgressSubtask'
 import type {
   AddSubtaskData,
   UpdateSubtaskData,
   WorkProgressSubtaskRepository,
-} from "../application/ports/WorkProgressSubtaskRepository";
+} from '../application/ports/WorkProgressSubtaskRepository'
 
-export class PrismaWorkProgressSubtaskRepository
-  implements WorkProgressSubtaskRepository
-{
+export class PrismaWorkProgressSubtaskRepository implements WorkProgressSubtaskRepository {
   listByItem(itemId: string): Promise<WorkProgressSubtask[]> {
     return prisma.workProgressSubtask.findMany({
       where: { itemId },
-      orderBy: { orderIndex: "asc" },
-    });
+      orderBy: { orderIndex: 'asc' },
+    })
   }
 
   findById(subtaskId: string): Promise<WorkProgressSubtask | null> {
-    return prisma.workProgressSubtask.findUnique({ where: { id: subtaskId } });
+    return prisma.workProgressSubtask.findUnique({ where: { id: subtaskId } })
   }
 
   async add(data: AddSubtaskData): Promise<WorkProgressSubtask> {
-    let orderIndex = data.orderIndex;
+    let orderIndex = data.orderIndex
     if (orderIndex === null) {
       const last = await prisma.workProgressSubtask.findFirst({
         where: { itemId: data.itemId },
-        orderBy: { orderIndex: "desc" },
+        orderBy: { orderIndex: 'desc' },
         select: { orderIndex: true },
-      });
-      orderIndex = last ? last.orderIndex + 1 : 0;
+      })
+      orderIndex = last ? last.orderIndex + 1 : 0
     }
     return prisma.workProgressSubtask.create({
       data: {
@@ -37,21 +35,18 @@ export class PrismaWorkProgressSubtaskRepository
         assignedToId: data.assignedToId,
         orderIndex,
       },
-    });
+    })
   }
 
-  update(
-    subtaskId: string,
-    data: UpdateSubtaskData,
-  ): Promise<WorkProgressSubtask> {
+  update(subtaskId: string, data: UpdateSubtaskData): Promise<WorkProgressSubtask> {
     return prisma.workProgressSubtask.update({
       where: { id: subtaskId },
       data,
-    });
+    })
   }
 
   async delete(subtaskId: string): Promise<void> {
-    await prisma.workProgressSubtask.delete({ where: { id: subtaskId } });
+    await prisma.workProgressSubtask.delete({ where: { id: subtaskId } })
   }
 
   async reorder(
@@ -65,14 +60,14 @@ export class PrismaWorkProgressSubtaskRepository
           data: { orderIndex: entry.orderIndex },
         }),
       ),
-    );
+    )
   }
 
   async isSubtaskInItem(subtaskId: string, itemId: string): Promise<boolean> {
     const row = await prisma.workProgressSubtask.findUnique({
       where: { id: subtaskId },
       select: { itemId: true },
-    });
-    return row?.itemId === itemId;
+    })
+    return row?.itemId === itemId
   }
 }

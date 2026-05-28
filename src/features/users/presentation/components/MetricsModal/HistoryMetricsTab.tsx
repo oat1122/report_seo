@@ -1,7 +1,7 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { Loader2 } from "lucide-react";
+import { useState } from 'react'
+import { Loader2 } from 'lucide-react'
 import {
   Table,
   TableBody,
@@ -9,29 +9,25 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { OverallMetricsHistory } from "@/types/history";
-import { formatDuration } from "@/lib/duration";
-import { cn } from "@/lib/utils";
-import { HistoryBulkToolbar } from "./HistoryBulkToolbar";
+} from '@/components/ui/table'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { OverallMetricsHistory } from '@/types/history'
+import { formatDuration } from '@/lib/duration'
+import { cn } from '@/lib/utils'
+import { HistoryBulkToolbar } from './HistoryBulkToolbar'
 
 interface VisibilityPayload {
-  historyId?: string;
-  historyIds?: string[];
-  isVisible: boolean;
+  historyId?: string
+  historyIds?: string[]
+  isVisible: boolean
 }
 
 interface HistoryMetricsTabProps {
-  history: OverallMetricsHistory[];
-  isLoading?: boolean;
-  canManage?: boolean;
-  onToggleVisibility?: (payload: VisibilityPayload) => void;
+  history: OverallMetricsHistory[]
+  isLoading?: boolean
+  canManage?: boolean
+  onToggleVisibility?: (payload: VisibilityPayload) => void
 }
 
 export const HistoryMetricsTab = ({
@@ -40,37 +36,35 @@ export const HistoryMetricsTab = ({
   canManage = false,
   onToggleVisibility,
 }: HistoryMetricsTabProps) => {
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const visibleCount = history.filter((h) => h.isVisible).length;
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const visibleCount = history.filter((h) => h.isVisible).length
 
   const toggleSelected = (id: string) =>
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
 
   const handleSelectAll = (checked: boolean) =>
-    setSelectedIds(checked ? history.map((h) => h.id) : []);
+    setSelectedIds(checked ? history.map((h) => h.id) : [])
 
   const handleBulkSet = (isVisible: boolean) => {
-    if (selectedIds.length === 0) return;
-    onToggleVisibility?.({ historyIds: selectedIds, isVisible });
-    setSelectedIds([]);
-  };
+    if (selectedIds.length === 0) return
+    onToggleVisibility?.({ historyIds: selectedIds, isVisible })
+    setSelectedIds([])
+  }
 
   const handleToggleSingle = (historyId: string, nextVisible: boolean) =>
-    onToggleVisibility?.({ historyId, isVisible: nextVisible });
+    onToggleVisibility?.({ historyId, isVisible: nextVisible })
 
   if (isLoading) {
     return (
       <div className="flex justify-center py-8">
-        <Loader2 className="size-8 animate-spin text-info" />
+        <Loader2 className="text-info size-8 animate-spin" />
       </div>
-    );
+    )
   }
 
-  const colSpan = canManage ? 11 : 9;
-  const allSelected = history.length > 0 && selectedIds.length === history.length;
-  const someSelected = selectedIds.length > 0 && !allSelected;
+  const colSpan = canManage ? 11 : 9
+  const allSelected = history.length > 0 && selectedIds.length === history.length
+  const someSelected = selectedIds.length > 0 && !allSelected
 
   return (
     <div className="space-y-3">
@@ -91,7 +85,7 @@ export const HistoryMetricsTab = ({
               {canManage && (
                 <TableHead className="w-10">
                   <Checkbox
-                    checked={allSelected || (someSelected ? "indeterminate" : false)}
+                    checked={allSelected || (someSelected ? 'indeterminate' : false)}
                     onCheckedChange={(c) => handleSelectAll(c === true)}
                     aria-label="เลือกทั้งหมด"
                   />
@@ -112,12 +106,12 @@ export const HistoryMetricsTab = ({
           <TableBody>
             {history.length > 0 ? (
               history.map((record) => {
-                const isSelected = selectedIds.includes(record.id);
+                const isSelected = selectedIds.includes(record.id)
                 return (
                   <TableRow
                     key={record.id}
-                    data-state={isSelected ? "selected" : undefined}
-                    className={cn(!record.isVisible && "opacity-55")}
+                    data-state={isSelected ? 'selected' : undefined}
+                    className={cn(!record.isVisible && 'opacity-55')}
                   >
                     {canManage && (
                       <TableCell>
@@ -135,24 +129,18 @@ export const HistoryMetricsTab = ({
                             <span className="inline-flex">
                               <Checkbox
                                 checked={record.isVisible}
-                                onCheckedChange={(c) =>
-                                  handleToggleSingle(record.id, c === true)
-                                }
+                                onCheckedChange={(c) => handleToggleSingle(record.id, c === true)}
                                 aria-label="แสดงในรายงานลูกค้า"
                               />
                             </span>
                           </TooltipTrigger>
                           <TooltipContent>
-                            {record.isVisible
-                              ? "กดเพื่อซ่อนจากลูกค้า"
-                              : "กดเพื่อเปิดให้ลูกค้าเห็น"}
+                            {record.isVisible ? 'กดเพื่อซ่อนจากลูกค้า' : 'กดเพื่อเปิดให้ลูกค้าเห็น'}
                           </TooltipContent>
                         </Tooltip>
                       </TableCell>
                     )}
-                    <TableCell>
-                      {new Date(record.dateRecorded).toLocaleString("th-TH")}
-                    </TableCell>
+                    <TableCell>{new Date(record.dateRecorded).toLocaleString('th-TH')}</TableCell>
                     <TableCell className="text-right">{record.domainRating}</TableCell>
                     <TableCell className="text-right">{record.healthScore}</TableCell>
                     <TableCell className="text-right">
@@ -172,11 +160,11 @@ export const HistoryMetricsTab = ({
                       {record.refDomains.toLocaleString()}
                     </TableCell>
                   </TableRow>
-                );
+                )
               })
             ) : (
               <TableRow>
-                <TableCell colSpan={colSpan} className="py-6 text-center text-muted-foreground">
+                <TableCell colSpan={colSpan} className="text-muted-foreground py-6 text-center">
                   ไม่พบข้อมูลประวัติ Overall Metrics
                 </TableCell>
               </TableRow>
@@ -185,5 +173,5 @@ export const HistoryMetricsTab = ({
         </Table>
       </div>
     </div>
-  );
-};
+  )
+}

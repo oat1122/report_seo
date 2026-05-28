@@ -1,46 +1,43 @@
-"use client";
+'use client'
 
-import { memo, useMemo } from "react";
-import { GripVertical, MoreHorizontal, Pencil, PanelRight, Trash2 } from "lucide-react";
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
+import { memo, useMemo } from 'react'
+import { GripVertical, MoreHorizontal, Pencil, PanelRight, Trash2 } from 'lucide-react'
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { cn } from "@/lib/utils";
-import { PeriodCell } from "./PeriodCell";
-import { useStatuses } from "../../hooks/useMasterTables";
-import { useUpdateItem } from "../../hooks/useItemMutations";
-import type {
-  WorkProgressItemWithMarks,
-  WorkProgressPeriod,
-} from "@/features/work-progress";
+} from '@/components/ui/select'
+import { cn } from '@/lib/utils'
+import { PeriodCell } from './PeriodCell'
+import { useStatuses } from '../../hooks/useMasterTables'
+import { useUpdateItem } from '../../hooks/useItemMutations'
+import type { WorkProgressItemWithMarks, WorkProgressPeriod } from '@/features/work-progress'
 
 interface PlanGridRowProps {
-  userId: string;
-  planId: string;
-  item: WorkProgressItemWithMarks;
-  periods: WorkProgressPeriod[];
-  gridTemplate: string;
-  selected: boolean;
-  onToggleSelect: (id: string) => void;
-  onEdit: (item: WorkProgressItemWithMarks) => void;
-  onDelete: (item: WorkProgressItemWithMarks) => void;
-  onOpenDetail: (item: WorkProgressItemWithMarks) => void;
-  readOnly?: boolean;
+  userId: string
+  planId: string
+  item: WorkProgressItemWithMarks
+  periods: WorkProgressPeriod[]
+  gridTemplate: string
+  selected: boolean
+  onToggleSelect: (id: string) => void
+  onEdit: (item: WorkProgressItemWithMarks) => void
+  onDelete: (item: WorkProgressItemWithMarks) => void
+  onOpenDetail: (item: WorkProgressItemWithMarks) => void
+  readOnly?: boolean
 }
 
 function PlanGridRowInner({
@@ -56,58 +53,54 @@ function PlanGridRowInner({
   onOpenDetail,
   readOnly,
 }: PlanGridRowProps) {
-  const sortable = useSortable({ id: item.id, disabled: readOnly });
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = sortable;
-  const { data: statuses } = useStatuses();
-  const updateMut = useUpdateItem();
+  const sortable = useSortable({ id: item.id, disabled: readOnly })
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = sortable
+  const { data: statuses } = useStatuses()
+  const updateMut = useUpdateItem()
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     gridTemplateColumns: gridTemplate,
-  } as React.CSSProperties;
+  } as React.CSSProperties
 
-  const marksByPeriod = new Map(item.periodMarks.map((m) => [m.periodId, m]));
-  const rowBg = selected ? "bg-secondary/20" : "bg-background";
+  const marksByPeriod = new Map(item.periodMarks.map((m) => [m.periodId, m]))
+  const rowBg = selected ? 'bg-secondary/20' : 'bg-background'
 
   const subtaskPercent = useMemo(() => {
-    const total = item.subtasks.length;
-    if (total === 0) return null;
-    const done = item.subtasks.filter((s) => s.isDone).length;
-    return Math.round((done / total) * 100);
-  }, [item.subtasks]);
+    const total = item.subtasks.length
+    if (total === 0) return null
+    const done = item.subtasks.filter((s) => s.isDone).length
+    return Math.round((done / total) * 100)
+  }, [item.subtasks])
 
   const statusOptions = useMemo(() => {
-    const list = statuses ?? [];
-    const active = list.filter((s) => s.isActive);
-    const hasCurrent = active.some((s) => s.id === item.status.id);
-    if (hasCurrent) return active;
-    const current = list.find((s) => s.id === item.status.id);
-    return current ? [...active, current] : active;
-  }, [statuses, item.status.id]);
+    const list = statuses ?? []
+    const active = list.filter((s) => s.isActive)
+    const hasCurrent = active.some((s) => s.id === item.status.id)
+    if (hasCurrent) return active
+    const current = list.find((s) => s.id === item.status.id)
+    return current ? [...active, current] : active
+  }, [statuses, item.status.id])
 
   const handleStatusChange = (statusId: string) => {
-    if (statusId === item.status.id) return;
+    if (statusId === item.status.id) return
     updateMut.mutate({
       userId,
       planId,
       itemId: item.id,
       body: { statusId },
-    });
-  };
+    })
+  }
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={cn(
-        "grid border-b border-border",
-        rowBg,
-        isDragging && "z-10 opacity-50",
-      )}
+      className={cn('border-border grid border-b', rowBg, isDragging && 'z-10 opacity-50')}
     >
       {/* Select */}
-      <div className="flex items-center justify-center border-r border-border">
+      <div className="border-border flex items-center justify-center border-r">
         {!readOnly && (
           <Checkbox
             checked={selected}
@@ -118,12 +111,12 @@ function PlanGridRowInner({
       </div>
 
       {/* Drag */}
-      <div className="flex items-center justify-center border-r border-border">
+      <div className="border-border flex items-center justify-center border-r">
         {!readOnly && (
           <button
             type="button"
             aria-label="ลากเพื่อเรียง"
-            className="flex h-full w-full cursor-grab items-center justify-center text-muted-foreground hover:text-foreground active:cursor-grabbing"
+            className="text-muted-foreground hover:text-foreground flex h-full w-full cursor-grab items-center justify-center active:cursor-grabbing"
             {...attributes}
             {...listeners}
           >
@@ -133,13 +126,13 @@ function PlanGridRowInner({
       </div>
 
       {/* Category */}
-      <div className="flex items-center gap-2 border-r border-border px-3 py-2">
+      <div className="border-border flex items-center gap-2 border-r px-3 py-2">
         <span
           className="inline-block size-2.5 rounded-sm"
           style={
             item.category.color
               ? { backgroundColor: item.category.color }
-              : { backgroundColor: "var(--muted)" }
+              : { backgroundColor: 'var(--muted)' }
           }
           aria-hidden
         />
@@ -150,18 +143,16 @@ function PlanGridRowInner({
       <button
         type="button"
         onClick={() => onOpenDetail(item)}
-        className="flex flex-col justify-center border-r border-border px-3 py-2 text-left transition hover:bg-muted/30 focus-visible:bg-muted/50"
+        className="border-border hover:bg-muted/30 focus-visible:bg-muted/50 flex flex-col justify-center border-r px-3 py-2 text-left transition"
       >
         <span className="line-clamp-2 text-sm font-medium">{item.activity}</span>
         {item.description && (
-          <span className="line-clamp-1 text-xs text-muted-foreground">
-            {item.description}
-          </span>
+          <span className="text-muted-foreground line-clamp-1 text-xs">{item.description}</span>
         )}
       </button>
 
       {/* Status */}
-      <div className="flex items-center border-r border-border px-2 py-1.5">
+      <div className="border-border flex items-center border-r px-2 py-1.5">
         {readOnly ? (
           <Badge
             variant="outline"
@@ -183,7 +174,7 @@ function PlanGridRowInner({
             <SelectTrigger
               size="sm"
               aria-label="เปลี่ยนสถานะ"
-              className="w-full border-transparent bg-transparent text-xs shadow-none hover:bg-muted/50 focus-visible:ring-1"
+              className="hover:bg-muted/50 w-full border-transparent bg-transparent text-xs shadow-none focus-visible:ring-1"
             >
               <SelectValue />
             </SelectTrigger>
@@ -193,16 +184,12 @@ function PlanGridRowInner({
                   <span
                     className="inline-block size-2 shrink-0 rounded-full"
                     style={{
-                      backgroundColor: s.color ?? "var(--muted-foreground)",
+                      backgroundColor: s.color ?? 'var(--muted-foreground)',
                     }}
                     aria-hidden
                   />
                   <span className="truncate">{s.name}</span>
-                  {!s.isActive && (
-                    <span className="text-[10px] text-muted-foreground">
-                      (ปิด)
-                    </span>
-                  )}
+                  {!s.isActive && <span className="text-muted-foreground text-[10px]">(ปิด)</span>}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -211,16 +198,13 @@ function PlanGridRowInner({
       </div>
 
       {/* Duration */}
-      <div className="flex items-center border-r border-border px-3 py-2 text-xs text-muted-foreground">
-        {item.duration ?? "—"}
+      <div className="border-border text-muted-foreground flex items-center border-r px-3 py-2 text-xs">
+        {item.duration ?? '—'}
       </div>
 
       {/* Period cells */}
       {periods.map((p) => (
-        <div
-          key={p.id}
-          className="flex items-center justify-center border-r border-border"
-        >
+        <div key={p.id} className="border-border flex items-center justify-center border-r">
           <PeriodCell
             userId={userId}
             planId={planId}
@@ -235,7 +219,7 @@ function PlanGridRowInner({
       ))}
 
       {/* Actions */}
-      <div className="flex items-center justify-center border-l border-border">
+      <div className="border-border flex items-center justify-center border-l">
         {!readOnly && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -252,10 +236,7 @@ function PlanGridRowInner({
                 <Pencil className="size-4" />
                 แก้ไข
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => onDelete(item)}
-                variant="destructive"
-              >
+              <DropdownMenuItem onClick={() => onDelete(item)} variant="destructive">
                 <Trash2 className="size-4" />
                 ลบ
               </DropdownMenuItem>
@@ -264,7 +245,7 @@ function PlanGridRowInner({
         )}
       </div>
     </div>
-  );
+  )
 }
 
-export const PlanGridRow = memo(PlanGridRowInner);
+export const PlanGridRow = memo(PlanGridRowInner)

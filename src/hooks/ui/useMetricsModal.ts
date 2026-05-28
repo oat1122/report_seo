@@ -1,240 +1,226 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { KdLevel } from "@/types/kd";
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { KdLevel } from '@/types/kd'
 import {
   OverallMetricsForm,
   KeywordReport,
   KeywordReportForm,
   KeywordRecommend,
   KeywordRecommendForm,
-} from "@/types/metrics";
+} from '@/types/metrics'
 
-type MetricsField = keyof OverallMetricsForm;
-type MetricsState = Record<MetricsField, string | number>;
-type ValidationErrors = Partial<Record<MetricsField, string>>;
+type MetricsField = keyof OverallMetricsForm
+type MetricsState = Record<MetricsField, string | number>
+type ValidationErrors = Partial<Record<MetricsField, string>>
 
 const createDefaultMetrics = (): MetricsState => ({
-  domainRating: "",
-  healthScore: "",
-  ageInYears: "",
+  domainRating: '',
+  healthScore: '',
+  ageInYears: '',
   ageInMonths: 0,
-  spamScore: "",
-  organicTraffic: "",
-  organicKeywords: "",
-  backlinks: "",
-  refDomains: "",
-});
+  spamScore: '',
+  organicTraffic: '',
+  organicKeywords: '',
+  backlinks: '',
+  refDomains: '',
+})
 
 const sanitizeNumericValue = (value: string) => {
-  if (value === "") return "";
-  const normalized = Number(value);
-  return Number.isNaN(normalized) ? value : normalized;
-};
+  if (value === '') return ''
+  const normalized = Number(value)
+  return Number.isNaN(normalized) ? value : normalized
+}
 
 const validateMetrics = (metrics: MetricsState): ValidationErrors => {
-  const errors: ValidationErrors = {};
+  const errors: ValidationErrors = {}
 
   const validateMinZero = (field: MetricsField, label: string) => {
-    const value = metrics[field];
-    if (value === "") return;
+    const value = metrics[field]
+    if (value === '') return
 
     if (Number(value) < 0) {
-      errors[field] = `${label} ต้องเป็น 0 หรือมากกว่า`;
+      errors[field] = `${label} ต้องเป็น 0 หรือมากกว่า`
     }
-  };
+  }
 
-  validateMinZero("domainRating", "Domain Rating");
-  validateMinZero("healthScore", "Health Score");
-  validateMinZero("ageInYears", "อายุโดเมน (ปี)");
-  validateMinZero("ageInMonths", "อายุโดเมน (เดือน)");
-  validateMinZero("spamScore", "Spam Score");
-  validateMinZero("organicTraffic", "Organic Traffic");
-  validateMinZero("organicKeywords", "Organic Keywords");
-  validateMinZero("backlinks", "Backlinks");
-  validateMinZero("refDomains", "Referring Domains");
+  validateMinZero('domainRating', 'Domain Rating')
+  validateMinZero('healthScore', 'Health Score')
+  validateMinZero('ageInYears', 'อายุโดเมน (ปี)')
+  validateMinZero('ageInMonths', 'อายุโดเมน (เดือน)')
+  validateMinZero('spamScore', 'Spam Score')
+  validateMinZero('organicTraffic', 'Organic Traffic')
+  validateMinZero('organicKeywords', 'Organic Keywords')
+  validateMinZero('backlinks', 'Backlinks')
+  validateMinZero('refDomains', 'Referring Domains')
 
   if (
-    metrics.healthScore !== "" &&
+    metrics.healthScore !== '' &&
     (Number(metrics.healthScore) < 0 || Number(metrics.healthScore) > 100)
   ) {
-    errors.healthScore = "Health Score ต้องอยู่ระหว่าง 0-100";
+    errors.healthScore = 'Health Score ต้องอยู่ระหว่าง 0-100'
   }
 
   if (
-    metrics.spamScore !== "" &&
+    metrics.spamScore !== '' &&
     (Number(metrics.spamScore) < 0 || Number(metrics.spamScore) > 100)
   ) {
-    errors.spamScore = "Spam Score ต้องอยู่ระหว่าง 0-100";
+    errors.spamScore = 'Spam Score ต้องอยู่ระหว่าง 0-100'
   }
 
   if (
-    metrics.ageInMonths !== "" &&
+    metrics.ageInMonths !== '' &&
     (Number(metrics.ageInMonths) < 0 || Number(metrics.ageInMonths) > 11)
   ) {
-    errors.ageInMonths = "เดือนต้องอยู่ระหว่าง 0-11";
+    errors.ageInMonths = 'เดือนต้องอยู่ระหว่าง 0-11'
   }
 
-  return errors;
-};
+  return errors
+}
 
 export const useMetricsModal = (metricsData: OverallMetricsForm | null) => {
-  const [metrics, setMetrics] = useState<MetricsState>(createDefaultMetrics());
+  const [metrics, setMetrics] = useState<MetricsState>(createDefaultMetrics())
   const [newKeyword, setNewKeyword] = useState<KeywordReportForm>({
-    keyword: "",
+    keyword: '',
     position: 0,
     traffic: 0,
     kd: KdLevel.EASY,
     isTopReport: false,
-  });
+  })
   const [newRecommend, setNewRecommend] = useState<KeywordRecommendForm>({
-    keyword: "",
+    keyword: '',
     kd: null,
     isTopReport: false,
-    note: "",
-  });
-  const [editingKeywordId, setEditingKeywordId] = useState<string | null>(null);
-  const [editingRecommendId, setEditingRecommendId] = useState<string | null>(
-    null,
-  );
-  const [isDirty, setIsDirty] = useState(false);
+    note: '',
+  })
+  const [editingKeywordId, setEditingKeywordId] = useState<string | null>(null)
+  const [editingRecommendId, setEditingRecommendId] = useState<string | null>(null)
+  const [isDirty, setIsDirty] = useState(false)
 
   // Sync metricsData → form, แต่กัน reset เมื่อค่าจริงไม่เปลี่ยน (React Query refetch)
   // ใช้ stringified key เป็น dep แทน reference
   const metricsKey = useMemo(
     () => (metricsData ? JSON.stringify(metricsData) : null),
     [metricsData],
-  );
-  const lastSyncedKey = useRef<string | null>(null);
+  )
+  const lastSyncedKey = useRef<string | null>(null)
 
   useEffect(() => {
-    if (lastSyncedKey.current === metricsKey) return;
-    lastSyncedKey.current = metricsKey;
+    if (lastSyncedKey.current === metricsKey) return
+    lastSyncedKey.current = metricsKey
 
     if (metricsData) {
       setMetrics({
-        domainRating: metricsData.domainRating || "",
-        healthScore: metricsData.healthScore || "",
-        ageInYears: metricsData.ageInYears || "",
+        domainRating: metricsData.domainRating || '',
+        healthScore: metricsData.healthScore || '',
+        ageInYears: metricsData.ageInYears || '',
         ageInMonths: metricsData.ageInMonths || 0,
-        spamScore: metricsData.spamScore || "",
-        organicTraffic: metricsData.organicTraffic || "",
-        organicKeywords: metricsData.organicKeywords || "",
-        backlinks: metricsData.backlinks || "",
-        refDomains: metricsData.refDomains || "",
-      });
+        spamScore: metricsData.spamScore || '',
+        organicTraffic: metricsData.organicTraffic || '',
+        organicKeywords: metricsData.organicKeywords || '',
+        backlinks: metricsData.backlinks || '',
+        refDomains: metricsData.refDomains || '',
+      })
     } else {
-      setMetrics(createDefaultMetrics());
+      setMetrics(createDefaultMetrics())
     }
-    setIsDirty(false);
-  }, [metricsData, metricsKey]);
+    setIsDirty(false)
+  }, [metricsData, metricsKey])
 
-  const handleMetricsChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const field = e.target.name as MetricsField;
-      setMetrics((prev) => ({
-        ...prev,
-        [field]: sanitizeNumericValue(e.target.value),
-      }));
-      setIsDirty(true);
-    },
-    [],
-  );
+  const handleMetricsChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const field = e.target.name as MetricsField
+    setMetrics((prev) => ({
+      ...prev,
+      [field]: sanitizeNumericValue(e.target.value),
+    }))
+    setIsDirty(true)
+  }, [])
 
-  const handleKeywordChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const { name, value, type, checked } = e.target;
-      setNewKeyword((prev) => ({
-        ...prev,
-        [name]:
-          type === "checkbox"
-            ? checked
-            : name === "position" || name === "traffic"
-              ? sanitizeNumericValue(value)
-              : value,
-      }));
-    },
-    [],
-  );
+  const handleKeywordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target
+    setNewKeyword((prev) => ({
+      ...prev,
+      [name]:
+        type === 'checkbox'
+          ? checked
+          : name === 'position' || name === 'traffic'
+            ? sanitizeNumericValue(value)
+            : value,
+    }))
+  }, [])
 
   const handleKeywordSelectChange = useCallback((value: KdLevel) => {
-    setNewKeyword((prev) => ({ ...prev, kd: value }));
-  }, []);
+    setNewKeyword((prev) => ({ ...prev, kd: value }))
+  }, [])
 
-  const handleRecommendChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const { name, value, type, checked } = e.target;
-      setNewRecommend((prev) => ({
-        ...prev,
-        [name]: type === "checkbox" ? checked : value === "" ? null : value,
-      }));
-    },
-    [],
-  );
+  const handleRecommendChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target
+    setNewRecommend((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value === '' ? null : value,
+    }))
+  }, [])
 
-  const handleRecommendSelectChange = useCallback(
-    (value: KdLevel | "") => {
-      setNewRecommend((prev) => ({
-        ...prev,
-        kd: value === "" ? null : value,
-      }));
-    },
-    [],
-  );
+  const handleRecommendSelectChange = useCallback((value: KdLevel | '') => {
+    setNewRecommend((prev) => ({
+      ...prev,
+      kd: value === '' ? null : value,
+    }))
+  }, [])
 
   const resetKeywordForm = () => {
     setNewKeyword({
-      keyword: "",
+      keyword: '',
       position: 0,
       traffic: 0,
       kd: KdLevel.EASY,
       isTopReport: false,
-    });
-  };
+    })
+  }
 
   const resetRecommendForm = () => {
     setNewRecommend({
-      keyword: "",
+      keyword: '',
       kd: null,
       isTopReport: false,
-      note: "",
-    });
-  };
+      note: '',
+    })
+  }
 
   const handleSetEditingKeyword = (keyword: KeywordReport) => {
-    setEditingKeywordId(keyword.id);
+    setEditingKeywordId(keyword.id)
     setNewKeyword({
       keyword: keyword.keyword,
       position: keyword.position ?? 0,
       traffic: keyword.traffic,
       kd: keyword.kd,
       isTopReport: keyword.isTopReport,
-    });
-  };
+    })
+  }
 
   const clearEditing = () => {
-    setEditingKeywordId(null);
-    resetKeywordForm();
-  };
+    setEditingKeywordId(null)
+    resetKeywordForm()
+  }
 
   const handleSetEditingRecommend = (keyword: KeywordRecommend) => {
-    setEditingRecommendId(keyword.id);
+    setEditingRecommendId(keyword.id)
     setNewRecommend({
       keyword: keyword.keyword,
       kd: keyword.kd,
       isTopReport: keyword.isTopReport,
-      note: keyword.note || "",
-    });
-  };
+      note: keyword.note || '',
+    })
+  }
 
   const clearRecommendEditing = () => {
-    setEditingRecommendId(null);
-    resetRecommendForm();
-  };
+    setEditingRecommendId(null)
+    resetRecommendForm()
+  }
 
-  const validationErrors = useMemo(() => validateMetrics(metrics), [metrics]);
-  const isMetricsValid = Object.keys(validationErrors).length === 0;
+  const validationErrors = useMemo(() => validateMetrics(metrics), [metrics])
+  const isMetricsValid = Object.keys(validationErrors).length === 0
 
   // Reset isDirty (เรียกหลัง save สำเร็จ)
-  const markClean = useCallback(() => setIsDirty(false), []);
+  const markClean = useCallback(() => setIsDirty(false), [])
 
   return {
     metrics,
@@ -257,5 +243,5 @@ export const useMetricsModal = (metricsData: OverallMetricsForm | null) => {
     handleSetEditingRecommend,
     clearEditing,
     clearRecommendEditing,
-  };
-};
+  }
+}

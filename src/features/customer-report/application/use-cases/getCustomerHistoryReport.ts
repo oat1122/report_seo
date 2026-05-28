@@ -1,32 +1,28 @@
-import type { CustomerHistoryReport } from "../../domain/CustomerReportSnapshot";
-import { getMetrics, getMetricsHistory } from "@/features/metrics";
-import type { MetricsHistoryEntry } from "@/features/metrics";
-import {
-  getKeywords,
-  getKeywordHistoryByCustomer,
-} from "@/features/keywords";
+import type { CustomerHistoryReport } from '../../domain/CustomerReportSnapshot'
+import { getMetrics, getMetricsHistory } from '@/features/metrics'
+import type { MetricsHistoryEntry } from '@/features/metrics'
+import { getKeywords, getKeywordHistoryByCustomer } from '@/features/keywords'
 
 export function getCustomerHistoryReportUseCase() {
   return async (
     customerInternalId: string,
     options: { onlyVisible?: boolean } = {},
   ): Promise<CustomerHistoryReport> => {
-    const onlyVisible = options.onlyVisible ?? false;
+    const onlyVisible = options.onlyVisible ?? false
 
-    const [history, currentMetrics, currentKeywords, keywordHistory] =
-      await Promise.all([
-        getMetricsHistory(customerInternalId, { onlyVisible }),
-        getMetrics(customerInternalId),
-        getKeywords(customerInternalId),
-        getKeywordHistoryByCustomer(customerInternalId, { onlyVisible }),
-      ]);
+    const [history, currentMetrics, currentKeywords, keywordHistory] = await Promise.all([
+      getMetricsHistory(customerInternalId, { onlyVisible }),
+      getMetrics(customerInternalId),
+      getKeywords(customerInternalId),
+      getKeywordHistoryByCustomer(customerInternalId, { onlyVisible }),
+    ])
 
     // history desc — prepend current snapshot เป็น data point ล่าสุด
     // เพื่อให้กราฟ trend ไม่จบที่ค่าเก่า (history = ค่า "ก่อน" update)
     const metricsHistory: MetricsHistoryEntry[] = currentMetrics
       ? [
           {
-            id: "current",
+            id: 'current',
             customerId: currentMetrics.customerId,
             domainRating: currentMetrics.domainRating,
             healthScore: currentMetrics.healthScore,
@@ -42,12 +38,10 @@ export function getCustomerHistoryReportUseCase() {
           },
           ...history,
         ]
-      : history;
+      : history
 
-    const sortedKeywords = [...currentKeywords].sort(
-      (a, b) => b.traffic - a.traffic,
-    );
+    const sortedKeywords = [...currentKeywords].sort((a, b) => b.traffic - a.traffic)
 
-    return { metricsHistory, keywordHistory, currentKeywords: sortedKeywords };
-  };
+    return { metricsHistory, keywordHistory, currentKeywords: sortedKeywords }
+  }
 }

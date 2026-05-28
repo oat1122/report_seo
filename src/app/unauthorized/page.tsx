@@ -1,13 +1,13 @@
-import Link from "next/link";
+import Link from 'next/link'
 
 export default function UnauthorizedPage() {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 text-center">
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <div className="text-red-500 mb-4">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-8 text-center">
+        <div className="rounded-lg bg-white p-8 shadow-lg">
+          <div className="mb-4 text-red-500">
             <svg
-              className="w-16 h-16 mx-auto"
+              className="mx-auto h-16 w-16"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -21,26 +21,23 @@ export default function UnauthorizedPage() {
             </svg>
           </div>
 
-          <h1 className="text-2xl font-bold text-text-dark mb-2">
-            ไม่มีสิทธิ์เข้าถึง
-          </h1>
+          <h1 className="text-text-dark mb-2 text-2xl font-bold">ไม่มีสิทธิ์เข้าถึง</h1>
 
-          <p className="text-gray-600 mb-6">
-            คุณไม่มีสิทธิ์ในการเข้าถึงหน้านี้
-            กรุณาติดต่อผู้ดูแลระบบหากคุณคิดว่านี่เป็นข้อผิดพลาด
+          <p className="mb-6 text-gray-600">
+            คุณไม่มีสิทธิ์ในการเข้าถึงหน้านี้ กรุณาติดต่อผู้ดูแลระบบหากคุณคิดว่านี่เป็นข้อผิดพลาด
           </p>
 
           <div className="space-y-3">
             <Link
               href="/"
-              className="w-full bg-primary-purple hover:bg-accent-purple-dark text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 inline-block"
+              className="bg-primary-purple hover:bg-accent-purple-dark inline-block w-full rounded-lg px-4 py-2 font-medium text-white transition-colors duration-200"
             >
               กลับไปหน้าหลัก
             </Link>
 
             <Link
               href="/login"
-              className="w-full border border-gray-300 hover:bg-gray-50 text-text-dark font-medium py-2 px-4 rounded-lg transition-colors duration-200 inline-block"
+              className="text-text-dark inline-block w-full rounded-lg border border-gray-300 px-4 py-2 font-medium transition-colors duration-200 hover:bg-gray-50"
             >
               เข้าสู่ระบบใหม่
             </Link>
@@ -48,5 +45,5 @@ export default function UnauthorizedPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }

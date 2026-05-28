@@ -1,8 +1,8 @@
-"use client";
+'use client'
 
-import { useNotificationSocket } from "../hooks/useNotificationSocket";
+import { useNotificationSocket } from '../hooks/useNotificationSocket'
 
 export function NotificationSocketInit() {
-  useNotificationSocket();
-  return null;
+  useNotificationSocket()
+  return null
 }

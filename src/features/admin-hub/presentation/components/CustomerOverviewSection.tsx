@@ -1,21 +1,18 @@
-"use client";
+'use client'
 
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import type { CustomerHubCard } from "../../domain/AdminHubSummary";
-import { CustomerSummaryCard } from "./CustomerSummaryCard";
+import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+import type { CustomerHubCard } from '../../domain/AdminHubSummary'
+import { CustomerSummaryCard } from './CustomerSummaryCard'
 
 interface CustomerOverviewSectionProps {
-  customers: CustomerHubCard[] | undefined;
-  isLoading: boolean;
+  customers: CustomerHubCard[] | undefined
+  isLoading: boolean
 }
 
-export function CustomerOverviewSection({
-  customers,
-  isLoading,
-}: CustomerOverviewSectionProps) {
+export function CustomerOverviewSection({ customers, isLoading }: CustomerOverviewSectionProps) {
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -26,7 +23,7 @@ export function CustomerOverviewSection({
           ))}
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -35,7 +32,7 @@ export function CustomerOverviewSection({
         <h2 className="text-lg font-semibold">
           ลูกค้าทั้งหมด
           {customers && (
-            <span className="ml-2 text-sm font-normal text-muted-foreground">
+            <span className="text-muted-foreground ml-2 text-sm font-normal">
               ({customers.length})
             </span>
           )}
@@ -55,10 +52,8 @@ export function CustomerOverviewSection({
           ))}
         </div>
       ) : (
-        <p className="py-8 text-center text-sm text-muted-foreground">
-          ยังไม่มีข้อมูลลูกค้า
-        </p>
+        <p className="text-muted-foreground py-8 text-center text-sm">ยังไม่มีข้อมูลลูกค้า</p>
       )}
     </div>
-  );
+  )
 }

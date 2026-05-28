@@ -1,13 +1,13 @@
-import { prisma } from "@/infrastructure/prisma/client";
-import type { CustomerHubRepository } from "../application/ports/CustomerHubRepository";
-import type { CustomerHubSummary } from "../domain/CustomerHubSummary";
+import { prisma } from '@/infrastructure/prisma/client'
+import type { CustomerHubRepository } from '../application/ports/CustomerHubRepository'
+import type { CustomerHubSummary } from '../domain/CustomerHubSummary'
 
 export class PrismaCustomerHubRepository implements CustomerHubRepository {
   async getHubSummary(userId: string): Promise<CustomerHubSummary> {
     const customer = await prisma.customer.findUnique({
       where: { userId },
       select: { id: true, name: true, domain: true },
-    });
+    })
 
     if (!customer) {
       return {
@@ -16,7 +16,7 @@ export class PrismaCustomerHubRepository implements CustomerHubRepository {
         metrics: null,
         counts: { keywords: 0, recommendations: 0, activeWorkPlans: 0, paymentPlans: 0 },
         workProgressAvgPercent: null,
-      };
+      }
     }
 
     const [metrics, keywordCount, recommendCount, workPlanCount, paymentPlanCount, avgProgress] =
@@ -27,7 +27,7 @@ export class PrismaCustomerHubRepository implements CustomerHubRepository {
         prisma.workProgressPlan.count({ where: { customerId: customer.id, isArchived: false } }),
         prisma.paymentPlan.count({ where: { customerId: customer.id } }),
         this.getWorkProgressAvg(customer.id),
-      ]);
+      ])
 
     return {
       customerName: customer.name,
@@ -49,7 +49,7 @@ export class PrismaCustomerHubRepository implements CustomerHubRepository {
         paymentPlans: paymentPlanCount,
       },
       workProgressAvgPercent: avgProgress,
-    };
+    }
   }
 
   private async getMetrics(customerId: string) {
@@ -63,7 +63,7 @@ export class PrismaCustomerHubRepository implements CustomerHubRepository {
         backlinks: true,
         refDomains: true,
       },
-    });
+    })
   }
 
   private async getWorkProgressAvg(customerId: string): Promise<number | null> {
@@ -72,9 +72,7 @@ export class PrismaCustomerHubRepository implements CustomerHubRepository {
       FROM workprogressplan p
       JOIN workprogressitem i ON i.planId = p.id
       WHERE p.customerId = ${customerId} AND p.isArchived = false
-    `;
-    return rows.length > 0 && rows[0].avgPercent != null
-      ? Number(rows[0].avgPercent)
-      : null;
+    `
+    return rows.length > 0 && rows[0].avgPercent != null ? Number(rows[0].avgPercent) : null
   }
 }

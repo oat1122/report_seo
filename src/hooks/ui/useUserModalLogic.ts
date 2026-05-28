@@ -1,71 +1,57 @@
 // src/components/shared/users/hooks/useUserModalLogic.ts
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import {
-  openUserModal,
-  closeUserModal,
-  setCurrentUser,
-} from "@/store/features/users/usersSlice";
-import {
-  useAddUser,
-  useUpdateUser,
-  useUpdatePassword,
-} from "@/hooks/api/useUsersApi";
-import { User } from "@/types/user";
-import { showPromiseToast } from "@/components/shared/toast/lib/toastify";
-import axios from "@/lib/axios";
-import { toast } from "react-toastify";
-import { Role } from "@/types/auth";
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { openUserModal, closeUserModal, setCurrentUser } from '@/store/features/users/usersSlice'
+import { useAddUser, useUpdateUser, useUpdatePassword } from '@/hooks/api/useUsersApi'
+import { User } from '@/types/user'
+import { showPromiseToast } from '@/components/shared/toast/lib/toastify'
+import axios from '@/lib/axios'
+import { toast } from 'react-toastify'
+import { Role } from '@/types/auth'
 
 export const useUserModalLogic = () => {
-  const dispatch = useAppDispatch();
-  const { isModalOpen, isEditing, currentUser } = useAppSelector(
-    (state) => state.users,
-  );
+  const dispatch = useAppDispatch()
+  const { isModalOpen, isEditing, currentUser } = useAppSelector((state) => state.users)
 
   //  React Query Mutations
-  const addUserMutation = useAddUser();
-  const updateUserMutation = useUpdateUser();
-  const updatePasswordMutation = useUpdatePassword();
+  const addUserMutation = useAddUser()
+  const updateUserMutation = useUpdateUser()
+  const updatePasswordMutation = useUpdatePassword()
 
   const handleOpenUserModal = async (user?: User) => {
     if (user && user.role === Role.CUSTOMER) {
       try {
-        const response = await axios.get<{ data: User }>(`/users/${user.id}`);
-        const apiUserData = response.data.data;
+        const response = await axios.get<{ data: User }>(`/users/${user.id}`)
+        const apiUserData = response.data.data
         const flattenedData = {
           ...apiUserData,
-          companyName: apiUserData.customerProfile?.name || "",
-          domain: apiUserData.customerProfile?.domain || "",
+          companyName: apiUserData.customerProfile?.name || '',
+          domain: apiUserData.customerProfile?.domain || '',
           seoDevId: apiUserData.customerProfile?.seoDevId || null,
-          address: apiUserData.customerProfile?.address || "",
-          taxId: apiUserData.customerProfile?.taxId || "",
-          contactName: apiUserData.customerProfile?.contactName || "",
-        };
-        dispatch(openUserModal(flattenedData));
+          address: apiUserData.customerProfile?.address || '',
+          taxId: apiUserData.customerProfile?.taxId || '',
+          contactName: apiUserData.customerProfile?.contactName || '',
+        }
+        dispatch(openUserModal(flattenedData))
       } catch (err) {
-        console.error("Failed to fetch customer data:", err);
-        dispatch(openUserModal(user));
+        console.error('Failed to fetch customer data:', err)
+        dispatch(openUserModal(user))
       }
     } else {
-      dispatch(openUserModal(user));
+      dispatch(openUserModal(user))
     }
-  };
+  }
 
-  const handleCloseUserModal = () => dispatch(closeUserModal());
+  const handleCloseUserModal = () => dispatch(closeUserModal())
 
   const handleSaveUser = async (sessionUser: { id: string; role: Role }) => {
-    if (!currentUser) return;
-    const infoToUpdate = { ...currentUser };
-    delete infoToUpdate.newPassword;
-    delete infoToUpdate.confirmPassword;
-    delete infoToUpdate.currentPassword;
+    if (!currentUser) return
+    const infoToUpdate = { ...currentUser }
+    delete infoToUpdate.newPassword
+    delete infoToUpdate.confirmPassword
+    delete infoToUpdate.currentPassword
 
-    if (
-      sessionUser?.role === Role.SEO_DEV &&
-      !isEditing &&
-      infoToUpdate.role === Role.CUSTOMER
-    ) {
-      infoToUpdate.seoDevId = sessionUser.id;
+    if (sessionUser?.role === Role.SEO_DEV && !isEditing && infoToUpdate.role === Role.CUSTOMER) {
+      infoToUpdate.seoDevId = sessionUser.id
     }
 
     const promise = isEditing
@@ -73,28 +59,28 @@ export const useUserModalLogic = () => {
           id: infoToUpdate.id!,
           user: infoToUpdate,
         })
-      : addUserMutation.mutateAsync(infoToUpdate);
+      : addUserMutation.mutateAsync(infoToUpdate)
 
     showPromiseToast(promise, {
-      pending: "กำลังบันทึกข้อมูล...",
-      success: isEditing ? "อัปเดตผู้ใช้สำเร็จ!" : "เพิ่มผู้ใช้สำเร็จ!",
-      error: "เกิดข้อผิดพลาดในการบันทึก",
-    });
+      pending: 'กำลังบันทึกข้อมูล...',
+      success: isEditing ? 'อัปเดตผู้ใช้สำเร็จ!' : 'เพิ่มผู้ใช้สำเร็จ!',
+      error: 'เกิดข้อผิดพลาดในการบันทึก',
+    })
 
     try {
-      await promise;
-      dispatch(closeUserModal());
+      await promise
+      dispatch(closeUserModal())
     } catch {
       // Error is already handled by the mutation
     }
-  };
+  }
 
   const handlePasswordUpdate = () => {
-    if (!currentUser || !currentUser.id || !currentUser.newPassword) return;
+    if (!currentUser || !currentUser.id || !currentUser.newPassword) return
 
     if (currentUser.newPassword !== currentUser.confirmPassword) {
-      toast.error("รหัสผ่านไม่ตรงกัน");
-      return;
+      toast.error('รหัสผ่านไม่ตรงกัน')
+      return
     }
 
     //  Use React Query mutation
@@ -102,21 +88,21 @@ export const useUserModalLogic = () => {
       id: currentUser.id,
       currentPassword: currentUser.currentPassword,
       newPassword: currentUser.newPassword,
-      confirmPassword: currentUser.confirmPassword || "",
-    });
+      confirmPassword: currentUser.confirmPassword || '',
+    })
 
     showPromiseToast(promise, {
-      pending: "กำลังอัปเดตรหัสผ่าน...",
-      success: "อัปเดตรหัสผ่านสำเร็จ!",
-      error: "ไม่สามารถอัปเดตรหัสผ่านได้",
-    });
+      pending: 'กำลังอัปเดตรหัสผ่าน...',
+      success: 'อัปเดตรหัสผ่านสำเร็จ!',
+      error: 'ไม่สามารถอัปเดตรหัสผ่านได้',
+    })
 
-    promise.then(() => dispatch(closeUserModal())).catch(() => {});
-  };
+    promise.then(() => dispatch(closeUserModal())).catch(() => {})
+  }
 
   const handleFormChange = (name: string, value: unknown) => {
-    dispatch(setCurrentUser({ [name]: value }));
-  };
+    dispatch(setCurrentUser({ [name]: value }))
+  }
 
   return {
     isModalOpen,
@@ -127,5 +113,5 @@ export const useUserModalLogic = () => {
     handleSaveUser,
     handlePasswordUpdate,
     handleFormChange,
-  };
-};
+  }
+}

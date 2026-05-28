@@ -1,12 +1,12 @@
-"use client";
+'use client'
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MyBillingCycles } from "./MyBillingCycles";
-import { MyContractFiles } from "./MyContractFiles";
-import { MyPaymentHistory } from "./MyPaymentHistory";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { MyBillingCycles } from './MyBillingCycles'
+import { MyContractFiles } from './MyContractFiles'
+import { MyPaymentHistory } from './MyPaymentHistory'
 
 interface CustomerPaymentPageProps {
-  customerId: string;
+  customerId: string
 }
 
 export function CustomerPaymentPage({ customerId }: CustomerPaymentPageProps) {
@@ -30,5 +30,5 @@ export function CustomerPaymentPage({ customerId }: CustomerPaymentPageProps) {
         <MyPaymentHistory customerId={customerId} />
       </TabsContent>
     </Tabs>
-  );
+  )
 }

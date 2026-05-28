@@ -1,19 +1,19 @@
-"use client";
+'use client'
 
-import { useMemo } from "react";
-import { KeywordTrendChart } from "../KeywordTrendChart";
-import { KeywordReportTable } from "../KeywordReportTable";
-import { KdDistributionDonut } from "../widgets/KdDistributionDonut";
-import { KdSuccessRateBar } from "../widgets/KdSuccessRateBar";
-import { TopKeywordsByTrafficPie } from "../widgets/TopKeywordsByTrafficPie";
-import { KeywordVelocityScatter } from "../widgets/KeywordVelocityScatter";
-import { KeywordPositionHeatmap } from "../widgets/KeywordPositionHeatmap";
-import { BracketTransitionsSankey } from "../widgets/BracketTransitionsSankey";
-import type { CustomerReportData } from "@/hooks/api/useCustomersApi";
+import { useMemo } from 'react'
+import { KeywordTrendChart } from '../KeywordTrendChart'
+import { KeywordReportTable } from '../KeywordReportTable'
+import { KdDistributionDonut } from '../widgets/KdDistributionDonut'
+import { KdSuccessRateBar } from '../widgets/KdSuccessRateBar'
+import { TopKeywordsByTrafficPie } from '../widgets/TopKeywordsByTrafficPie'
+import { KeywordVelocityScatter } from '../widgets/KeywordVelocityScatter'
+import { KeywordPositionHeatmap } from '../widgets/KeywordPositionHeatmap'
+import { BracketTransitionsSankey } from '../widgets/BracketTransitionsSankey'
+import type { CustomerReportData } from '@/hooks/api/useCustomersApi'
 
 interface KeywordPerformanceTabProps {
-  topKeywords: CustomerReportData["topKeywords"];
-  otherKeywords: CustomerReportData["otherKeywords"];
+  topKeywords: CustomerReportData['topKeywords']
+  otherKeywords: CustomerReportData['otherKeywords']
 }
 
 // Tab 3: Keyword Performance — "อะไรเด่น/ตก?" (Phase D complete)
@@ -24,7 +24,7 @@ export const KeywordPerformanceTab = ({
   const allKeywords = useMemo(
     () => [...(topKeywords ?? []), ...(otherKeywords ?? [])],
     [topKeywords, otherKeywords],
-  );
+  )
 
   return (
     <div className="flex flex-col gap-6">
@@ -48,14 +48,8 @@ export const KeywordPerformanceTab = ({
       <KeywordVelocityScatter />
 
       {/* Row 6-7: tables */}
-      <KeywordReportTable
-        title="Top Keywords Report"
-        keywords={topKeywords ?? []}
-      />
-      <KeywordReportTable
-        title="Other Keywords"
-        keywords={otherKeywords ?? []}
-      />
+      <KeywordReportTable title="Top Keywords Report" keywords={topKeywords ?? []} />
+      <KeywordReportTable title="Other Keywords" keywords={otherKeywords ?? []} />
     </div>
-  );
-};
+  )
+}

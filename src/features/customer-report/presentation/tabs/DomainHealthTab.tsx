@@ -1,25 +1,21 @@
-"use client";
+'use client'
 
-import { OverallMetricsCard } from "../OverallMetricsCard";
-import { TrendChartsSection } from "../TrendChartsSection";
-import { DomainAuthorityRadar } from "../widgets/DomainAuthorityRadar";
-import { SpamScoreTimeline } from "../widgets/SpamScoreTimeline";
-import { BacklinksVsRefDomains } from "../widgets/BacklinksVsRefDomains";
-import { DomainLifecycleCard } from "../widgets/DomainLifecycleCard";
-import type { CustomerReportData } from "@/hooks/api/useCustomersApi";
+import { OverallMetricsCard } from '../OverallMetricsCard'
+import { TrendChartsSection } from '../TrendChartsSection'
+import { DomainAuthorityRadar } from '../widgets/DomainAuthorityRadar'
+import { SpamScoreTimeline } from '../widgets/SpamScoreTimeline'
+import { BacklinksVsRefDomains } from '../widgets/BacklinksVsRefDomains'
+import { DomainLifecycleCard } from '../widgets/DomainLifecycleCard'
+import type { CustomerReportData } from '@/hooks/api/useCustomersApi'
 
 interface DomainHealthTabProps {
-  customerId: string;
-  customerName: string;
-  metrics: CustomerReportData["metrics"] | null | undefined;
+  customerId: string
+  customerName: string
+  metrics: CustomerReportData['metrics'] | null | undefined
 }
 
 // Tab 2: Domain Health — "เว็บสุขภาพดีไหม?" (Phase C complete)
-export const DomainHealthTab = ({
-  customerId,
-  customerName,
-  metrics,
-}: DomainHealthTabProps) => {
+export const DomainHealthTab = ({ customerId, customerName, metrics }: DomainHealthTabProps) => {
   return (
     <div className="flex flex-col gap-6">
       {/* Row 1: Radar (col-5) | AuthorityCard + Lifecycle stacked (col-7) */}
@@ -46,5 +42,5 @@ export const DomainHealthTab = ({
       {/* Row 4: existing trend chart */}
       <TrendChartsSection title="แนวโน้ม Domain Metrics" />
     </div>
-  );
-};
+  )
+}

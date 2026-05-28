@@ -1,38 +1,34 @@
-import React from "react";
-import { Plus, Trash2, Pencil, History, Save } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
-import { Field, FieldGroup } from "@/components/ui/field";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import React from 'react'
+import { Plus, Trash2, Pencil, History, Save } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Badge } from '@/components/ui/badge'
+import { Field, FieldGroup } from '@/components/ui/field'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { cn } from "@/lib/utils";
-import { KdLevel, KD_LEVELS } from "@/types/kd";
-import { KeywordReport, KeywordReportForm } from "@/types/metrics";
+} from '@/components/ui/select'
+import { cn } from '@/lib/utils'
+import { KdLevel, KD_LEVELS } from '@/types/kd'
+import { KeywordReport, KeywordReportForm } from '@/types/metrics'
 
 interface KeywordReportSectionProps {
-  newKeyword: KeywordReportForm;
-  keywordsData: KeywordReport[];
-  editingKeywordId: string | null;
-  onKeywordChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onKeywordSelectChange: (value: KdLevel) => void;
-  onAddOrUpdateKeyword: () => void;
-  onDeleteKeyword: (id: string) => void;
-  onSetEditing: (keyword: KeywordReport) => void;
-  onClearEditing: () => void;
-  onViewHistory: (keyword: KeywordReport) => void;
+  newKeyword: KeywordReportForm
+  keywordsData: KeywordReport[]
+  editingKeywordId: string | null
+  onKeywordChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onKeywordSelectChange: (value: KdLevel) => void
+  onAddOrUpdateKeyword: () => void
+  onDeleteKeyword: (id: string) => void
+  onSetEditing: (keyword: KeywordReport) => void
+  onClearEditing: () => void
+  onViewHistory: (keyword: KeywordReport) => void
 }
 
 export const KeywordReportSection: React.FC<KeywordReportSectionProps> = ({
@@ -47,26 +43,24 @@ export const KeywordReportSection: React.FC<KeywordReportSectionProps> = ({
   onClearEditing,
   onViewHistory,
 }) => (
-  <div className="rounded-2xl border border-border p-4 sm:p-6">
+  <div className="border-border rounded-2xl border p-4 sm:p-6">
     <div className="mb-4">
       <h3 className="text-lg font-bold">Keyword Report</h3>
-      <p className="mt-1 text-sm text-muted-foreground">
-        เพิ่มคีย์เวิร์ดหลักที่ต้องการติดตาม พร้อมอันดับ ทราฟฟิก
-        และระดับความยาก
+      <p className="text-muted-foreground mt-1 text-sm">
+        เพิ่มคีย์เวิร์ดหลักที่ต้องการติดตาม พร้อมอันดับ ทราฟฟิก และระดับความยาก
       </p>
     </div>
 
     <div
       className={cn(
-        "mb-4 rounded-xl border border-border p-4",
-        editingKeywordId ? "bg-warning/10" : "bg-muted/50",
+        'border-border mb-4 rounded-xl border p-4',
+        editingKeywordId ? 'bg-warning/10' : 'bg-muted/50',
       )}
     >
       <FieldGroup>
         {editingKeywordId && (
-          <div className="rounded-md border border-info/30 bg-info/10 px-3 py-2 text-sm text-info">
-            กำลังแก้ไขคีย์เวิร์ดรายการเดิม
-            สามารถปรับข้อมูลแล้วกดบันทึกการแก้ไขได้ทันที
+          <div className="border-info/30 bg-info/10 text-info rounded-md border px-3 py-2 text-sm">
+            กำลังแก้ไขคีย์เวิร์ดรายการเดิม สามารถปรับข้อมูลแล้วกดบันทึกการแก้ไขได้ทันที
           </div>
         )}
 
@@ -89,7 +83,7 @@ export const KeywordReportSection: React.FC<KeywordReportSectionProps> = ({
               name="position"
               type="number"
               min={0}
-              value={newKeyword.position ?? ""}
+              value={newKeyword.position ?? ''}
               onChange={onKeywordChange}
             />
           </Field>
@@ -122,17 +116,17 @@ export const KeywordReportSection: React.FC<KeywordReportSectionProps> = ({
               </SelectContent>
             </Select>
           </Field>
-          <div className="flex items-center gap-2 rounded-md border border-dashed border-border px-3">
+          <div className="border-border flex items-center gap-2 rounded-md border border-dashed px-3">
             <Checkbox
               id="kw-top"
               checked={newKeyword.isTopReport}
               onCheckedChange={(c) =>
                 onKeywordChange({
                   target: {
-                    name: "isTopReport",
-                    type: "checkbox",
+                    name: 'isTopReport',
+                    type: 'checkbox',
                     checked: c === true,
-                    value: "",
+                    value: '',
                   },
                 } as unknown as React.ChangeEvent<HTMLInputElement>)
               }
@@ -154,12 +148,12 @@ export const KeywordReportSection: React.FC<KeywordReportSectionProps> = ({
             disabled={!newKeyword.keyword.trim()}
             className={cn(
               editingKeywordId
-                ? "bg-secondary text-secondary-foreground hover:bg-secondary/90"
-                : "",
+                ? 'bg-secondary text-secondary-foreground hover:bg-secondary/90'
+                : '',
             )}
           >
             {editingKeywordId ? <Save /> : <Plus />}
-            {editingKeywordId ? "บันทึกการแก้ไข" : "เพิ่ม Keyword"}
+            {editingKeywordId ? 'บันทึกการแก้ไข' : 'เพิ่ม Keyword'}
           </Button>
         </div>
       </FieldGroup>
@@ -168,16 +162,13 @@ export const KeywordReportSection: React.FC<KeywordReportSectionProps> = ({
     <div>
       <div className="mb-3 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
         <h4 className="font-bold">รายการคีย์เวิร์ดที่บันทึกแล้ว</h4>
-        <Badge
-          variant="outline"
-          className="border-secondary/40 text-secondary-foreground"
-        >
+        <Badge variant="outline" className="border-secondary/40 text-secondary-foreground">
           {keywordsData.length} รายการ
         </Badge>
       </div>
 
       {keywordsData.length === 0 ? (
-        <div className="rounded-xl border border-border p-6 text-center text-sm text-muted-foreground">
+        <div className="border-border text-muted-foreground rounded-xl border p-6 text-center text-sm">
           ยังไม่มีข้อมูลคีย์เวิร์ดในรายงาน
         </div>
       ) : (
@@ -185,22 +176,19 @@ export const KeywordReportSection: React.FC<KeywordReportSectionProps> = ({
           {keywordsData.map((kw) => (
             <li
               key={kw.id}
-              className="flex items-start justify-between gap-3 rounded-xl border border-border p-4"
+              className="border-border flex items-start justify-between gap-3 rounded-xl border p-4"
             >
               <div className="min-w-0 flex-1">
                 <div className="mb-1 flex flex-wrap items-center gap-2">
                   <span className="font-semibold">{kw.keyword}</span>
                   {kw.isTopReport && (
-                    <Badge
-                      variant="outline"
-                      className="border-warning/40 text-warning"
-                    >
+                    <Badge variant="outline" className="border-warning/40 text-warning">
                       Top Report
                     </Badge>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Position: {kw.position ?? "-"} | Traffic: {kw.traffic} | KD: {kw.kd}
+                <p className="text-muted-foreground text-sm">
+                  Position: {kw.position ?? '-'} | Traffic: {kw.traffic} | KD: {kw.kd}
                 </p>
               </div>
               <div className="flex gap-0.5">
@@ -251,4 +239,4 @@ export const KeywordReportSection: React.FC<KeywordReportSectionProps> = ({
       )}
     </div>
   </div>
-);
+)

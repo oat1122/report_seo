@@ -1,9 +1,9 @@
-import { Role } from "@/types/auth";
-import type { Customer } from "./Customer";
+import { Role } from '@/types/auth'
+import type { Customer } from './Customer'
 
 export interface SessionUser {
-  id: string;
-  role: Role;
+  id: string
+  role: Role
 }
 
 export class CustomerAccessContext {
@@ -13,25 +13,22 @@ export class CustomerAccessContext {
   ) {}
 
   get isAdmin(): boolean {
-    return this.user.role === Role.ADMIN;
+    return this.user.role === Role.ADMIN
   }
 
   get isOwner(): boolean {
-    return this.user.id === this.customer.userId;
+    return this.user.id === this.customer.userId
   }
 
   get isAssignedSeoDev(): boolean {
-    return (
-      this.user.role === Role.SEO_DEV &&
-      this.customer.seoDevId === this.user.id
-    );
+    return this.user.role === Role.SEO_DEV && this.customer.seoDevId === this.user.id
   }
 
   get canRead(): boolean {
-    return this.isAdmin || this.isOwner || this.isAssignedSeoDev;
+    return this.isAdmin || this.isOwner || this.isAssignedSeoDev
   }
 
   get canManage(): boolean {
-    return this.isAdmin || this.isAssignedSeoDev;
+    return this.isAdmin || this.isAssignedSeoDev
   }
 }

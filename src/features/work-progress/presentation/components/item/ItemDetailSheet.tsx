@@ -1,36 +1,30 @@
-"use client";
+'use client'
 
-import { useMemo } from "react";
+import { useMemo } from 'react'
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { SubtaskList } from "./SubtaskList";
-import { AttachmentGallery } from "./AttachmentGallery";
-import { AssignItemPopover } from "./AssignItemPopover";
-import { getEffectiveItemPercent } from "../../../domain/policies/progress-calculator";
-import type { WorkProgressItemWithMarks } from "@/features/work-progress";
+} from '@/components/ui/sheet'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { SubtaskList } from './SubtaskList'
+import { AttachmentGallery } from './AttachmentGallery'
+import { AssignItemPopover } from './AssignItemPopover'
+import { getEffectiveItemPercent } from '../../../domain/policies/progress-calculator'
+import type { WorkProgressItemWithMarks } from '@/features/work-progress'
 
 interface ItemDetailSheetProps {
-  userId: string;
-  planId: string;
-  item: WorkProgressItemWithMarks | null;
-  onClose: () => void;
-  readOnly?: boolean;
+  userId: string
+  planId: string
+  item: WorkProgressItemWithMarks | null
+  onClose: () => void
+  readOnly?: boolean
 }
 
-export function ItemDetailSheet({
-  userId,
-  planId,
-  item,
-  onClose,
-  readOnly,
-}: ItemDetailSheetProps) {
+export function ItemDetailSheet({ userId, planId, item, onClose, readOnly }: ItemDetailSheetProps) {
   const effectivePercent = useMemo(
     () =>
       item
@@ -40,7 +34,7 @@ export function ItemDetailSheet({
           })
         : 0,
     [item],
-  );
+  )
 
   return (
     <Sheet open={item !== null} onOpenChange={(o) => !o && onClose()}>
@@ -67,9 +61,7 @@ export function ItemDetailSheet({
                   <Badge variant="secondary">{item.status.name}</Badge>
                   <span className="text-xs">{effectivePercent}%</span>
                   {item.duration && (
-                    <span className="text-xs text-muted-foreground">
-                      · {item.duration}
-                    </span>
+                    <span className="text-muted-foreground text-xs">· {item.duration}</span>
                   )}
                 </div>
               </SheetDescription>
@@ -77,7 +69,7 @@ export function ItemDetailSheet({
 
             <div className="flex flex-col gap-5 p-4">
               <section className="flex flex-col gap-2">
-                <h3 className="text-xs font-semibold uppercase text-muted-foreground">
+                <h3 className="text-muted-foreground text-xs font-semibold uppercase">
                   ผู้รับผิดชอบ
                 </h3>
                 <AssignItemPopover
@@ -92,9 +84,7 @@ export function ItemDetailSheet({
               <Separator />
 
               <section className="flex flex-col gap-2">
-                <h3 className="text-xs font-semibold uppercase text-muted-foreground">
-                  งานย่อย
-                </h3>
+                <h3 className="text-muted-foreground text-xs font-semibold uppercase">งานย่อย</h3>
                 <SubtaskList
                   userId={userId}
                   planId={planId}
@@ -107,7 +97,7 @@ export function ItemDetailSheet({
               <Separator />
 
               <section className="flex flex-col gap-2">
-                <h3 className="text-xs font-semibold uppercase text-muted-foreground">
+                <h3 className="text-muted-foreground text-xs font-semibold uppercase">
                   ไฟล์ / ลิงก์
                 </h3>
                 <AttachmentGallery
@@ -123,5 +113,5 @@ export function ItemDetailSheet({
         )}
       </SheetContent>
     </Sheet>
-  );
+  )
 }

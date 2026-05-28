@@ -1,7 +1,7 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { Bell, CheckCheck, Settings } from "lucide-react";
+import { useState } from 'react'
+import { Bell, CheckCheck, Settings } from 'lucide-react'
 import {
   Card,
   CardHeader,
@@ -9,20 +9,20 @@ import {
   CardAction,
   CardContent,
   CardFooter,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { NotificationCenter } from "@/features/notifications/presentation/components/NotificationCenter";
-import { NotificationPreferencesDialog } from "@/features/notifications/presentation/components/NotificationPreferencesDialog";
+} from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { NotificationCenter } from '@/features/notifications/presentation/components/NotificationCenter'
+import { NotificationPreferencesDialog } from '@/features/notifications/presentation/components/NotificationPreferencesDialog'
 import {
   useUnreadCount,
   useMarkAllAsRead,
-} from "@/features/notifications/presentation/hooks/useNotifications";
+} from '@/features/notifications/presentation/hooks/useNotifications'
 
 export function CustomerNotificationsPanel() {
-  const { data: unreadCount } = useUnreadCount();
-  const markAllAsRead = useMarkAllAsRead();
-  const [prefOpen, setPrefOpen] = useState(false);
+  const { data: unreadCount } = useUnreadCount()
+  const markAllAsRead = useMarkAllAsRead()
+  const [prefOpen, setPrefOpen] = useState(false)
 
   return (
     <>
@@ -33,7 +33,7 @@ export function CustomerNotificationsPanel() {
             การแจ้งเตือน
             {unreadCount != null && unreadCount > 0 && (
               <Badge variant="destructive" className="text-xs">
-                {unreadCount > 99 ? "99+" : unreadCount}
+                {unreadCount > 99 ? '99+' : unreadCount}
               </Badge>
             )}
           </CardTitle>
@@ -62,7 +62,7 @@ export function CustomerNotificationsPanel() {
           <Button
             variant="ghost"
             size="sm"
-            className="w-full text-xs text-muted-foreground"
+            className="text-muted-foreground w-full text-xs"
             onClick={() => setPrefOpen(true)}
           >
             <Settings className="mr-1 size-3.5" />
@@ -71,10 +71,7 @@ export function CustomerNotificationsPanel() {
         </CardFooter>
       </Card>
 
-      <NotificationPreferencesDialog
-        open={prefOpen}
-        onOpenChange={setPrefOpen}
-      />
+      <NotificationPreferencesDialog open={prefOpen} onOpenChange={setPrefOpen} />
     </>
-  );
+  )
 }

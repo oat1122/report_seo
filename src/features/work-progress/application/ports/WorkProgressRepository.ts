@@ -1,133 +1,130 @@
-import type {
-  WorkProgressPlan,
-  WorkProgressPlanDetail,
-} from "../../domain/WorkProgressPlan";
-import type { WorkProgressItem } from "../../domain/WorkProgressItem";
-import type { WorkProgressItemPeriodMark } from "../../domain/WorkProgressItem";
-import type { PeriodSeed } from "../../domain/policies/period-generator";
+import type { WorkProgressPlan, WorkProgressPlanDetail } from '../../domain/WorkProgressPlan'
+import type { WorkProgressItem } from '../../domain/WorkProgressItem'
+import type { WorkProgressItemPeriodMark } from '../../domain/WorkProgressItem'
+import type { PeriodSeed } from '../../domain/policies/period-generator'
 
 export interface CreatePlanData {
-  customerId: string;
-  title: string;
-  periodType: WorkProgressPlan["periodType"];
-  year: number | null;
-  startDate: Date | null;
-  endDate: Date | null;
-  packageName: string | null;
-  note: string | null;
-  createdById: string | null;
+  customerId: string
+  title: string
+  periodType: WorkProgressPlan['periodType']
+  year: number | null
+  startDate: Date | null
+  endDate: Date | null
+  packageName: string | null
+  note: string | null
+  createdById: string | null
 }
 
 export interface CreatePlanItemSubtaskSeed {
-  title: string;
-  orderIndex: number;
+  title: string
+  orderIndex: number
 }
 
 export interface CreatePlanItemPeriodMarkSeed {
-  seq: number;
-  markTypeId: string;
+  seq: number
+  markTypeId: string
 }
 
 export interface CreatePlanItemSeed {
-  categoryId: string;
-  statusId: string;
-  activity: string;
-  description: string | null;
-  duration: string | null;
-  weight: number;
-  orderIndex: number;
-  subtasks?: readonly CreatePlanItemSubtaskSeed[];
-  periodMarks?: readonly CreatePlanItemPeriodMarkSeed[];
+  categoryId: string
+  statusId: string
+  activity: string
+  description: string | null
+  duration: string | null
+  weight: number
+  orderIndex: number
+  subtasks?: readonly CreatePlanItemSubtaskSeed[]
+  periodMarks?: readonly CreatePlanItemPeriodMarkSeed[]
 }
 
 export interface CloneItemSeed {
-  categoryId: string;
-  activity: string;
-  description: string | null;
-  duration: string | null;
-  weight: number;
-  orderIndex: number;
+  categoryId: string
+  activity: string
+  description: string | null
+  duration: string | null
+  weight: number
+  orderIndex: number
 }
 
 export interface UpdatePlanData {
-  title?: string;
-  year?: number | null;
-  startDate?: Date | null;
-  endDate?: Date | null;
-  packageName?: string | null;
-  note?: string | null;
+  title?: string
+  year?: number | null
+  startDate?: Date | null
+  endDate?: Date | null
+  packageName?: string | null
+  note?: string | null
 }
 
 export interface AddItemData {
-  planId: string;
-  categoryId: string;
-  statusId: string;
-  activity: string;
-  description: string | null;
-  duration: string | null;
-  note: string | null;
-  weight: number;
-  orderIndex: number | null;
-  startDate: Date | null;
-  dueDate: Date | null;
+  planId: string
+  categoryId: string
+  statusId: string
+  activity: string
+  description: string | null
+  duration: string | null
+  note: string | null
+  weight: number
+  orderIndex: number | null
+  startDate: Date | null
+  dueDate: Date | null
 }
 
 export interface UpdateItemData {
-  categoryId?: string;
-  statusId?: string;
-  activity?: string;
-  description?: string | null;
-  duration?: string | null;
-  note?: string | null;
-  weight?: number;
-  progressPercent?: number;
-  startDate?: Date | null;
-  dueDate?: Date | null;
-  completedAt?: Date | null; // ตั้งโดย use case ตอน status terminal
-  assignedToId?: string | null;
+  categoryId?: string
+  statusId?: string
+  activity?: string
+  description?: string | null
+  duration?: string | null
+  note?: string | null
+  weight?: number
+  progressPercent?: number
+  startDate?: Date | null
+  dueDate?: Date | null
+  completedAt?: Date | null // ตั้งโดย use case ตอน status terminal
+  assignedToId?: string | null
 }
 
 export interface SetMarkData {
-  itemId: string;
-  periodId: string;
-  markTypeId: string;
-  progressPercent: number | null;
-  note: string | null;
+  itemId: string
+  periodId: string
+  markTypeId: string
+  progressPercent: number | null
+  note: string | null
 }
 
 export interface PlanSummary {
-  planId: string;
-  overallPercent: number;
-  itemCount: number;
+  planId: string
+  overallPercent: number
+  itemCount: number
   byCategory: Array<{
-    categoryId: string;
-    overallPercent: number;
-    itemCount: number;
-  }>;
+    categoryId: string
+    overallPercent: number
+    itemCount: number
+  }>
   byPeriod: Array<{
-    periodId: string;
-    seq: number;
-    label: string;
-    markCount: number;
-  }>;
+    periodId: string
+    seq: number
+    label: string
+    markCount: number
+  }>
 }
 
 // Phase 4 — Customer-wide summary (cross-plan)
 export interface CustomerSummary {
-  activePlanCount: number;
-  archivedPlanCount: number;
-  totalItems: number;
-  avgProgressPercent: number; // 0–100 ของ items ใน active plan
-  upcomingDueCount: number;   // dueDate อยู่ในกรอบ N วันถัดไป + ยังไม่ completed
-  overdueCount: number;       // dueDate ผ่านมาแล้ว + ยังไม่ completed
+  activePlanCount: number
+  archivedPlanCount: number
+  totalItems: number
+  avgProgressPercent: number // 0–100 ของ items ใน active plan
+  upcomingDueCount: number // dueDate อยู่ในกรอบ N วันถัดไป + ยังไม่ completed
+  overdueCount: number // dueDate ผ่านมาแล้ว + ยังไม่ completed
 }
 
 // Phase 4 — Category × markType breakdown ใน 1 plan
 export interface CategoryBreakdownRow {
-  categoryId: string;
-  markTypeId: string;
-  count: number;
-  sumProgress: number;
+  categoryId: string
+  markTypeId: string
+  count: number
+  sumProgress: number
 }
 
 export interface WorkProgressRepository {
@@ -135,48 +132,42 @@ export interface WorkProgressRepository {
   createPlanWithPeriods(
     data: CreatePlanData,
     periods: readonly PeriodSeed[],
-  ): Promise<WorkProgressPlan>;
+  ): Promise<WorkProgressPlan>
   createPlanWithItems(
     data: CreatePlanData,
     periods: readonly PeriodSeed[],
     items: readonly CreatePlanItemSeed[],
-  ): Promise<WorkProgressPlan>;
-  findItemsForClone(planId: string): Promise<CloneItemSeed[]>;
+  ): Promise<WorkProgressPlan>
+  findItemsForClone(planId: string): Promise<CloneItemSeed[]>
   listByCustomer(
     customerId: string,
     options: { includeArchived: boolean; limit: number },
-  ): Promise<WorkProgressPlan[]>;
-  findById(planId: string): Promise<WorkProgressPlan | null>;
-  findDetail(planId: string): Promise<WorkProgressPlanDetail | null>;
-  updatePlan(planId: string, data: UpdatePlanData): Promise<WorkProgressPlan>;
-  replacePeriods(
-    planId: string,
-    periods: readonly PeriodSeed[],
-  ): Promise<void>;
-  archivePlan(planId: string, isArchived: boolean): Promise<WorkProgressPlan>;
-  deletePlan(planId: string): Promise<void>;
+  ): Promise<WorkProgressPlan[]>
+  findById(planId: string): Promise<WorkProgressPlan | null>
+  findDetail(planId: string): Promise<WorkProgressPlanDetail | null>
+  updatePlan(planId: string, data: UpdatePlanData): Promise<WorkProgressPlan>
+  replacePeriods(planId: string, periods: readonly PeriodSeed[]): Promise<void>
+  archivePlan(planId: string, isArchived: boolean): Promise<WorkProgressPlan>
+  deletePlan(planId: string): Promise<void>
 
   // Item CRUD
-  addItem(data: AddItemData): Promise<WorkProgressItem>;
-  findItemById(itemId: string): Promise<WorkProgressItem | null>;
-  updateItem(itemId: string, data: UpdateItemData): Promise<WorkProgressItem>;
-  assignItem(
-    itemId: string,
-    assignedToId: string | null,
-  ): Promise<WorkProgressItem>;
-  deleteItem(itemId: string): Promise<void>;
+  addItem(data: AddItemData): Promise<WorkProgressItem>
+  findItemById(itemId: string): Promise<WorkProgressItem | null>
+  updateItem(itemId: string, data: UpdateItemData): Promise<WorkProgressItem>
+  assignItem(itemId: string, assignedToId: string | null): Promise<WorkProgressItem>
+  deleteItem(itemId: string): Promise<void>
   reorderItems(
     planId: string,
     order: ReadonlyArray<{ itemId: string; orderIndex: number }>,
-  ): Promise<void>;
+  ): Promise<void>
 
   // Mark CRUD
-  setPeriodMark(data: SetMarkData): Promise<WorkProgressItemPeriodMark>;
-  clearPeriodMark(itemId: string, periodId: string): Promise<void>;
+  setPeriodMark(data: SetMarkData): Promise<WorkProgressItemPeriodMark>
+  clearPeriodMark(itemId: string, periodId: string): Promise<void>
   bulkSetPeriodMarks(
     itemId: string,
-    marks: ReadonlyArray<Omit<SetMarkData, "itemId">>,
-  ): Promise<{ count: number }>;
+    marks: ReadonlyArray<Omit<SetMarkData, 'itemId'>>,
+  ): Promise<{ count: number }>
 
   // Phase 6 — Bulk operations across items
   bulkUpdateItemStatus(
@@ -184,40 +175,31 @@ export interface WorkProgressRepository {
     itemIds: ReadonlyArray<string>,
     statusId: string,
     completedAt: Date | null,
-  ): Promise<{ count: number }>;
-  bulkDeleteItems(
-    planId: string,
-    itemIds: ReadonlyArray<string>,
-  ): Promise<{ count: number }>;
+  ): Promise<{ count: number }>
+  bulkDeleteItems(planId: string, itemIds: ReadonlyArray<string>): Promise<{ count: number }>
   bulkSetPeriodAcrossItems(
     planId: string,
     periodId: string,
     itemIds: ReadonlyArray<string>,
     mark: {
-      markTypeId: string | null;
-      progressPercent: number | null;
-      note: string | null;
+      markTypeId: string | null
+      progressPercent: number | null
+      note: string | null
     },
-  ): Promise<{ count: number }>;
-  countItemsInPlan(
-    planId: string,
-    itemIds: ReadonlyArray<string>,
-  ): Promise<number>;
+  ): Promise<{ count: number }>
+  countItemsInPlan(planId: string, itemIds: ReadonlyArray<string>): Promise<number>
 
   // Cross-plan validators (ใช้ใน use case ก่อน mutate)
-  isPeriodInPlan(periodId: string, planId: string): Promise<boolean>;
-  isItemInPlan(itemId: string, planId: string): Promise<boolean>;
+  isPeriodInPlan(periodId: string, planId: string): Promise<boolean>
+  isItemInPlan(itemId: string, planId: string): Promise<boolean>
 
   // Summary
-  getPlanSummary(planId: string): Promise<PlanSummary>;
+  getPlanSummary(planId: string): Promise<PlanSummary>
 
   // Phase 4 — Audit & Insights
-  summarizeCustomer(
-    customerId: string,
-    options: { upcomingDays: number },
-  ): Promise<CustomerSummary>;
+  summarizeCustomer(customerId: string, options: { upcomingDays: number }): Promise<CustomerSummary>
   getCategoryBreakdown(
     planId: string,
     options: { categoryId?: string },
-  ): Promise<CategoryBreakdownRow[]>;
+  ): Promise<CategoryBreakdownRow[]>
 }

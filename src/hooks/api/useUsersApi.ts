@@ -9,4 +9,4 @@ export {
   useDeleteUser,
   useRestoreUser,
   useUpdatePassword,
-} from "@/features/users/presentation/hooks/useUsers";
+} from '@/features/users/presentation/hooks/useUsers'

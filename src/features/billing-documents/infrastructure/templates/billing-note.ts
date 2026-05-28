@@ -1,4 +1,4 @@
-import type { RenderData } from "../../application/use-cases/generateDocument";
+import type { RenderData } from '../../application/use-cases/generateDocument'
 import {
   wrapDocument,
   formatCurrency,
@@ -7,16 +7,13 @@ import {
   renderItemsTable,
   renderNote,
   renderSignatureFooter,
-} from "./base-template";
+} from './base-template'
 
 export function renderBillingNote(data: RenderData): string {
-  const subtotal = data.items.reduce(
-    (sum, i) => sum + i.quantity * i.unitPrice,
-    0,
-  );
+  const subtotal = data.items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)
 
   const body = `
-    ${renderCompanyHeader(data.company, "ใบวางบิล", data.documentNumber, data.generatedAt)}
+    ${renderCompanyHeader(data.company, 'ใบวางบิล', data.documentNumber, data.generatedAt)}
     ${renderCustomerSection(data.customer)}
     ${renderItemsTable(data.items)}
     <div class="totals">
@@ -29,7 +26,7 @@ export function renderBillingNote(data: RenderData): string {
     </div>
     ${renderNote(data.note)}
     ${renderSignatureFooter()}
-  `;
+  `
 
-  return wrapDocument(body, `ใบวางบิล ${data.documentNumber}`);
+  return wrapDocument(body, `ใบวางบิล ${data.documentNumber}`)
 }

@@ -1,10 +1,10 @@
-import React from "react";
+import React from 'react'
 
 interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-  prefix?: string;
+  children?: React.ReactNode
+  index: number
+  value: number
+  prefix?: string
 }
 
 // Deprecated: ใช้ shadcn `<Tabs>` + `<TabsContent>` ในโค้ดใหม่
@@ -13,10 +13,10 @@ export const TabPanel: React.FC<TabPanelProps> = ({
   children,
   value,
   index,
-  prefix = "tabpanel",
+  prefix = 'tabpanel',
   ...other
 }) => {
-  if (value !== index) return null;
+  if (value !== index) return null
   return (
     <div
       role="tabpanel"
@@ -27,5 +27,5 @@ export const TabPanel: React.FC<TabPanelProps> = ({
     >
       {children}
     </div>
-  );
-};
+  )
+}

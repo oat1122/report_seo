@@ -1,39 +1,32 @@
-import { z } from "zod";
-import { withApiHandler, customerAccessGuard, ok } from "@/infrastructure/http";
+import { z } from 'zod'
+import { withApiHandler, customerAccessGuard, ok } from '@/infrastructure/http'
 import {
   bulkSetKeywordHistoryVisibility,
   historyVisibilitySchema,
   setKeywordHistoryVisibility,
-} from "@/features/keywords";
-import {
-  createNotification,
-  NOTIFICATION_TYPES,
-} from "@/features/notifications";
+} from '@/features/keywords'
+import { createNotification, NOTIFICATION_TYPES } from '@/features/notifications'
 
-const paramsSchema = z.object({ customerId: z.uuid() });
+const paramsSchema = z.object({ customerId: z.uuid() })
 
 export const PATCH = withApiHandler(
   { params: paramsSchema, body: historyVisibilitySchema },
   async ({ params, body, session }) => {
-    const ctx = await customerAccessGuard({ byUserId: params.customerId }, "manage");
-    const customerInternalId = ctx.customer.id;
+    const ctx = await customerAccessGuard({ byUserId: params.customerId }, 'manage')
+    const customerInternalId = ctx.customer.id
 
-    let result: { updated: number };
+    let result: { updated: number }
 
     if (body.historyIds) {
       result = await bulkSetKeywordHistoryVisibility(
         body.historyIds,
         body.isVisible,
         customerInternalId,
-      );
+      )
     } else if (body.historyId) {
-      result = await setKeywordHistoryVisibility(
-        body.historyId,
-        body.isVisible,
-        customerInternalId,
-      );
+      result = await setKeywordHistoryVisibility(body.historyId, body.isVisible, customerInternalId)
     } else {
-      return ok({ updated: 0 });
+      return ok({ updated: 0 })
     }
 
     if (body.isVisible && result.updated > 0) {
@@ -41,12 +34,12 @@ export const PATCH = withApiHandler(
         type: NOTIFICATION_TYPES.KEYWORD_UPDATED,
         recipientUserIds: [ctx.customer.userId],
         actorId: session.user.id,
-        title: "อัปเดต Keyword",
-        body: "มีข้อมูล Keyword ใหม่",
+        title: 'อัปเดต Keyword',
+        body: 'มีข้อมูล Keyword ใหม่',
         metadata: { url: `/customer/${params.customerId}` },
-      }).catch(() => {});
+      }).catch(() => {})
     }
 
-    return ok(result);
+    return ok(result)
   },
-);
+)

@@ -5,4 +5,4 @@ export {
   MAX_AI_OVERVIEW_IMAGES,
   type AiOverviewCreateInput,
   type AiOverviewUpdateInput,
-} from "@/schemas/aiOverview";
+} from '@/schemas/aiOverview'

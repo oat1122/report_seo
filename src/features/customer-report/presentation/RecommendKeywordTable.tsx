@@ -1,7 +1,7 @@
-"use client";
+'use client'
 
-import React from "react";
-import { Lightbulb, Star, Sparkles, Info } from "lucide-react";
+import React from 'react'
+import { Lightbulb, Star, Sparkles, Info } from 'lucide-react'
 import {
   Table,
   TableBody,
@@ -9,46 +9,41 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
-import { KeywordRecommend } from "@/types/metrics";
+} from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { cn } from '@/lib/utils'
+import { KeywordRecommend } from '@/types/metrics'
 
 interface RecommendKeywordTableProps {
-  keywords: KeywordRecommend[];
-  title?: string;
+  keywords: KeywordRecommend[]
+  title?: string
 }
 
 const kdStyle: Record<string, { label: string; className: string }> = {
-  EASY: { label: "Easy", className: "bg-success/10 text-success" },
-  MEDIUM: { label: "Medium", className: "bg-warning/10 text-warning" },
-  HARD: { label: "Hard", className: "bg-destructive/10 text-destructive" },
-};
+  EASY: { label: 'Easy', className: 'bg-success/10 text-success' },
+  MEDIUM: { label: 'Medium', className: 'bg-warning/10 text-warning' },
+  HARD: { label: 'Hard', className: 'bg-destructive/10 text-destructive' },
+}
 
-const getKdStyle = (kd: string | null | undefined) =>
-  (kd && kdStyle[kd]) || kdStyle.MEDIUM;
+const getKdStyle = (kd: string | null | undefined) => (kd && kdStyle[kd]) || kdStyle.MEDIUM
 
 const KeywordCard: React.FC<{ kw: KeywordRecommend }> = ({ kw }) => {
-  const kd = kw.kd ? getKdStyle(kw.kd) : null;
-  const isTop = kw.isTopReport;
+  const kd = kw.kd ? getKdStyle(kw.kd) : null
+  const isTop = kw.isTopReport
 
   return (
     <div
       className={cn(
-        "rounded-2xl border border-border p-4 transition-all hover:-translate-y-0.5 hover:shadow-md",
-        isTop && "bg-warning/5",
+        'border-border rounded-2xl border p-4 transition-all hover:-translate-y-0.5 hover:shadow-md',
+        isTop && 'bg-warning/5',
       )}
     >
       <div className="mb-3 flex items-start gap-3">
         <div
           className={cn(
-            "flex size-8 items-center justify-center rounded-lg",
-            isTop ? "bg-warning/15 text-warning" : "bg-info/15 text-info",
+            'flex size-8 items-center justify-center rounded-lg',
+            isTop ? 'bg-warning/15 text-warning' : 'bg-info/15 text-info',
           )}
         >
           {isTop ? <Sparkles className="size-4" /> : <Lightbulb className="size-4" />}
@@ -56,34 +51,34 @@ const KeywordCard: React.FC<{ kw: KeywordRecommend }> = ({ kw }) => {
         <div className="min-w-0 flex-1">
           <p className="mb-1 font-bold">{kw.keyword}</p>
           {isTop && (
-            <Badge className="gap-1 border-warning bg-warning/15 text-warning">
+            <Badge className="border-warning bg-warning/15 text-warning gap-1">
               <Star className="size-3" />
               Top Pick
             </Badge>
           )}
         </div>
         {kd && (
-          <Badge className={cn("min-w-16 justify-center font-semibold", kd.className)}>
+          <Badge className={cn('min-w-16 justify-center font-semibold', kd.className)}>
             {kd.label}
           </Badge>
         )}
       </div>
       {kw.note && (
-        <div className="rounded-lg border border-info/10 bg-info/5 p-3">
-          <p className="text-sm text-muted-foreground">{kw.note}</p>
+        <div className="border-info/10 bg-info/5 rounded-lg border p-3">
+          <p className="text-muted-foreground text-sm">{kw.note}</p>
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
 export const RecommendKeywordTable: React.FC<RecommendKeywordTableProps> = ({
   keywords,
   title,
 }) => {
-  if (keywords.length === 0) return null;
+  if (keywords.length === 0) return null
 
-  const topCount = keywords.filter((k) => k.isTopReport).length;
+  const topCount = keywords.filter((k) => k.isTopReport).length
 
   return (
     <>
@@ -98,28 +93,28 @@ export const RecommendKeywordTable: React.FC<RecommendKeywordTableProps> = ({
       </div>
 
       {/* Desktop: compact table */}
-      <div className="hidden h-fit max-h-[600px] overflow-hidden rounded-2xl border border-border md:block">
+      <div className="border-border hidden h-fit max-h-[600px] overflow-hidden rounded-2xl border md:block">
         {title && (
-          <div className="bg-gradient-to-br from-secondary to-secondary/80 p-4">
+          <div className="from-secondary to-secondary/80 bg-gradient-to-br p-4">
             <div className="flex items-center gap-2">
-              <Lightbulb className="size-5 text-secondary-foreground" />
-              <h3 className="font-bold text-secondary-foreground">{title}</h3>
+              <Lightbulb className="text-secondary-foreground size-5" />
+              <h3 className="text-secondary-foreground font-bold">{title}</h3>
             </div>
           </div>
         )}
         <Table>
           <TableHeader>
             <TableRow className="bg-muted">
-              <TableHead className="text-xs font-bold tracking-wider uppercase text-muted-foreground">
+              <TableHead className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
                 Keyword
               </TableHead>
-              <TableHead className="w-20 text-center text-xs font-bold tracking-wider uppercase text-muted-foreground">
+              <TableHead className="text-muted-foreground w-20 text-center text-xs font-bold tracking-wider uppercase">
                 KD
               </TableHead>
               <TableHead className="w-12 text-center">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Info className="mx-auto size-4 text-muted-foreground" />
+                    <Info className="text-muted-foreground mx-auto size-4" />
                   </TooltipTrigger>
                   <TooltipContent>Strategic Note</TooltipContent>
                 </Tooltip>
@@ -128,27 +123,25 @@ export const RecommendKeywordTable: React.FC<RecommendKeywordTableProps> = ({
           </TableHeader>
           <TableBody>
             {keywords.map((kw) => {
-              const kd = kw.kd ? getKdStyle(kw.kd) : null;
-              const isTop = kw.isTopReport;
+              const kd = kw.kd ? getKdStyle(kw.kd) : null
+              const isTop = kw.isTopReport
               return (
-                <TableRow key={kw.id} className={cn(isTop && "bg-warning/5")}>
+                <TableRow key={kw.id} className={cn(isTop && 'bg-warning/5')}>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <span
                         className={cn(
-                          "size-1.5 shrink-0 rounded-full",
-                          isTop ? "bg-warning" : "bg-info",
+                          'size-1.5 shrink-0 rounded-full',
+                          isTop ? 'bg-warning' : 'bg-info',
                         )}
                       />
                       <span className="text-sm font-semibold">{kw.keyword}</span>
-                      {isTop && (
-                        <Star className="ml-auto size-3.5 text-warning" />
-                      )}
+                      {isTop && <Star className="text-warning ml-auto size-3.5" />}
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
                     {kd && (
-                      <Badge className={cn("min-w-14 justify-center font-semibold", kd.className)}>
+                      <Badge className={cn('min-w-14 justify-center font-semibold', kd.className)}>
                         {kd.label}
                       </Badge>
                     )}
@@ -157,23 +150,23 @@ export const RecommendKeywordTable: React.FC<RecommendKeywordTableProps> = ({
                     {kw.note && (
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Info className="mx-auto size-4 cursor-pointer text-info" />
+                          <Info className="text-info mx-auto size-4 cursor-pointer" />
                         </TooltipTrigger>
                         <TooltipContent side="left">{kw.note}</TooltipContent>
                       </Tooltip>
                     )}
                   </TableCell>
                 </TableRow>
-              );
+              )
             })}
           </TableBody>
         </Table>
-        <div className="border-t border-border bg-info/5 p-2 text-center">
-          <p className="text-xs font-semibold text-muted-foreground">
+        <div className="border-border bg-info/5 border-t p-2 text-center">
+          <p className="text-muted-foreground text-xs font-semibold">
             {keywords.length} recommendations • {topCount} top priorities
           </p>
         </div>
       </div>
     </>
-  );
-};
+  )
+}

@@ -1,10 +1,6 @@
-import { withApiHandler, ok } from "@/infrastructure/http";
-import {
-  updateStatus,
-  updateStatusSchema,
-  masterIdParamSchema,
-} from "@/features/work-progress";
-import { Role } from "@/types/auth";
+import { withApiHandler, ok } from '@/infrastructure/http'
+import { updateStatus, updateStatusSchema, masterIdParamSchema } from '@/features/work-progress'
+import { Role } from '@/types/auth'
 
 export const PATCH = withApiHandler(
   {
@@ -13,4 +9,4 @@ export const PATCH = withApiHandler(
     body: updateStatusSchema,
   },
   async ({ params, body }) => ok(await updateStatus(params.id, body)),
-);
+)

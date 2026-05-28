@@ -1,13 +1,13 @@
-"use client";
+'use client'
 
-import React, { useState } from "react";
-import { Eye, EyeOff, Pencil } from "lucide-react";
-import { Textarea } from "@/components/ui/textarea";
-import { useSession } from "next-auth/react";
-import { Role } from "@/types/auth";
-import { User, UserFormState } from "@/types/user";
-import { getRoleLabel } from "@/lib/role-display";
-import { Button } from "@/components/ui/button";
+import React, { useState } from 'react'
+import { Eye, EyeOff, Pencil } from 'lucide-react'
+import { Textarea } from '@/components/ui/textarea'
+import { useSession } from 'next-auth/react'
+import { Role } from '@/types/auth'
+import { User, UserFormState } from '@/types/user'
+import { getRoleLabel } from '@/lib/role-display'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -15,37 +15,33 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Field, FieldGroup } from "@/components/ui/field";
-import { Separator } from "@/components/ui/separator";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Field, FieldGroup } from '@/components/ui/field'
+import { Separator } from '@/components/ui/separator'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select'
 
 interface UserModalProps {
-  open: boolean;
-  isEditing: boolean;
-  currentUser: UserFormState;
-  onClose: () => void;
-  onSave: () => void;
-  onSavePassword: () => void;
-  onFormChange: (name: string, value: string | Role | boolean) => void;
-  seoDevs: User[];
-  isSeoDevView?: boolean;
+  open: boolean
+  isEditing: boolean
+  currentUser: UserFormState
+  onClose: () => void
+  onSave: () => void
+  onSavePassword: () => void
+  onFormChange: (name: string, value: string | Role | boolean) => void
+  seoDevs: User[]
+  isSeoDevView?: boolean
 }
 
-const NONE_SEO_DEV = "__none__";
+const NONE_SEO_DEV = '__none__'
 
 export const UserModal: React.FC<UserModalProps> = ({
   open,
@@ -58,49 +54,45 @@ export const UserModal: React.FC<UserModalProps> = ({
   seoDevs,
   isSeoDevView = false,
 }) => {
-  const { data: session } = useSession();
-  const canEditRole = session?.user?.role === Role.ADMIN;
-  const isOwnProfile = session?.user?.id === currentUser.id;
+  const { data: session } = useSession()
+  const canEditRole = session?.user?.role === Role.ADMIN
+  const isOwnProfile = session?.user?.id === currentUser.id
 
-  const [isPasswordEditing, setIsPasswordEditing] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [isPasswordEditing, setIsPasswordEditing] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleTogglePasswordEdit = () => {
     setIsPasswordEditing((prev) => {
       if (prev) {
-        onFormChange("currentPassword", "");
-        onFormChange("newPassword", "");
-        onFormChange("confirmPassword", "");
+        onFormChange('currentPassword', '')
+        onFormChange('newPassword', '')
+        onFormChange('confirmPassword', '')
       }
-      return !prev;
-    });
-  };
+      return !prev
+    })
+  }
 
   const handleCloseModal = () => {
-    setIsPasswordEditing(false);
-    setShowPassword(false);
-    onClose();
-  };
+    setIsPasswordEditing(false)
+    setShowPassword(false)
+    onClose()
+  }
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { name, value, type } = e.target;
-    const checked = (e.target as HTMLInputElement).checked;
-    onFormChange(name, type === "checkbox" ? checked : value);
-  };
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target
+    const checked = (e.target as HTMLInputElement).checked
+    onFormChange(name, type === 'checkbox' ? checked : value)
+  }
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && handleCloseModal()}>
       <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-[min(92vw,640px)]">
         <DialogHeader>
           <DialogTitle className="text-2xl">
-            {isEditing ? "แก้ไขผู้ใช้งาน" : "เพิ่มผู้ใช้งานใหม่"}
+            {isEditing ? 'แก้ไขผู้ใช้งาน' : 'เพิ่มผู้ใช้งานใหม่'}
           </DialogTitle>
           <DialogDescription>
-            {isEditing
-              ? "แก้ไขข้อมูลผู้ใช้งานในระบบ"
-              : "กรอกข้อมูลเพื่อสร้างบัญชีผู้ใช้งานใหม่"}
+            {isEditing ? 'แก้ไขข้อมูลผู้ใช้งานในระบบ' : 'กรอกข้อมูลเพื่อสร้างบัญชีผู้ใช้งานใหม่'}
           </DialogDescription>
         </DialogHeader>
 
@@ -110,7 +102,7 @@ export const UserModal: React.FC<UserModalProps> = ({
             <Input
               id="user-name"
               name="name"
-              value={currentUser.name || ""}
+              value={currentUser.name || ''}
               onChange={handleInputChange}
             />
           </Field>
@@ -121,7 +113,7 @@ export const UserModal: React.FC<UserModalProps> = ({
               id="user-email"
               name="email"
               type="email"
-              value={currentUser.email || ""}
+              value={currentUser.email || ''}
               onChange={handleInputChange}
             />
           </Field>
@@ -133,7 +125,7 @@ export const UserModal: React.FC<UserModalProps> = ({
                 <Input
                   id="user-password"
                   name="password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   onChange={handleInputChange}
                   className="pr-9"
                 />
@@ -141,9 +133,7 @@ export const UserModal: React.FC<UserModalProps> = ({
                   type="button"
                   variant="ghost"
                   size="icon-sm"
-                  aria-label={
-                    showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"
-                  }
+                  aria-label={showPassword ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
                   onClick={() => setShowPassword((v) => !v)}
                   className="absolute top-1/2 right-1 -translate-y-1/2"
                 >
@@ -156,8 +146,8 @@ export const UserModal: React.FC<UserModalProps> = ({
           <Field>
             <Label htmlFor="user-role">บทบาท</Label>
             <Select
-              value={currentUser.role || ""}
-              onValueChange={(v) => onFormChange("role", v as Role)}
+              value={currentUser.role || ''}
+              onValueChange={(v) => onFormChange('role', v as Role)}
               disabled={isSeoDevView && !canEditRole}
             >
               <SelectTrigger id="user-role">
@@ -178,30 +168,26 @@ export const UserModal: React.FC<UserModalProps> = ({
           </Field>
 
           {currentUser.role === Role.CUSTOMER && (
-            <div className="rounded-lg border border-info/20 bg-info/5 p-4">
-              <p className="mb-3 text-sm font-semibold text-info">
-                ข้อมูลบริษัท
-              </p>
+            <div className="border-info/20 bg-info/5 rounded-lg border p-4">
+              <p className="text-info mb-3 text-sm font-semibold">ข้อมูลบริษัท</p>
               <FieldGroup>
                 <Field>
                   <Label htmlFor="customer-company">ชื่อบริษัท</Label>
                   <Input
                     id="customer-company"
                     name="companyName"
-                    value={currentUser.companyName || ""}
+                    value={currentUser.companyName || ''}
                     onChange={handleInputChange}
                     required={!isEditing}
                   />
                 </Field>
 
                 <Field>
-                  <Label htmlFor="customer-domain">
-                    โดเมน (เช่น example.com)
-                  </Label>
+                  <Label htmlFor="customer-domain">โดเมน (เช่น example.com)</Label>
                   <Input
                     id="customer-domain"
                     name="domain"
-                    value={currentUser.domain || ""}
+                    value={currentUser.domain || ''}
                     onChange={handleInputChange}
                     required={!isEditing}
                   />
@@ -212,20 +198,18 @@ export const UserModal: React.FC<UserModalProps> = ({
                   <Input
                     id="customer-contactName"
                     name="contactName"
-                    value={currentUser.contactName || ""}
+                    value={currentUser.contactName || ''}
                     onChange={handleInputChange}
                     placeholder="ชื่อ-นามสกุล ผู้ติดต่อ"
                   />
                 </Field>
 
                 <Field>
-                  <Label htmlFor="customer-address">
-                    ที่อยู่ (สำหรับออกเอกสาร)
-                  </Label>
+                  <Label htmlFor="customer-address">ที่อยู่ (สำหรับออกเอกสาร)</Label>
                   <Textarea
                     id="customer-address"
                     name="address"
-                    value={currentUser.address || ""}
+                    value={currentUser.address || ''}
                     onChange={handleInputChange}
                     rows={2}
                     placeholder="ที่อยู่สำหรับออกใบแจ้งหนี้ / ใบเสร็จ"
@@ -237,7 +221,7 @@ export const UserModal: React.FC<UserModalProps> = ({
                   <Input
                     id="customer-taxId"
                     name="taxId"
-                    value={currentUser.taxId || ""}
+                    value={currentUser.taxId || ''}
                     onChange={handleInputChange}
                     placeholder="0000000000000"
                     maxLength={13}
@@ -249,17 +233,13 @@ export const UserModal: React.FC<UserModalProps> = ({
                     <Label htmlFor="customer-seodev">ผู้ดูแล (SEO Dev)</Label>
                     <Select
                       value={currentUser.seoDevId || NONE_SEO_DEV}
-                      onValueChange={(v) =>
-                        onFormChange("seoDevId", v === NONE_SEO_DEV ? "" : v)
-                      }
+                      onValueChange={(v) => onFormChange('seoDevId', v === NONE_SEO_DEV ? '' : v)}
                     >
                       <SelectTrigger id="customer-seodev">
                         <SelectValue placeholder="-- ไม่กำหนด --" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value={NONE_SEO_DEV}>
-                          -- ไม่กำหนด --
-                        </SelectItem>
+                        <SelectItem value={NONE_SEO_DEV}>-- ไม่กำหนด --</SelectItem>
                         {seoDevs.map((dev) => (
                           <SelectItem key={dev.id} value={dev.id}>
                             {dev.name || dev.email}
@@ -277,7 +257,7 @@ export const UserModal: React.FC<UserModalProps> = ({
             <div>
               <div className="my-3 flex items-center gap-2">
                 <Separator className="flex-1" />
-                <span className="text-xs tracking-wide text-muted-foreground uppercase">
+                <span className="text-muted-foreground text-xs tracking-wide uppercase">
                   Change Password
                 </span>
                 <Tooltip>
@@ -291,9 +271,7 @@ export const UserModal: React.FC<UserModalProps> = ({
                       <Pencil className="size-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>
-                    {isPasswordEditing ? "ยกเลิก" : "แก้ไขรหัสผ่าน"}
-                  </TooltipContent>
+                  <TooltipContent>{isPasswordEditing ? 'ยกเลิก' : 'แก้ไขรหัสผ่าน'}</TooltipContent>
                 </Tooltip>
                 <Separator className="flex-1" />
               </div>
@@ -302,13 +280,11 @@ export const UserModal: React.FC<UserModalProps> = ({
                 <FieldGroup>
                   {isOwnProfile && !canEditRole && (
                     <Field>
-                      <Label htmlFor="user-current-password">
-                        Current Password
-                      </Label>
+                      <Label htmlFor="user-current-password">Current Password</Label>
                       <Input
                         id="user-current-password"
                         name="currentPassword"
-                        type={showPassword ? "text" : "password"}
+                        type={showPassword ? 'text' : 'password'}
                         onChange={handleInputChange}
                       />
                     </Field>
@@ -320,7 +296,7 @@ export const UserModal: React.FC<UserModalProps> = ({
                       <Input
                         id="user-new-password"
                         name="newPassword"
-                        type={showPassword ? "text" : "password"}
+                        type={showPassword ? 'text' : 'password'}
                         onChange={handleInputChange}
                         disabled={isSeoDevView && !isOwnProfile}
                         className="pr-9"
@@ -329,9 +305,7 @@ export const UserModal: React.FC<UserModalProps> = ({
                         type="button"
                         variant="ghost"
                         size="icon-sm"
-                        aria-label={
-                          showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"
-                        }
+                        aria-label={showPassword ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
                         onClick={() => setShowPassword((v) => !v)}
                         disabled={isSeoDevView && !isOwnProfile}
                         className="absolute top-1/2 right-1 -translate-y-1/2"
@@ -342,13 +316,11 @@ export const UserModal: React.FC<UserModalProps> = ({
                   </Field>
 
                   <Field>
-                    <Label htmlFor="user-confirm-password">
-                      Confirm New Password
-                    </Label>
+                    <Label htmlFor="user-confirm-password">Confirm New Password</Label>
                     <Input
                       id="user-confirm-password"
                       name="confirmPassword"
-                      type={showPassword ? "text" : "password"}
+                      type={showPassword ? 'text' : 'password'}
                       onChange={handleInputChange}
                       disabled={isSeoDevView && !isOwnProfile}
                     />
@@ -360,11 +332,9 @@ export const UserModal: React.FC<UserModalProps> = ({
                     disabled={
                       !currentUser.newPassword ||
                       !currentUser.confirmPassword ||
-                      (isOwnProfile &&
-                        !canEditRole &&
-                        !currentUser.currentPassword)
+                      (isOwnProfile && !canEditRole && !currentUser.currentPassword)
                     }
-                    className="w-full bg-info text-info-foreground hover:bg-info/90"
+                    className="bg-info text-info-foreground hover:bg-info/90 w-full"
                     size="lg"
                   >
                     Save Password
@@ -384,10 +354,10 @@ export const UserModal: React.FC<UserModalProps> = ({
             onClick={onSave}
             className="bg-secondary text-secondary-foreground hover:bg-secondary/90"
           >
-            {isEditing ? "บันทึกการเปลี่ยนแปลง" : "สร้างผู้ใช้งาน"}
+            {isEditing ? 'บันทึกการเปลี่ยนแปลง' : 'สร้างผู้ใช้งาน'}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-};
+  )
+}

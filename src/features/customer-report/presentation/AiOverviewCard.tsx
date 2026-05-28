@@ -1,106 +1,87 @@
-"use client";
+'use client'
 
-import React, { useState } from "react";
-import {
-  Sparkles,
-  X,
-  ChevronLeft,
-  ChevronRight,
-  Eye,
-  Calendar,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+import React, { useState } from 'react'
+import { Sparkles, X, ChevronLeft, ChevronRight, Eye, Calendar } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { AiOverview } from "@/types/metrics";
+} from '@/components/ui/dialog'
+import { Badge } from '@/components/ui/badge'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { AiOverview } from '@/types/metrics'
 
 interface AiOverviewCardProps {
-  aiOverviews: AiOverview[];
+  aiOverviews: AiOverview[]
 }
 
 const formatThaiLongDate = (iso: string) =>
-  new Date(iso).toLocaleDateString("th-TH", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  new Date(iso).toLocaleDateString('th-TH', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
 
-export const AiOverviewCard: React.FC<AiOverviewCardProps> = ({
-  aiOverviews,
-}) => {
-  const [dialogItem, setDialogItem] = useState<AiOverview | null>(null);
-  const [lightboxImages, setLightboxImages] = useState<string[]>([]);
-  const [lightboxIndex, setLightboxIndex] = useState(0);
+export const AiOverviewCard: React.FC<AiOverviewCardProps> = ({ aiOverviews }) => {
+  const [dialogItem, setDialogItem] = useState<AiOverview | null>(null)
+  const [lightboxImages, setLightboxImages] = useState<string[]>([])
+  const [lightboxIndex, setLightboxIndex] = useState(0)
 
   const openLightbox = (images: string[], index: number) => {
-    setLightboxImages(images);
-    setLightboxIndex(index);
-  };
+    setLightboxImages(images)
+    setLightboxIndex(index)
+  }
 
-  const closeLightbox = () => setLightboxImages([]);
+  const closeLightbox = () => setLightboxImages([])
 
-  const showPrev = () =>
-    setLightboxIndex((p) => (p > 0 ? p - 1 : lightboxImages.length - 1));
-  const showNext = () =>
-    setLightboxIndex((p) => (p < lightboxImages.length - 1 ? p + 1 : 0));
+  const showPrev = () => setLightboxIndex((p) => (p > 0 ? p - 1 : lightboxImages.length - 1))
+  const showNext = () => setLightboxIndex((p) => (p < lightboxImages.length - 1 ? p + 1 : 0))
 
   if (aiOverviews.length === 0) {
     return (
-      <div className="flex h-full flex-col rounded-2xl border border-border p-4 md:p-6">
+      <div className="border-border flex h-full flex-col rounded-2xl border p-4 md:p-6">
         <div className="mb-4">
           <h3 className="flex items-center gap-2 text-xl font-bold">
-            <Sparkles className="size-5 text-info" />
+            <Sparkles className="text-info size-5" />
             AI Overview
           </h3>
-          <p className="mt-1 text-xs text-muted-foreground">
-            keyword ที่ถูก AI Search หยิบขึ้นมา
-          </p>
+          <p className="text-muted-foreground mt-1 text-xs">keyword ที่ถูก AI Search หยิบขึ้นมา</p>
         </div>
         <div className="flex flex-1 flex-col items-center justify-center gap-2 py-12 text-center">
-          <Sparkles className="size-8 text-muted-foreground/50" />
-          <p className="text-sm text-muted-foreground">
-            ยังไม่มี AI Overview ที่บันทึก
-          </p>
-          <p className="text-xs text-muted-foreground/70">
+          <Sparkles className="text-muted-foreground/50 size-8" />
+          <p className="text-muted-foreground text-sm">ยังไม่มี AI Overview ที่บันทึก</p>
+          <p className="text-muted-foreground/70 text-xs">
             เมื่อ keyword ของคุณถูก AI Search หยิบขึ้นมา จะแสดงรูปภาพและข้อมูลที่นี่
           </p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
     <>
-      <div className="h-full overflow-hidden rounded-2xl border border-border p-4 md:p-6">
+      <div className="border-border h-full overflow-hidden rounded-2xl border p-4 md:p-6">
         <div className="mb-4">
           <h3 className="flex items-center gap-2 text-xl font-bold">
-            <Sparkles className="size-5 text-info" />
+            <Sparkles className="text-info size-5" />
             AI Overview
           </h3>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="text-muted-foreground mt-1 text-xs">
             {aiOverviews.length} รายการ · keyword ที่ถูก AI Search หยิบขึ้นมา
           </p>
         </div>
-        <ul className="-mx-4 divide-y divide-border md:-mx-6">
+        <ul className="divide-border -mx-4 divide-y md:-mx-6">
           {aiOverviews.map((item) => (
             <li
               key={item.id}
-              className="flex items-center gap-3 px-4 py-3 transition-all hover:bg-muted hover:shadow-[inset_4px_0_0_var(--info)] md:px-6"
+              className="hover:bg-muted flex items-center gap-3 px-4 py-3 transition-all hover:shadow-[inset_4px_0_0_var(--info)] md:px-6"
             >
               <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold">{item.title}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-muted-foreground text-xs">
                   {item.images.length} รูปภาพ • {formatThaiLongDate(item.displayDate)}
                 </p>
               </div>
@@ -112,7 +93,7 @@ export const AiOverviewCard: React.FC<AiOverviewCardProps> = ({
                     onClick={() => setDialogItem(item)}
                     aria-label="ดูรูปภาพ"
                   >
-                    <Eye className="size-4 text-info" />
+                    <Eye className="text-info size-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>ดูรูปภาพ</TooltipContent>
@@ -126,15 +107,15 @@ export const AiOverviewCard: React.FC<AiOverviewCardProps> = ({
       <Dialog open={!!dialogItem} onOpenChange={(o) => !o && setDialogItem(null)}>
         {dialogItem && (
           <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-[min(92vw,1024px)]">
-            <DialogHeader className="bg-gradient-to-br from-info to-info/70 -m-4 mb-2 rounded-t-xl p-4 text-info-foreground">
-              <DialogTitle className="flex items-center gap-2 text-info-foreground">
+            <DialogHeader className="from-info to-info/70 text-info-foreground -m-4 mb-2 rounded-t-xl bg-gradient-to-br p-4">
+              <DialogTitle className="text-info-foreground flex items-center gap-2">
                 <Sparkles className="size-5" />
                 {dialogItem.title}
               </DialogTitle>
               <DialogDescription className="sr-only">
                 รูปภาพประกอบ {dialogItem.title}
               </DialogDescription>
-              <Badge className="w-fit gap-1 bg-white/20 text-info-foreground hover:bg-white/30">
+              <Badge className="text-info-foreground w-fit gap-1 bg-white/20 hover:bg-white/30">
                 <Calendar className="size-3" />
                 {formatThaiLongDate(dialogItem.displayDate)}
               </Badge>
@@ -151,7 +132,7 @@ export const AiOverviewCard: React.FC<AiOverviewCardProps> = ({
                       idx,
                     )
                   }
-                  className="overflow-hidden rounded-lg border border-border bg-card transition-shadow hover:shadow-md"
+                  className="border-border bg-card overflow-hidden rounded-lg border transition-shadow hover:shadow-md"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -179,7 +160,7 @@ export const AiOverviewCard: React.FC<AiOverviewCardProps> = ({
               variant="secondary"
               aria-label="ปิด"
               onClick={closeLightbox}
-              className="absolute -top-10 right-0 bg-foreground/50 text-background hover:bg-foreground/70"
+              className="bg-foreground/50 text-background hover:bg-foreground/70 absolute -top-10 right-0"
             >
               <X />
             </Button>
@@ -191,7 +172,7 @@ export const AiOverviewCard: React.FC<AiOverviewCardProps> = ({
                   variant="secondary"
                   aria-label="ภาพก่อนหน้า"
                   onClick={showPrev}
-                  className="absolute top-1/2 left-2 -translate-y-1/2 bg-foreground/50 text-background hover:bg-foreground/70 md:left-4"
+                  className="bg-foreground/50 text-background hover:bg-foreground/70 absolute top-1/2 left-2 -translate-y-1/2 md:left-4"
                 >
                   <ChevronLeft />
                 </Button>
@@ -200,7 +181,7 @@ export const AiOverviewCard: React.FC<AiOverviewCardProps> = ({
                   variant="secondary"
                   aria-label="ภาพถัดไป"
                   onClick={showNext}
-                  className="absolute top-1/2 right-2 -translate-y-1/2 bg-foreground/50 text-background hover:bg-foreground/70 md:right-4"
+                  className="bg-foreground/50 text-background hover:bg-foreground/70 absolute top-1/2 right-2 -translate-y-1/2 md:right-4"
                 >
                   <ChevronRight />
                 </Button>
@@ -217,7 +198,7 @@ export const AiOverviewCard: React.FC<AiOverviewCardProps> = ({
             )}
 
             {lightboxImages.length > 1 && (
-              <p className="mt-2 text-center text-sm text-background">
+              <p className="text-background mt-2 text-center text-sm">
                 {lightboxIndex + 1} / {lightboxImages.length}
               </p>
             )}
@@ -225,5 +206,5 @@ export const AiOverviewCard: React.FC<AiOverviewCardProps> = ({
         </DialogContent>
       </Dialog>
     </>
-  );
-};
+  )
+}

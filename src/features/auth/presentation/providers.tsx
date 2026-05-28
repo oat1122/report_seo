@@ -1,20 +1,20 @@
-"use client";
+'use client'
 
-import { SessionProvider } from "next-auth/react";
-import { ReactNode, useState } from "react";
-import { Provider as ReduxProvider } from "react-redux";
-import { ThemeProvider } from "next-themes";
-import { store } from "@/store/store";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { SessionProvider } from 'next-auth/react'
+import { ReactNode, useState } from 'react'
+import { Provider as ReduxProvider } from 'react-redux'
+import { ThemeProvider } from 'next-themes'
+import { store } from '@/store/store'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { TooltipProvider } from '@/components/ui/tooltip'
 
 interface ProvidersProps {
-  children: ReactNode;
+  children: ReactNode
 }
 
 // NextAuth + Redux + React Query + next-themes + Tooltip providers
 export function Providers({ children }: ProvidersProps) {
-  const [queryClient] = useState(() => new QueryClient());
+  const [queryClient] = useState(() => new QueryClient())
 
   return (
     <SessionProvider>
@@ -31,5 +31,5 @@ export function Providers({ children }: ProvidersProps) {
         </QueryClientProvider>
       </ReduxProvider>
     </SessionProvider>
-  );
+  )
 }

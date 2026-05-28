@@ -1,23 +1,20 @@
-import { z } from "zod";
-import { paginationQuerySchema } from "@/lib/pagination";
-import { NOTIFICATION_TYPES } from "../domain/NotificationTypes";
+import { z } from 'zod'
+import { paginationQuerySchema } from '@/lib/pagination'
+import { NOTIFICATION_TYPES } from '../domain/NotificationTypes'
 
-const notificationTypeValues = Object.values(NOTIFICATION_TYPES) as [
-  string,
-  ...string[],
-];
+const notificationTypeValues = Object.values(NOTIFICATION_TYPES) as [string, ...string[]]
 
 export const listNotificationsQuerySchema = paginationQuerySchema.extend({
   unreadOnly: z.coerce.boolean().optional().default(false),
-});
+})
 
-export type ListNotificationsQuery = z.infer<typeof listNotificationsQuerySchema>;
+export type ListNotificationsQuery = z.infer<typeof listNotificationsQuerySchema>
 
 export const notificationIdParamSchema = z.object({
   id: z.uuid(),
-});
+})
 
-export type NotificationIdParam = z.infer<typeof notificationIdParamSchema>;
+export type NotificationIdParam = z.infer<typeof notificationIdParamSchema>
 
 export const updatePreferencesSchema = z.object({
   items: z
@@ -28,9 +25,9 @@ export const updatePreferencesSchema = z.object({
       }),
     )
     .min(1),
-});
+})
 
-export type UpdatePreferencesInput = z.infer<typeof updatePreferencesSchema>;
+export type UpdatePreferencesInput = z.infer<typeof updatePreferencesSchema>
 
 export const createNotificationSchema = z.object({
   type: z.enum(notificationTypeValues),
@@ -39,6 +36,6 @@ export const createNotificationSchema = z.object({
   title: z.string().min(1).max(200),
   body: z.string().max(2000).optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
-});
+})
 
-export type CreateNotificationInput = z.infer<typeof createNotificationSchema>;
+export type CreateNotificationInput = z.infer<typeof createNotificationSchema>

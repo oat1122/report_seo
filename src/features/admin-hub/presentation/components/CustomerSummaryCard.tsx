@@ -1,24 +1,31 @@
-"use client";
+'use client'
 
-import Link from "next/link";
-import { Globe, UserCheck, BarChart3, Briefcase, CreditCard } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import type { CustomerHubCard } from "../../domain/AdminHubSummary";
+import Link from 'next/link'
+import { Globe, UserCheck, BarChart3, Briefcase, CreditCard } from 'lucide-react'
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import type { CustomerHubCard } from '../../domain/AdminHubSummary'
 
 interface CustomerSummaryCardProps {
-  customer: CustomerHubCard;
+  customer: CustomerHubCard
 }
 
 export function CustomerSummaryCard({ customer }: CustomerSummaryCardProps) {
-  const { metrics, counts } = customer;
+  const { metrics, counts } = customer
 
   return (
     <Card size="sm">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Globe className="size-4 text-muted-foreground" />
+          <Globe className="text-muted-foreground size-4" />
           {customer.name}
         </CardTitle>
         <CardDescription className="flex items-center gap-2">
@@ -44,7 +51,7 @@ export function CustomerSummaryCard({ customer }: CustomerSummaryCardProps) {
             <MetricBadge label="Traffic" value={formatNumber(metrics.organicTraffic)} />
           </div>
         ) : (
-          <p className="text-xs text-muted-foreground">ยังไม่มีข้อมูล Metrics</p>
+          <p className="text-muted-foreground text-xs">ยังไม่มีข้อมูล Metrics</p>
         )}
 
         {/* Counts */}
@@ -61,14 +68,12 @@ export function CustomerSummaryCard({ customer }: CustomerSummaryCardProps) {
         </div>
 
         {/* Work Progress + Payments */}
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+        <div className="text-muted-foreground flex items-center gap-3 text-xs">
           <span className="flex items-center gap-1">
             <Briefcase className="size-3" />
             Plans: {counts.workProgressPlans}
             {customer.workProgressAvgPercent !== null && (
-              <span className="text-foreground">
-                ({customer.workProgressAvgPercent}%)
-              </span>
+              <span className="text-foreground">({customer.workProgressAvgPercent}%)</span>
             )}
           </span>
           <span className="flex items-center gap-1">
@@ -99,20 +104,20 @@ export function CustomerSummaryCard({ customer }: CustomerSummaryCardProps) {
         </Button>
       </CardFooter>
     </Card>
-  );
+  )
 }
 
 function MetricBadge({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-md bg-muted/50 px-2 py-1 text-center">
-      <p className="text-xs text-muted-foreground">{label}</p>
+    <div className="bg-muted/50 rounded-md px-2 py-1 text-center">
+      <p className="text-muted-foreground text-xs">{label}</p>
       <p className="text-sm font-semibold">{value}</p>
     </div>
-  );
+  )
 }
 
 function formatNumber(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-  return String(n);
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`
+  return String(n)
 }

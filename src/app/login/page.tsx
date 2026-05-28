@@ -1,5 +1,5 @@
-﻿import LoginForm from "@/features/auth/presentation/LoginForm";
+﻿import LoginForm from '@/features/auth/presentation/LoginForm'
 
 export default function LoginPage() {
-  return <LoginForm />;
+  return <LoginForm />
 }

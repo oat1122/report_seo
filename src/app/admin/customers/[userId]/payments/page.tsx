@@ -1,19 +1,19 @@
-import { requireAdmin } from "@/lib/auth-utils";
-import { DashboardLayout } from "@/components/Layout/DashboardLayout";
-import { BackButton } from "@/components/shared/BackButton";
-import { PaymentDashboard } from "@/features/payments/presentation/components/admin/PaymentDashboard";
+import { requireAdmin } from '@/lib/auth-utils'
+import { DashboardLayout } from '@/components/Layout/DashboardLayout'
+import { BackButton } from '@/components/shared/BackButton'
+import { PaymentDashboard } from '@/features/payments/presentation/components/admin/PaymentDashboard'
 
 export const metadata = {
-  title: "Payment Management · Admin",
-};
+  title: 'Payment Management · Admin',
+}
 
 interface PageProps {
-  params: Promise<{ userId: string }>;
+  params: Promise<{ userId: string }>
 }
 
 export default async function AdminPaymentsPage({ params }: PageProps) {
-  await requireAdmin();
-  const { userId } = await params;
+  await requireAdmin()
+  const { userId } = await params
 
   return (
     <DashboardLayout>
@@ -21,10 +21,8 @@ export default async function AdminPaymentsPage({ params }: PageProps) {
         <div className="flex items-center gap-3">
           <BackButton />
           <header className="flex flex-col gap-1">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              จัดการการชำระเงิน
-            </h1>
-            <p className="text-sm text-muted-foreground">
+            <h1 className="text-2xl font-semibold tracking-tight">จัดการการชำระเงิน</h1>
+            <p className="text-muted-foreground text-sm">
               สร้างแผนเก็บเงิน · อัปโหลดสัญญา · ตรวจสอบหลักฐาน
             </p>
           </header>
@@ -32,5 +30,5 @@ export default async function AdminPaymentsPage({ params }: PageProps) {
         <PaymentDashboard customerId={userId} />
       </div>
     </DashboardLayout>
-  );
+  )
 }

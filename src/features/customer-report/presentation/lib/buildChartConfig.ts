@@ -1,9 +1,9 @@
-import type { ChartConfig } from "@/components/ui/chart";
+import type { ChartConfig } from '@/components/ui/chart'
 
 interface ChartConfigItem {
-  key: string;
-  label: string;
-  color: string;
+  key: string
+  label: string
+  color: string
 }
 
 /**
@@ -13,6 +13,6 @@ interface ChartConfigItem {
  */
 export const buildChartConfig = (items: ChartConfigItem[]): ChartConfig =>
   items.reduce<ChartConfig>((acc, { key, label, color }) => {
-    acc[key] = { label, color };
-    return acc;
-  }, {});
+    acc[key] = { label, color }
+    return acc
+  }, {})

@@ -5,4 +5,4 @@ export {
   type UserCreateInput,
   type UserUpdateInput,
   type UserSelfUpdateInput,
-} from "@/schemas/user";
+} from '@/schemas/user'

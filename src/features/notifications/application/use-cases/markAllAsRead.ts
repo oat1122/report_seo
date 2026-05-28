@@ -1,7 +1,7 @@
-import type { NotificationRepository } from "../ports/NotificationRepository";
+import type { NotificationRepository } from '../ports/NotificationRepository'
 
 export function markAllAsReadUseCase(repo: NotificationRepository) {
   return async (userId: string): Promise<number> => {
-    return repo.markAllRead(userId);
-  };
+    return repo.markAllRead(userId)
+  }
 }

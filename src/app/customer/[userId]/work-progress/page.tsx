@@ -1,25 +1,23 @@
-import { notFound } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { requireCustomer } from "@/lib/auth-utils";
-import { DashboardLayout } from "@/components/Layout/DashboardLayout";
-import { Button } from "@/components/ui/button";
-import { PlanList } from "@/features/work-progress/presentation/components/plan/PlanList";
+import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
+import { requireCustomer } from '@/lib/auth-utils'
+import { DashboardLayout } from '@/components/Layout/DashboardLayout'
+import { Button } from '@/components/ui/button'
+import { PlanList } from '@/features/work-progress/presentation/components/plan/PlanList'
 
 export const metadata = {
-  title: "Work Progress | SEO Report",
-};
-
-interface PageProps {
-  params: Promise<{ userId: string }>;
+  title: 'Work Progress | SEO Report',
 }
 
-export default async function CustomerWorkProgressListPage({
-  params,
-}: PageProps) {
-  const session = await requireCustomer();
-  const { userId } = await params;
-  if (userId !== session.user.id) notFound();
+interface PageProps {
+  params: Promise<{ userId: string }>
+}
+
+export default async function CustomerWorkProgressListPage({ params }: PageProps) {
+  const session = await requireCustomer()
+  const { userId } = await params
+  if (userId !== session.user.id) notFound()
 
   return (
     <DashboardLayout>
@@ -31,19 +29,11 @@ export default async function CustomerWorkProgressListPage({
           </Link>
         </Button>
         <header className="flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            แผนงานของฉัน
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            ดูแผนงาน SEO และความคืบหน้าที่ทีมจัดทำให้
-          </p>
+          <h1 className="text-2xl font-semibold tracking-tight">แผนงานของฉัน</h1>
+          <p className="text-muted-foreground text-sm">ดูแผนงาน SEO และความคืบหน้าที่ทีมจัดทำให้</p>
         </header>
-        <PlanList
-          userId={userId}
-          basePath={`/customer/${userId}/work-progress`}
-          readOnly
-        />
+        <PlanList userId={userId} basePath={`/customer/${userId}/work-progress`} readOnly />
       </div>
     </DashboardLayout>
-  );
+  )
 }

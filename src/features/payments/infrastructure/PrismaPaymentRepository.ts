@@ -1,24 +1,21 @@
-import { prisma } from "@/infrastructure/prisma/client";
-import { Role } from "@/types/auth";
-import type {
-  PaymentProof,
-  PaymentProofWithCustomer,
-} from "../domain/PaymentProof";
-import type { PaymentPlan, PaymentPlanWithCycles } from "../domain/PaymentPlan";
-import type { BillingCycle, BillingCycleWithPlan } from "../domain/BillingCycle";
-import type { ContractFile } from "../domain/ContractFile";
-import type { BillingCycleSeed } from "../domain/policies/billing-cycle-generator";
+import { prisma } from '@/infrastructure/prisma/client'
+import { Role } from '@/types/auth'
+import type { PaymentProof, PaymentProofWithCustomer } from '../domain/PaymentProof'
+import type { PaymentPlan, PaymentPlanWithCycles } from '../domain/PaymentPlan'
+import type { BillingCycle, BillingCycleWithPlan } from '../domain/BillingCycle'
+import type { ContractFile } from '../domain/ContractFile'
+import type { BillingCycleSeed } from '../domain/policies/billing-cycle-generator'
 import type {
   CreatePlanData,
   PaymentListFilter,
   PaymentRepository,
   UpdateCycleData,
   UpdatePlanData,
-} from "../application/ports/PaymentRepository";
+} from '../application/ports/PaymentRepository'
 
 function decimalToNumber(val: unknown): number {
-  if (val == null) return 0;
-  return Number(val);
+  if (val == null) return 0
+  return Number(val)
 }
 
 export class PrismaPaymentRepository implements PaymentRepository {
@@ -33,22 +30,22 @@ export class PrismaPaymentRepository implements PaymentRepository {
       data: {
         uploadUrl: publicUrl,
         customerId: customerInternalId,
-        status: "PENDING",
+        status: 'PENDING',
         ...(billingCycleId ? { billingCycleId } : {}),
       },
-    });
-    return { ...row, billingCycleId: row.billingCycleId ?? null };
+    })
+    return { ...row, billingCycleId: row.billingCycleId ?? null }
   }
 
   async list(filter: PaymentListFilter): Promise<PaymentProofWithCustomer[]> {
-    const where: Record<string, unknown> = {};
-    if (filter.status) where.status = filter.status;
-    if (filter.customerId) where.customerId = filter.customerId;
+    const where: Record<string, unknown> = {}
+    if (filter.status) where.status = filter.status
+    if (filter.customerId) where.customerId = filter.customerId
 
     if (filter.scopedTo.role === Role.CUSTOMER) {
-      where.customer = { is: { userId: filter.scopedTo.userId } };
+      where.customer = { is: { userId: filter.scopedTo.userId } }
     } else if (filter.scopedTo.role === Role.SEO_DEV) {
-      where.customer = { is: { seoDevId: filter.scopedTo.userId } };
+      where.customer = { is: { seoDevId: filter.scopedTo.userId } }
     }
 
     const rows = await prisma.paymentProof.findMany({
@@ -62,8 +59,8 @@ export class PrismaPaymentRepository implements PaymentRepository {
           },
         },
       },
-      orderBy: { uploadDate: "desc" },
-    });
+      orderBy: { uploadDate: 'desc' },
+    })
 
     return rows.map((r) => ({
       ...r,
@@ -71,24 +68,21 @@ export class PrismaPaymentRepository implements PaymentRepository {
       billingCycle: r.billingCycle
         ? { cycleNumber: r.billingCycle.cycleNumber, plan: r.billingCycle.plan }
         : null,
-    }));
+    }))
   }
 
   async findProofById(proofId: string): Promise<PaymentProof | null> {
-    const row = await prisma.paymentProof.findUnique({ where: { id: proofId } });
-    if (!row) return null;
-    return { ...row, billingCycleId: row.billingCycleId ?? null };
+    const row = await prisma.paymentProof.findUnique({ where: { id: proofId } })
+    if (!row) return null
+    return { ...row, billingCycleId: row.billingCycleId ?? null }
   }
 
-  async updateProofStatus(
-    proofId: string,
-    status: "APPROVED" | "REJECTED",
-  ): Promise<PaymentProof> {
+  async updateProofStatus(proofId: string, status: 'APPROVED' | 'REJECTED'): Promise<PaymentProof> {
     const row = await prisma.paymentProof.update({
       where: { id: proofId },
       data: { status },
-    });
-    return { ...row, billingCycleId: row.billingCycleId ?? null };
+    })
+    return { ...row, billingCycleId: row.billingCycleId ?? null }
   }
 
   // --- Payment Plan ---
@@ -112,7 +106,7 @@ export class PrismaPaymentRepository implements PaymentRepository {
           note: data.note,
           documentTemplateId: data.documentTemplateId,
         },
-      });
+      })
 
       if (cycles.length > 0) {
         await tx.billingCycle.createMany({
@@ -122,28 +116,25 @@ export class PrismaPaymentRepository implements PaymentRepository {
             dueDate: seed.dueDate,
             amount: seed.amount,
           })),
-        });
+        })
       }
 
-      return plan;
-    });
+      return plan
+    })
 
-    return this.mapPlan(row);
+    return this.mapPlan(row)
   }
 
-  async listPlansByCustomer(
-    customerId: string,
-    status?: string,
-  ): Promise<PaymentPlan[]> {
-    const where: Record<string, unknown> = { customerId };
-    if (status) where.status = status;
+  async listPlansByCustomer(customerId: string, status?: string): Promise<PaymentPlan[]> {
+    const where: Record<string, unknown> = { customerId }
+    if (status) where.status = status
 
     const rows = await prisma.paymentPlan.findMany({
       where,
-      orderBy: { createdAt: "desc" },
-    });
+      orderBy: { createdAt: 'desc' },
+    })
 
-    return rows.map((r) => this.mapPlan(r));
+    return rows.map((r) => this.mapPlan(r))
   }
 
   async findPlanById(planId: string): Promise<PaymentPlanWithCycles | null> {
@@ -151,17 +142,17 @@ export class PrismaPaymentRepository implements PaymentRepository {
       where: { id: planId },
       include: {
         billingCycles: {
-          orderBy: { cycleNumber: "asc" },
+          orderBy: { cycleNumber: 'asc' },
           include: {
             proofs: {
-              orderBy: { uploadDate: "desc" },
+              orderBy: { uploadDate: 'desc' },
             },
           },
         },
       },
-    });
+    })
 
-    if (!row) return null;
+    if (!row) return null
 
     return {
       ...this.mapPlan(row),
@@ -172,30 +163,30 @@ export class PrismaPaymentRepository implements PaymentRepository {
           billingCycleId: p.billingCycleId ?? null,
         })),
       })),
-    };
+    }
   }
 
   async updatePlan(planId: string, data: UpdatePlanData): Promise<PaymentPlan> {
     const row = await prisma.paymentPlan.update({
       where: { id: planId },
       data,
-    });
-    return this.mapPlan(row);
+    })
+    return this.mapPlan(row)
   }
 
   async cancelPlan(planId: string): Promise<PaymentPlan> {
     const row = await prisma.$transaction(async (tx) => {
       await tx.billingCycle.updateMany({
-        where: { planId, status: { in: ["PENDING", "REVIEWING"] } },
-        data: { status: "CANCELLED" },
-      });
+        where: { planId, status: { in: ['PENDING', 'REVIEWING'] } },
+        data: { status: 'CANCELLED' },
+      })
 
       return tx.paymentPlan.update({
         where: { id: planId },
-        data: { status: "CANCELLED" },
-      });
-    });
-    return this.mapPlan(row);
+        data: { status: 'CANCELLED' },
+      })
+    })
+    return this.mapPlan(row)
   }
 
   // --- Billing Cycle ---
@@ -203,9 +194,9 @@ export class PrismaPaymentRepository implements PaymentRepository {
   async findCycleById(cycleId: string): Promise<BillingCycle | null> {
     const row = await prisma.billingCycle.findUnique({
       where: { id: cycleId },
-    });
-    if (!row) return null;
-    return this.mapCycle(row);
+    })
+    if (!row) return null
+    return this.mapCycle(row)
   }
 
   async listCyclesByPlan(planId: string): Promise<BillingCycleWithPlan[]> {
@@ -213,10 +204,10 @@ export class PrismaPaymentRepository implements PaymentRepository {
       where: { planId },
       include: {
         plan: { select: { id: true, description: true, type: true, documentTemplateId: true } },
-        proofs: { orderBy: { uploadDate: "desc" } },
+        proofs: { orderBy: { uploadDate: 'desc' } },
       },
-      orderBy: { cycleNumber: "asc" },
-    });
+      orderBy: { cycleNumber: 'asc' },
+    })
 
     return rows.map((r) => ({
       ...this.mapCycle(r),
@@ -225,18 +216,18 @@ export class PrismaPaymentRepository implements PaymentRepository {
         ...p,
         billingCycleId: p.billingCycleId ?? null,
       })),
-    }));
+    }))
   }
 
   async listCyclesByCustomer(customerId: string): Promise<BillingCycleWithPlan[]> {
     const rows = await prisma.billingCycle.findMany({
-      where: { plan: { customerId, status: { not: "CANCELLED" } } },
+      where: { plan: { customerId, status: { not: 'CANCELLED' } } },
       include: {
         plan: { select: { id: true, description: true, type: true, documentTemplateId: true } },
-        proofs: { orderBy: { uploadDate: "desc" } },
+        proofs: { orderBy: { uploadDate: 'desc' } },
       },
-      orderBy: { dueDate: "asc" },
-    });
+      orderBy: { dueDate: 'asc' },
+    })
 
     return rows.map((r) => ({
       ...this.mapCycle(r),
@@ -245,57 +236,57 @@ export class PrismaPaymentRepository implements PaymentRepository {
         ...p,
         billingCycleId: p.billingCycleId ?? null,
       })),
-    }));
+    }))
   }
 
   async updateCycle(cycleId: string, data: UpdateCycleData): Promise<BillingCycle> {
     const row = await prisma.billingCycle.update({
       where: { id: cycleId },
       data,
-    });
-    return this.mapCycle(row);
+    })
+    return this.mapCycle(row)
   }
 
   async updatePendingCyclesAmount(planId: string, amount: number): Promise<void> {
     await prisma.billingCycle.updateMany({
-      where: { planId, status: { in: ["PENDING", "REVIEWING", "OVERDUE"] } },
+      where: { planId, status: { in: ['PENDING', 'REVIEWING', 'OVERDUE'] } },
       data: { amount },
-    });
+    })
   }
 
   async countPendingCyclesByPlan(planId: string): Promise<number> {
     return prisma.billingCycle.count({
-      where: { planId, status: { in: ["PENDING", "REVIEWING", "OVERDUE"] } },
-    });
+      where: { planId, status: { in: ['PENDING', 'REVIEWING', 'OVERDUE'] } },
+    })
   }
 
   async completePlan(planId: string): Promise<void> {
     await prisma.paymentPlan.update({
       where: { id: planId },
-      data: { status: "COMPLETED" },
-    });
+      data: { status: 'COMPLETED' },
+    })
   }
 
   async reactivatePlan(planId: string): Promise<void> {
     await prisma.paymentPlan.update({
       where: { id: planId },
-      data: { status: "ACTIVE" },
-    });
+      data: { status: 'ACTIVE' },
+    })
   }
 
   async reactivateCancelledPlan(planId: string): Promise<PaymentPlan> {
     const row = await prisma.$transaction(async (tx) => {
       await tx.billingCycle.updateMany({
-        where: { planId, status: "CANCELLED" },
-        data: { status: "PENDING" },
-      });
+        where: { planId, status: 'CANCELLED' },
+        data: { status: 'PENDING' },
+      })
 
       return tx.paymentPlan.update({
         where: { id: planId },
-        data: { status: "ACTIVE" },
-      });
-    });
-    return this.mapPlan(row);
+        data: { status: 'ACTIVE' },
+      })
+    })
+    return this.mapPlan(row)
   }
 
   // --- Contract File ---
@@ -307,22 +298,22 @@ export class PrismaPaymentRepository implements PaymentRepository {
   ): Promise<ContractFile> {
     return prisma.contractFile.create({
       data: { customerId, fileUrl, fileName },
-    });
+    })
   }
 
   async listContractFiles(customerId: string): Promise<ContractFile[]> {
     return prisma.contractFile.findMany({
       where: { customerId },
-      orderBy: { uploadDate: "desc" },
-    });
+      orderBy: { uploadDate: 'desc' },
+    })
   }
 
   async findContractFileById(id: string): Promise<ContractFile | null> {
-    return prisma.contractFile.findUnique({ where: { id } });
+    return prisma.contractFile.findUnique({ where: { id } })
   }
 
   async deleteContractFile(id: string): Promise<void> {
-    await prisma.contractFile.delete({ where: { id } });
+    await prisma.contractFile.delete({ where: { id } })
   }
 
   // --- Helpers ---
@@ -344,7 +335,7 @@ export class PrismaPaymentRepository implements PaymentRepository {
       documentTemplateId: row.documentTemplateId ?? null,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
-    };
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -360,6 +351,6 @@ export class PrismaPaymentRepository implements PaymentRepository {
       note: row.note,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
-    };
+    }
   }
 }

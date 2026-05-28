@@ -1,10 +1,10 @@
-"use client";
+'use client'
 
-import { Header } from "@/components/Home/subcomponents/Header";
-import { HeroSection } from "@/components/Home/subcomponents/HeroSection";
-import { PackagesSection } from "@/components/Home/subcomponents/PackagesSection";
-import { FAQSection } from "@/components/Home/subcomponents/FAQSection";
-import { Footer } from "@/components/Home/subcomponents/Footer";
+import { Header } from '@/components/Home/subcomponents/Header'
+import { HeroSection } from '@/components/Home/subcomponents/HeroSection'
+import { PackagesSection } from '@/components/Home/subcomponents/PackagesSection'
+import { FAQSection } from '@/components/Home/subcomponents/FAQSection'
+import { Footer } from '@/components/Home/subcomponents/Footer'
 
 export default function HomePage() {
   return (
@@ -17,5 +17,5 @@ export default function HomePage() {
       </main>
       <Footer />
     </div>
-  );
+  )
 }

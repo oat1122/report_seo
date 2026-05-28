@@ -1,19 +1,19 @@
-"use client";
+'use client'
 
-import { SummaryStatistics } from "../SummaryStatistics";
-import { PositionDistribution } from "../PositionDistribution";
-import { TopMovers } from "../TopMovers";
-import { HeroStatusCard } from "../widgets/HeroStatusCard";
-import { CoverageSnapshotCard } from "../widgets/CoverageSnapshotCard";
-import { TrafficForecastCone } from "../widgets/TrafficForecastCone";
-import { TopKeywordsSparklineGrid } from "../widgets/TopKeywordsSparklineGrid";
-import type { CustomerReportData } from "@/hooks/api/useCustomersApi";
+import { SummaryStatistics } from '../SummaryStatistics'
+import { PositionDistribution } from '../PositionDistribution'
+import { TopMovers } from '../TopMovers'
+import { HeroStatusCard } from '../widgets/HeroStatusCard'
+import { CoverageSnapshotCard } from '../widgets/CoverageSnapshotCard'
+import { TrafficForecastCone } from '../widgets/TrafficForecastCone'
+import { TopKeywordsSparklineGrid } from '../widgets/TopKeywordsSparklineGrid'
+import type { CustomerReportData } from '@/hooks/api/useCustomersApi'
 
 interface OverviewTabProps {
-  recommendationsCount: number;
-  topKeywords: CustomerReportData["topKeywords"];
-  otherKeywords: CustomerReportData["otherKeywords"];
-  currentTraffic?: number | null;
+  recommendationsCount: number
+  topKeywords: CustomerReportData['topKeywords']
+  otherKeywords: CustomerReportData['otherKeywords']
+  currentTraffic?: number | null
 }
 
 // Tab 1: Overview — "ดีขึ้นไหม? คุ้มไหม?"
@@ -27,10 +27,7 @@ export const OverviewTab = ({
     <div className="flex flex-col gap-6">
       <HeroStatusCard />
 
-      <CoverageSnapshotCard
-        topKeywords={topKeywords ?? []}
-        otherKeywords={otherKeywords ?? []}
-      />
+      <CoverageSnapshotCard topKeywords={topKeywords ?? []} otherKeywords={otherKeywords ?? []} />
 
       <SummaryStatistics recommendationsCount={recommendationsCount} />
 
@@ -47,5 +44,5 @@ export const OverviewTab = ({
         </div>
       </div>
     </div>
-  );
-};
+  )
+}

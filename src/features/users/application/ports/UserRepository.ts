@@ -1,55 +1,44 @@
-import type { User } from "../../domain/User";
-import type {
-  UserCreateInput,
-  UserUpdateInput,
-} from "../../schemas";
+import type { User } from '../../domain/User'
+import type { UserCreateInput, UserUpdateInput } from '../../schemas'
 
 export interface UserRepository {
-  findAll(options: {
-    includeDeleted: boolean;
-    includeAdminFields: boolean;
-  }): Promise<User[]>;
+  findAll(options: { includeDeleted: boolean; includeAdminFields: boolean }): Promise<User[]>
 
-  findById(
-    id: string,
-    options: { includeAdminFields: boolean },
-  ): Promise<User | null>;
+  findById(id: string, options: { includeAdminFields: boolean }): Promise<User | null>
 
-  findUserIdsByRole(role: string): Promise<string[]>;
+  findUserIdsByRole(role: string): Promise<string[]>
 
-  findSeoDevs(): Promise<User[]>;
+  findSeoDevs(): Promise<User[]>
 
-  findManagedCustomers(seoDevId: string): Promise<User[]>;
+  findManagedCustomers(seoDevId: string): Promise<User[]>
 
   findCustomerByDomain(
     domain: string,
     excludeUserId?: string,
-  ): Promise<{ id: string; userId: string } | null>;
+  ): Promise<{ id: string; userId: string } | null>
 
   createWithCustomerProfile(
     data: UserCreateInput & { hashedPassword: string },
-  ): Promise<User | null>;
+  ): Promise<User | null>
 
-  createPlain(
-    data: UserCreateInput & { hashedPassword: string },
-  ): Promise<User>;
+  createPlain(data: UserCreateInput & { hashedPassword: string }): Promise<User>
 
   applyUpdate(
     id: string,
     data: UserUpdateInput,
     options: { existingCustomerProfile: boolean },
-  ): Promise<User>;
+  ): Promise<User>
 
-  softDelete(id: string): Promise<void>;
+  softDelete(id: string): Promise<void>
 
   /** ใช้ prismaBase bypass soft-delete filter */
-  restoreSoftDeleted(id: string): Promise<{ deletedAt: Date | null }>;
+  restoreSoftDeleted(id: string): Promise<{ deletedAt: Date | null }>
 
   findIdAndDeletedAtIncludingDeleted(
     id: string,
-  ): Promise<{ id: string; deletedAt: Date | null } | null>;
+  ): Promise<{ id: string; deletedAt: Date | null } | null>
 
-  findPasswordById(id: string): Promise<{ password: string | null } | null>;
+  findPasswordById(id: string): Promise<{ password: string | null } | null>
 
-  updatePassword(id: string, hashedPassword: string): Promise<void>;
+  updatePassword(id: string, hashedPassword: string): Promise<void>
 }

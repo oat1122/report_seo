@@ -1,38 +1,38 @@
-"use client";
+'use client'
 
-import { FileText, Eye } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useListContractFiles } from "../../hooks/useContractFiles";
+import { FileText, Eye } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useListContractFiles } from '../../hooks/useContractFiles'
 
 interface MyContractFilesProps {
-  customerId: string;
+  customerId: string
 }
 
 function formatDate(date: Date | string): string {
-  return new Date(date).toLocaleDateString("th-TH", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  return new Date(date).toLocaleDateString('th-TH', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
 }
 
 export function MyContractFiles({ customerId }: MyContractFilesProps) {
-  const { data: files, isLoading } = useListContractFiles(customerId);
+  const { data: files, isLoading } = useListContractFiles(customerId)
 
   if (isLoading) {
-    return <Skeleton className="h-32 w-full" />;
+    return <Skeleton className="h-32 w-full" />
   }
 
   if (!files?.length) {
     return (
       <Card>
-        <CardContent className="py-8 text-center text-muted-foreground">
+        <CardContent className="text-muted-foreground py-8 text-center">
           ยังไม่มีไฟล์สัญญา
         </CardContent>
       </Card>
-    );
+    )
   }
 
   return (
@@ -41,10 +41,10 @@ export function MyContractFiles({ customerId }: MyContractFilesProps) {
         <Card key={file.id}>
           <CardContent className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-3">
-              <FileText className="size-5 text-muted-foreground" />
+              <FileText className="text-muted-foreground size-5" />
               <div>
                 <p className="text-sm font-medium">{file.fileName}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-muted-foreground text-xs">
                   อัปโหลดเมื่อ {formatDate(file.uploadDate)}
                 </p>
               </div>
@@ -59,5 +59,5 @@ export function MyContractFiles({ customerId }: MyContractFilesProps) {
         </Card>
       ))}
     </div>
-  );
+  )
 }

@@ -1,67 +1,55 @@
-"use client";
+'use client'
 
-import { useMemo } from "react";
-import { Cell, Label, Pie, PieChart } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-import { buildChartConfig } from "../lib/buildChartConfig";
-import { KEYWORD_COLORS } from "../lib/chartConfig";
-import { computeTrafficContribution } from "../lib/historyCalculations";
+import { useMemo } from 'react'
+import { Cell, Label, Pie, PieChart } from 'recharts'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import { buildChartConfig } from '../lib/buildChartConfig'
+import { KEYWORD_COLORS } from '../lib/chartConfig'
+import { computeTrafficContribution } from '../lib/historyCalculations'
 
 interface TopKeywordsByTrafficPieProps {
-  keywords: Array<{ keyword: string; traffic: number }>;
-  topN?: number;
+  keywords: Array<{ keyword: string; traffic: number }>
+  topN?: number
 }
 
-const OTHER_COLOR = "var(--muted-foreground)";
+const OTHER_COLOR = 'var(--muted-foreground)'
 
 const formatTraffic = (val: number): string => {
-  if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(1)}M`;
-  if (val >= 1_000) return `${(val / 1_000).toFixed(1)}K`;
-  return val.toString();
-};
+  if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(1)}M`
+  if (val >= 1_000) return `${(val / 1_000).toFixed(1)}K`
+  return val.toString()
+}
 
-export const TopKeywordsByTrafficPie = ({
-  keywords,
-  topN = 5,
-}: TopKeywordsByTrafficPieProps) => {
+export const TopKeywordsByTrafficPie = ({ keywords, topN = 5 }: TopKeywordsByTrafficPieProps) => {
   const data = useMemo(() => {
-    const items = computeTrafficContribution(keywords, topN);
+    const items = computeTrafficContribution(keywords, topN)
     return items.map((item, idx) => ({
       keyword: item.keyword,
       traffic: item.traffic,
       pct: item.pct,
       color: item.isOther ? OTHER_COLOR : KEYWORD_COLORS[idx % KEYWORD_COLORS.length],
-    }));
-  }, [keywords, topN]);
+    }))
+  }, [keywords, topN])
 
-  const total = data.reduce((sum, d) => sum + d.traffic, 0);
+  const total = data.reduce((sum, d) => sum + d.traffic, 0)
 
   const chartConfig = useMemo(
-    () =>
-      buildChartConfig(
-        data.map((d) => ({ key: d.keyword, label: d.keyword, color: d.color })),
-      ),
+    () => buildChartConfig(data.map((d) => ({ key: d.keyword, label: d.keyword, color: d.color }))),
     [data],
-  );
+  )
 
   return (
     <Card className="h-full">
       <CardHeader>
         <CardTitle className="text-base">Top {topN} by Traffic</CardTitle>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-muted-foreground text-xs">
           สัดส่วน traffic ที่มาจาก top keywords + อื่น ๆ
         </p>
       </CardHeader>
       <CardContent>
         {data.length === 0 ? (
-          <p className="py-8 text-center text-sm text-muted-foreground">
-            ยังไม่มี traffic
-          </p>
+          <p className="text-muted-foreground py-8 text-center text-sm">ยังไม่มี traffic</p>
         ) : (
           <ChartContainer
             config={chartConfig}
@@ -73,11 +61,8 @@ export const TopKeywordsByTrafficPie = ({
                   <ChartTooltipContent
                     hideLabel
                     formatter={(value, _n, item) => {
-                      const p = item.payload as { keyword: string; pct: number };
-                      return [
-                        `${formatTraffic(Number(value))} (${p.pct.toFixed(1)}%)`,
-                        p.keyword,
-                      ];
+                      const p = item.payload as { keyword: string; pct: number }
+                      return [`${formatTraffic(Number(value))} (${p.pct.toFixed(1)}%)`, p.keyword]
                     }}
                   />
                 }
@@ -96,13 +81,8 @@ export const TopKeywordsByTrafficPie = ({
                 <Label
                   position="center"
                   content={({ viewBox }) => {
-                    if (
-                      !viewBox ||
-                      !("cx" in viewBox) ||
-                      viewBox.cx == null ||
-                      viewBox.cy == null
-                    )
-                      return null;
+                    if (!viewBox || !('cx' in viewBox) || viewBox.cx == null || viewBox.cy == null)
+                      return null
                     return (
                       <text
                         x={viewBox.cx}
@@ -110,11 +90,7 @@ export const TopKeywordsByTrafficPie = ({
                         textAnchor="middle"
                         dominantBaseline="middle"
                       >
-                        <tspan
-                          x={viewBox.cx}
-                          dy="-0.4em"
-                          className="fill-muted-foreground text-xs"
-                        >
+                        <tspan x={viewBox.cx} dy="-0.4em" className="fill-muted-foreground text-xs">
                           Total
                         </tspan>
                         <tspan
@@ -125,7 +101,7 @@ export const TopKeywordsByTrafficPie = ({
                           {formatTraffic(total)}
                         </tspan>
                       </text>
-                    );
+                    )
                   }}
                 />
               </Pie>
@@ -134,5 +110,5 @@ export const TopKeywordsByTrafficPie = ({
         )}
       </CardContent>
     </Card>
-  );
-};
+  )
+}

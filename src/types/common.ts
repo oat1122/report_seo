@@ -3,7 +3,7 @@
  * Represents the structure of a standardized API error response.
  */
 export interface ApiError {
-  error: string;
+  error: string
 }
 
 /**
@@ -12,6 +12,6 @@ export interface ApiError {
  */
 export interface AxiosErrorResponse {
   response?: {
-    data?: ApiError;
-  };
+    data?: ApiError
+  }
 }

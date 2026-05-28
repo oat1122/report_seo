@@ -1,10 +1,10 @@
-import { withApiHandler, noContent } from "@/infrastructure/http";
+import { withApiHandler, noContent } from '@/infrastructure/http'
 import {
   reorderTemplateItems,
   reorderTemplateItemsSchema,
   templateIdParamSchema,
-} from "@/features/work-progress";
-import { Role } from "@/types/auth";
+} from '@/features/work-progress'
+import { Role } from '@/types/auth'
 
 export const POST = withApiHandler(
   {
@@ -13,7 +13,7 @@ export const POST = withApiHandler(
     body: reorderTemplateItemsSchema,
   },
   async ({ params, body }) => {
-    await reorderTemplateItems(params.id, body);
-    return noContent();
+    await reorderTemplateItems(params.id, body)
+    return noContent()
   },
-);
+)

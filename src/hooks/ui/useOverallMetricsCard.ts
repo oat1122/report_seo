@@ -1,8 +1,8 @@
 // src/components/Customer/Report/hooks/useOverallMetricsCard.ts
-"use client";
+'use client'
 
-import { useState } from "react";
-import { useGetCombinedHistory } from "@/hooks/api/useCustomersApi";
+import { useState } from 'react'
+import { useGetCombinedHistory } from '@/hooks/api/useCustomersApi'
 
 /**
  * Custom Hook for OverallMetricsCard State and History Modal Logic (using React Query)
@@ -10,21 +10,21 @@ import { useGetCombinedHistory } from "@/hooks/api/useCustomersApi";
  * @returns State and functions for History Modal
  */
 export const useOverallMetricsCard = (customerId: string) => {
-  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
   // ใช้ useQuery เพื่อดึงข้อมูล แต่ disable ไว้ก่อน
   const {
     data: historyData,
     isFetching: isHistoryLoading, // ใช้ isFetching เพราะเราจะ trigger ทีหลัง
     error: historyError,
-  } = useGetCombinedHistory(isHistoryModalOpen ? customerId : null); // Enable query เมื่อ Modal เปิด
+  } = useGetCombinedHistory(isHistoryModalOpen ? customerId : null) // Enable query เมื่อ Modal เปิด
 
   const handleOpenHistoryModal = () => {
-    setIsHistoryModalOpen(true);
-  };
+    setIsHistoryModalOpen(true)
+  }
 
   const handleCloseHistoryModal = () => {
-    setIsHistoryModalOpen(false);
-  };
+    setIsHistoryModalOpen(false)
+  }
 
   return {
     isHistoryModalOpen,
@@ -34,5 +34,5 @@ export const useOverallMetricsCard = (customerId: string) => {
     historyError,
     handleOpenHistoryModal,
     handleCloseHistoryModal,
-  };
-};
+  }
+}

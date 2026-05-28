@@ -4,19 +4,19 @@ import {
   enforceReadAccess,
   resolveCustomerAccess,
   type CustomerAccessQuery,
-} from "@/features/customers";
+} from '@/features/customers'
 
-export type AccessMode = "read" | "manage";
+export type AccessMode = 'read' | 'manage'
 
 export async function customerAccessGuard(
   query: CustomerAccessQuery,
   mode: AccessMode,
 ): Promise<CustomerAccessContext> {
-  const ctx = await resolveCustomerAccess(query);
-  if (mode === "manage") {
-    enforceManageAccess(ctx);
+  const ctx = await resolveCustomerAccess(query)
+  if (mode === 'manage') {
+    enforceManageAccess(ctx)
   } else {
-    enforceReadAccess(ctx);
+    enforceReadAccess(ctx)
   }
-  return ctx;
+  return ctx
 }

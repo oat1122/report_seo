@@ -1,62 +1,59 @@
-"use client";
+'use client'
 
-import { useMemo } from "react";
-import { Cell, Label, Pie, PieChart } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useMemo } from 'react'
+import { Cell, Label, Pie, PieChart } from 'recharts'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
-} from "@/components/ui/chart";
-import { useWorkProgressPlan } from "../../hooks/useWorkProgressPlan";
+} from '@/components/ui/chart'
+import { useWorkProgressPlan } from '../../hooks/useWorkProgressPlan'
 import {
   getEffectiveItemPercent,
   isItemCompleted,
-} from "@/features/work-progress/domain/policies/progress-calculator";
+} from '@/features/work-progress/domain/policies/progress-calculator'
 
 interface StatusDonutChartProps {
-  userId: string;
-  planId: string;
+  userId: string
+  planId: string
 }
 
 const STATUS_CONFIG: ChartConfig = {
-  completed: { label: "เสร็จแล้ว", color: "var(--chart-1)" },
-  inProgress: { label: "กำลังทำ", color: "var(--chart-2)" },
-  notStarted: { label: "ยังไม่เริ่ม", color: "var(--muted)" },
-};
+  completed: { label: 'เสร็จแล้ว', color: 'var(--chart-1)' },
+  inProgress: { label: 'กำลังทำ', color: 'var(--chart-2)' },
+  notStarted: { label: 'ยังไม่เริ่ม', color: 'var(--muted)' },
+}
 
-export default function StatusDonutChart({
-  userId,
-  planId,
-}: StatusDonutChartProps) {
-  const { data, isLoading } = useWorkProgressPlan(userId, planId);
+export default function StatusDonutChart({ userId, planId }: StatusDonutChartProps) {
+  const { data, isLoading } = useWorkProgressPlan(userId, planId)
 
   const { rows, total, completedPercent } = useMemo(() => {
-    if (!data) return { rows: [], total: 0, completedPercent: 0 };
-    let completed = 0;
-    let inProgress = 0;
-    let notStarted = 0;
+    if (!data) return { rows: [], total: 0, completedPercent: 0 }
+    let completed = 0
+    let inProgress = 0
+    let notStarted = 0
     for (const item of data.items) {
-      if (isItemCompleted(item)) completed += 1;
-      else if (getEffectiveItemPercent(item) > 0) inProgress += 1;
-      else notStarted += 1;
+      if (isItemCompleted(item)) completed += 1
+      else if (getEffectiveItemPercent(item) > 0) inProgress += 1
+      else notStarted += 1
     }
-    const t = completed + inProgress + notStarted;
+    const t = completed + inProgress + notStarted
     return {
       rows: [
-        { key: "completed", name: "เสร็จแล้ว", count: completed },
-        { key: "inProgress", name: "กำลังทำ", count: inProgress },
-        { key: "notStarted", name: "ยังไม่เริ่ม", count: notStarted },
+        { key: 'completed', name: 'เสร็จแล้ว', count: completed },
+        { key: 'inProgress', name: 'กำลังทำ', count: inProgress },
+        { key: 'notStarted', name: 'ยังไม่เริ่ม', count: notStarted },
       ],
       total: t,
       completedPercent: t === 0 ? 0 : Math.round((completed / t) * 100),
-    };
-  }, [data]);
+    }
+  }, [data])
 
-  if (isLoading) return <Skeleton className="h-64 w-full" />;
-  if (!data || total === 0) return null;
+  if (isLoading) return <Skeleton className="h-64 w-full" />
+  if (!data || total === 0) return null
 
   return (
     <Card>
@@ -76,24 +73,15 @@ export default function StatusDonutChart({
               strokeWidth={2}
             >
               {rows.map((r) => (
-                <Cell
-                  key={r.key}
-                  fill={`var(--color-${r.key})`}
-                />
+                <Cell key={r.key} fill={`var(--color-${r.key})`} />
               ))}
               <Label
                 position="center"
                 content={({ viewBox }) => {
-                  if (!viewBox || !("cx" in viewBox) || !("cy" in viewBox))
-                    return null;
-                  const { cx, cy } = viewBox as { cx: number; cy: number };
+                  if (!viewBox || !('cx' in viewBox) || !('cy' in viewBox)) return null
+                  const { cx, cy } = viewBox as { cx: number; cy: number }
                   return (
-                    <text
-                      x={cx}
-                      y={cy}
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                    >
+                    <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle">
                       <tspan
                         x={cx}
                         y={cy - 6}
@@ -101,15 +89,11 @@ export default function StatusDonutChart({
                       >
                         {completedPercent}%
                       </tspan>
-                      <tspan
-                        x={cx}
-                        y={cy + 14}
-                        className="fill-muted-foreground text-xs"
-                      >
+                      <tspan x={cx} y={cy + 14} className="fill-muted-foreground text-xs">
                         เสร็จแล้ว
                       </tspan>
                     </text>
-                  );
+                  )
                 }}
               />
             </Pie>
@@ -117,5 +101,5 @@ export default function StatusDonutChart({
         </ChartContainer>
       </CardContent>
     </Card>
-  );
+  )
 }

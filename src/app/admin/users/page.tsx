@@ -1,10 +1,10 @@
-﻿"use client";
+﻿'use client'
 
-import React from "react";
-import UserManagement from "@/features/users/presentation/components/UserManagement";
+import React from 'react'
+import UserManagement from '@/features/users/presentation/components/UserManagement'
 
 const UserManagementPage: React.FC = () => {
-  return <UserManagement />;
-};
+  return <UserManagement />
+}
 
-export default UserManagementPage;
+export default UserManagementPage

@@ -1,15 +1,11 @@
 // src/lib/toastify.tsx
-import { toast } from "react-toastify";
-import {
-  PendingToast,
-  SuccessToast,
-  ErrorToast,
-} from "@/components/shared/toast/ToastComponents";
+import { toast } from 'react-toastify'
+import { PendingToast, SuccessToast, ErrorToast } from '@/components/shared/toast/ToastComponents'
 
 interface PromiseToastMessages {
-  pending: string;
-  success: string;
-  error: string;
+  pending: string
+  success: string
+  error: string
 }
 
 /**
@@ -33,10 +29,10 @@ export const showPromiseToast = (
     },
     error: {
       render: ({ data }: { data?: unknown }) => {
-        const errorMessage = typeof data === "string" ? data : messages.error;
-        return <ErrorToast message={errorMessage} />;
+        const errorMessage = typeof data === 'string' ? data : messages.error
+        return <ErrorToast message={errorMessage} />
       },
       icon: false,
     },
-  });
-};
+  })
+}

@@ -1,53 +1,41 @@
-"use client";
+'use client'
 
-import { useMemo } from "react";
-import {
-  Area,
-  CartesianGrid,
-  ComposedChart,
-  Line,
-  ReferenceLine,
-  XAxis,
-  YAxis,
-} from "recharts";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-import { ChartEmptyState } from "../components/ChartEmptyState";
-import { buildChartConfig } from "../lib/buildChartConfig";
-import { computeTrafficForecast } from "../lib/historyCalculations";
-import { useHistoryContext } from "../contexts/HistoryContext";
+import { useMemo } from 'react'
+import { Area, CartesianGrid, ComposedChart, Line, ReferenceLine, XAxis, YAxis } from 'recharts'
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import { ChartEmptyState } from '../components/ChartEmptyState'
+import { buildChartConfig } from '../lib/buildChartConfig'
+import { computeTrafficForecast } from '../lib/historyCalculations'
+import { useHistoryContext } from '../contexts/HistoryContext'
 
 interface TrafficForecastConeProps {
-  currentTraffic?: number | null;
-  daysAhead?: number;
+  currentTraffic?: number | null
+  daysAhead?: number
 }
 
 const chartConfig = buildChartConfig([
-  { key: "actual", label: "Actual", color: "var(--info)" },
-  { key: "predicted", label: "Forecast", color: "var(--success)" },
-  { key: "band", label: "Confidence", color: "var(--success)" },
-]);
+  { key: 'actual', label: 'Actual', color: 'var(--info)' },
+  { key: 'predicted', label: 'Forecast', color: 'var(--success)' },
+  { key: 'band', label: 'Confidence', color: 'var(--success)' },
+])
 
 const fmtTraffic = (v: number): string => {
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
-  if (v >= 1_000) return `${(v / 1_000).toFixed(1)}K`;
-  return v.toFixed(0);
-};
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`
+  if (v >= 1_000) return `${(v / 1_000).toFixed(1)}K`
+  return v.toFixed(0)
+}
 
 export const TrafficForecastCone = ({
   currentTraffic,
   daysAhead = 30,
 }: TrafficForecastConeProps) => {
-  const { metricsHistory } = useHistoryContext();
+  const { metricsHistory } = useHistoryContext()
 
   const forecast = useMemo(
     () => computeTrafficForecast(metricsHistory, currentTraffic, daysAhead),
     [metricsHistory, currentTraffic, daysAhead],
-  );
+  )
 
   // Recharts wants a single dataset with all fields per row; add `bandLow/bandHeight` for stacked Area trick.
   const data = useMemo(
@@ -63,7 +51,7 @@ export const TrafficForecastCone = ({
         bandHeight: p.lower != null && p.upper != null ? p.upper - p.lower : 0,
       })),
     [forecast.points],
-  );
+  )
 
   const TrendIcon =
     forecast.changePct == null
@@ -72,59 +60,47 @@ export const TrafficForecastCone = ({
         ? TrendingUp
         : forecast.changePct < 0
           ? TrendingDown
-          : Minus;
+          : Minus
   const trendClass =
     forecast.changePct == null
-      ? "text-muted-foreground"
+      ? 'text-muted-foreground'
       : forecast.changePct > 0
-        ? "text-success"
+        ? 'text-success'
         : forecast.changePct < 0
-          ? "text-destructive"
-          : "text-muted-foreground";
+          ? 'text-destructive'
+          : 'text-muted-foreground'
 
   return (
-    <div className="rounded-2xl border border-border p-4 md:p-6">
+    <div className="border-border rounded-2xl border p-4 md:p-6">
       <div className="mb-4 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
         <div>
           <h3 className="text-xl font-bold">Traffic Forecast</h3>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="text-muted-foreground mt-1 text-xs">
             พยากรณ์ traffic ของ {daysAhead} วันข้างหน้า · ช่วงความเชื่อมั่น ~95%
           </p>
         </div>
         {forecast.hasData && forecast.forecastEnd != null && (
-          <div className="flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2">
+          <div className="border-border bg-card flex items-center gap-3 rounded-lg border px-3 py-2">
             <div>
-              <p className="text-xs text-muted-foreground">คาดการณ์ +{daysAhead}d</p>
-              <p className="text-lg font-bold tabular-nums">
-                {fmtTraffic(forecast.forecastEnd)}
-              </p>
+              <p className="text-muted-foreground text-xs">คาดการณ์ +{daysAhead}d</p>
+              <p className="text-lg font-bold tabular-nums">{fmtTraffic(forecast.forecastEnd)}</p>
             </div>
             <div className={`flex items-center gap-1 text-sm font-semibold ${trendClass}`}>
               <TrendIcon className="size-4" />
               {forecast.changePct != null
-                ? `${forecast.changePct > 0 ? "+" : ""}${forecast.changePct.toFixed(1)}%`
-                : "—"}
+                ? `${forecast.changePct > 0 ? '+' : ''}${forecast.changePct.toFixed(1)}%`
+                : '—'}
             </div>
           </div>
         )}
       </div>
 
       {!forecast.hasData ? (
-        <ChartEmptyState
-          message="ต้องมีประวัติ traffic อย่างน้อย 2 รอบ"
-          height="280px"
-        />
+        <ChartEmptyState message="ต้องมีประวัติ traffic อย่างน้อย 2 รอบ" height="280px" />
       ) : (
         <ChartContainer config={chartConfig} className="h-[280px] w-full">
-          <ComposedChart
-            data={data}
-            margin={{ top: 8, right: 16, left: 8, bottom: 8 }}
-          >
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke="var(--border)"
-              vertical={false}
-            />
+          <ComposedChart data={data} margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
             <XAxis
               dataKey="label"
               stroke="var(--muted-foreground)"
@@ -144,26 +120,22 @@ export const TrafficForecastCone = ({
               strokeDasharray="3 3"
               strokeOpacity={0.5}
               label={{
-                value: "วันนี้",
-                position: "top",
-                fill: "var(--muted-foreground)",
+                value: 'วันนี้',
+                position: 'top',
+                fill: 'var(--muted-foreground)',
                 fontSize: 10,
               }}
             />
             <ChartTooltip
-              cursor={{ strokeDasharray: "3 3" }}
+              cursor={{ strokeDasharray: '3 3' }}
               content={
                 <ChartTooltipContent
                   formatter={(value, name) => {
-                    if (value == null) return ["", ""];
+                    if (value == null) return ['', '']
                     const label =
-                      name === "actual"
-                        ? "Actual"
-                        : name === "predicted"
-                          ? "Forecast"
-                          : "";
-                    if (!label) return [];
-                    return [fmtTraffic(Number(value)), label];
+                      name === 'actual' ? 'Actual' : name === 'predicted' ? 'Forecast' : ''
+                    if (!label) return []
+                    return [fmtTraffic(Number(value)), label]
                   }}
                 />
               }
@@ -210,24 +182,25 @@ export const TrafficForecastCone = ({
       )}
 
       {forecast.hasData && (
-        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+        <div className="text-muted-foreground mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
           <span className="flex items-center gap-1.5">
-            <span className="h-0.5 w-4 bg-info" />
+            <span className="bg-info h-0.5 w-4" />
             Actual
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="h-0.5 w-4 border-t-2 border-dashed border-success" />
+            <span className="border-success h-0.5 w-4 border-t-2 border-dashed" />
             Forecast
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="size-2 rounded bg-success/15" />
+            <span className="bg-success/15 size-2 rounded" />
             ช่วงความเชื่อมั่น
           </span>
           <span className="ml-auto">
-            R²: <span className="font-semibold text-foreground">{forecast.rSquared.toFixed(2)}</span>
+            R²:{' '}
+            <span className="text-foreground font-semibold">{forecast.rSquared.toFixed(2)}</span>
           </span>
         </div>
       )}
     </div>
-  );
-};
+  )
+}

@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import { useMemo } from "react";
+import { useMemo } from 'react'
 import {
   Area,
   CartesianGrid,
@@ -10,80 +10,76 @@ import {
   ReferenceLine,
   XAxis,
   YAxis,
-} from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-import { AnomalyDot } from "../components/AnomalyDot";
-import { ChartEmptyState } from "../components/ChartEmptyState";
-import { buildChartConfig } from "../lib/buildChartConfig";
+} from 'recharts'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import { AnomalyDot } from '../components/AnomalyDot'
+import { ChartEmptyState } from '../components/ChartEmptyState'
+import { buildChartConfig } from '../lib/buildChartConfig'
 import {
   computeAnomalies,
   deduplicateByDay,
   downsampleWide,
   filterHistoryByPeriod,
   hasEnoughDataForChart,
-} from "../lib/historyCalculations";
-import { useHistoryContext } from "../contexts/HistoryContext";
-import { useReportFilters } from "../contexts/ReportFiltersContext";
+} from '../lib/historyCalculations'
+import { useHistoryContext } from '../contexts/HistoryContext'
+import { useReportFilters } from '../contexts/ReportFiltersContext'
 
-const DANGER_THRESHOLD = 2; // spam score > 2 = risky
+const DANGER_THRESHOLD = 2 // spam score > 2 = risky
 
 const chartConfig = buildChartConfig([
-  { key: "spamScore", label: "Spam Score", color: "var(--destructive)" },
-]);
+  { key: 'spamScore', label: 'Spam Score', color: 'var(--destructive)' },
+])
 
 const fmtDateTick = (ms: number) =>
-  new Date(ms).toLocaleDateString("th-TH", {
-    day: "2-digit",
-    month: "short",
-  });
+  new Date(ms).toLocaleDateString('th-TH', {
+    day: '2-digit',
+    month: 'short',
+  })
 
 const fmtDateLabel = (ms: number) =>
-  new Date(ms).toLocaleDateString("th-TH", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  new Date(ms).toLocaleDateString('th-TH', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
 
 export const SpamScoreTimeline = () => {
-  const { metricsHistory } = useHistoryContext();
-  const { period } = useReportFilters();
+  const { metricsHistory } = useHistoryContext()
+  const { period } = useReportFilters()
 
   const { chartData, maxValue, hasData } = useMemo(() => {
-    let filtered = deduplicateByDay(filterHistoryByPeriod(metricsHistory, period));
+    let filtered = deduplicateByDay(filterHistoryByPeriod(metricsHistory, period))
     if (filtered.length < 3 && metricsHistory.length >= 3) {
       const all = [...metricsHistory].sort(
         (a, b) => new Date(a.dateRecorded).getTime() - new Date(b.dateRecorded).getTime(),
-      );
-      filtered = deduplicateByDay(all);
+      )
+      filtered = deduplicateByDay(all)
     }
     if (!hasEnoughDataForChart(filtered.length)) {
-      return { chartData: [], maxValue: DANGER_THRESHOLD + 1, hasData: false };
+      return { chartData: [], maxValue: DANGER_THRESHOLD + 1, hasData: false }
     }
-    const values = filtered.map((r) => r.spamScore);
-    const anomalies = computeAnomalies(values);
+    const values = filtered.map((r) => r.spamScore)
+    const anomalies = computeAnomalies(values)
     const rows = filtered.map((r, idx) => ({
       dateMs: new Date(r.dateRecorded).getTime(),
       spamScore: r.spamScore,
       spamScore__anomaly: anomalies[idx],
-    }));
-    const max = Math.max(DANGER_THRESHOLD + 1, ...values);
+    }))
+    const max = Math.max(DANGER_THRESHOLD + 1, ...values)
     return {
       chartData: downsampleWide(rows, 60),
       maxValue: max,
       hasData: true,
-    };
-  }, [metricsHistory, period]);
+    }
+  }, [metricsHistory, period])
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Spam Score Timeline</CardTitle>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-muted-foreground text-xs">
           แถบสีแดง = พื้นที่อันตราย (Spam &gt; {DANGER_THRESHOLD})
         </p>
       </CardHeader>
@@ -92,19 +88,12 @@ export const SpamScoreTimeline = () => {
           <ChartEmptyState height="240px" />
         ) : (
           <ChartContainer config={chartConfig} className="h-[240px] w-full">
-            <ComposedChart
-              data={chartData}
-              margin={{ top: 8, right: 16, left: 8, bottom: 8 }}
-            >
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="var(--border)"
-                vertical={false}
-              />
+            <ComposedChart data={chartData} margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
               <XAxis
                 dataKey="dateMs"
                 type="number"
-                domain={["dataMin", "dataMax"]}
+                domain={['dataMin', 'dataMax']}
                 scale="time"
                 tickFormatter={fmtDateTick}
                 stroke="var(--muted-foreground)"
@@ -129,23 +118,23 @@ export const SpamScoreTimeline = () => {
                 strokeDasharray="6 4"
                 label={{
                   value: `Danger > ${DANGER_THRESHOLD}`,
-                  position: "right",
-                  fill: "var(--warning)",
+                  position: 'right',
+                  fill: 'var(--warning)',
                   fontSize: 10,
                 }}
               />
               <ChartTooltip
                 cursor={{
-                  stroke: "var(--muted-foreground)",
-                  strokeDasharray: "3 3",
+                  stroke: 'var(--muted-foreground)',
+                  strokeDasharray: '3 3',
                 }}
                 content={
                   <ChartTooltipContent
                     labelFormatter={(_l, p) => {
-                      const ms = p?.[0]?.payload?.dateMs;
-                      return typeof ms === "number" ? fmtDateLabel(ms) : "";
+                      const ms = p?.[0]?.payload?.dateMs
+                      return typeof ms === 'number' ? fmtDateLabel(ms) : ''
                     }}
-                    formatter={(v) => [Number(v).toFixed(2), "Spam Score"]}
+                    formatter={(v) => [Number(v).toFixed(2), 'Spam Score']}
                   />
                 }
               />
@@ -172,5 +161,5 @@ export const SpamScoreTimeline = () => {
         )}
       </CardContent>
     </Card>
-  );
-};
+  )
+}

@@ -1,27 +1,27 @@
-import { Prisma } from "@prisma/client";
-import { prisma } from "@/infrastructure/prisma/client";
+import { Prisma } from '@prisma/client'
+import { prisma } from '@/infrastructure/prisma/client'
 import type {
   WorkProgressActivity,
   WorkProgressActivityAction,
   WorkProgressActivityDiff,
   WorkProgressActivityEntity,
-} from "../domain/WorkProgressActivity";
+} from '../domain/WorkProgressActivity'
 import type {
   ActivityListQuery,
   ActivityListResult,
   ActivityLogInput,
   WorkProgressActivityRepository,
-} from "../application/ports/WorkProgressActivityRepository";
+} from '../application/ports/WorkProgressActivityRepository'
 
 function toDomain(row: {
-  id: string;
-  planId: string;
-  actorId: string | null;
-  action: string;
-  entity: string;
-  entityId: string | null;
-  diff: Prisma.JsonValue | null;
-  createdAt: Date;
+  id: string
+  planId: string
+  actorId: string | null
+  action: string
+  entity: string
+  entityId: string | null
+  diff: Prisma.JsonValue | null
+  createdAt: Date
 }): WorkProgressActivity {
   return {
     id: row.id,
@@ -32,12 +32,10 @@ function toDomain(row: {
     entityId: row.entityId,
     diff: (row.diff as WorkProgressActivityDiff | null) ?? null,
     createdAt: row.createdAt,
-  };
+  }
 }
 
-export class PrismaWorkProgressActivityRepository
-  implements WorkProgressActivityRepository
-{
+export class PrismaWorkProgressActivityRepository implements WorkProgressActivityRepository {
   async log(input: ActivityLogInput): Promise<void> {
     await prisma.workProgressActivity.create({
       data: {
@@ -46,12 +44,9 @@ export class PrismaWorkProgressActivityRepository
         action: input.action,
         entity: input.entity,
         entityId: input.entityId ?? null,
-        diff:
-          input.diff == null
-            ? Prisma.JsonNull
-            : (input.diff as Prisma.InputJsonValue),
+        diff: input.diff == null ? Prisma.JsonNull : (input.diff as Prisma.InputJsonValue),
       },
-    });
+    })
   }
 
   async list(query: ActivityListQuery): Promise<ActivityListResult> {
@@ -61,32 +56,29 @@ export class PrismaWorkProgressActivityRepository
         ...(query.entity ? { entity: query.entity } : {}),
         ...(query.action ? { action: query.action } : {}),
       },
-      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: query.limit + 1,
       cursor: query.cursor ? { id: query.cursor } : undefined,
       skip: query.cursor ? 1 : 0,
-    });
+    })
 
-    let nextCursor: string | null = null;
-    let items = rows;
+    let nextCursor: string | null = null
+    let items = rows
     if (rows.length > query.limit) {
-      const trimmed = rows.slice(0, query.limit);
-      nextCursor = trimmed[trimmed.length - 1]?.id ?? null;
-      items = trimmed;
+      const trimmed = rows.slice(0, query.limit)
+      nextCursor = trimmed[trimmed.length - 1]?.id ?? null
+      items = trimmed
     }
 
-    return { items: items.map(toDomain), nextCursor };
+    return { items: items.map(toDomain), nextCursor }
   }
 
-  async listRecentForCustomer(
-    customerId: string,
-    limit: number,
-  ): Promise<WorkProgressActivity[]> {
+  async listRecentForCustomer(customerId: string, limit: number): Promise<WorkProgressActivity[]> {
     const rows = await prisma.workProgressActivity.findMany({
       where: { plan: { customerId } },
-      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit,
-    });
-    return rows.map(toDomain);
+    })
+    return rows.map(toDomain)
   }
 }

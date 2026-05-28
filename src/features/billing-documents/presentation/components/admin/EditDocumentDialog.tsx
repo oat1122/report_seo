@@ -1,14 +1,14 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { Loader2 } from "lucide-react";
-import { toast } from "react-toastify";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Field, FieldGroup } from "@/components/ui/field";
+import { useState } from 'react'
+import { Loader2 } from 'lucide-react'
+import { toast } from 'react-toastify'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Field, FieldGroup } from '@/components/ui/field'
 import {
   Dialog,
   DialogContent,
@@ -16,36 +16,32 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { useUpdateDocument } from "../../hooks/useDocuments";
-import { DOCUMENT_TYPE_LABELS } from "../../../domain/DocumentType";
-import type { BillingDocumentType } from "../../../domain/DocumentType";
-import type { BillingDocument } from "../../../domain/BillingDocument";
-import type { DocumentTemplateDetail } from "../../../domain/DocumentTemplate";
-import {
-  DocumentItemsEditor,
-  createItemKey,
-  type EditableItem,
-} from "./DocumentItemsEditor";
+} from '@/components/ui/select'
+import { useUpdateDocument } from '../../hooks/useDocuments'
+import { DOCUMENT_TYPE_LABELS } from '../../../domain/DocumentType'
+import type { BillingDocumentType } from '../../../domain/DocumentType'
+import type { BillingDocument } from '../../../domain/BillingDocument'
+import type { DocumentTemplateDetail } from '../../../domain/DocumentTemplate'
+import { DocumentItemsEditor, createItemKey, type EditableItem } from './DocumentItemsEditor'
 
 interface Props {
-  document: BillingDocument;
-  customerId: string;
-  cycleAmount?: number | null;
-  template?: DocumentTemplateDetail | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  document: BillingDocument
+  customerId: string
+  cycleAmount?: number | null
+  template?: DocumentTemplateDetail | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
 }
 
 function formatAmount(amount: number) {
-  return amount.toLocaleString("th-TH", { minimumFractionDigits: 2 });
+  return amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })
 }
 
 function buildInitialItems(
@@ -61,18 +57,18 @@ function buildInitialItems(
         quantity: i.quantity,
         unit: i.unit,
         unitPrice: i.unitPrice,
-      }));
+      }))
   }
 
   return [
     {
       key: createItemKey(),
-      description: "ค่าบริการ",
+      description: 'ค่าบริการ',
       quantity: 1,
-      unit: "รายการ",
+      unit: 'รายการ',
       unitPrice: totalAmount,
     },
-  ];
+  ]
 }
 
 export function EditDocumentDialog({
@@ -83,22 +79,19 @@ export function EditDocumentDialog({
   open,
   onOpenChange,
 }: Props) {
-  const updateMutation = useUpdateDocument(customerId);
+  const updateMutation = useUpdateDocument(customerId)
 
-  const [type, setType] = useState<BillingDocumentType>(doc.type);
-  const [note, setNote] = useState(doc.note ?? "");
-  const [dueDate, setDueDate] = useState("");
-  const [paidDate, setPaidDate] = useState("");
+  const [type, setType] = useState<BillingDocumentType>(doc.type)
+  const [note, setNote] = useState(doc.note ?? '')
+  const [dueDate, setDueDate] = useState('')
+  const [paidDate, setPaidDate] = useState('')
   const [items, setItems] = useState<EditableItem[]>(() =>
     buildInitialItems(template, Number(doc.totalAmount)),
-  );
+  )
 
-  const total = items.reduce(
-    (sum, i) => sum + i.quantity * i.unitPrice,
-    0,
-  );
+  const total = items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)
 
-  const isValid = items.length > 0 && items.every((i) => i.description.trim());
+  const isValid = items.length > 0 && items.every((i) => i.description.trim())
 
   const handleSave = () => {
     updateMutation.mutate(
@@ -119,30 +112,24 @@ export function EditDocumentDialog({
       },
       {
         onSuccess: (updated) => {
-          toast.success(
-            `แก้ไขเอกสาร ${updated.documentNumber} เรียบร้อย (PDF สร้างใหม่แล้ว)`,
-          );
-          onOpenChange(false);
+          toast.success(`แก้ไขเอกสาร ${updated.documentNumber} เรียบร้อย (PDF สร้างใหม่แล้ว)`)
+          onOpenChange(false)
         },
       },
-    );
-  };
+    )
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>แก้ไขเอกสาร {doc.documentNumber}</DialogTitle>
-          <DialogDescription>
-            แก้ไขรายละเอียดเอกสารแล้วสร้าง PDF ใหม่
-          </DialogDescription>
+          <DialogDescription>แก้ไขรายละเอียดเอกสารแล้วสร้าง PDF ใหม่</DialogDescription>
         </DialogHeader>
 
         {cycleAmount != null && (
-          <div className="flex items-center gap-2 rounded-md border border-border bg-muted/50 px-3 py-2">
-            <span className="text-sm text-muted-foreground">
-              ยอดตามแผนชำระ:
-            </span>
+          <div className="border-border bg-muted/50 flex items-center gap-2 rounded-md border px-3 py-2">
+            <span className="text-muted-foreground text-sm">ยอดตามแผนชำระ:</span>
             <Badge variant="secondary" className="text-sm">
               {formatAmount(cycleAmount)} บาท
             </Badge>
@@ -157,47 +144,33 @@ export function EditDocumentDialog({
         <FieldGroup>
           <Field>
             <Label>ประเภทเอกสาร</Label>
-            <Select
-              value={type}
-              onValueChange={(v) => setType(v as BillingDocumentType)}
-            >
+            <Select value={type} onValueChange={(v) => setType(v as BillingDocumentType)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {(
-                  Object.entries(DOCUMENT_TYPE_LABELS) as [
-                    BillingDocumentType,
-                    string,
-                  ][]
-                ).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
+                {(Object.entries(DOCUMENT_TYPE_LABELS) as [BillingDocumentType, string][]).map(
+                  ([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ),
+                )}
               </SelectContent>
             </Select>
           </Field>
 
-          {(type === "INVOICE" || type === "BILLING_NOTE") && (
+          {(type === 'INVOICE' || type === 'BILLING_NOTE') && (
             <Field>
               <Label>กำหนดชำระ</Label>
-              <Input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-              />
+              <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
             </Field>
           )}
 
-          {type === "RECEIPT" && (
+          {type === 'RECEIPT' && (
             <Field>
               <Label>วันที่ชำระ</Label>
-              <Input
-                type="date"
-                value={paidDate}
-                onChange={(e) => setPaidDate(e.target.value)}
-              />
+              <Input type="date" value={paidDate} onChange={(e) => setPaidDate(e.target.value)} />
             </Field>
           )}
 
@@ -227,13 +200,11 @@ export function EditDocumentDialog({
             disabled={updateMutation.isPending || !isValid}
             className="bg-info text-info-foreground hover:bg-info/90"
           >
-            {updateMutation.isPending && (
-              <Loader2 className="mr-2 size-4 animate-spin" />
-            )}
+            {updateMutation.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
             บันทึกและสร้าง PDF ใหม่
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

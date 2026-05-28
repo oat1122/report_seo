@@ -1,5 +1,5 @@
-import type { CustomerHubSummary } from "../../domain/CustomerHubSummary";
+import type { CustomerHubSummary } from '../../domain/CustomerHubSummary'
 
 export interface CustomerHubRepository {
-  getHubSummary(userId: string): Promise<CustomerHubSummary>;
+  getHubSummary(userId: string): Promise<CustomerHubSummary>
 }

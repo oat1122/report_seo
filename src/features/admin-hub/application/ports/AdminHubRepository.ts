@@ -1,5 +1,5 @@
-import type { AdminHubSummary } from "../../domain/AdminHubSummary";
+import type { AdminHubSummary } from '../../domain/AdminHubSummary'
 
 export interface AdminHubRepository {
-  getHubSummary(): Promise<AdminHubSummary>;
+  getHubSummary(): Promise<AdminHubSummary>
 }

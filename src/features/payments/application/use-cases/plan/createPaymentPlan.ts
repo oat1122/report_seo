@@ -1,5 +1,5 @@
-import type { PaymentRepository, CreatePlanData } from "../../ports/PaymentRepository";
-import { generateBillingCycles } from "../../../domain/policies/billing-cycle-generator";
+import type { PaymentRepository, CreatePlanData } from '../../ports/PaymentRepository'
+import { generateBillingCycles } from '../../../domain/policies/billing-cycle-generator'
 
 export function createPaymentPlanUseCase(repo: PaymentRepository) {
   return async (customerId: string, data: CreatePlanData) => {
@@ -9,8 +9,8 @@ export function createPaymentPlanUseCase(repo: PaymentRepository) {
       startDate: data.startDate,
       billingDay: data.billingDay,
       totalInstallments: data.totalInstallments,
-    });
+    })
 
-    return repo.createPlanWithCycles(customerId, data, cycles);
-  };
+    return repo.createPlanWithCycles(customerId, data, cycles)
+  }
 }

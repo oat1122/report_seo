@@ -1,8 +1,8 @@
 import type {
   BillingDocumentRepository,
   AllDocumentsFilter,
-} from "../ports/BillingDocumentRepository";
+} from '../ports/BillingDocumentRepository'
 
 export function listAllDocumentsUseCase(repo: BillingDocumentRepository) {
-  return (filters?: AllDocumentsFilter) => repo.listAllDocuments(filters);
+  return (filters?: AllDocumentsFilter) => repo.listAllDocuments(filters)
 }

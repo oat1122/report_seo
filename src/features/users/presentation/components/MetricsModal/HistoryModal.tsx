@@ -1,35 +1,35 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { BarChart3, TrendingUp } from "lucide-react";
+import { useState } from 'react'
+import { BarChart3, TrendingUp } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { OverallMetricsHistory, KeywordReportHistory } from "@/types/history";
-import { HistoryMetricsTab } from "./HistoryMetricsTab";
-import { HistoryKeywordsTab } from "./HistoryKeywordsTab";
+} from '@/components/ui/dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { OverallMetricsHistory, KeywordReportHistory } from '@/types/history'
+import { HistoryMetricsTab } from './HistoryMetricsTab'
+import { HistoryKeywordsTab } from './HistoryKeywordsTab'
 
 interface VisibilityPayload {
-  historyId?: string;
-  historyIds?: string[];
-  isVisible: boolean;
+  historyId?: string
+  historyIds?: string[]
+  isVisible: boolean
 }
 
 interface HistoryModalProps {
-  open: boolean;
-  onClose: () => void;
-  history: OverallMetricsHistory[];
-  keywordHistory?: KeywordReportHistory[];
-  customerName: string;
-  isLoading?: boolean;
-  canManage?: boolean;
-  onToggleMetricsVisibility?: (payload: VisibilityPayload) => void;
-  onToggleKeywordVisibility?: (payload: VisibilityPayload) => void;
+  open: boolean
+  onClose: () => void
+  history: OverallMetricsHistory[]
+  keywordHistory?: KeywordReportHistory[]
+  customerName: string
+  isLoading?: boolean
+  canManage?: boolean
+  onToggleMetricsVisibility?: (payload: VisibilityPayload) => void
+  onToggleKeywordVisibility?: (payload: VisibilityPayload) => void
 }
 
 export const HistoryModal = ({
@@ -43,7 +43,7 @@ export const HistoryModal = ({
   onToggleMetricsVisibility,
   onToggleKeywordVisibility,
 }: HistoryModalProps) => {
-  const [tab, setTab] = useState("metrics");
+  const [tab, setTab] = useState('metrics')
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -51,7 +51,7 @@ export const HistoryModal = ({
         <DialogHeader>
           <DialogTitle>ประวัติการเปลี่ยนแปลง</DialogTitle>
           <DialogDescription>
-            ลูกค้า: <span className="font-semibold text-foreground">{customerName}</span>
+            ลูกค้า: <span className="text-foreground font-semibold">{customerName}</span>
           </DialogDescription>
         </DialogHeader>
 
@@ -87,5 +87,5 @@ export const HistoryModal = ({
         </Tabs>
       </DialogContent>
     </Dialog>
-  );
-};
+  )
+}

@@ -1,24 +1,24 @@
-import type { PdfRenderer } from "../application/ports/PdfRenderer";
+import type { PdfRenderer } from '../application/ports/PdfRenderer'
 
 export class PuppeteerPdfRenderer implements PdfRenderer {
   async renderToPdf(html: string): Promise<Buffer> {
-    const puppeteer = await import("puppeteer");
+    const puppeteer = await import('puppeteer')
     const browser = await puppeteer.default.launch({
       headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    });
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    })
 
     try {
-      const page = await browser.newPage();
-      await page.setContent(html, { waitUntil: "load" });
+      const page = await browser.newPage()
+      await page.setContent(html, { waitUntil: 'load' })
       const pdf = await page.pdf({
-        format: "A4",
+        format: 'A4',
         printBackground: true,
-        margin: { top: "15mm", bottom: "15mm", left: "15mm", right: "15mm" },
-      });
-      return Buffer.from(pdf);
+        margin: { top: '15mm', bottom: '15mm', left: '15mm', right: '15mm' },
+      })
+      return Buffer.from(pdf)
     } finally {
-      await browser.close();
+      await browser.close()
     }
   }
 }

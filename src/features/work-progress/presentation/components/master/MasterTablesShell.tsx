@@ -1,9 +1,9 @@
-"use client";
+'use client'
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
-import { CategoryManager } from "./CategoryManager";
-import { StatusManager } from "./StatusManager";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Card, CardContent } from '@/components/ui/card'
+import { CategoryManager } from './CategoryManager'
+import { StatusManager } from './StatusManager'
 
 export function MasterTablesShell() {
   return (
@@ -29,5 +29,5 @@ export function MasterTablesShell() {
         </Card>
       </TabsContent>
     </Tabs>
-  );
+  )
 }

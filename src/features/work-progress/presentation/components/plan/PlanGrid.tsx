@@ -1,7 +1,7 @@
-"use client";
+'use client'
 
-import { useCallback, useMemo, useState } from "react";
-import { Plus } from "lucide-react";
+import { useCallback, useMemo, useState } from 'react'
+import { Plus } from 'lucide-react'
 import {
   DndContext,
   PointerSensor,
@@ -9,34 +9,24 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  arrayMove,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ConfirmAlert } from "@/components/shared/ConfirmAlert";
-import { PlanGridRow } from "./PlanGridRow";
-import { ItemEditDialog } from "./ItemEditDialog";
-import { ItemDetailSheet } from "../item/ItemDetailSheet";
-import { BulkActionToolbar } from "./BulkActionToolbar";
-import { useWorkProgressPlan } from "../../hooks/useWorkProgressPlan";
-import {
-  useDeleteItem,
-  useReorderItems,
-} from "../../hooks/useItemMutations";
-import type {
-  WorkProgressItemWithMarks,
-  WorkProgressPeriod,
-} from "@/features/work-progress";
+} from '@dnd-kit/core'
+import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Skeleton } from '@/components/ui/skeleton'
+import { ConfirmAlert } from '@/components/shared/ConfirmAlert'
+import { PlanGridRow } from './PlanGridRow'
+import { ItemEditDialog } from './ItemEditDialog'
+import { ItemDetailSheet } from '../item/ItemDetailSheet'
+import { BulkActionToolbar } from './BulkActionToolbar'
+import { useWorkProgressPlan } from '../../hooks/useWorkProgressPlan'
+import { useDeleteItem, useReorderItems } from '../../hooks/useItemMutations'
+import type { WorkProgressItemWithMarks, WorkProgressPeriod } from '@/features/work-progress'
 
 interface PlanGridProps {
-  userId: string;
-  planId: string;
-  readOnly?: boolean;
+  userId: string
+  planId: string
+  readOnly?: boolean
 }
 
 const COL_WIDTH = {
@@ -48,74 +38,66 @@ const COL_WIDTH = {
   duration: 100,
   period: 80,
   actions: 48,
-} as const;
+} as const
 
 export function PlanGrid({ userId, planId, readOnly }: PlanGridProps) {
-  const { data, isLoading } = useWorkProgressPlan(userId, planId);
-  const deleteMut = useDeleteItem();
-  const reorderMut = useReorderItems();
+  const { data, isLoading } = useWorkProgressPlan(userId, planId)
+  const deleteMut = useDeleteItem()
+  const reorderMut = useReorderItems()
 
-  const [editing, setEditing] = useState<WorkProgressItemWithMarks | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] =
-    useState<WorkProgressItemWithMarks | null>(null);
-  const [detailItem, setDetailItem] =
-    useState<WorkProgressItemWithMarks | null>(null);
+  const [editing, setEditing] = useState<WorkProgressItemWithMarks | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<WorkProgressItemWithMarks | null>(null)
+  const [detailItem, setDetailItem] = useState<WorkProgressItemWithMarks | null>(null)
 
-  const [localOrder, setLocalOrder] = useState<string[] | null>(null);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [localOrder, setLocalOrder] = useState<string[] | null>(null)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
-  );
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }))
 
   const periods = useMemo<WorkProgressPeriod[]>(
     () => (data?.periods ?? []).slice().sort((a, b) => a.seq - b.seq),
     [data?.periods],
-  );
+  )
 
   const items = useMemo<WorkProgressItemWithMarks[]>(() => {
-    const base = (data?.items ?? [])
-      .slice()
-      .sort((a, b) => a.orderIndex - b.orderIndex);
-    if (!localOrder) return base;
-    const byId = new Map(base.map((i) => [i.id, i]));
-    return localOrder
-      .map((id) => byId.get(id))
-      .filter((i): i is WorkProgressItemWithMarks => !!i);
-  }, [data?.items, localOrder]);
+    const base = (data?.items ?? []).slice().sort((a, b) => a.orderIndex - b.orderIndex)
+    if (!localOrder) return base
+    const byId = new Map(base.map((i) => [i.id, i]))
+    return localOrder.map((id) => byId.get(id)).filter((i): i is WorkProgressItemWithMarks => !!i)
+  }, [data?.items, localOrder])
 
   const toggleSelect = useCallback((id: string) => {
     setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }, []);
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }, [])
 
   const toggleSelectAll = useCallback(() => {
     setSelectedIds((prev) => {
-      if (prev.size === items.length) return new Set();
-      return new Set(items.map((i) => i.id));
-    });
-  }, [items]);
+      if (prev.size === items.length) return new Set()
+      return new Set(items.map((i) => i.id))
+    })
+  }, [items])
 
-  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), [])
 
-  const gridTemplate = `${COL_WIDTH.select}px ${COL_WIDTH.drag}px ${COL_WIDTH.category}px ${COL_WIDTH.activity}px ${COL_WIDTH.status}px ${COL_WIDTH.duration}px repeat(${periods.length}, ${COL_WIDTH.period}px) ${COL_WIDTH.actions}px`;
-  const allSelected = items.length > 0 && selectedIds.size === items.length;
-  const someSelected = selectedIds.size > 0 && selectedIds.size < items.length;
+  const gridTemplate = `${COL_WIDTH.select}px ${COL_WIDTH.drag}px ${COL_WIDTH.category}px ${COL_WIDTH.activity}px ${COL_WIDTH.status}px ${COL_WIDTH.duration}px repeat(${periods.length}, ${COL_WIDTH.period}px) ${COL_WIDTH.actions}px`
+  const allSelected = items.length > 0 && selectedIds.size === items.length
+  const someSelected = selectedIds.size > 0 && selectedIds.size < items.length
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const ids = items.map((i) => i.id);
-    const oldIdx = ids.indexOf(active.id as string);
-    const newIdx = ids.indexOf(over.id as string);
-    if (oldIdx < 0 || newIdx < 0) return;
-    const next = arrayMove(ids, oldIdx, newIdx);
-    setLocalOrder(next);
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const ids = items.map((i) => i.id)
+    const oldIdx = ids.indexOf(active.id as string)
+    const newIdx = ids.indexOf(over.id as string)
+    if (oldIdx < 0 || newIdx < 0) return
+    const next = arrayMove(ids, oldIdx, newIdx)
+    setLocalOrder(next)
     reorderMut.mutate(
       {
         userId,
@@ -127,13 +109,13 @@ export function PlanGrid({ userId, planId, readOnly }: PlanGridProps) {
       {
         onSettled: () => setLocalOrder(null),
       },
-    );
-  };
+    )
+  }
 
   const openCreate = () => {
-    setEditing(null);
-    setDialogOpen(true);
-  };
+    setEditing(null)
+    setDialogOpen(true)
+  }
 
   if (isLoading) {
     return (
@@ -143,10 +125,10 @@ export function PlanGrid({ userId, planId, readOnly }: PlanGridProps) {
         <Skeleton className="h-16 w-full" />
         <Skeleton className="h-16 w-full" />
       </div>
-    );
+    )
   }
 
-  if (!data) return null;
+  if (!data) return null
 
   return (
     <div className="flex flex-col gap-3">
@@ -159,48 +141,39 @@ export function PlanGrid({ userId, planId, readOnly }: PlanGridProps) {
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-lg border border-border">
-        <div
-          role="table"
-          aria-label="Work progress grid"
-          className="min-w-fit"
-        >
+      <div className="border-border overflow-x-auto rounded-lg border">
+        <div role="table" aria-label="Work progress grid" className="min-w-fit">
           {/* Header */}
           <div
             role="row"
-            className="grid border-b border-border bg-muted text-xs font-medium text-muted-foreground"
+            className="border-border bg-muted text-muted-foreground grid border-b text-xs font-medium"
             style={{ gridTemplateColumns: gridTemplate }}
           >
-            <div className="flex items-center justify-center border-r border-border">
+            <div className="border-border flex items-center justify-center border-r">
               {!readOnly && items.length > 0 && (
                 <Checkbox
-                  checked={
-                    allSelected ? true : someSelected ? "indeterminate" : false
-                  }
+                  checked={allSelected ? true : someSelected ? 'indeterminate' : false}
                   onCheckedChange={toggleSelectAll}
                   aria-label="เลือกทั้งหมด"
                 />
               )}
             </div>
-            <div className="border-r border-border" />
-            <div className="border-r border-border px-3 py-2">หมวด</div>
-            <div className="border-r border-border px-3 py-2">กิจกรรม</div>
-            <div className="border-r border-border px-3 py-2">สถานะ</div>
-            <div className="border-r border-border px-3 py-2">ระยะ</div>
+            <div className="border-border border-r" />
+            <div className="border-border border-r px-3 py-2">หมวด</div>
+            <div className="border-border border-r px-3 py-2">กิจกรรม</div>
+            <div className="border-border border-r px-3 py-2">สถานะ</div>
+            <div className="border-border border-r px-3 py-2">ระยะ</div>
             {periods.map((p) => (
-              <div
-                key={p.id}
-                className="border-r border-border px-2 py-2 text-center"
-              >
+              <div key={p.id} className="border-border border-r px-2 py-2 text-center">
                 {p.label}
               </div>
             ))}
-            <div className="border-l border-border" />
+            <div className="border-border border-l" />
           </div>
 
           {/* Rows */}
           {items.length === 0 ? (
-            <div className="bg-background px-6 py-12 text-center text-sm text-muted-foreground">
+            <div className="bg-background text-muted-foreground px-6 py-12 text-center text-sm">
               ยังไม่มี item — กด &quot;เพิ่ม item&quot; เพื่อเริ่ม
             </div>
           ) : (
@@ -224,8 +197,8 @@ export function PlanGrid({ userId, planId, readOnly }: PlanGridProps) {
                     selected={selectedIds.has(item.id)}
                     onToggleSelect={toggleSelect}
                     onEdit={(i) => {
-                      setEditing(i);
-                      setDialogOpen(true);
+                      setEditing(i)
+                      setDialogOpen(true)
                     }}
                     onDelete={(i) => setDeleteTarget(i)}
                     onOpenDetail={(i) => setDetailItem(i)}
@@ -249,11 +222,7 @@ export function PlanGrid({ userId, planId, readOnly }: PlanGridProps) {
       <ItemDetailSheet
         userId={userId}
         planId={planId}
-        item={
-          detailItem
-            ? (items.find((i) => i.id === detailItem.id) ?? detailItem)
-            : null
-        }
+        item={detailItem ? (items.find((i) => i.id === detailItem.id) ?? detailItem) : null}
         onClose={() => setDetailItem(null)}
         readOnly={readOnly}
       />
@@ -262,13 +231,13 @@ export function PlanGrid({ userId, planId, readOnly }: PlanGridProps) {
         open={deleteTarget !== null}
         onClose={() => setDeleteTarget(null)}
         onConfirm={async () => {
-          if (!deleteTarget) return;
+          if (!deleteTarget) return
           await deleteMut.mutateAsync({
             userId,
             planId,
             itemId: deleteTarget.id,
-          });
-          setDeleteTarget(null);
+          })
+          setDeleteTarget(null)
         }}
         title="ลบ item"
         message="ลบ item พร้อม marks / subtasks / attachments ทั้งหมด"
@@ -283,8 +252,6 @@ export function PlanGrid({ userId, planId, readOnly }: PlanGridProps) {
           onClear={clearSelection}
         />
       )}
-
     </div>
-  );
+  )
 }
-

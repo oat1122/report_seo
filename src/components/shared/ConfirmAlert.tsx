@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -8,14 +8,14 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog'
 
 interface ConfirmAlertProps {
-  open: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  title: string;
-  message: string;
+  open: boolean
+  onClose: () => void
+  onConfirm: () => void
+  title: string
+  message: string
 }
 
 export const ConfirmAlert: React.FC<ConfirmAlertProps> = ({
@@ -34,14 +34,11 @@ export const ConfirmAlert: React.FC<ConfirmAlertProps> = ({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel onClick={onClose}>ยกเลิก</AlertDialogCancel>
-          <AlertDialogAction
-            variant="destructive"
-            onClick={onConfirm}
-          >
+          <AlertDialogAction variant="destructive" onClick={onConfirm}>
             ยืนยัน
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  );
-};
+  )
+}

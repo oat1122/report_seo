@@ -1,13 +1,13 @@
 import type {
   NotificationRepository,
   ListNotificationsResult,
-} from "../ports/NotificationRepository";
+} from '../ports/NotificationRepository'
 
 export interface ListNotificationsInput {
-  userId: string;
-  unreadOnly?: boolean;
-  page: number;
-  limit: number;
+  userId: string
+  unreadOnly?: boolean
+  page: number
+  limit: number
 }
 
 export function listNotificationsUseCase(repo: NotificationRepository) {
@@ -17,6 +17,6 @@ export function listNotificationsUseCase(repo: NotificationRepository) {
       unreadOnly: input.unreadOnly,
       page: input.page,
       limit: input.limit,
-    });
-  };
+    })
+  }
 }

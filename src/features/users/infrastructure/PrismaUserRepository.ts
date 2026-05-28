@@ -1,13 +1,10 @@
 // User feature ใช้ทั้ง extended `prisma` (default — กรอง deletedAt อัตโนมัติ + soft-delete)
 // และ `prismaBase` เฉพาะ flow restore / list-deleted ที่ต้อง bypass filter
-import { prisma, prismaBase } from "@/infrastructure/prisma/client";
-import { Role } from "@/types/auth";
-import type { User } from "../domain/User";
-import type { UserRepository } from "../application/ports/UserRepository";
-import type {
-  UserCreateInput,
-  UserUpdateInput,
-} from "../schemas";
+import { prisma, prismaBase } from '@/infrastructure/prisma/client'
+import { Role } from '@/types/auth'
+import type { User } from '../domain/User'
+import type { UserRepository } from '../application/ports/UserRepository'
+import type { UserCreateInput, UserUpdateInput } from '../schemas'
 
 const adminUserSelect = {
   id: true,
@@ -26,7 +23,7 @@ const adminUserSelect = {
       contactName: true,
     },
   },
-} as const;
+} as const
 
 const publicUserSelect = {
   id: true,
@@ -38,44 +35,41 @@ const publicUserSelect = {
   customerProfile: {
     select: { name: true, domain: true },
   },
-} as const;
+} as const
 
 export class PrismaUserRepository implements UserRepository {
   async findAll(options: {
-    includeDeleted: boolean;
-    includeAdminFields: boolean;
+    includeDeleted: boolean
+    includeAdminFields: boolean
   }): Promise<User[]> {
-    const client = options.includeDeleted ? prismaBase : prisma;
+    const client = options.includeDeleted ? prismaBase : prisma
     return client.user.findMany({
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
       select: options.includeAdminFields ? adminUserSelect : publicUserSelect,
-    }) as Promise<User[]>;
+    }) as Promise<User[]>
   }
 
-  async findById(
-    id: string,
-    options: { includeAdminFields: boolean },
-  ): Promise<User | null> {
+  async findById(id: string, options: { includeAdminFields: boolean }): Promise<User | null> {
     return prisma.user.findUnique({
       where: { id },
       select: options.includeAdminFields ? adminUserSelect : publicUserSelect,
-    }) as Promise<User | null>;
+    }) as Promise<User | null>
   }
 
   async findUserIdsByRole(role: string): Promise<string[]> {
     const users = await prisma.user.findMany({
       where: { role: role as Role },
       select: { id: true },
-    });
-    return users.map((u) => u.id);
+    })
+    return users.map((u) => u.id)
   }
 
   async findSeoDevs(): Promise<User[]> {
     return prisma.user.findMany({
       where: { role: Role.SEO_DEV },
       select: adminUserSelect,
-      orderBy: { name: "asc" },
-    }) as Promise<User[]>;
+      orderBy: { name: 'asc' },
+    }) as Promise<User[]>
   }
 
   async findManagedCustomers(seoDevId: string): Promise<User[]> {
@@ -85,8 +79,8 @@ export class PrismaUserRepository implements UserRepository {
         customerProfile: { is: { seoDevId } },
       },
       select: adminUserSelect,
-      orderBy: { createdAt: "desc" },
-    }) as Promise<User[]>;
+      orderBy: { createdAt: 'desc' },
+    }) as Promise<User[]>
   }
 
   async findCustomerByDomain(
@@ -97,12 +91,12 @@ export class PrismaUserRepository implements UserRepository {
       return prisma.customer.findFirst({
         where: { domain, userId: { not: excludeUserId } },
         select: { id: true, userId: true },
-      });
+      })
     }
     return prisma.customer.findUnique({
       where: { domain },
       select: { id: true, userId: true },
-    });
+    })
   }
 
   async createWithCustomerProfile(
@@ -116,7 +110,7 @@ export class PrismaUserRepository implements UserRepository {
           password: data.hashedPassword,
           role: data.role,
         },
-      });
+      })
 
       await tx.customer.create({
         data: {
@@ -128,18 +122,16 @@ export class PrismaUserRepository implements UserRepository {
           taxId: data.taxId || null,
           contactName: data.contactName || null,
         },
-      });
+      })
 
       return tx.user.findUnique({
         where: { id: newUser.id },
         select: adminUserSelect,
-      }) as Promise<User | null>;
-    });
+      }) as Promise<User | null>
+    })
   }
 
-  async createPlain(
-    data: UserCreateInput & { hashedPassword: string },
-  ): Promise<User> {
+  async createPlain(data: UserCreateInput & { hashedPassword: string }): Promise<User> {
     return prisma.user.create({
       data: {
         name: data.name,
@@ -148,7 +140,7 @@ export class PrismaUserRepository implements UserRepository {
         role: data.role,
       },
       select: adminUserSelect,
-    }) as Promise<User>;
+    }) as Promise<User>
   }
 
   async applyUpdate(
@@ -156,16 +148,21 @@ export class PrismaUserRepository implements UserRepository {
     data: UserUpdateInput,
     options: { existingCustomerProfile: boolean },
   ): Promise<User> {
-    const { name, email, role, companyName, domain, seoDevId, address, taxId, contactName } = data;
+    const { name, email, role, companyName, domain, seoDevId, address, taxId, contactName } = data
     const isCustomerWithProfile =
-      role === Role.CUSTOMER && (companyName || domain || address !== undefined || taxId !== undefined || contactName !== undefined);
+      role === Role.CUSTOMER &&
+      (companyName ||
+        domain ||
+        address !== undefined ||
+        taxId !== undefined ||
+        contactName !== undefined)
 
     if (!isCustomerWithProfile) {
       return prisma.user.update({
         where: { id },
         data: { name, email, role },
         select: adminUserSelect,
-      }) as Promise<User>;
+      }) as Promise<User>
     }
 
     return prisma.$transaction(async (tx) => {
@@ -173,30 +170,30 @@ export class PrismaUserRepository implements UserRepository {
         where: { id },
         data: { name, email, role },
         select: adminUserSelect,
-      });
+      })
 
       const customerData: {
-        name?: string;
-        domain?: string;
-        seoDevId?: string | null;
-        address?: string | null;
-        taxId?: string | null;
-        contactName?: string | null;
-      } = {};
-      if (companyName) customerData.name = companyName;
-      if (domain) customerData.domain = domain;
+        name?: string
+        domain?: string
+        seoDevId?: string | null
+        address?: string | null
+        taxId?: string | null
+        contactName?: string | null
+      } = {}
+      if (companyName) customerData.name = companyName
+      if (domain) customerData.domain = domain
       if (seoDevId !== undefined) {
-        customerData.seoDevId = seoDevId === "" ? null : seoDevId;
+        customerData.seoDevId = seoDevId === '' ? null : seoDevId
       }
-      if (address !== undefined) customerData.address = address || null;
-      if (taxId !== undefined) customerData.taxId = taxId || null;
-      if (contactName !== undefined) customerData.contactName = contactName || null;
+      if (address !== undefined) customerData.address = address || null
+      if (taxId !== undefined) customerData.taxId = taxId || null
+      if (contactName !== undefined) customerData.contactName = contactName || null
 
       if (options.existingCustomerProfile) {
         await tx.customer.update({
           where: { userId: id },
           data: customerData,
-        });
+        })
       } else {
         await tx.customer.create({
           data: {
@@ -208,15 +205,15 @@ export class PrismaUserRepository implements UserRepository {
             taxId: taxId || null,
             contactName: contactName || null,
           },
-        });
+        })
       }
 
-      return user as User;
-    });
+      return user as User
+    })
   }
 
   async softDelete(id: string): Promise<void> {
-    await prisma.user.delete({ where: { id } });
+    await prisma.user.delete({ where: { id } })
   }
 
   async restoreSoftDeleted(id: string): Promise<{ deletedAt: Date | null }> {
@@ -224,8 +221,8 @@ export class PrismaUserRepository implements UserRepository {
       where: { id },
       data: { deletedAt: null },
       select: { deletedAt: true },
-    });
-    return updated;
+    })
+    return updated
   }
 
   async findIdAndDeletedAtIncludingDeleted(
@@ -234,22 +231,20 @@ export class PrismaUserRepository implements UserRepository {
     return prismaBase.user.findUnique({
       where: { id },
       select: { id: true, deletedAt: true },
-    });
+    })
   }
 
-  async findPasswordById(
-    id: string,
-  ): Promise<{ password: string | null } | null> {
+  async findPasswordById(id: string): Promise<{ password: string | null } | null> {
     return prisma.user.findUnique({
       where: { id },
       select: { password: true },
-    });
+    })
   }
 
   async updatePassword(id: string, hashedPassword: string): Promise<void> {
     await prisma.user.update({
       where: { id },
       data: { password: hashedPassword },
-    });
+    })
   }
 }

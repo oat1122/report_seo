@@ -1,9 +1,9 @@
-import type { CalendarType } from "@schedule-x/calendar";
-import { colors, colorsDark } from "@/theme/theme";
+import type { CalendarType } from '@schedule-x/calendar'
+import { colors, colorsDark } from '@/theme/theme'
 
 export const calendarTypes: Record<string, CalendarType> = {
-  "work-progress": {
-    colorName: "work-progress",
+  'work-progress': {
+    colorName: 'work-progress',
     lightColors: {
       main: colors.info.main,
       container: colors.info.bg,
@@ -15,8 +15,8 @@ export const calendarTypes: Record<string, CalendarType> = {
       onContainer: colorsDark.text.primary,
     },
   },
-  "payment-paid": {
-    colorName: "payment-paid",
+  'payment-paid': {
+    colorName: 'payment-paid',
     lightColors: {
       main: colors.success.main,
       container: colors.success.bg,
@@ -28,8 +28,8 @@ export const calendarTypes: Record<string, CalendarType> = {
       onContainer: colorsDark.text.primary,
     },
   },
-  "payment-overdue": {
-    colorName: "payment-overdue",
+  'payment-overdue': {
+    colorName: 'payment-overdue',
     lightColors: {
       main: colors.error.main,
       container: colors.error.bg,
@@ -41,8 +41,8 @@ export const calendarTypes: Record<string, CalendarType> = {
       onContainer: colorsDark.text.primary,
     },
   },
-  "payment-pending": {
-    colorName: "payment-pending",
+  'payment-pending': {
+    colorName: 'payment-pending',
     lightColors: {
       main: colors.warning.main,
       container: colors.warning.bg,
@@ -54,8 +54,8 @@ export const calendarTypes: Record<string, CalendarType> = {
       onContainer: colorsDark.text.primary,
     },
   },
-  "payment-reviewing": {
-    colorName: "payment-reviewing",
+  'payment-reviewing': {
+    colorName: 'payment-reviewing',
     lightColors: {
       main: colors.slate[500],
       container: colors.slate[100],
@@ -67,8 +67,8 @@ export const calendarTypes: Record<string, CalendarType> = {
       onContainer: colorsDark.text.primary,
     },
   },
-  "payment-cancelled": {
-    colorName: "payment-cancelled",
+  'payment-cancelled': {
+    colorName: 'payment-cancelled',
     lightColors: {
       main: colors.slate[400],
       container: colors.slate[50],
@@ -80,4 +80,4 @@ export const calendarTypes: Record<string, CalendarType> = {
       onContainer: colorsDark.slate[500],
     },
   },
-};
+}

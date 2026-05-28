@@ -1,12 +1,9 @@
-import { BadRequestError, NotFoundError } from "@/lib/errors";
-import { logger } from "@/lib/logger";
-import type { UserRepository } from "../ports/UserRepository";
-import type { PasswordHasher } from "../ports/PasswordHasher";
+import { BadRequestError, NotFoundError } from '@/lib/errors'
+import { logger } from '@/lib/logger'
+import type { UserRepository } from '../ports/UserRepository'
+import type { PasswordHasher } from '../ports/PasswordHasher'
 
-export function changePasswordUseCase(
-  repo: UserRepository,
-  hasher: PasswordHasher,
-) {
+export function changePasswordUseCase(repo: UserRepository, hasher: PasswordHasher) {
   return async (
     id: string,
     currentPassword: string | undefined,
@@ -14,24 +11,24 @@ export function changePasswordUseCase(
     isAdmin: boolean,
     actorId?: string,
   ) => {
-    const target = await repo.findPasswordById(id);
+    const target = await repo.findPasswordById(id)
     if (!target) {
-      throw new NotFoundError("User not found");
+      throw new NotFoundError('User not found')
     }
 
-    const isSelfChange = actorId !== undefined && actorId === id;
+    const isSelfChange = actorId !== undefined && actorId === id
     // admin reset user อื่น = trusted ops, ไม่ต้อง currentPassword
     // self-change (รวม admin) = ต้อง verify currentPassword เสมอ
     // เพื่อปิด session-takeover ที่ใช้สิทธิ์ admin rotate password ยึดบัญชี
-    const requireCurrentPassword = !isAdmin || isSelfChange;
+    const requireCurrentPassword = !isAdmin || isSelfChange
 
     if (requireCurrentPassword) {
       if (!currentPassword || !target.password) {
-        throw new BadRequestError("Current password is required");
+        throw new BadRequestError('Current password is required')
       }
-      const valid = await hasher.verify(currentPassword, target.password);
+      const valid = await hasher.verify(currentPassword, target.password)
       if (!valid) {
-        throw new BadRequestError("Invalid current password");
+        throw new BadRequestError('Invalid current password')
       }
     }
 
@@ -44,13 +41,13 @@ export function changePasswordUseCase(
           targetUserId: id,
           actorId,
           isSelfChange,
-          event: "admin_password_change",
+          event: 'admin_password_change',
         },
-        "admin changed user password",
-      );
+        'admin changed user password',
+      )
     }
 
-    const hashedNewPassword = await hasher.hash(newPassword);
-    await repo.updatePassword(id, hashedNewPassword);
-  };
+    const hashedNewPassword = await hasher.hash(newPassword)
+    await repo.updatePassword(id, hashedNewPassword)
+  }
 }

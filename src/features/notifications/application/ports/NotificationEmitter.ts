@@ -1,5 +1,5 @@
-import type { Notification } from "../../domain/Notification";
+import type { Notification } from '../../domain/Notification'
 
 export interface NotificationEmitter {
-  emitToUser(userId: string, notification: Notification): void;
+  emitToUser(userId: string, notification: Notification): void
 }

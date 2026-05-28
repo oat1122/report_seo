@@ -15,4 +15,4 @@ export {
   type UpdateBillingCycleInput,
   type ListBillingCyclesQuery,
   type UpdateProofStatusInput,
-} from "@/schemas/payment";
+} from '@/schemas/payment'

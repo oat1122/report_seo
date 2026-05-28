@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod'
 
 export const addItemSchema = z.object({
   categoryId: z.string().uuid(),
@@ -11,9 +11,9 @@ export const addItemSchema = z.object({
   orderIndex: z.number().int().min(0).optional(),
   startDate: z.coerce.date().optional().nullable(),
   dueDate: z.coerce.date().optional().nullable(),
-});
+})
 
-export type AddItemInput = z.infer<typeof addItemSchema>;
+export type AddItemInput = z.infer<typeof addItemSchema>
 
 export const updateItemSchema = z.object({
   categoryId: z.string().uuid().optional(),
@@ -26,9 +26,9 @@ export const updateItemSchema = z.object({
   progressPercent: z.number().int().min(0).max(100).optional(),
   startDate: z.coerce.date().optional().nullable(),
   dueDate: z.coerce.date().optional().nullable(),
-});
+})
 
-export type UpdateItemInput = z.infer<typeof updateItemSchema>;
+export type UpdateItemInput = z.infer<typeof updateItemSchema>
 
 export const reorderItemsSchema = z.object({
   order: z
@@ -39,29 +39,27 @@ export const reorderItemsSchema = z.object({
       }),
     )
     .min(1),
-});
+})
 
-export type ReorderItemsInput = z.infer<typeof reorderItemsSchema>;
+export type ReorderItemsInput = z.infer<typeof reorderItemsSchema>
 
 // Phase 3: assignee
 export const assignItemSchema = z.object({
   assignedToId: z.string().uuid().nullable(),
-});
+})
 
-export type AssignItemInput = z.infer<typeof assignItemSchema>;
+export type AssignItemInput = z.infer<typeof assignItemSchema>
 
 // Phase 6 — Bulk operations
 export const bulkUpdateItemStatusSchema = z.object({
   itemIds: z.array(z.string().uuid()).min(1).max(200),
   statusId: z.string().uuid(),
-});
+})
 
-export type BulkUpdateItemStatusInput = z.infer<
-  typeof bulkUpdateItemStatusSchema
->;
+export type BulkUpdateItemStatusInput = z.infer<typeof bulkUpdateItemStatusSchema>
 
 export const bulkDeleteItemsSchema = z.object({
   itemIds: z.array(z.string().uuid()).min(1).max(200),
-});
+})
 
-export type BulkDeleteItemsInput = z.infer<typeof bulkDeleteItemsSchema>;
+export type BulkDeleteItemsInput = z.infer<typeof bulkDeleteItemsSchema>

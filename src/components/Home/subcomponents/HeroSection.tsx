@@ -1,12 +1,10 @@
-"use client";
+'use client'
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 
 const scrollToPackages = () => {
-  document
-    .querySelector("#packages")
-    ?.scrollIntoView({ behavior: "smooth", block: "start" });
-};
+  document.querySelector('#packages')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
 
 export const HeroSection = () => {
   return (
@@ -14,14 +12,14 @@ export const HeroSection = () => {
       className="py-20 text-center md:py-28"
       style={{
         backgroundImage:
-          "radial-gradient(circle, color-mix(in srgb, var(--info) 10%, transparent), var(--background) 70%)",
+          'radial-gradient(circle, color-mix(in srgb, var(--info) 10%, transparent), var(--background) 70%)',
       }}
     >
       <div className="mx-auto w-full max-w-3xl px-4">
-        <h1 className="mb-6 bg-gradient-to-r from-info to-secondary bg-clip-text text-4xl font-bold leading-tight text-transparent md:text-5xl lg:text-6xl">
+        <h1 className="from-info to-secondary mb-6 bg-gradient-to-r bg-clip-text text-4xl leading-tight font-bold text-transparent md:text-5xl lg:text-6xl">
           ขับเคลื่อนธุรกิจของคุณสู่หน้าแรก ด้วยแพ็คเกจ SEO ที่คุ้มค่าที่สุด
         </h1>
-        <p className="mb-8 text-lg text-muted-foreground md:text-xl">
+        <p className="text-muted-foreground mb-8 text-lg md:text-xl">
           เรามีแพ็คเกจที่หลากหลาย ตอบโจทย์ทุกขนาดธุรกิจ
           พร้อมทีมงานมืออาชีพที่จะพาเว็บไซต์ของคุณติดอันดับและเติบโตอย่างยั่งยืน
         </p>
@@ -34,5 +32,5 @@ export const HeroSection = () => {
         </Button>
       </div>
     </section>
-  );
-};
+  )
+}

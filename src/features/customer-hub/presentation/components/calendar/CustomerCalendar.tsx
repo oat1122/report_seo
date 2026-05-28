@@ -1,99 +1,90 @@
-"use client";
+'use client'
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { ScheduleXCalendar, useCalendarApp } from "@schedule-x/react";
-import { createViewMonthGrid } from "@schedule-x/calendar";
-import type { CalendarEvent } from "@schedule-x/calendar";
-import "@schedule-x/theme-shadcn/dist/index.css";
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { ScheduleXCalendar, useCalendarApp } from '@schedule-x/react'
+import { createViewMonthGrid } from '@schedule-x/calendar'
+import type { CalendarEvent } from '@schedule-x/calendar'
+import '@schedule-x/theme-shadcn/dist/index.css'
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Progress } from "@/components/ui/progress";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { getEffectiveItemPercent } from "@/features/work-progress/domain/policies/progress-calculator";
-import { calendarTypes } from "./calendar-config";
-import { useCalendarEvents } from "./useCalendarEvents";
-import { CalendarLegend } from "./CalendarLegend";
-import type { CalendarItemLookup } from "./calendar-event-transforms";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Progress } from '@/components/ui/progress'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { getEffectiveItemPercent } from '@/features/work-progress/domain/policies/progress-calculator'
+import { calendarTypes } from './calendar-config'
+import { useCalendarEvents } from './useCalendarEvents'
+import { CalendarLegend } from './CalendarLegend'
+import type { CalendarItemLookup } from './calendar-event-transforms'
 
 const thTH = {
-  Today: "วันนี้",
-  Month: "เดือน",
-  Week: "สัปดาห์",
-  Day: "วัน",
-  List: "รายการ",
-  "Select View": "เลือกมุมมอง",
-  View: "มุมมอง",
-  "+ {{n}} events": "+ {{n}} รายการ",
-  "+ 1 event": "+ 1 รายการ",
-  "No events": "ไม่มีรายการ",
-  "Next period": "ช่วงถัดไป",
-  "Previous period": "ช่วงก่อนหน้า",
-  to: "ถึง",
-  "Full day- and multiple day events": "รายการทั้งวันและหลายวัน",
-  "Link to {{n}} more events on {{date}}":
-    "ลิงก์ไปอีก {{n}} รายการในวันที่ {{date}}",
-  "Link to 1 more event on {{date}}":
-    "ลิงก์ไปอีก 1 รายการในวันที่ {{date}}",
-  CW: "สัปดาห์ที่ {{week}}",
-  Date: "วันที่",
-  "MM/DD/YYYY": "DD/MM/YYYY",
-  "Next month": "เดือนถัดไป",
-  "Previous month": "เดือนก่อนหน้า",
-  "Choose Date": "เลือกวันที่",
-  Time: "เวลา",
-  Cancel: "ยกเลิก",
-  OK: "ตกลง",
-  "Select time": "เลือกเวลา",
-};
+  Today: 'วันนี้',
+  Month: 'เดือน',
+  Week: 'สัปดาห์',
+  Day: 'วัน',
+  List: 'รายการ',
+  'Select View': 'เลือกมุมมอง',
+  View: 'มุมมอง',
+  '+ {{n}} events': '+ {{n}} รายการ',
+  '+ 1 event': '+ 1 รายการ',
+  'No events': 'ไม่มีรายการ',
+  'Next period': 'ช่วงถัดไป',
+  'Previous period': 'ช่วงก่อนหน้า',
+  to: 'ถึง',
+  'Full day- and multiple day events': 'รายการทั้งวันและหลายวัน',
+  'Link to {{n}} more events on {{date}}': 'ลิงก์ไปอีก {{n}} รายการในวันที่ {{date}}',
+  'Link to 1 more event on {{date}}': 'ลิงก์ไปอีก 1 รายการในวันที่ {{date}}',
+  CW: 'สัปดาห์ที่ {{week}}',
+  Date: 'วันที่',
+  'MM/DD/YYYY': 'DD/MM/YYYY',
+  'Next month': 'เดือนถัดไป',
+  'Previous month': 'เดือนก่อนหน้า',
+  'Choose Date': 'เลือกวันที่',
+  Time: 'เวลา',
+  Cancel: 'ยกเลิก',
+  OK: 'ตกลง',
+  'Select time': 'เลือกเวลา',
+}
 
-const monthView = createViewMonthGrid();
+const monthView = createViewMonthGrid()
 
 interface CustomerCalendarProps {
-  userId: string;
+  userId: string
 }
 
 export function CustomerCalendar({ userId }: CustomerCalendarProps) {
-  const { events, itemLookup, isLoading } = useCalendarEvents(userId);
-  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
-  const itemLookupRef = useRef<CalendarItemLookup>(itemLookup);
-  itemLookupRef.current = itemLookup;
+  const { events, itemLookup, isLoading } = useCalendarEvents(userId)
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
+  const itemLookupRef = useRef<CalendarItemLookup>(itemLookup)
+  itemLookupRef.current = itemLookup
 
   const handleEventClick = useCallback((event: CalendarEvent) => {
-    const id = String(event.id);
-    if (id.startsWith("wp-") && itemLookupRef.current.has(id)) {
-      setSelectedEventId(id);
+    const id = String(event.id)
+    if (id.startsWith('wp-') && itemLookupRef.current.has(id)) {
+      setSelectedEventId(id)
     }
-  }, []);
+  }, [])
 
   const calendarApp = useCalendarApp({
     views: [monthView],
     events: [],
     calendars: calendarTypes,
-    locale: "th-TH",
-    theme: "shadcn",
+    locale: 'th-TH',
+    theme: 'shadcn',
     translations: { thTH },
     callbacks: {
       onEventClick: handleEventClick,
     },
-  });
+  })
 
   useEffect(() => {
     if (calendarApp) {
-      calendarApp.events.set(events);
+      calendarApp.events.set(events)
     }
-  }, [calendarApp, events]);
+  }, [calendarApp, events])
 
-  const selectedItem = selectedEventId
-    ? itemLookup.get(selectedEventId)
-    : null;
+  const selectedItem = selectedEventId ? itemLookup.get(selectedEventId) : null
 
   if (isLoading && !calendarApp) {
     return (
@@ -105,19 +96,19 @@ export function CustomerCalendar({ userId }: CustomerCalendarProps) {
           <Skeleton className="h-[500px] w-full" />
         </CardContent>
       </Card>
-    );
+    )
   }
 
-  if (!calendarApp) return null;
+  if (!calendarApp) return null
 
-  const doneCount = selectedItem?.subtasks.filter((s) => s.isDone).length ?? 0;
-  const totalCount = selectedItem?.subtasks.length ?? 0;
+  const doneCount = selectedItem?.subtasks.filter((s) => s.isDone).length ?? 0
+  const totalCount = selectedItem?.subtasks.length ?? 0
   const effectivePercent = selectedItem
     ? getEffectiveItemPercent({
         status: { isTerminal: selectedItem.status.isTerminal },
         subtasks: selectedItem.subtasks,
       })
-    : 0;
+    : 0
 
   return (
     <>
@@ -136,18 +127,14 @@ export function CustomerCalendar({ userId }: CustomerCalendarProps) {
       <Dialog
         open={selectedItem != null}
         onOpenChange={(open) => {
-          if (!open) setSelectedEventId(null);
+          if (!open) setSelectedEventId(null)
         }}
       >
         {selectedItem && (
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-base">
-                {selectedItem.activity}
-              </DialogTitle>
-              <p className="text-sm text-muted-foreground">
-                {selectedItem.planTitle}
-              </p>
+              <DialogTitle className="text-base">{selectedItem.activity}</DialogTitle>
+              <p className="text-muted-foreground text-sm">{selectedItem.planTitle}</p>
             </DialogHeader>
 
             <div className="flex flex-wrap gap-2">
@@ -156,7 +143,7 @@ export function CustomerCalendar({ userId }: CustomerCalendarProps) {
                 variant="secondary"
                 style={
                   selectedItem.status.color
-                    ? { backgroundColor: selectedItem.status.color, color: "#fff" }
+                    ? { backgroundColor: selectedItem.status.color, color: '#fff' }
                     : undefined
                 }
               >
@@ -165,17 +152,13 @@ export function CustomerCalendar({ userId }: CustomerCalendarProps) {
             </div>
 
             {selectedItem.description && (
-              <p className="text-sm text-muted-foreground">
-                {selectedItem.description}
-              </p>
+              <p className="text-muted-foreground text-sm">{selectedItem.description}</p>
             )}
 
             <div className="space-y-1">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">ความคืบหน้า</span>
-                <span className="font-medium">
-                  {effectivePercent}%
-                </span>
+                <span className="font-medium">{effectivePercent}%</span>
               </div>
               <Progress value={effectivePercent} className="h-2" />
             </div>
@@ -185,15 +168,11 @@ export function CustomerCalendar({ userId }: CustomerCalendarProps) {
                 <p className="text-sm font-medium">
                   Subtasks ({doneCount}/{totalCount})
                 </p>
-                <ul className="space-y-1.5 max-h-48 overflow-y-auto">
+                <ul className="max-h-48 space-y-1.5 overflow-y-auto">
                   {selectedItem.subtasks.map((sub) => (
                     <li key={sub.id} className="flex items-center gap-2 text-sm">
                       <Checkbox checked={sub.isDone} disabled />
-                      <span
-                        className={
-                          sub.isDone ? "line-through text-muted-foreground" : ""
-                        }
-                      >
+                      <span className={sub.isDone ? 'text-muted-foreground line-through' : ''}>
                         {sub.title}
                       </span>
                     </li>
@@ -205,5 +184,5 @@ export function CustomerCalendar({ userId }: CustomerCalendarProps) {
         )}
       </Dialog>
     </>
-  );
+  )
 }

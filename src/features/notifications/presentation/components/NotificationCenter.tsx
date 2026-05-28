@@ -1,22 +1,22 @@
-"use client";
+'use client'
 
-import { BellOff, CheckCheck, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { BellOff, CheckCheck, Loader2 } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 import {
   useNotifications,
   useMarkAsRead,
   useMarkAllAsRead,
   useDeleteNotification,
-} from "../hooks/useNotifications";
-import { NotificationItem } from "./NotificationItem";
+} from '../hooks/useNotifications'
+import { NotificationItem } from './NotificationItem'
 
 interface NotificationCenterProps {
-  onOpenPreferences: () => void;
-  className?: string;
-  hideHeader?: boolean;
-  hideFooter?: boolean;
+  onOpenPreferences: () => void
+  className?: string
+  hideHeader?: boolean
+  hideFooter?: boolean
 }
 
 export function NotificationCenter({
@@ -25,22 +25,16 @@ export function NotificationCenter({
   hideHeader,
   hideFooter,
 }: NotificationCenterProps) {
-  const {
-    data,
-    isLoading,
-    hasNextPage,
-    fetchNextPage,
-    isFetchingNextPage,
-  } = useNotifications();
-  const markAsRead = useMarkAsRead();
-  const markAllAsRead = useMarkAllAsRead();
-  const deleteNotification = useDeleteNotification();
+  const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } = useNotifications()
+  const markAsRead = useMarkAsRead()
+  const markAllAsRead = useMarkAllAsRead()
+  const deleteNotification = useDeleteNotification()
 
-  const notifications = data?.pages.flatMap((p) => p.data) ?? [];
-  const isEmpty = !isLoading && notifications.length === 0;
+  const notifications = data?.pages.flatMap((p) => p.data) ?? []
+  const isEmpty = !isLoading && notifications.length === 0
 
   return (
-    <div className={cn("flex flex-col", !hideHeader && "w-80 sm:w-96", className)}>
+    <div className={cn('flex flex-col', !hideHeader && 'w-80 sm:w-96', className)}>
       {!hideHeader && (
         <>
           <div className="flex items-center justify-between px-4 py-3">
@@ -64,14 +58,14 @@ export function NotificationCenter({
       <div className="max-h-96 overflow-y-auto">
         {isLoading && (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="size-5 animate-spin text-muted-foreground" />
+            <Loader2 className="text-muted-foreground size-5 animate-spin" />
           </div>
         )}
 
         {isEmpty && (
           <div className="flex flex-col items-center justify-center gap-2 py-8">
-            <BellOff className="size-8 text-muted-foreground/50" />
-            <p className="text-sm text-muted-foreground">ยังไม่มีการแจ้งเตือน</p>
+            <BellOff className="text-muted-foreground/50 size-8" />
+            <p className="text-muted-foreground text-sm">ยังไม่มีการแจ้งเตือน</p>
           </div>
         )}
 
@@ -93,9 +87,7 @@ export function NotificationCenter({
               onClick={() => fetchNextPage()}
               disabled={isFetchingNextPage}
             >
-              {isFetchingNextPage ? (
-                <Loader2 className="mr-1 size-3 animate-spin" />
-              ) : null}
+              {isFetchingNextPage ? <Loader2 className="mr-1 size-3 animate-spin" /> : null}
               โหลดเพิ่มเติม
             </Button>
           </div>
@@ -109,7 +101,7 @@ export function NotificationCenter({
             <Button
               variant="ghost"
               size="sm"
-              className="w-full text-xs text-muted-foreground"
+              className="text-muted-foreground w-full text-xs"
               onClick={onOpenPreferences}
             >
               ตั้งค่าการแจ้งเตือน
@@ -118,5 +110,5 @@ export function NotificationCenter({
         </>
       )}
     </div>
-  );
+  )
 }

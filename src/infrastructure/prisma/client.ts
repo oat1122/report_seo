@@ -1,19 +1,16 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '@prisma/client'
 
 const globalForPrisma = global as unknown as {
-  prisma: PrismaClient | undefined;
-};
+  prisma: PrismaClient | undefined
+}
 
 export const prismaBase = new PrismaClient({
-  log:
-    process.env.NODE_ENV === "production"
-      ? ["error"]
-      : ["query", "info", "warn", "error"],
-});
+  log: process.env.NODE_ENV === 'production' ? ['error'] : ['query', 'info', 'warn', 'error'],
+})
 
 // Extend Prisma Client with soft delete and history middleware
 export const prisma = prismaBase.$extends({
-  name: "softDeleteAndHistory",
+  name: 'softDeleteAndHistory',
   query: {
     user: {
       // เปลี่ยน delete เป็น update (soft delete)
@@ -22,7 +19,7 @@ export const prisma = prismaBase.$extends({
         return (prismaBase as any).user.update({
           ...args,
           data: { deletedAt: new Date() },
-        });
+        })
       },
       // เปลี่ยน deleteMany เป็น updateMany (soft delete)
       async deleteMany({ args }) {
@@ -30,35 +27,35 @@ export const prisma = prismaBase.$extends({
         return (prismaBase as any).user.updateMany({
           ...args,
           data: { deletedAt: new Date() },
-        });
+        })
       },
       async findUnique({ args, query }) {
-        args.where = { ...args.where, deletedAt: null };
-        return query(args);
+        args.where = { ...args.where, deletedAt: null }
+        return query(args)
       },
       async findFirst({ args, query }) {
         if (!args.where) {
-          args.where = {};
+          args.where = {}
         }
-        args.where = { ...args.where, deletedAt: null };
-        return query(args);
+        args.where = { ...args.where, deletedAt: null }
+        return query(args)
       },
       async findMany({ args, query }) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ((args as any).includeDeleted) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          delete (args as any).includeDeleted;
-          return query(args);
+          delete (args as any).includeDeleted
+          return query(args)
         }
 
         if (!args.where) {
-          args.where = {};
+          args.where = {}
         }
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ((args.where as any).deletedAt === undefined) {
-          args.where = { ...args.where, deletedAt: null };
+          args.where = { ...args.where, deletedAt: null }
         }
-        return query(args);
+        return query(args)
       },
     },
 
@@ -72,7 +69,7 @@ export const prisma = prismaBase.$extends({
         return prismaBase.$transaction(async (tx) => {
           const existingMetrics = await tx.overallMetrics.findUnique({
             where: args.where,
-          });
+          })
           if (existingMetrics) {
             await tx.overallMetricsHistory.create({
               data: {
@@ -87,16 +84,16 @@ export const prisma = prismaBase.$extends({
                 refDomains: existingMetrics.refDomains,
                 customerId: existingMetrics.customerId,
               },
-            });
+            })
           }
-          return tx.overallMetrics.update(args);
-        });
+          return tx.overallMetrics.update(args)
+        })
       },
       async upsert({ args }) {
         return prismaBase.$transaction(async (tx) => {
           const existingMetrics = await tx.overallMetrics.findUnique({
             where: args.where,
-          });
+          })
           if (existingMetrics) {
             await tx.overallMetricsHistory.create({
               data: {
@@ -111,10 +108,10 @@ export const prisma = prismaBase.$extends({
                 refDomains: existingMetrics.refDomains,
                 customerId: existingMetrics.customerId,
               },
-            });
+            })
           }
-          return tx.overallMetrics.upsert(args);
-        });
+          return tx.overallMetrics.upsert(args)
+        })
       },
     },
 
@@ -124,7 +121,7 @@ export const prisma = prismaBase.$extends({
         return prismaBase.$transaction(async (tx) => {
           const existingKeyword = await tx.keywordReport.findUnique({
             where: args.where,
-          });
+          })
           if (existingKeyword) {
             await tx.keywordReportHistory.create({
               data: {
@@ -135,15 +132,15 @@ export const prisma = prismaBase.$extends({
                 isTopReport: existingKeyword.isTopReport,
                 reportId: existingKeyword.id,
               },
-            });
+            })
           }
-          return tx.keywordReport.update(args);
-        });
+          return tx.keywordReport.update(args)
+        })
       },
     },
   },
-});
+})
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prismaBase;
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prismaBase
 
-export default prisma;
+export default prisma

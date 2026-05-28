@@ -1,36 +1,32 @@
-"use client";
+'use client'
 
-import React from "react";
-import Link from "next/link";
-import { ArrowLeft, Loader2, Plus } from "lucide-react";
-import { useSession } from "next-auth/react";
-import { useGetUsers, useGetSeoDevs } from "@/hooks/api/useUsersApi";
+import React from 'react'
+import Link from 'next/link'
+import { ArrowLeft, Loader2, Plus } from 'lucide-react'
+import { useSession } from 'next-auth/react'
+import { useGetUsers, useGetSeoDevs } from '@/hooks/api/useUsersApi'
 import {
   useToggleMetricsHistoryVisibility,
   useToggleKeywordHistoryVisibility,
-} from "@/hooks/api/useCustomersApi";
-import { Role } from "@/types/auth";
-import { Button } from "@/components/ui/button";
-import { DashboardLayout } from "@/components/Layout/DashboardLayout";
-import { UserTable } from "./UserTable";
-import { UserModal } from "./UserModal";
-import { MetricsModal } from "./MetricsModal/MetricsModal";
-import { HistoryModal } from "./MetricsModal/HistoryModal";
-import { KeywordHistoryModal } from "./MetricsModal/KeywordHistoryModal";
-import { ConfirmAlert } from "@/components/shared/ConfirmAlert";
-import { useUserModalLogic } from "@/hooks/ui/useUserModalLogic";
-import { useUserConfirmDialog } from "@/hooks/ui/useUserConfirmDialog";
-import { useCustomerMetricsModal } from "@/hooks/ui/useCustomerMetricsModal";
+} from '@/hooks/api/useCustomersApi'
+import { Role } from '@/types/auth'
+import { Button } from '@/components/ui/button'
+import { DashboardLayout } from '@/components/Layout/DashboardLayout'
+import { UserTable } from './UserTable'
+import { UserModal } from './UserModal'
+import { MetricsModal } from './MetricsModal/MetricsModal'
+import { HistoryModal } from './MetricsModal/HistoryModal'
+import { KeywordHistoryModal } from './MetricsModal/KeywordHistoryModal'
+import { ConfirmAlert } from '@/components/shared/ConfirmAlert'
+import { useUserModalLogic } from '@/hooks/ui/useUserModalLogic'
+import { useUserConfirmDialog } from '@/hooks/ui/useUserConfirmDialog'
+import { useCustomerMetricsModal } from '@/hooks/ui/useCustomerMetricsModal'
 
 const UserManagement: React.FC = () => {
-  const { data: session } = useSession();
+  const { data: session } = useSession()
 
-  const {
-    data: users = [],
-    isLoading: loading,
-    error: usersError,
-  } = useGetUsers(true);
-  const { data: seoDevs = [] } = useGetSeoDevs();
+  const { data: users = [], isLoading: loading, error: usersError } = useGetUsers(true)
+  const { data: seoDevs = [] } = useGetSeoDevs()
 
   const {
     isModalOpen,
@@ -41,7 +37,7 @@ const UserManagement: React.FC = () => {
     handleSaveUser,
     handlePasswordUpdate,
     handleFormChange,
-  } = useUserModalLogic();
+  } = useUserModalLogic()
 
   const {
     confirmState,
@@ -49,7 +45,7 @@ const UserManagement: React.FC = () => {
     handleRestoreUser,
     handleConfirmAction,
     handleCloseConfirm,
-  } = useUserConfirmDialog();
+  } = useUserConfirmDialog()
 
   const {
     metrics,
@@ -85,10 +81,10 @@ const UserManagement: React.FC = () => {
     handleCloseHistory,
     handleOpenKeywordHistory,
     handleCloseKeywordHistory,
-  } = useCustomerMetricsModal(users);
+  } = useCustomerMetricsModal(users)
 
-  const toggleMetricsVisibility = useToggleMetricsHistoryVisibility();
-  const toggleKeywordVisibility = useToggleKeywordHistoryVisibility();
+  const toggleMetricsVisibility = useToggleMetricsHistoryVisibility()
+  const toggleKeywordVisibility = useToggleKeywordHistoryVisibility()
 
   return (
     <DashboardLayout>
@@ -101,10 +97,8 @@ const UserManagement: React.FC = () => {
               </Link>
             </Button>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
-                การจัดการผู้ใช้งาน
-              </h1>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <h1 className="text-3xl font-bold tracking-tight md:text-4xl">การจัดการผู้ใช้งาน</h1>
+              <p className="text-muted-foreground mt-1 text-sm">
                 จัดการบัญชีผู้ใช้งานทั้งหมดในระบบ
               </p>
             </div>
@@ -122,15 +116,15 @@ const UserManagement: React.FC = () => {
         {usersError && (
           <div
             role="alert"
-            className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+            className="border-destructive/30 bg-destructive/10 text-destructive mb-4 rounded-lg border px-4 py-3 text-sm"
           >
-            {usersError.message || "เกิดข้อผิดพลาดในการโหลดข้อมูล"}
+            {usersError.message || 'เกิดข้อผิดพลาดในการโหลดข้อมูล'}
           </div>
         )}
 
         {loading ? (
           <div className="flex min-h-96 items-center justify-center">
-            <Loader2 className="size-10 animate-spin text-secondary" />
+            <Loader2 className="text-secondary size-10 animate-spin" />
           </div>
         ) : (
           <UserTable
@@ -148,9 +142,7 @@ const UserManagement: React.FC = () => {
             isEditing={isEditing}
             currentUser={currentUser}
             onClose={handleCloseUserModal}
-            onSave={() =>
-              handleSaveUser(session?.user as { id: string; role: Role })
-            }
+            onSave={() => handleSaveUser(session?.user as { id: string; role: Role })}
             onSavePassword={handlePasswordUpdate}
             onFormChange={handleFormChange}
             seoDevs={seoDevs}
@@ -191,7 +183,7 @@ const UserManagement: React.FC = () => {
             onClose={handleCloseHistory}
             history={historyData.metricsHistory}
             keywordHistory={historyData.keywordHistory}
-            customerName={selectedCustomer.name || ""}
+            customerName={selectedCustomer.name || ''}
             isLoading={isLoadingCombinedHistory}
             canManage
             onToggleMetricsVisibility={(payload) =>
@@ -228,7 +220,7 @@ const UserManagement: React.FC = () => {
         />
       </div>
     </DashboardLayout>
-  );
-};
+  )
+}
 
-export default UserManagement;
+export default UserManagement

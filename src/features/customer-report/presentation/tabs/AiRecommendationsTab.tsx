@@ -1,14 +1,14 @@
-"use client";
+'use client'
 
-import { AiOverviewCard } from "../AiOverviewCard";
-import { RecommendKeywordTable } from "../RecommendKeywordTable";
-import { AiOverviewTimelineBar } from "../widgets/AiOverviewTimelineBar";
-import { KdDistributionDonut } from "../widgets/KdDistributionDonut";
-import type { CustomerReportData } from "@/hooks/api/useCustomersApi";
+import { AiOverviewCard } from '../AiOverviewCard'
+import { RecommendKeywordTable } from '../RecommendKeywordTable'
+import { AiOverviewTimelineBar } from '../widgets/AiOverviewTimelineBar'
+import { KdDistributionDonut } from '../widgets/KdDistributionDonut'
+import type { CustomerReportData } from '@/hooks/api/useCustomersApi'
 
 interface AiRecommendationsTabProps {
-  recommendations: CustomerReportData["recommendations"];
-  aiOverviews: CustomerReportData["aiOverviews"];
+  recommendations: CustomerReportData['recommendations']
+  aiOverviews: CustomerReportData['aiOverviews']
 }
 
 // Tab 4: AI & Recommendations — "ต่อไปทำอะไร?"
@@ -17,8 +17,8 @@ export const AiRecommendationsTab = ({
   aiOverviews,
 }: AiRecommendationsTabProps) => {
   const recsForKd = (recommendations ?? []).map((r) => ({
-    kd: r.kd ?? "MEDIUM",
-  }));
+    kd: r.kd ?? 'MEDIUM',
+  }))
 
   return (
     <div className="flex flex-col gap-6">
@@ -40,10 +40,7 @@ export const AiRecommendationsTab = ({
       </div>
 
       {/* Row 3: Recommend table */}
-      <RecommendKeywordTable
-        title="Recommended Keywords"
-        keywords={recommendations ?? []}
-      />
+      <RecommendKeywordTable title="Recommended Keywords" keywords={recommendations ?? []} />
     </div>
-  );
-};
+  )
+}

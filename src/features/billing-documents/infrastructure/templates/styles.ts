@@ -403,4 +403,4 @@ export const documentStyles = `
     height: 30px;
     background-color: #00b4a4;
   }
-`;
+`

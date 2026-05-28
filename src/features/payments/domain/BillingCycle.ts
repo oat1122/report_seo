@@ -1,30 +1,30 @@
-import type { PaymentProof } from "./PaymentProof";
+import type { PaymentProof } from './PaymentProof'
 
-export type BillingCycleStatus = "PENDING" | "REVIEWING" | "PAID" | "OVERDUE" | "CANCELLED";
+export type BillingCycleStatus = 'PENDING' | 'REVIEWING' | 'PAID' | 'OVERDUE' | 'CANCELLED'
 
 export interface BillingCycle {
-  id: string;
-  planId: string;
-  cycleNumber: number;
-  dueDate: Date;
-  amount: number;
-  status: BillingCycleStatus;
-  paidDate: Date | null;
-  note: string | null;
-  createdAt: Date;
-  updatedAt: Date;
+  id: string
+  planId: string
+  cycleNumber: number
+  dueDate: Date
+  amount: number
+  status: BillingCycleStatus
+  paidDate: Date | null
+  note: string | null
+  createdAt: Date
+  updatedAt: Date
 }
 
 export interface BillingCycleWithProofs extends BillingCycle {
-  proofs: PaymentProof[];
+  proofs: PaymentProof[]
 }
 
 export interface BillingCycleWithPlan extends BillingCycle {
   plan: {
-    id: string;
-    description: string;
-    type: string;
-    documentTemplateId: string | null;
-  };
-  proofs: PaymentProof[];
+    id: string
+    description: string
+    type: string
+    documentTemplateId: string | null
+  }
+  proofs: PaymentProof[]
 }

@@ -3,35 +3,32 @@ import type {
   WorkProgressActivityAction,
   WorkProgressActivityEntity,
   WorkProgressActivityDiff,
-} from "../../domain/WorkProgressActivity";
+} from '../../domain/WorkProgressActivity'
 
 export interface ActivityLogInput {
-  planId: string;
-  actorId: string | null;
-  action: WorkProgressActivityAction;
-  entity: WorkProgressActivityEntity;
-  entityId?: string | null;
-  diff?: WorkProgressActivityDiff | null;
+  planId: string
+  actorId: string | null
+  action: WorkProgressActivityAction
+  entity: WorkProgressActivityEntity
+  entityId?: string | null
+  diff?: WorkProgressActivityDiff | null
 }
 
 export interface ActivityListQuery {
-  planId: string;
-  limit: number;
-  cursor?: string;
-  entity?: WorkProgressActivityEntity;
-  action?: WorkProgressActivityAction;
+  planId: string
+  limit: number
+  cursor?: string
+  entity?: WorkProgressActivityEntity
+  action?: WorkProgressActivityAction
 }
 
 export interface ActivityListResult {
-  items: WorkProgressActivity[];
-  nextCursor: string | null;
+  items: WorkProgressActivity[]
+  nextCursor: string | null
 }
 
 export interface WorkProgressActivityRepository {
-  log(input: ActivityLogInput): Promise<void>;
-  list(query: ActivityListQuery): Promise<ActivityListResult>;
-  listRecentForCustomer(
-    customerId: string,
-    limit: number,
-  ): Promise<WorkProgressActivity[]>;
+  log(input: ActivityLogInput): Promise<void>
+  list(query: ActivityListQuery): Promise<ActivityListResult>
+  listRecentForCustomer(customerId: string, limit: number): Promise<WorkProgressActivity[]>
 }

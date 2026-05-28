@@ -1,5 +1,5 @@
-import { DashboardLayout } from "@/components/Layout/DashboardLayout";
-import { Skeleton } from "@/components/ui/skeleton";
+import { DashboardLayout } from '@/components/Layout/DashboardLayout'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export default function CustomerLoading() {
   return (
@@ -36,5 +36,5 @@ export default function CustomerLoading() {
         </div>
       </div>
     </DashboardLayout>
-  );
+  )
 }

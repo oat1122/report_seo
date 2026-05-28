@@ -1,57 +1,50 @@
 // src/components/Customer/Report/contexts/HistoryContext.tsx
-"use client";
+'use client'
 
-import React, { createContext, useContext, useMemo, ReactNode } from "react";
-import {
-  useGetCombinedHistory,
-  CurrentKeyword,
-} from "@/hooks/api/useCustomersApi";
-import { OverallMetricsHistory, KeywordReportHistory } from "@/types/history";
+import React, { createContext, useContext, useMemo, ReactNode } from 'react'
+import { useGetCombinedHistory, CurrentKeyword } from '@/hooks/api/useCustomersApi'
+import { OverallMetricsHistory, KeywordReportHistory } from '@/types/history'
 
 // --- Types ---
 interface HistoryContextValue {
-  metricsHistory: OverallMetricsHistory[];
-  keywordHistory: KeywordReportHistory[];
-  currentKeywords: CurrentKeyword[]; // Keywords ปัจจุบัน (เรียงตาม traffic)
-  isLoading: boolean;
-  error: Error | null;
+  metricsHistory: OverallMetricsHistory[]
+  keywordHistory: KeywordReportHistory[]
+  currentKeywords: CurrentKeyword[] // Keywords ปัจจุบัน (เรียงตาม traffic)
+  isLoading: boolean
+  error: Error | null
 }
 
 interface HistoryProviderProps {
-  customerId: string;
-  children: ReactNode;
+  customerId: string
+  children: ReactNode
 }
 
 // --- Context ---
-const HistoryContext = createContext<HistoryContextValue | undefined>(
-  undefined,
-);
+const HistoryContext = createContext<HistoryContextValue | undefined>(undefined)
 
 // --- Provider Component ---
-export const HistoryProvider: React.FC<HistoryProviderProps> = ({
-  customerId,
-  children,
-}) => {
-  const { data, isLoading, error } = useGetCombinedHistory(customerId);
+export const HistoryProvider: React.FC<HistoryProviderProps> = ({ customerId, children }) => {
+  const { data, isLoading, error } = useGetCombinedHistory(customerId)
 
-  const value: HistoryContextValue = useMemo(() => ({
-    metricsHistory: (data?.metricsHistory || []).filter((r) => r.isVisible),
-    keywordHistory: (data?.keywordHistory || []).filter((r) => r.isVisible),
-    currentKeywords: data?.currentKeywords || [],
-    isLoading,
-    error: error as Error | null,
-  }), [data, isLoading, error]);
+  const value: HistoryContextValue = useMemo(
+    () => ({
+      metricsHistory: (data?.metricsHistory || []).filter((r) => r.isVisible),
+      keywordHistory: (data?.keywordHistory || []).filter((r) => r.isVisible),
+      currentKeywords: data?.currentKeywords || [],
+      isLoading,
+      error: error as Error | null,
+    }),
+    [data, isLoading, error],
+  )
 
-  return (
-    <HistoryContext.Provider value={value}>{children}</HistoryContext.Provider>
-  );
-};
+  return <HistoryContext.Provider value={value}>{children}</HistoryContext.Provider>
+}
 
 // --- Custom Hook ---
 export const useHistoryContext = (): HistoryContextValue => {
-  const context = useContext(HistoryContext);
+  const context = useContext(HistoryContext)
   if (context === undefined) {
-    throw new Error("useHistoryContext must be used within a HistoryProvider");
+    throw new Error('useHistoryContext must be used within a HistoryProvider')
   }
-  return context;
-};
+  return context
+}

@@ -1,19 +1,19 @@
-import { useState } from "react";
+import { useState } from 'react'
 
 export const useMobileDrawer = () => {
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
+    setMobileOpen(!mobileOpen)
+  }
 
   const handleDrawerClose = () => {
-    setMobileOpen(false);
-  };
+    setMobileOpen(false)
+  }
 
   return {
     mobileOpen,
     handleDrawerToggle,
     handleDrawerClose,
-  };
-};
+  }
+}

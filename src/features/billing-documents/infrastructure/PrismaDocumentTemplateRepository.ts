@@ -1,88 +1,84 @@
-import { prisma } from "@/infrastructure/prisma/client";
+import { prisma } from '@/infrastructure/prisma/client'
 import type {
   DocumentTemplate,
   DocumentTemplateDetail,
   DocumentTemplateItem,
   DocumentTemplateScope,
-} from "../domain/DocumentTemplate";
+} from '../domain/DocumentTemplate'
 import type {
   DocumentTemplateRepository,
   CreateTemplateData,
   UpdateTemplateData,
   TemplateItemInput,
-} from "../application/ports/DocumentTemplateRepository";
+} from '../application/ports/DocumentTemplateRepository'
 
 function toTemplate(row: {
-  id: string;
-  name: string;
-  scope: string;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  id: string
+  name: string
+  scope: string
+  isActive: boolean
+  createdAt: Date
+  updatedAt: Date
 }): DocumentTemplate {
   return {
     ...row,
     scope: row.scope as DocumentTemplateScope,
-  };
+  }
 }
 
 function toItem(row: {
-  id: string;
-  templateId: string;
-  description: string;
-  quantity: number;
-  unit: string;
-  unitPrice: unknown;
-  orderIndex: number;
+  id: string
+  templateId: string
+  description: string
+  quantity: number
+  unit: string
+  unitPrice: unknown
+  orderIndex: number
 }): DocumentTemplateItem {
   return {
     ...row,
     unitPrice: Number(row.unitPrice),
-  };
+  }
 }
 
-function toDetail(
-  row: {
-    id: string;
-    name: string;
-    scope: string;
-    isActive: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-    items: Array<{
-      id: string;
-      templateId: string;
-      description: string;
-      quantity: number;
-      unit: string;
-      unitPrice: unknown;
-      orderIndex: number;
-    }>;
-  },
-): DocumentTemplateDetail {
+function toDetail(row: {
+  id: string
+  name: string
+  scope: string
+  isActive: boolean
+  createdAt: Date
+  updatedAt: Date
+  items: Array<{
+    id: string
+    templateId: string
+    description: string
+    quantity: number
+    unit: string
+    unitPrice: unknown
+    orderIndex: number
+  }>
+}): DocumentTemplateDetail {
   return {
     ...toTemplate(row),
     items: row.items.map(toItem),
-  };
+  }
 }
 
-export class PrismaDocumentTemplateRepository
-  implements DocumentTemplateRepository
-{
+export class PrismaDocumentTemplateRepository implements DocumentTemplateRepository {
   async list(scope?: DocumentTemplateScope): Promise<DocumentTemplate[]> {
     const rows = await prisma.documentTemplate.findMany({
       where: scope ? { scope } : undefined,
-      orderBy: { createdAt: "desc" },
-    });
-    return rows.map(toTemplate);
+      orderBy: { createdAt: 'desc' },
+    })
+    return rows.map(toTemplate)
   }
 
   async findById(id: string): Promise<DocumentTemplateDetail | null> {
     const row = await prisma.documentTemplate.findUnique({
       where: { id },
-      include: { items: { orderBy: { orderIndex: "asc" } } },
-    });
-    return row ? toDetail(row) : null;
+      include: { items: { orderBy: { orderIndex: 'asc' } } },
+    })
+    return row ? toDetail(row) : null
   }
 
   async create(data: CreateTemplateData): Promise<DocumentTemplateDetail> {
@@ -103,15 +99,12 @@ export class PrismaDocumentTemplateRepository
             }
           : undefined,
       },
-      include: { items: { orderBy: { orderIndex: "asc" } } },
-    });
-    return toDetail(row);
+      include: { items: { orderBy: { orderIndex: 'asc' } } },
+    })
+    return toDetail(row)
   }
 
-  async update(
-    id: string,
-    data: UpdateTemplateData,
-  ): Promise<DocumentTemplate> {
+  async update(id: string, data: UpdateTemplateData): Promise<DocumentTemplate> {
     const row = await prisma.documentTemplate.update({
       where: { id },
       data: {
@@ -119,12 +112,12 @@ export class PrismaDocumentTemplateRepository
         ...(data.scope !== undefined && { scope: data.scope }),
         ...(data.isActive !== undefined && { isActive: data.isActive }),
       },
-    });
-    return toTemplate(row);
+    })
+    return toTemplate(row)
   }
 
   async delete(id: string): Promise<void> {
-    await prisma.documentTemplate.delete({ where: { id } });
+    await prisma.documentTemplate.delete({ where: { id } })
   }
 
   async upsertItems(
@@ -132,16 +125,14 @@ export class PrismaDocumentTemplateRepository
     items: TemplateItemInput[],
   ): Promise<DocumentTemplateItem[]> {
     return prisma.$transaction(async (tx) => {
-      const existingIds = items
-        .map((i) => i.id)
-        .filter((id): id is string => !!id);
+      const existingIds = items.map((i) => i.id).filter((id): id is string => !!id)
 
       await tx.documentTemplateItem.deleteMany({
         where: {
           templateId,
           id: { notIn: existingIds },
         },
-      });
+      })
 
       for (const item of items) {
         if (item.id) {
@@ -154,7 +145,7 @@ export class PrismaDocumentTemplateRepository
               unitPrice: item.unitPrice,
               orderIndex: item.orderIndex,
             },
-          });
+          })
         } else {
           await tx.documentTemplateItem.create({
             data: {
@@ -165,15 +156,15 @@ export class PrismaDocumentTemplateRepository
               unitPrice: item.unitPrice,
               orderIndex: item.orderIndex,
             },
-          });
+          })
         }
       }
 
       const rows = await tx.documentTemplateItem.findMany({
         where: { templateId },
-        orderBy: { orderIndex: "asc" },
-      });
-      return rows.map(toItem);
-    });
+        orderBy: { orderIndex: 'asc' },
+      })
+      return rows.map(toItem)
+    })
   }
 }

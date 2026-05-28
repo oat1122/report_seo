@@ -1,21 +1,16 @@
-"use client";
+'use client'
 
-import { useRef } from "react";
-import { Upload, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { useUploadPaymentProof } from "../../hooks/usePaymentProofs";
+import { useRef } from 'react'
+import { Upload, Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { useUploadPaymentProof } from '../../hooks/usePaymentProofs'
 
 interface UploadProofDialogProps {
-  customerId: string;
-  billingCycleId: string | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  customerId: string
+  billingCycleId: string | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
 }
 
 export function UploadProofDialog({
@@ -24,12 +19,12 @@ export function UploadProofDialog({
   open,
   onOpenChange,
 }: UploadProofDialogProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const uploadMutation = useUploadPaymentProof();
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const uploadMutation = useUploadPaymentProof()
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const file = e.target.files?.[0]
+    if (!file) return
 
     uploadMutation.mutate(
       {
@@ -39,12 +34,12 @@ export function UploadProofDialog({
       },
       {
         onSuccess: () => {
-          onOpenChange(false);
+          onOpenChange(false)
         },
       },
-    );
-    e.target.value = "";
-  };
+    )
+    e.target.value = ''
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -54,7 +49,7 @@ export function UploadProofDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             เลือกรูปภาพสลิปโอนเงิน (JPG, PNG — ขนาดไม่เกิน 5MB)
           </p>
 
@@ -88,5 +83,5 @@ export function UploadProofDialog({
         </div>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

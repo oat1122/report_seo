@@ -1,8 +1,8 @@
-import { PrismaCustomerHubRepository } from "./infrastructure/PrismaCustomerHubRepository";
-import { getCustomerHubSummaryUseCase } from "./application/use-cases/getCustomerHubSummary";
+import { PrismaCustomerHubRepository } from './infrastructure/PrismaCustomerHubRepository'
+import { getCustomerHubSummaryUseCase } from './application/use-cases/getCustomerHubSummary'
 
-const repo = new PrismaCustomerHubRepository();
+const repo = new PrismaCustomerHubRepository()
 
-export const getCustomerHubSummary = getCustomerHubSummaryUseCase(repo);
+export const getCustomerHubSummary = getCustomerHubSummaryUseCase(repo)
 
-export type { CustomerHubSummary } from "./domain/CustomerHubSummary";
+export type { CustomerHubSummary } from './domain/CustomerHubSummary'

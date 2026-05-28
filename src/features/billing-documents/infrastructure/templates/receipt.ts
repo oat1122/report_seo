@@ -1,4 +1,4 @@
-import type { RenderData } from "../../application/use-cases/generateDocument";
+import type { RenderData } from '../../application/use-cases/generateDocument'
 import {
   wrapDocument,
   formatCurrency,
@@ -8,23 +8,20 @@ import {
   renderItemsTable,
   renderNote,
   renderSignatureFooter,
-} from "./base-template";
+} from './base-template'
 
 export function renderReceipt(data: RenderData): string {
-  const subtotal = data.items.reduce(
-    (sum, i) => sum + i.quantity * i.unitPrice,
-    0,
-  );
+  const subtotal = data.items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)
 
   const paidDateHtml = data.paidDate
     ? `<div class="meta-row">
         <span class="meta-label">วันที่ชำระ:</span>
         <span class="meta-value">${formatDate(data.paidDate)}</span>
       </div>`
-    : "";
+    : ''
 
   const body = `
-    ${renderCompanyHeader(data.company, "ใบเสร็จรับเงิน", data.documentNumber, data.generatedAt)}
+    ${renderCompanyHeader(data.company, 'ใบเสร็จรับเงิน', data.documentNumber, data.generatedAt)}
     ${renderCustomerSection(data.customer)}
     ${paidDateHtml}
     ${renderItemsTable(data.items)}
@@ -38,7 +35,7 @@ export function renderReceipt(data: RenderData): string {
     </div>
     ${renderNote(data.note)}
     ${renderSignatureFooter()}
-  `;
+  `
 
-  return wrapDocument(body, `ใบเสร็จรับเงิน ${data.documentNumber}`);
+  return wrapDocument(body, `ใบเสร็จรับเงิน ${data.documentNumber}`)
 }

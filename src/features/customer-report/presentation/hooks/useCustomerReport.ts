@@ -1,72 +1,66 @@
-"use client";
+'use client'
 
-import { useQuery } from "@tanstack/react-query";
-import axios from "@/infrastructure/http/axios";
+import { useQuery } from '@tanstack/react-query'
+import axios from '@/infrastructure/http/axios'
 import type {
   OverallMetricsForm,
   KeywordReport,
   KeywordRecommend,
   AiOverview,
-} from "@/types/metrics";
-import type {
-  OverallMetricsHistory,
-  KeywordReportHistory,
-} from "@/types/history";
+} from '@/types/metrics'
+import type { OverallMetricsHistory, KeywordReportHistory } from '@/types/history'
 
-type ApiData<T> = { data: T };
+type ApiData<T> = { data: T }
 
 export interface CustomerReportData {
-  metrics: OverallMetricsForm | null;
-  topKeywords: KeywordReport[];
-  otherKeywords: KeywordReport[];
-  recommendations: KeywordRecommend[];
-  aiOverviews: AiOverview[];
-  customerName: string | null;
-  domain: string | null;
+  metrics: OverallMetricsForm | null
+  topKeywords: KeywordReport[]
+  otherKeywords: KeywordReport[]
+  recommendations: KeywordRecommend[]
+  aiOverviews: AiOverview[]
+  customerName: string | null
+  domain: string | null
 }
 
 export interface CurrentKeyword {
-  id: string;
-  keyword: string;
-  position: number | null;
-  traffic: number;
-  kd: string;
-  isTopReport: boolean;
-  dateRecorded: string;
-  customerId: string;
+  id: string
+  keyword: string
+  position: number | null
+  traffic: number
+  kd: string
+  isTopReport: boolean
+  dateRecorded: string
+  customerId: string
 }
 
 export interface CombinedHistoryData {
-  metricsHistory: OverallMetricsHistory[];
-  keywordHistory: KeywordReportHistory[];
-  currentKeywords: CurrentKeyword[];
+  metricsHistory: OverallMetricsHistory[]
+  keywordHistory: KeywordReportHistory[]
+  currentKeywords: CurrentKeyword[]
 }
 
-export const useGetCustomerReport = (
-  customerId: string,
-  initialData?: CustomerReportData,
-) =>
+export const useGetCustomerReport = (customerId: string, initialData?: CustomerReportData) =>
   useQuery<CustomerReportData, Error>({
-    queryKey: ["customerReport", customerId],
+    queryKey: ['customerReport', customerId],
     queryFn: async () => {
       const { data } = await axios.get<ApiData<CustomerReportData>>(
         `/customers/${customerId}/report`,
-      );
-      return data.data;
+      )
+      return data.data
     },
     enabled: !!customerId,
     initialData,
-  });
+  })
 
 export const useGetCombinedHistory = (customerId: string | null) =>
   useQuery<CombinedHistoryData, Error>({
-    queryKey: ["history", customerId],
+    queryKey: ['history', customerId],
     queryFn: async () => {
       const { data } = await axios.get<ApiData<CombinedHistoryData>>(
         `/customers/${customerId}/metrics/history`,
-      );
-      return data.data;
+      )
+      return data.data
     },
     enabled: !!customerId,
     staleTime: 5 * 60 * 1000,
-  });
+  })

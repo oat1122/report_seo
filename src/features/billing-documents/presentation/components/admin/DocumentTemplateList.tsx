@@ -1,17 +1,11 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { Loader2, Plus, Pencil, Trash2, LayoutTemplate } from "lucide-react";
-import { toast } from "react-toastify";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { useState } from 'react'
+import { Loader2, Plus, Pencil, Trash2, LayoutTemplate } from 'lucide-react'
+import { toast } from 'react-toastify'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -19,7 +13,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,55 +23,50 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog'
 import {
   useListDocumentTemplates,
   useDeleteDocumentTemplate,
-} from "../../hooks/useDocumentTemplates";
-import { DocumentTemplateEditor } from "./DocumentTemplateEditor";
-import type { DocumentTemplate } from "../../../domain/DocumentTemplate";
+} from '../../hooks/useDocumentTemplates'
+import { DocumentTemplateEditor } from './DocumentTemplateEditor'
+import type { DocumentTemplate } from '../../../domain/DocumentTemplate'
 
 export function DocumentTemplateList() {
-  const { data: templates = [], isLoading } = useListDocumentTemplates();
-  const deleteMutation = useDeleteDocumentTemplate();
+  const { data: templates = [], isLoading } = useListDocumentTemplates()
+  const deleteMutation = useDeleteDocumentTemplate()
 
-  const [editorOpen, setEditorOpen] = useState(false);
-  const [editTemplate, setEditTemplate] = useState<DocumentTemplate | null>(
-    null,
-  );
-  const [deleteTarget, setDeleteTarget] = useState<DocumentTemplate | null>(
-    null,
-  );
+  const [editorOpen, setEditorOpen] = useState(false)
+  const [editTemplate, setEditTemplate] = useState<DocumentTemplate | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<DocumentTemplate | null>(null)
 
   const handleEdit = (template: DocumentTemplate) => {
-    setEditTemplate(template);
-    setEditorOpen(true);
-  };
+    setEditTemplate(template)
+    setEditorOpen(true)
+  }
 
   const handleCreate = () => {
-    setEditTemplate(null);
-    setEditorOpen(true);
-  };
+    setEditTemplate(null)
+    setEditorOpen(true)
+  }
 
   const handleDelete = () => {
-    if (!deleteTarget) return;
+    if (!deleteTarget) return
     deleteMutation.mutate(deleteTarget.id, {
       onSuccess: () => {
-        toast.success("ลบ template เรียบร้อย");
-        setDeleteTarget(null);
+        toast.success('ลบ template เรียบร้อย')
+        setDeleteTarget(null)
       },
-    });
-  };
+    })
+  }
 
-  const scopeLabel = (scope: string) =>
-    scope === "GENERAL" ? "กลาง" : "เฉพาะแผน";
+  const scopeLabel = (scope: string) => (scope === 'GENERAL' ? 'กลาง' : 'เฉพาะแผน')
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-10">
-        <Loader2 className="size-5 animate-spin text-muted-foreground" />
+        <Loader2 className="text-muted-foreground size-5 animate-spin" />
       </div>
-    );
+    )
   }
 
   return (
@@ -90,9 +79,7 @@ export function DocumentTemplateList() {
                 <LayoutTemplate className="size-5" />
                 Template เอกสาร
               </CardTitle>
-              <CardDescription>
-                กำหนดรายการสินค้า/บริการที่จะแสดงในเอกสาร PDF
-              </CardDescription>
+              <CardDescription>กำหนดรายการสินค้า/บริการที่จะแสดงในเอกสาร PDF</CardDescription>
             </div>
             <Button size="sm" onClick={handleCreate}>
               <Plus className="mr-1 size-4" />
@@ -102,7 +89,7 @@ export function DocumentTemplateList() {
         </CardHeader>
         <CardContent>
           {templates.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">
+            <p className="text-muted-foreground py-8 text-center text-sm">
               ยังไม่มี template — กด &quot;สร้าง Template&quot; เพื่อเริ่มต้น
             </p>
           ) : (
@@ -121,41 +108,29 @@ export function DocumentTemplateList() {
                   <TableRow key={t.id}>
                     <TableCell className="font-medium">{t.name}</TableCell>
                     <TableCell>
-                      <Badge
-                        variant={
-                          t.scope === "GENERAL" ? "secondary" : "outline"
-                        }
-                      >
+                      <Badge variant={t.scope === 'GENERAL' ? 'secondary' : 'outline'}>
                         {scopeLabel(t.scope)}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={t.isActive ? "default" : "destructive"}>
-                        {t.isActive ? "ใช้งาน" : "ปิด"}
+                      <Badge variant={t.isActive ? 'default' : 'destructive'}>
+                        {t.isActive ? 'ใช้งาน' : 'ปิด'}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {new Date(t.createdAt).toLocaleDateString("th-TH", {
-                        day: "numeric",
-                        month: "short",
-                        year: "2-digit",
+                    <TableCell className="text-muted-foreground text-sm">
+                      {new Date(t.createdAt).toLocaleDateString('th-TH', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: '2-digit',
                       })}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          onClick={() => handleEdit(t)}
-                        >
+                        <Button variant="ghost" size="icon-sm" onClick={() => handleEdit(t)}>
                           <Pencil className="size-3.5" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          onClick={() => setDeleteTarget(t)}
-                        >
-                          <Trash2 className="size-3.5 text-destructive" />
+                        <Button variant="ghost" size="icon-sm" onClick={() => setDeleteTarget(t)}>
+                          <Trash2 className="text-destructive size-3.5" />
                         </Button>
                       </div>
                     </TableCell>
@@ -173,16 +148,13 @@ export function DocumentTemplateList() {
         editTemplate={editTemplate}
       />
 
-      <AlertDialog
-        open={!!deleteTarget}
-        onOpenChange={(open) => !open && setDeleteTarget(null)}
-      >
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>ลบ Template?</AlertDialogTitle>
             <AlertDialogDescription>
-              Template &quot;{deleteTarget?.name}&quot;
-              จะถูกลบถาวร แผนชำระที่เชื่อมโยงจะสูญเสียการเชื่อมต่อ
+              Template &quot;{deleteTarget?.name}&quot; จะถูกลบถาวร
+              แผนชำระที่เชื่อมโยงจะสูญเสียการเชื่อมต่อ
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -191,14 +163,12 @@ export function DocumentTemplateList() {
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteMutation.isPending && (
-                <Loader2 className="mr-2 size-4 animate-spin" />
-              )}
+              {deleteMutation.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
               ลบ
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </>
-  );
+  )
 }

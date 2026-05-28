@@ -1,28 +1,28 @@
-"use client";
+'use client'
 
-import { useRef, useState } from "react";
-import Image from "next/image";
-import { ExternalLink, FileText, Link2, Trash2, Upload } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { toast } from "react-toastify";
+import { useRef, useState } from 'react'
+import Image from 'next/image'
+import { ExternalLink, FileText, Link2, Trash2, Upload } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { toast } from 'react-toastify'
 import {
   useAddLinkAttachment,
   useDeleteAttachment,
   useUploadAttachment,
-} from "../../hooks/useAttachmentActions";
-import type { WorkProgressAttachment } from "@/features/work-progress";
+} from '../../hooks/useAttachmentActions'
+import type { WorkProgressAttachment } from '@/features/work-progress'
 
 interface AttachmentGalleryProps {
-  userId: string;
-  planId: string;
-  itemId: string;
-  attachments: WorkProgressAttachment[];
-  readOnly?: boolean;
+  userId: string
+  planId: string
+  itemId: string
+  attachments: WorkProgressAttachment[]
+  readOnly?: boolean
 }
 
-const MAX_SIZE = 5 * 1024 * 1024;
+const MAX_SIZE = 5 * 1024 * 1024
 
 export function AttachmentGallery({
   userId,
@@ -31,40 +31,40 @@ export function AttachmentGallery({
   attachments,
   readOnly,
 }: AttachmentGalleryProps) {
-  const uploadMut = useUploadAttachment();
-  const linkMut = useAddLinkAttachment();
-  const deleteMut = useDeleteAttachment();
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [linkUrl, setLinkUrl] = useState("");
-  const [linkCaption, setLinkCaption] = useState("");
+  const uploadMut = useUploadAttachment()
+  const linkMut = useAddLinkAttachment()
+  const deleteMut = useDeleteAttachment()
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [linkUrl, setLinkUrl] = useState('')
+  const [linkCaption, setLinkCaption] = useState('')
 
-  const images = attachments.filter((a) => a.kind === "IMAGE");
-  const others = attachments.filter((a) => a.kind !== "IMAGE");
+  const images = attachments.filter((a) => a.kind === 'IMAGE')
+  const others = attachments.filter((a) => a.kind !== 'IMAGE')
 
-  const handlePick = () => inputRef.current?.click();
+  const handlePick = () => inputRef.current?.click()
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
-    e.target.value = "";
-    if (!f) return;
+    const f = e.target.files?.[0]
+    e.target.value = ''
+    if (!f) return
     if (f.size > MAX_SIZE) {
-      toast.error("ไฟล์ใหญ่เกิน 5MB");
-      return;
+      toast.error('ไฟล์ใหญ่เกิน 5MB')
+      return
     }
-    await uploadMut.mutateAsync({ userId, planId, itemId, file: f });
-  };
+    await uploadMut.mutateAsync({ userId, planId, itemId, file: f })
+  }
 
   const handleAddLink = async () => {
-    if (!linkUrl.trim()) return;
+    if (!linkUrl.trim()) return
     await linkMut.mutateAsync({
       userId,
       planId,
       itemId,
       body: { url: linkUrl.trim(), caption: linkCaption.trim() || null },
-    });
-    setLinkUrl("");
-    setLinkCaption("");
-  };
+    })
+    setLinkUrl('')
+    setLinkCaption('')
+  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -73,11 +73,11 @@ export function AttachmentGallery({
           {images.map((a) => (
             <div
               key={a.id}
-              className="group relative aspect-square overflow-hidden rounded-md border border-border bg-muted"
+              className="group border-border bg-muted relative aspect-square overflow-hidden rounded-md border"
             >
               <Image
                 src={a.url}
-                alt={a.caption ?? a.filename ?? "attachment"}
+                alt={a.caption ?? a.filename ?? 'attachment'}
                 fill
                 sizes="200px"
                 className="object-cover"
@@ -86,7 +86,7 @@ export function AttachmentGallery({
                 <Button
                   size="icon"
                   variant="destructive"
-                  className="absolute right-1 top-1 opacity-0 transition group-hover:opacity-100"
+                  className="absolute top-1 right-1 opacity-0 transition group-hover:opacity-100"
                   onClick={() =>
                     deleteMut.mutate({
                       userId,
@@ -110,12 +110,12 @@ export function AttachmentGallery({
           {others.map((a) => (
             <li
               key={a.id}
-              className="flex items-center gap-2 rounded-md border border-border px-2 py-1.5"
+              className="border-border flex items-center gap-2 rounded-md border px-2 py-1.5"
             >
-              {a.kind === "LINK" ? (
-                <Link2 className="size-4 text-muted-foreground" />
+              {a.kind === 'LINK' ? (
+                <Link2 className="text-muted-foreground size-4" />
               ) : (
-                <FileText className="size-4 text-muted-foreground" />
+                <FileText className="text-muted-foreground size-4" />
               )}
               <a
                 href={a.url}
@@ -157,11 +157,11 @@ export function AttachmentGallery({
       )}
 
       {attachments.length === 0 && (
-        <p className="text-xs text-muted-foreground">ยังไม่มีไฟล์ / link</p>
+        <p className="text-muted-foreground text-xs">ยังไม่มีไฟล์ / link</p>
       )}
 
       {!readOnly && (
-        <div className="flex flex-col gap-3 rounded-md border border-dashed border-border bg-muted/20 p-3">
+        <div className="border-border bg-muted/20 flex flex-col gap-3 rounded-md border border-dashed p-3">
           <div className="flex items-center gap-2">
             <Button
               type="button"
@@ -173,15 +173,10 @@ export function AttachmentGallery({
               <Upload className="size-4" />
               อัปโหลดไฟล์
             </Button>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-muted-foreground text-xs">
               สูงสุด 5MB · png/jpg/webp/pdf/doc/xls
             </span>
-            <input
-              ref={inputRef}
-              type="file"
-              hidden
-              onChange={handleFile}
-            />
+            <input ref={inputRef} type="file" hidden onChange={handleFile} />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="att-link" className="text-xs">
@@ -217,5 +212,5 @@ export function AttachmentGallery({
         </div>
       )}
     </div>
-  );
+  )
 }

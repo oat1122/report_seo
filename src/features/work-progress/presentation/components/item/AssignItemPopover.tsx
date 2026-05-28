@@ -1,8 +1,8 @@
-"use client";
+'use client'
 
-import { useMemo, useState } from "react";
-import { Check, ChevronsUpDown, User, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useMemo, useState } from 'react'
+import { Check, ChevronsUpDown, User, X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import {
   Command,
   CommandEmpty,
@@ -10,18 +10,18 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { useGetSeoDevs } from "@/features/users/presentation/hooks/useUsers";
-import { useAssignItem } from "../../hooks/useItemMutations";
+} from '@/components/ui/command'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { cn } from '@/lib/utils'
+import { useGetSeoDevs } from '@/features/users/presentation/hooks/useUsers'
+import { useAssignItem } from '../../hooks/useItemMutations'
 
 interface AssignItemPopoverProps {
-  userId: string;
-  planId: string;
-  itemId: string;
-  currentAssigneeId: string | null;
-  readOnly?: boolean;
+  userId: string
+  planId: string
+  itemId: string
+  currentAssigneeId: string | null
+  readOnly?: boolean
 }
 
 export function AssignItemPopover({
@@ -31,31 +31,29 @@ export function AssignItemPopover({
   currentAssigneeId,
   readOnly,
 }: AssignItemPopoverProps) {
-  const { data: seoDevs, isLoading } = useGetSeoDevs();
-  const assignMut = useAssignItem();
-  const [open, setOpen] = useState(false);
+  const { data: seoDevs, isLoading } = useGetSeoDevs()
+  const assignMut = useAssignItem()
+  const [open, setOpen] = useState(false)
 
   const current = useMemo(
     () => (seoDevs ?? []).find((u) => u.id === currentAssigneeId),
     [seoDevs, currentAssigneeId],
-  );
+  )
 
   const handleSelect = async (assigneeId: string | null) => {
-    setOpen(false);
+    setOpen(false)
     await assignMut.mutateAsync({
       userId,
       planId,
       itemId,
       body: { assignedToId: assigneeId },
-    });
-  };
+    })
+  }
 
   if (readOnly) {
     return (
-      <span className="text-sm">
-        {current ? (current.name ?? current.email) : "ไม่ได้กำหนด"}
-      </span>
-    );
+      <span className="text-sm">{current ? (current.name ?? current.email) : 'ไม่ได้กำหนด'}</span>
+    )
   }
 
   return (
@@ -64,15 +62,12 @@ export function AssignItemPopover({
         <Button
           variant="outline"
           size="sm"
-          className={cn(
-            "justify-between gap-2",
-            !current && "text-muted-foreground",
-          )}
+          className={cn('justify-between gap-2', !current && 'text-muted-foreground')}
           disabled={isLoading || assignMut.isPending}
         >
           <span className="flex items-center gap-2">
             <User className="size-4" />
-            {current ? (current.name ?? current.email) : "ไม่ได้กำหนด"}
+            {current ? (current.name ?? current.email) : 'ไม่ได้กำหนด'}
           </span>
           <ChevronsUpDown className="size-3.5 opacity-50" />
         </Button>
@@ -93,18 +88,12 @@ export function AssignItemPopover({
                 <CommandItem key={u.id} onSelect={() => handleSelect(u.id)}>
                   <Check
                     className={cn(
-                      "size-4",
-                      currentAssigneeId === u.id ? "opacity-100" : "opacity-0",
+                      'size-4',
+                      currentAssigneeId === u.id ? 'opacity-100' : 'opacity-0',
                     )}
                   />
-                  <span className="flex-1 truncate">
-                    {u.name ?? u.email}
-                  </span>
-                  {u.name && (
-                    <span className="text-xs text-muted-foreground">
-                      {u.email}
-                    </span>
-                  )}
+                  <span className="flex-1 truncate">{u.name ?? u.email}</span>
+                  {u.name && <span className="text-muted-foreground text-xs">{u.email}</span>}
                 </CommandItem>
               ))}
             </CommandGroup>
@@ -112,5 +101,5 @@ export function AssignItemPopover({
         </Command>
       </PopoverContent>
     </Popover>
-  );
+  )
 }

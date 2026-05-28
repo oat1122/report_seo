@@ -1,13 +1,7 @@
-import { Prisma } from "@prisma/client";
-import { prisma } from "@/infrastructure/prisma/client";
-import type {
-  WorkProgressPlan,
-  WorkProgressPlanDetail,
-} from "../domain/WorkProgressPlan";
-import type {
-  WorkProgressItem,
-  WorkProgressItemPeriodMark,
-} from "../domain/WorkProgressItem";
+import { Prisma } from '@prisma/client'
+import { prisma } from '@/infrastructure/prisma/client'
+import type { WorkProgressPlan, WorkProgressPlanDetail } from '../domain/WorkProgressPlan'
+import type { WorkProgressItem, WorkProgressItemPeriodMark } from '../domain/WorkProgressItem'
 import type {
   AddItemData,
   CategoryBreakdownRow,
@@ -20,12 +14,9 @@ import type {
   UpdateItemData,
   UpdatePlanData,
   WorkProgressRepository,
-} from "../application/ports/WorkProgressRepository";
-import type { PeriodSeed } from "../domain/policies/period-generator";
-import {
-  calcByCategory,
-  calcOverallPercent,
-} from "../domain/policies/progress-calculator";
+} from '../application/ports/WorkProgressRepository'
+import type { PeriodSeed } from '../domain/policies/period-generator'
+import { calcByCategory, calcOverallPercent } from '../domain/policies/progress-calculator'
 
 export class PrismaWorkProgressRepository implements WorkProgressRepository {
   // ─── Plan CRUD ──────────────────────────────────────────
@@ -46,7 +37,7 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
           note: data.note,
           createdById: data.createdById,
         },
-      });
+      })
       if (periods.length > 0) {
         await tx.workProgressPeriod.createMany({
           data: periods.map((p) => ({
@@ -56,10 +47,10 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
             startDate: p.startDate ?? null,
             endDate: p.endDate ?? null,
           })),
-        });
+        })
       }
-      return plan;
-    });
+      return plan
+    })
   }
 
   async createPlanWithItems(
@@ -80,9 +71,9 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
           note: data.note,
           createdById: data.createdById,
         },
-      });
+      })
 
-      const seqToPeriodId = new Map<number, string>();
+      const seqToPeriodId = new Map<number, string>()
       if (periods.length > 0) {
         await tx.workProgressPeriod.createMany({
           data: periods.map((p) => ({
@@ -92,12 +83,12 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
             startDate: p.startDate ?? null,
             endDate: p.endDate ?? null,
           })),
-        });
+        })
         const createdPeriods = await tx.workProgressPeriod.findMany({
           where: { planId: plan.id },
           select: { id: true, seq: true },
-        });
-        for (const p of createdPeriods) seqToPeriodId.set(p.seq, p.id);
+        })
+        for (const p of createdPeriods) seqToPeriodId.set(p.seq, p.id)
       }
 
       if (items.length > 0) {
@@ -114,7 +105,7 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
               weight: it.weight,
               orderIndex: it.orderIndex ?? i,
             },
-          });
+          })
           if (it.subtasks && it.subtasks.length > 0) {
             await tx.workProgressSubtask.createMany({
               data: it.subtasks.map((s, idx) => ({
@@ -122,38 +113,38 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
                 title: s.title,
                 orderIndex: s.orderIndex ?? idx,
               })),
-            });
+            })
           }
           if (it.periodMarks && it.periodMarks.length > 0) {
             const markRows = it.periodMarks
               .map((m) => {
-                const periodId = seqToPeriodId.get(m.seq);
-                if (!periodId) return null;
+                const periodId = seqToPeriodId.get(m.seq)
+                if (!periodId) return null
                 return {
                   itemId: createdItem.id,
                   periodId,
                   markTypeId: m.markTypeId,
                   progressPercent: null as number | null,
                   note: null as string | null,
-                };
+                }
               })
-              .filter((r): r is NonNullable<typeof r> => r !== null);
+              .filter((r): r is NonNullable<typeof r> => r !== null)
             if (markRows.length > 0) {
               await tx.workProgressItemPeriodMark.createMany({
                 data: markRows,
-              });
+              })
             }
           }
         }
       }
-      return plan;
-    });
+      return plan
+    })
   }
 
   async findItemsForClone(planId: string): Promise<CloneItemSeed[]> {
     const rows = await prisma.workProgressItem.findMany({
       where: { planId },
-      orderBy: { orderIndex: "asc" },
+      orderBy: { orderIndex: 'asc' },
       select: {
         categoryId: true,
         activity: true,
@@ -162,8 +153,8 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
         weight: true,
         orderIndex: true,
       },
-    });
-    return rows;
+    })
+    return rows
   }
 
   listByCustomer(
@@ -175,46 +166,43 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
         customerId,
         ...(options.includeArchived ? {} : { isArchived: false }),
       },
-      orderBy: [{ year: "desc" }, { createdAt: "desc" }],
+      orderBy: [{ year: 'desc' }, { createdAt: 'desc' }],
       take: options.limit,
-    });
+    })
   }
 
   findById(planId: string): Promise<WorkProgressPlan | null> {
-    return prisma.workProgressPlan.findUnique({ where: { id: planId } });
+    return prisma.workProgressPlan.findUnique({ where: { id: planId } })
   }
 
   async findDetail(planId: string): Promise<WorkProgressPlanDetail | null> {
     const plan = await prisma.workProgressPlan.findUnique({
       where: { id: planId },
       include: {
-        periods: { orderBy: { seq: "asc" } },
+        periods: { orderBy: { seq: 'asc' } },
         items: {
-          orderBy: { orderIndex: "asc" },
+          orderBy: { orderIndex: 'asc' },
           include: {
             category: true,
             status: true,
             periodMarks: { include: { markType: true } },
-            subtasks: { orderBy: { orderIndex: "asc" } },
-            attachments: { orderBy: { createdAt: "desc" } },
+            subtasks: { orderBy: { orderIndex: 'asc' } },
+            attachments: { orderBy: { createdAt: 'desc' } },
           },
         },
       },
-    });
-    if (!plan) return null;
-    return plan as unknown as WorkProgressPlanDetail;
+    })
+    if (!plan) return null
+    return plan as unknown as WorkProgressPlanDetail
   }
 
   updatePlan(planId: string, data: UpdatePlanData): Promise<WorkProgressPlan> {
-    return prisma.workProgressPlan.update({ where: { id: planId }, data });
+    return prisma.workProgressPlan.update({ where: { id: planId }, data })
   }
 
-  async replacePeriods(
-    planId: string,
-    periods: readonly PeriodSeed[],
-  ): Promise<void> {
+  async replacePeriods(planId: string, periods: readonly PeriodSeed[]): Promise<void> {
     await prisma.$transaction(async (tx) => {
-      await tx.workProgressPeriod.deleteMany({ where: { planId } });
+      await tx.workProgressPeriod.deleteMany({ where: { planId } })
       if (periods.length > 0) {
         await tx.workProgressPeriod.createMany({
           data: periods.map((p) => ({
@@ -224,36 +212,33 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
             startDate: p.startDate ?? null,
             endDate: p.endDate ?? null,
           })),
-        });
+        })
       }
-    });
+    })
   }
 
-  archivePlan(
-    planId: string,
-    isArchived: boolean,
-  ): Promise<WorkProgressPlan> {
+  archivePlan(planId: string, isArchived: boolean): Promise<WorkProgressPlan> {
     return prisma.workProgressPlan.update({
       where: { id: planId },
       data: { isArchived },
-    });
+    })
   }
 
   async deletePlan(planId: string): Promise<void> {
-    await prisma.workProgressPlan.delete({ where: { id: planId } });
+    await prisma.workProgressPlan.delete({ where: { id: planId } })
   }
 
   // ─── Item CRUD ──────────────────────────────────────────
   async addItem(data: AddItemData): Promise<WorkProgressItem> {
     // ถ้า client ไม่ระบุ orderIndex → ใส่ต่อท้าย
-    let orderIndex = data.orderIndex;
+    let orderIndex = data.orderIndex
     if (orderIndex === null) {
       const max = await prisma.workProgressItem.findFirst({
         where: { planId: data.planId },
-        orderBy: { orderIndex: "desc" },
+        orderBy: { orderIndex: 'desc' },
         select: { orderIndex: true },
-      });
-      orderIndex = max ? max.orderIndex + 1 : 0;
+      })
+      orderIndex = max ? max.orderIndex + 1 : 0
     }
     return prisma.workProgressItem.create({
       data: {
@@ -269,29 +254,26 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
         startDate: data.startDate,
         dueDate: data.dueDate,
       },
-    });
+    })
   }
 
   findItemById(itemId: string): Promise<WorkProgressItem | null> {
-    return prisma.workProgressItem.findUnique({ where: { id: itemId } });
+    return prisma.workProgressItem.findUnique({ where: { id: itemId } })
   }
 
   updateItem(itemId: string, data: UpdateItemData): Promise<WorkProgressItem> {
-    return prisma.workProgressItem.update({ where: { id: itemId }, data });
+    return prisma.workProgressItem.update({ where: { id: itemId }, data })
   }
 
-  assignItem(
-    itemId: string,
-    assignedToId: string | null,
-  ): Promise<WorkProgressItem> {
+  assignItem(itemId: string, assignedToId: string | null): Promise<WorkProgressItem> {
     return prisma.workProgressItem.update({
       where: { id: itemId },
       data: { assignedToId },
-    });
+    })
   }
 
   async deleteItem(itemId: string): Promise<void> {
-    await prisma.workProgressItem.delete({ where: { id: itemId } });
+    await prisma.workProgressItem.delete({ where: { id: itemId } })
   }
 
   async reorderItems(
@@ -305,7 +287,7 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
           data: { orderIndex: entry.orderIndex },
         }),
       ),
-    );
+    )
   }
 
   // ─── Mark CRUD ──────────────────────────────────────────
@@ -324,18 +306,18 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
         progressPercent: data.progressPercent,
         note: data.note,
       },
-    });
+    })
   }
 
   async clearPeriodMark(itemId: string, periodId: string): Promise<void> {
     await prisma.workProgressItemPeriodMark.deleteMany({
       where: { itemId, periodId },
-    });
+    })
   }
 
   async bulkSetPeriodMarks(
     itemId: string,
-    marks: ReadonlyArray<Omit<SetMarkData, "itemId">>,
+    marks: ReadonlyArray<Omit<SetMarkData, 'itemId'>>,
   ): Promise<{ count: number }> {
     await prisma.$transaction(
       marks.map((m) =>
@@ -355,8 +337,8 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
           },
         }),
       ),
-    );
-    return { count: marks.length };
+    )
+    return { count: marks.length }
   }
 
   // ─── Phase 6 — Bulk operations across items ────────────
@@ -369,8 +351,8 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
     const result = await prisma.workProgressItem.updateMany({
       where: { planId, id: { in: [...itemIds] } },
       data: { statusId, completedAt },
-    });
-    return { count: result.count };
+    })
+    return { count: result.count }
   }
 
   async bulkDeleteItems(
@@ -379,8 +361,8 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
   ): Promise<{ count: number }> {
     const result = await prisma.workProgressItem.deleteMany({
       where: { planId, id: { in: [...itemIds] } },
-    });
-    return { count: result.count };
+    })
+    return { count: result.count }
   }
 
   async bulkSetPeriodAcrossItems(
@@ -388,9 +370,9 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
     periodId: string,
     itemIds: ReadonlyArray<string>,
     mark: {
-      markTypeId: string | null;
-      progressPercent: number | null;
-      note: string | null;
+      markTypeId: string | null
+      progressPercent: number | null
+      note: string | null
     },
   ): Promise<{ count: number }> {
     return prisma.$transaction(async (tx) => {
@@ -402,10 +384,10 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
             itemId: { in: [...itemIds] },
             item: { planId },
           },
-        });
-        return { count: res.count };
+        })
+        return { count: res.count }
       }
-      let count = 0;
+      let count = 0
       for (const itemId of itemIds) {
         await tx.workProgressItemPeriodMark.upsert({
           where: { itemId_periodId: { itemId, periodId } },
@@ -421,20 +403,17 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
             progressPercent: mark.progressPercent,
             note: mark.note,
           },
-        });
-        count++;
+        })
+        count++
       }
-      return { count };
-    });
+      return { count }
+    })
   }
 
-  async countItemsInPlan(
-    planId: string,
-    itemIds: ReadonlyArray<string>,
-  ): Promise<number> {
+  async countItemsInPlan(planId: string, itemIds: ReadonlyArray<string>): Promise<number> {
     return prisma.workProgressItem.count({
       where: { planId, id: { in: [...itemIds] } },
-    });
+    })
   }
 
   // ─── Cross-plan validators ──────────────────────────────
@@ -442,16 +421,16 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
     const period = await prisma.workProgressPeriod.findUnique({
       where: { id: periodId },
       select: { planId: true },
-    });
-    return period?.planId === planId;
+    })
+    return period?.planId === planId
   }
 
   async isItemInPlan(itemId: string, planId: string): Promise<boolean> {
     const item = await prisma.workProgressItem.findUnique({
       where: { id: itemId },
       select: { planId: true },
-    });
-    return item?.planId === planId;
+    })
+    return item?.planId === planId
   }
 
   // ─── Summary ────────────────────────────────────────────
@@ -460,24 +439,22 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
     const items = await prisma.workProgressItem.findMany({
       where: { planId },
       select: { categoryId: true, weight: true, progressPercent: true },
-    });
-    const overallPercent = calcOverallPercent(items);
-    const byCategory = calcByCategory(items);
+    })
+    const overallPercent = calcOverallPercent(items)
+    const byCategory = calcByCategory(items)
 
     // by period — group ที่ DB ด้วย groupBy (rule 04)
     const periods = await prisma.workProgressPeriod.findMany({
       where: { planId },
-      orderBy: { seq: "asc" },
+      orderBy: { seq: 'asc' },
       select: { id: true, seq: true, label: true },
-    });
+    })
     const markCounts = await prisma.workProgressItemPeriodMark.groupBy({
-      by: ["periodId"],
+      by: ['periodId'],
       where: { period: { planId } },
       _count: { _all: true },
-    });
-    const countMap = new Map<string, number>(
-      markCounts.map((m) => [m.periodId, m._count._all]),
-    );
+    })
+    const countMap = new Map<string, number>(markCounts.map((m) => [m.periodId, m._count._all]))
 
     return {
       planId,
@@ -490,7 +467,7 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
         label: p.label,
         markCount: countMap.get(p.id) ?? 0,
       })),
-    };
+    }
   }
 
   // ─── Phase 4 — Customer-wide summary ────────────────────
@@ -498,21 +475,21 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
     customerId: string,
     options: { upcomingDays: number },
   ): Promise<CustomerSummary> {
-    const now = new Date();
-    const upcomingEnd = new Date(now);
-    upcomingEnd.setDate(upcomingEnd.getDate() + options.upcomingDays);
+    const now = new Date()
+    const upcomingEnd = new Date(now)
+    upcomingEnd.setDate(upcomingEnd.getDate() + options.upcomingDays)
 
     // 1) plan counts (active vs archived)
     const planCounts = await prisma.workProgressPlan.groupBy({
-      by: ["isArchived"],
+      by: ['isArchived'],
       where: { customerId },
       _count: { _all: true },
-    });
-    let activePlanCount = 0;
-    let archivedPlanCount = 0;
+    })
+    let activePlanCount = 0
+    let archivedPlanCount = 0
     for (const row of planCounts) {
-      if (row.isArchived) archivedPlanCount = row._count._all;
-      else activePlanCount = row._count._all;
+      if (row.isArchived) archivedPlanCount = row._count._all
+      else activePlanCount = row._count._all
     }
 
     // 2) item aggregate (avg progress + total count) — เฉพาะ active plan
@@ -520,9 +497,9 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
       where: { plan: { customerId, isArchived: false } },
       _count: { _all: true },
       _avg: { progressPercent: true },
-    });
-    const totalItems = itemAgg._count._all;
-    const avgProgressPercent = Math.round(itemAgg._avg.progressPercent ?? 0);
+    })
+    const totalItems = itemAgg._count._all
+    const avgProgressPercent = Math.round(itemAgg._avg.progressPercent ?? 0)
 
     // 3) upcoming & overdue — Prisma count (ห้าม fetch แล้วนับใน JS, rule 04)
     const [upcomingDueCount, overdueCount] = await Promise.all([
@@ -540,7 +517,7 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
           dueDate: { lt: now },
         },
       }),
-    ]);
+    ])
 
     return {
       activePlanCount,
@@ -549,7 +526,7 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
       avgProgressPercent,
       upcomingDueCount,
       overdueCount,
-    };
+    }
   }
 
   // ─── Phase 4 — Category × markType breakdown ────────────
@@ -573,10 +550,10 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
     const rows = options.categoryId
       ? await prisma.$queryRaw<
           Array<{
-            categoryId: string;
-            markTypeId: string;
-            count: bigint;
-            sumProgress: bigint | null;
+            categoryId: string
+            markTypeId: string
+            count: bigint
+            sumProgress: bigint | null
           }>
         >(Prisma.sql`
           SELECT
@@ -591,10 +568,10 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
         `)
       : await prisma.$queryRaw<
           Array<{
-            categoryId: string;
-            markTypeId: string;
-            count: bigint;
-            sumProgress: bigint | null;
+            categoryId: string
+            markTypeId: string
+            count: bigint
+            sumProgress: bigint | null
           }>
         >(Prisma.sql`
           SELECT
@@ -606,13 +583,13 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
           JOIN workprogressitem i ON i.id = m.itemId
           WHERE i.planId = ${planId}
           GROUP BY i.categoryId, m.markTypeId
-        `);
+        `)
 
     return rows.map((r) => ({
       categoryId: r.categoryId,
       markTypeId: r.markTypeId,
       count: Number(r.count),
       sumProgress: Number(r.sumProgress ?? 0),
-    }));
+    }))
   }
 }

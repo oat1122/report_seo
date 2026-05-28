@@ -1,20 +1,16 @@
-"use client";
+'use client'
 
-import React from "react";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { PERIOD_OPTIONS, PeriodOption } from "../lib/chartConfig";
+import React from 'react'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { PERIOD_OPTIONS, PeriodOption } from '../lib/chartConfig'
 
 interface PeriodSelectorProps {
-  value: PeriodOption;
-  onChange: (period: PeriodOption) => void;
-  size?: "sm" | "default";
+  value: PeriodOption
+  onChange: (period: PeriodOption) => void
+  size?: 'sm' | 'default'
 }
 
-export const PeriodSelector: React.FC<PeriodSelectorProps> = ({
-  value,
-  onChange,
-  size = "sm",
-}) => {
+export const PeriodSelector: React.FC<PeriodSelectorProps> = ({ value, onChange, size = 'sm' }) => {
   return (
     <ToggleGroup
       type="single"
@@ -34,7 +30,7 @@ export const PeriodSelector: React.FC<PeriodSelectorProps> = ({
         </ToggleGroupItem>
       ))}
     </ToggleGroup>
-  );
-};
+  )
+}
 
-export default PeriodSelector;
+export default PeriodSelector

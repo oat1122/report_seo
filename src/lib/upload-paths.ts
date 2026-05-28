@@ -1,51 +1,43 @@
-import path from "path";
-import { BadRequestError } from "@/lib/errors";
+import path from 'path'
+import { BadRequestError } from '@/lib/errors'
 
 export const UPLOAD_DIRS = {
-  "ai-overview": "ai-overview",
-  payments: "payments",
-  "work-progress": "work-progress",
-  contracts: "contracts",
-  documents: "documents",
-  "company-logo": "company-logo",
-} as const;
+  'ai-overview': 'ai-overview',
+  payments: 'payments',
+  'work-progress': 'work-progress',
+  contracts: 'contracts',
+  documents: 'documents',
+  'company-logo': 'company-logo',
+} as const
 
-export type UploadCategory = keyof typeof UPLOAD_DIRS;
+export type UploadCategory = keyof typeof UPLOAD_DIRS
 
-const PUBLIC_ROOT = path.resolve(process.cwd(), "public");
-const UPLOAD_ROOT = path.resolve(PUBLIC_ROOT, "uploads");
+const PUBLIC_ROOT = path.resolve(process.cwd(), 'public')
+const UPLOAD_ROOT = path.resolve(PUBLIC_ROOT, 'uploads')
 
 export function getUploadDir(category: UploadCategory): string {
-  return path.resolve(UPLOAD_ROOT, UPLOAD_DIRS[category]);
+  return path.resolve(UPLOAD_ROOT, UPLOAD_DIRS[category])
 }
 
-export function buildPublicUrl(
-  category: UploadCategory,
-  filename: string,
-): string {
-  if (filename.includes("/") || filename.includes("\\")) {
-    throw new BadRequestError("Invalid filename");
+export function buildPublicUrl(category: UploadCategory, filename: string): string {
+  if (filename.includes('/') || filename.includes('\\')) {
+    throw new BadRequestError('Invalid filename')
   }
-  return `/uploads/${UPLOAD_DIRS[category]}/${filename}`;
+  return `/uploads/${UPLOAD_DIRS[category]}/${filename}`
 }
 
-export function resolveUploadPath(
-  relativeUrl: string,
-  category: UploadCategory,
-): string {
-  if (typeof relativeUrl !== "string" || relativeUrl.length === 0) {
-    throw new BadRequestError("Empty upload path");
+export function resolveUploadPath(relativeUrl: string, category: UploadCategory): string {
+  if (typeof relativeUrl !== 'string' || relativeUrl.length === 0) {
+    throw new BadRequestError('Empty upload path')
   }
 
-  const trimmed = relativeUrl.startsWith("/")
-    ? relativeUrl.slice(1)
-    : relativeUrl;
-  const resolved = path.resolve(PUBLIC_ROOT, trimmed);
+  const trimmed = relativeUrl.startsWith('/') ? relativeUrl.slice(1) : relativeUrl
+  const resolved = path.resolve(PUBLIC_ROOT, trimmed)
 
-  const expectedDir = getUploadDir(category);
+  const expectedDir = getUploadDir(category)
   if (!resolved.startsWith(expectedDir + path.sep) && resolved !== expectedDir) {
-    throw new BadRequestError("Upload path escapes upload directory");
+    throw new BadRequestError('Upload path escapes upload directory')
   }
 
-  return resolved;
+  return resolved
 }

@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import { useMemo } from "react";
+import { useMemo } from 'react'
 import {
   CartesianGrid,
   Cell,
@@ -11,54 +11,45 @@ import {
   XAxis,
   YAxis,
   ZAxis,
-} from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-import { ChartEmptyState } from "../components/ChartEmptyState";
-import { buildChartConfig } from "../lib/buildChartConfig";
-import {
-  computeKeywordVelocity,
-  type VelocityQuadrant,
-} from "../lib/historyCalculations";
-import { useHistoryContext } from "../contexts/HistoryContext";
-import { useReportFilters } from "../contexts/ReportFiltersContext";
+} from 'recharts'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import { ChartEmptyState } from '../components/ChartEmptyState'
+import { buildChartConfig } from '../lib/buildChartConfig'
+import { computeKeywordVelocity, type VelocityQuadrant } from '../lib/historyCalculations'
+import { useHistoryContext } from '../contexts/HistoryContext'
+import { useReportFilters } from '../contexts/ReportFiltersContext'
 
 const QUADRANT_COLOR: Record<VelocityQuadrant, string> = {
-  rising: "var(--success)",
-  hidden: "var(--info)",
-  cooling: "var(--warning)",
-  falling: "var(--destructive)",
-  stagnant: "var(--muted-foreground)",
-};
+  rising: 'var(--success)',
+  hidden: 'var(--info)',
+  cooling: 'var(--warning)',
+  falling: 'var(--destructive)',
+  stagnant: 'var(--muted-foreground)',
+}
 
 const QUADRANT_LABEL: Record<VelocityQuadrant, string> = {
-  rising: "Rising Star",
-  hidden: "Hidden Gem",
-  cooling: "Cooling",
-  falling: "Falling",
-  stagnant: "Stagnant",
-};
+  rising: 'Rising Star',
+  hidden: 'Hidden Gem',
+  cooling: 'Cooling',
+  falling: 'Falling',
+  stagnant: 'Stagnant',
+}
 
-const chartConfig = buildChartConfig([
-  { key: "points", label: "Keywords", color: "var(--info)" },
-]);
+const chartConfig = buildChartConfig([{ key: 'points', label: 'Keywords', color: 'var(--info)' }])
 
 export const KeywordVelocityScatter = () => {
-  const { keywordHistory, currentKeywords } = useHistoryContext();
-  const { period } = useReportFilters();
+  const { keywordHistory, currentKeywords } = useHistoryContext()
+  const { period } = useReportFilters()
 
   const allPoints = useMemo(
     () => computeKeywordVelocity(keywordHistory, currentKeywords, period),
     [keywordHistory, currentKeywords, period],
-  );
+  )
 
   // Cap top 30 by combined absolute delta
   const points = useMemo(() => {
-    if (allPoints.length <= 30) return allPoints;
+    if (allPoints.length <= 30) return allPoints
     return [...allPoints]
       .sort(
         (a, b) =>
@@ -66,29 +57,28 @@ export const KeywordVelocityScatter = () => {
           Math.abs(b.trafficDelta) -
           (Math.abs(a.positionDelta) + Math.abs(a.trafficDelta)),
       )
-      .slice(0, 30);
-  }, [allPoints]);
+      .slice(0, 30)
+  }, [allPoints])
 
   const { xMin, xMax, yMin, yMax } = useMemo(() => {
-    if (points.length === 0)
-      return { xMin: -10, xMax: 10, yMin: -100, yMax: 100 };
-    const xs = points.map((p) => p.positionDelta);
-    const ys = points.map((p) => p.trafficDelta);
-    const xMaxAbs = Math.max(...xs.map(Math.abs), 1);
-    const yMaxAbs = Math.max(...ys.map(Math.abs), 1);
+    if (points.length === 0) return { xMin: -10, xMax: 10, yMin: -100, yMax: 100 }
+    const xs = points.map((p) => p.positionDelta)
+    const ys = points.map((p) => p.trafficDelta)
+    const xMaxAbs = Math.max(...xs.map(Math.abs), 1)
+    const yMaxAbs = Math.max(...ys.map(Math.abs), 1)
     return {
       xMin: -xMaxAbs * 1.1,
       xMax: xMaxAbs * 1.1,
       yMin: -yMaxAbs * 1.1,
       yMax: yMaxAbs * 1.1,
-    };
-  }, [points]);
+    }
+  }, [points])
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Keyword Velocity</CardTitle>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-muted-foreground text-xs">
           X = position change (← ดีขึ้น) · Y = traffic change (↑ ดีขึ้น)
         </p>
       </CardHeader>
@@ -113,7 +103,7 @@ export const KeywordVelocityScatter = () => {
                 fillOpacity={0.06}
                 label={{
                   value: QUADRANT_LABEL.rising,
-                  position: "insideTopLeft",
+                  position: 'insideTopLeft',
                   fill: QUADRANT_COLOR.rising,
                   fontSize: 11,
                   fontWeight: 600,
@@ -128,7 +118,7 @@ export const KeywordVelocityScatter = () => {
                 fillOpacity={0.05}
                 label={{
                   value: QUADRANT_LABEL.hidden,
-                  position: "insideTopRight",
+                  position: 'insideTopRight',
                   fill: QUADRANT_COLOR.hidden,
                   fontSize: 11,
                   fontWeight: 600,
@@ -143,7 +133,7 @@ export const KeywordVelocityScatter = () => {
                 fillOpacity={0.05}
                 label={{
                   value: QUADRANT_LABEL.cooling,
-                  position: "insideBottomLeft",
+                  position: 'insideBottomLeft',
                   fill: QUADRANT_COLOR.cooling,
                   fontSize: 11,
                   fontWeight: 600,
@@ -158,7 +148,7 @@ export const KeywordVelocityScatter = () => {
                 fillOpacity={0.05}
                 label={{
                   value: QUADRANT_LABEL.falling,
-                  position: "insideBottomRight",
+                  position: 'insideBottomRight',
                   fill: QUADRANT_COLOR.falling,
                   fontSize: 11,
                   fontWeight: 600,
@@ -175,10 +165,10 @@ export const KeywordVelocityScatter = () => {
                 stroke="var(--muted-foreground)"
                 tick={{ fontSize: 11 }}
                 label={{
-                  value: "Δ Position",
-                  position: "insideBottom",
+                  value: 'Δ Position',
+                  position: 'insideBottom',
                   offset: -8,
-                  fill: "var(--muted-foreground)",
+                  fill: 'var(--muted-foreground)',
                   fontSize: 11,
                 }}
               />
@@ -189,40 +179,40 @@ export const KeywordVelocityScatter = () => {
                 stroke="var(--muted-foreground)"
                 tick={{ fontSize: 11 }}
                 label={{
-                  value: "Δ Traffic",
+                  value: 'Δ Traffic',
                   angle: -90,
-                  position: "insideLeft",
-                  fill: "var(--muted-foreground)",
+                  position: 'insideLeft',
+                  fill: 'var(--muted-foreground)',
                   fontSize: 11,
                 }}
               />
               <ZAxis range={[80, 80]} />
               <ChartTooltip
-                cursor={{ strokeDasharray: "3 3" }}
+                cursor={{ strokeDasharray: '3 3' }}
                 content={
                   <ChartTooltipContent
                     hideLabel
                     formatter={(_v, _n, item) => {
                       const p = item.payload as {
-                        keyword: string;
-                        positionDelta: number;
-                        trafficDelta: number;
-                        quadrant: VelocityQuadrant;
-                      };
+                        keyword: string
+                        positionDelta: number
+                        trafficDelta: number
+                        quadrant: VelocityQuadrant
+                      }
                       const posLabel =
                         p.positionDelta < 0
                           ? `↑ ${Math.abs(p.positionDelta)}`
                           : p.positionDelta > 0
                             ? `↓ ${p.positionDelta}`
-                            : "—";
+                            : '—'
                       const trafLabel =
                         p.trafficDelta > 0
                           ? `+${p.trafficDelta.toLocaleString()}`
-                          : p.trafficDelta.toLocaleString();
+                          : p.trafficDelta.toLocaleString()
                       return [
                         `pos ${posLabel} · traffic ${trafLabel} · ${QUADRANT_LABEL[p.quadrant]}`,
                         p.keyword,
-                      ];
+                      ]
                     }}
                   />
                 }
@@ -237,5 +227,5 @@ export const KeywordVelocityScatter = () => {
         )}
       </CardContent>
     </Card>
-  );
-};
+  )
+}

@@ -1,22 +1,22 @@
-import { prisma } from "@/infrastructure/prisma/client";
+import { prisma } from '@/infrastructure/prisma/client'
 import type {
   BillingCycleProvider,
   BillingCycleInfo,
-} from "../application/ports/BillingCycleProvider";
+} from '../application/ports/BillingCycleProvider'
 
 function toInfo(row: {
-  id: string;
-  cycleNumber: number;
-  dueDate: Date;
-  paidDate: Date | null;
-  amount: unknown;
-  planId: string;
+  id: string
+  cycleNumber: number
+  dueDate: Date
+  paidDate: Date | null
+  amount: unknown
+  planId: string
   plan: {
-    id: string;
-    description: string;
-    customerId: string;
-    documentTemplateId: string | null;
-  };
+    id: string
+    description: string
+    customerId: string
+    documentTemplateId: string | null
+  }
 }): BillingCycleInfo {
   return {
     id: row.id,
@@ -28,7 +28,7 @@ function toInfo(row: {
     planDescription: row.plan.description,
     planCustomerId: row.plan.customerId,
     planDocumentTemplateId: row.plan.documentTemplateId,
-  };
+  }
 }
 
 const planSelect = {
@@ -38,25 +38,23 @@ const planSelect = {
     customerId: true,
     documentTemplateId: true,
   },
-} as const;
+} as const
 
 export class PrismaBillingCycleProvider implements BillingCycleProvider {
   async getCycleById(cycleId: string): Promise<BillingCycleInfo | null> {
     const row = await prisma.billingCycle.findUnique({
       where: { id: cycleId },
       include: { plan: planSelect },
-    });
-    return row ? toInfo(row) : null;
+    })
+    return row ? toInfo(row) : null
   }
 
-  async listCyclesByCustomer(
-    customerId: string,
-  ): Promise<BillingCycleInfo[]> {
+  async listCyclesByCustomer(customerId: string): Promise<BillingCycleInfo[]> {
     const rows = await prisma.billingCycle.findMany({
       where: { plan: { customerId } },
       include: { plan: planSelect },
-      orderBy: { dueDate: "asc" },
-    });
-    return rows.map(toInfo);
+      orderBy: { dueDate: 'asc' },
+    })
+    return rows.map(toInfo)
   }
 }

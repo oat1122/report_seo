@@ -1,40 +1,36 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { toast } from "sonner";
-import { Trash2, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { useState } from 'react'
+import { toast } from 'sonner'
+import { Trash2, X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { ConfirmAlert } from "@/components/shared/ConfirmAlert";
-import { useStatuses, useMarkTypes } from "../../hooks/useMasterTables";
+} from '@/components/ui/select'
+import { ConfirmAlert } from '@/components/shared/ConfirmAlert'
+import { useStatuses, useMarkTypes } from '../../hooks/useMasterTables'
 import {
   useBulkUpdateItemStatus,
   useBulkDeleteItems,
   useBulkSetPeriodAcrossItems,
-} from "../../hooks/useItemMutations";
-import type { WorkProgressPeriod } from "@/features/work-progress";
+} from '../../hooks/useItemMutations'
+import type { WorkProgressPeriod } from '@/features/work-progress'
 
-type BulkMarkMode = "set" | "clear";
+type BulkMarkMode = 'set' | 'clear'
 
 interface BulkActionToolbarProps {
-  userId: string;
-  planId: string;
-  periods: WorkProgressPeriod[];
-  selectedIds: string[];
-  onClear: () => void;
+  userId: string
+  planId: string
+  periods: WorkProgressPeriod[]
+  selectedIds: string[]
+  onClear: () => void
 }
 
 export function BulkActionToolbar({
@@ -44,39 +40,37 @@ export function BulkActionToolbar({
   selectedIds,
   onClear,
 }: BulkActionToolbarProps) {
-  const { data: statuses = [] } = useStatuses();
-  const { data: markTypes = [] } = useMarkTypes();
-  const bulkStatus = useBulkUpdateItemStatus();
-  const bulkDelete = useBulkDeleteItems();
-  const bulkPeriod = useBulkSetPeriodAcrossItems();
+  const { data: statuses = [] } = useStatuses()
+  const { data: markTypes = [] } = useMarkTypes()
+  const bulkStatus = useBulkUpdateItemStatus()
+  const bulkDelete = useBulkDeleteItems()
+  const bulkPeriod = useBulkSetPeriodAcrossItems()
 
-  const [statusOpen, setStatusOpen] = useState(false);
-  const [periodOpen, setPeriodOpen] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const [statusId, setStatusId] = useState<string>("");
-  const [periodId, setPeriodId] = useState<string>(periods[0]?.id ?? "");
-  const [markMode, setMarkMode] = useState<BulkMarkMode>("set");
+  const [statusOpen, setStatusOpen] = useState(false)
+  const [periodOpen, setPeriodOpen] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [statusId, setStatusId] = useState<string>('')
+  const [periodId, setPeriodId] = useState<string>(periods[0]?.id ?? '')
+  const [markMode, setMarkMode] = useState<BulkMarkMode>('set')
 
-  const defaultMarkTypeId =
-    markTypes.find((m) => m.isActive)?.id ?? null;
+  const defaultMarkTypeId = markTypes.find((m) => m.isActive)?.id ?? null
 
   const applyStatus = async () => {
-    if (!statusId) return;
+    if (!statusId) return
     await bulkStatus.mutateAsync({
       userId,
       planId,
       body: { itemIds: selectedIds, statusId },
-    });
-    toast.success(`อัปเดตสถานะ ${selectedIds.length} รายการ`);
-    setStatusOpen(false);
-    onClear();
-  };
+    })
+    toast.success(`อัปเดตสถานะ ${selectedIds.length} รายการ`)
+    setStatusOpen(false)
+    onClear()
+  }
 
   const applyPeriod = async () => {
-    if (!periodId) return;
-    const resolvedMarkTypeId =
-      markMode === "clear" ? null : defaultMarkTypeId;
-    if (markMode === "set" && !resolvedMarkTypeId) return;
+    if (!periodId) return
+    const resolvedMarkTypeId = markMode === 'clear' ? null : defaultMarkTypeId
+    if (markMode === 'set' && !resolvedMarkTypeId) return
     await bulkPeriod.mutateAsync({
       userId,
       planId,
@@ -85,27 +79,27 @@ export function BulkActionToolbar({
         itemIds: selectedIds,
         markTypeId: resolvedMarkTypeId,
       },
-    });
-    toast.success(`ตั้ง mark ${selectedIds.length} ช่อง`);
-    setPeriodOpen(false);
-    onClear();
-  };
+    })
+    toast.success(`ตั้ง mark ${selectedIds.length} ช่อง`)
+    setPeriodOpen(false)
+    onClear()
+  }
 
   const applyDelete = async () => {
     await bulkDelete.mutateAsync({
       userId,
       planId,
       body: { itemIds: selectedIds },
-    });
-    toast.success(`ลบ ${selectedIds.length} รายการ`);
-    setConfirmDelete(false);
-    onClear();
-  };
+    })
+    toast.success(`ลบ ${selectedIds.length} รายการ`)
+    setConfirmDelete(false)
+    onClear()
+  }
 
   return (
     <div className="pointer-events-none sticky bottom-4 z-20 flex justify-center">
-      <Card className="pointer-events-auto rounded-full border-2 border-primary/60 shadow-lg">
-        <CardContent className="flex items-center gap-2 py-2 pl-3 pr-2">
+      <Card className="border-primary/60 pointer-events-auto rounded-full border-2 shadow-lg">
+        <CardContent className="flex items-center gap-2 py-2 pr-2 pl-3">
           <Badge variant="secondary" className="rounded-full">
             เลือก {selectedIds.length}
           </Badge>
@@ -118,9 +112,7 @@ export function BulkActionToolbar({
             </PopoverTrigger>
             <PopoverContent className="w-72">
               <div className="flex flex-col gap-2">
-                <span className="text-xs text-muted-foreground">
-                  เลือกสถานะใหม่
-                </span>
+                <span className="text-muted-foreground text-xs">เลือกสถานะใหม่</span>
                 <Select value={statusId} onValueChange={setStatusId}>
                   <SelectTrigger>
                     <SelectValue placeholder="เลือกสถานะ" />
@@ -154,9 +146,7 @@ export function BulkActionToolbar({
             </PopoverTrigger>
             <PopoverContent className="w-72">
               <div className="flex flex-col gap-2">
-                <span className="text-xs text-muted-foreground">
-                  ตั้ง mark ของ period นี้
-                </span>
+                <span className="text-muted-foreground text-xs">ตั้ง mark ของ period นี้</span>
                 <Select value={periodId} onValueChange={setPeriodId}>
                   <SelectTrigger>
                     <SelectValue placeholder="เลือก period" />
@@ -169,10 +159,7 @@ export function BulkActionToolbar({
                     ))}
                   </SelectContent>
                 </Select>
-                <Select
-                  value={markMode}
-                  onValueChange={(v) => setMarkMode(v as BulkMarkMode)}
-                >
+                <Select value={markMode} onValueChange={(v) => setMarkMode(v as BulkMarkMode)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -185,9 +172,7 @@ export function BulkActionToolbar({
                   size="sm"
                   onClick={applyPeriod}
                   disabled={
-                    !periodId ||
-                    bulkPeriod.isPending ||
-                    (markMode === "set" && !defaultMarkTypeId)
+                    !periodId || bulkPeriod.isPending || (markMode === 'set' && !defaultMarkTypeId)
                   }
                 >
                   ยืนยัน
@@ -206,12 +191,7 @@ export function BulkActionToolbar({
             ลบ
           </Button>
 
-          <Button
-            size="icon"
-            variant="ghost"
-            aria-label="ยกเลิกการเลือก"
-            onClick={onClear}
-          >
+          <Button size="icon" variant="ghost" aria-label="ยกเลิกการเลือก" onClick={onClear}>
             <X className="size-4" />
           </Button>
         </CardContent>
@@ -225,5 +205,5 @@ export function BulkActionToolbar({
         message="ลบรายการที่เลือกพร้อม marks / subtasks / attachments — ย้อนกลับไม่ได้"
       />
     </div>
-  );
+  )
 }

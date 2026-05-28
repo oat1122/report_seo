@@ -1,22 +1,16 @@
 // src/components/Customer/Report/hooks/useReportPage.ts
-"use client";
+'use client'
 
-import {
-  CustomerReportData,
-  useGetCustomerReport,
-} from "@/hooks/api/useCustomersApi";
+import { CustomerReportData, useGetCustomerReport } from '@/hooks/api/useCustomersApi'
 
-export const useReportPage = (
-  customerId: string,
-  initialData?: CustomerReportData,
-) => {
+export const useReportPage = (customerId: string, initialData?: CustomerReportData) => {
   const {
     data: reportData,
     isLoading,
     isFetching,
     error,
     status,
-  } = useGetCustomerReport(customerId, initialData);
+  } = useGetCustomerReport(customerId, initialData)
 
   return {
     reportData,
@@ -24,5 +18,5 @@ export const useReportPage = (
     isFetching,
     error: error ? (error as Error).message : null,
     reportStatus: status,
-  };
-};
+  }
+}

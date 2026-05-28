@@ -1,10 +1,10 @@
-import { z } from "zod";
-import { WorkProgressPeriodType } from "@prisma/client";
+import { z } from 'zod'
+import { WorkProgressPeriodType } from '@prisma/client'
 
 const templateSubtaskSeedSchema = z.object({
   title: z.string().min(1).max(500),
   orderIndex: z.number().int().min(0).optional(),
-});
+})
 
 const templateItemBaseSchema = z.object({
   categoryId: z.string().uuid(),
@@ -15,13 +15,13 @@ const templateItemBaseSchema = z.object({
   orderIndex: z.number().int().min(0).optional(),
   defaultPeriods: z.record(z.string(), z.unknown()).optional().nullable(),
   subtasks: z.array(templateSubtaskSeedSchema).max(200).optional(),
-});
+})
 
-export const addTemplateItemSchema = templateItemBaseSchema;
-export type AddTemplateItemInput = z.infer<typeof addTemplateItemSchema>;
+export const addTemplateItemSchema = templateItemBaseSchema
+export type AddTemplateItemInput = z.infer<typeof addTemplateItemSchema>
 
-export const updateTemplateItemSchema = templateItemBaseSchema.partial();
-export type UpdateTemplateItemInput = z.infer<typeof updateTemplateItemSchema>;
+export const updateTemplateItemSchema = templateItemBaseSchema.partial()
+export type UpdateTemplateItemInput = z.infer<typeof updateTemplateItemSchema>
 
 export const upsertTemplateSchema = z.object({
   name: z.string().min(1).max(200),
@@ -33,8 +33,8 @@ export const upsertTemplateSchema = z.object({
   durationMonths: z.number().int().min(1).max(120).optional().default(12),
   isActive: z.boolean().optional().default(true),
   items: z.array(templateItemBaseSchema).optional(),
-});
-export type UpsertTemplateInput = z.infer<typeof upsertTemplateSchema>;
+})
+export type UpsertTemplateInput = z.infer<typeof upsertTemplateSchema>
 
 export const updateTemplateSchema = z.object({
   name: z.string().min(1).max(200).optional(),
@@ -42,8 +42,8 @@ export const updateTemplateSchema = z.object({
   periodType: z.nativeEnum(WorkProgressPeriodType).optional(),
   durationMonths: z.number().int().min(1).max(120).optional(),
   isActive: z.boolean().optional(),
-});
-export type UpdateTemplateInput = z.infer<typeof updateTemplateSchema>;
+})
+export type UpdateTemplateInput = z.infer<typeof updateTemplateSchema>
 
 export const reorderTemplateItemsSchema = z.object({
   order: z
@@ -54,14 +54,12 @@ export const reorderTemplateItemsSchema = z.object({
       }),
     )
     .min(1),
-});
-export type ReorderTemplateItemsInput = z.infer<
-  typeof reorderTemplateItemsSchema
->;
+})
+export type ReorderTemplateItemsInput = z.infer<typeof reorderTemplateItemsSchema>
 
 export const listTemplatesQuerySchema = z.object({
   includeInactive: z.coerce.boolean().optional().default(false),
-});
-export type ListTemplatesQuery = z.infer<typeof listTemplatesQuerySchema>;
+})
+export type ListTemplatesQuery = z.infer<typeof listTemplatesQuerySchema>
 
-export const templateIdParamSchema = z.object({ id: z.string().uuid() });
+export const templateIdParamSchema = z.object({ id: z.string().uuid() })

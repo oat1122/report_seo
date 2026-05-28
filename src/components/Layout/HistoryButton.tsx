@@ -1,31 +1,23 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { Clock } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Role } from "@/types";
-import { useGetCombinedHistory } from "@/hooks/api/useCustomersApi";
-import { HistoryModal } from "@/features/users/presentation/components/MetricsModal/HistoryModal";
+import { useState } from 'react'
+import { Clock } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { Role } from '@/types'
+import { useGetCombinedHistory } from '@/hooks/api/useCustomersApi'
+import { HistoryModal } from '@/features/users/presentation/components/MetricsModal/HistoryModal'
 
 interface HistoryButtonProps {
-  role: Role | undefined;
-  customerUserId: string | null;
-  customerName: string;
+  role: Role | undefined
+  customerUserId: string | null
+  customerName: string
 }
 
-export const HistoryButton = ({
-  role,
-  customerUserId,
-  customerName,
-}: HistoryButtonProps) => {
-  const [open, setOpen] = useState(false);
-  const isCustomer = role === Role.CUSTOMER;
-  const { data } = useGetCombinedHistory(open ? customerUserId : null);
+export const HistoryButton = ({ role, customerUserId, customerName }: HistoryButtonProps) => {
+  const [open, setOpen] = useState(false)
+  const isCustomer = role === Role.CUSTOMER
+  const { data } = useGetCombinedHistory(open ? customerUserId : null)
 
   return (
     <>
@@ -55,5 +47,5 @@ export const HistoryButton = ({
         customerName={customerName}
       />
     </>
-  );
-};
+  )
+}

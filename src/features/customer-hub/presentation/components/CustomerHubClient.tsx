@@ -1,26 +1,26 @@
-"use client";
+'use client'
 
-import dynamic from "next/dynamic";
-import { useCustomerHub } from "../hooks/useCustomerHub";
-import { CustomerDashboardWidget } from "@/features/work-progress/presentation/components/summary/CustomerDashboardWidget";
-import { CustomerHubHero } from "./CustomerHubHero";
-import { CustomerStatsRow } from "./CustomerStatsRow";
-import { CustomerNotificationsPanel } from "./CustomerNotificationsPanel";
-import { CustomerQuickNav } from "./CustomerQuickNav";
-import { Skeleton } from "@/components/ui/skeleton";
+import dynamic from 'next/dynamic'
+import { useCustomerHub } from '../hooks/useCustomerHub'
+import { CustomerDashboardWidget } from '@/features/work-progress/presentation/components/summary/CustomerDashboardWidget'
+import { CustomerHubHero } from './CustomerHubHero'
+import { CustomerStatsRow } from './CustomerStatsRow'
+import { CustomerNotificationsPanel } from './CustomerNotificationsPanel'
+import { CustomerQuickNav } from './CustomerQuickNav'
+import { Skeleton } from '@/components/ui/skeleton'
 
 const CustomerCalendar = dynamic(
-  () => import("./calendar/CustomerCalendar").then((m) => m.CustomerCalendar),
+  () => import('./calendar/CustomerCalendar').then((m) => m.CustomerCalendar),
   { ssr: false, loading: () => <Skeleton className="h-[550px] w-full rounded-xl" /> },
-);
+)
 
 interface CustomerHubClientProps {
-  userId: string;
-  userName: string;
+  userId: string
+  userName: string
 }
 
 export function CustomerHubClient({ userId, userName }: CustomerHubClientProps) {
-  const { data, isLoading } = useCustomerHub();
+  const { data, isLoading } = useCustomerHub()
 
   return (
     <div className="space-y-6">
@@ -41,5 +41,5 @@ export function CustomerHubClient({ userId, userName }: CustomerHubClientProps) 
         </div>
       </div>
     </div>
-  );
+  )
 }

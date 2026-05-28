@@ -1,28 +1,24 @@
-"use client";
+'use client'
 
-import React from "react";
-import { History, Globe, KeyRound, Link as LinkIcon, Activity } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { OverallMetricsForm } from "@/types/metrics";
-import { formatDuration } from "@/lib/duration";
-import { HistoryModal } from "@/features/users/presentation/components/MetricsModal/HistoryModal";
-import { useOverallMetricsCard } from "@/hooks/ui/useOverallMetricsCard";
-import { getRatingColor, getAgeColor, getSpamColor } from "./lib/utils";
-import { useHistoryContext } from "./contexts/HistoryContext";
-import { calculateMetricChange } from "./lib/historyCalculations";
-import { MetricChangeIndicator } from "./components/MetricChangeIndicator";
-import { GaugeChart } from "./components/GaugeChart";
-import { CustomLinearProgress } from "./components/CustomLinearProgress";
+import React from 'react'
+import { History, Globe, KeyRound, Link as LinkIcon, Activity } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { OverallMetricsForm } from '@/types/metrics'
+import { formatDuration } from '@/lib/duration'
+import { HistoryModal } from '@/features/users/presentation/components/MetricsModal/HistoryModal'
+import { useOverallMetricsCard } from '@/hooks/ui/useOverallMetricsCard'
+import { getRatingColor, getAgeColor, getSpamColor } from './lib/utils'
+import { useHistoryContext } from './contexts/HistoryContext'
+import { calculateMetricChange } from './lib/historyCalculations'
+import { MetricChangeIndicator } from './components/MetricChangeIndicator'
+import { GaugeChart } from './components/GaugeChart'
+import { CustomLinearProgress } from './components/CustomLinearProgress'
 
 interface OverallMetricsCardProps {
-  metrics: OverallMetricsForm | null;
-  customerId: string;
-  customerName: string;
+  metrics: OverallMetricsForm | null
+  customerId: string
+  customerName: string
 }
 
 export const OverallMetricsCard: React.FC<OverallMetricsCardProps> = ({
@@ -36,44 +32,34 @@ export const OverallMetricsCard: React.FC<OverallMetricsCardProps> = ({
     isHistoryLoading,
     handleOpenHistoryModal,
     handleCloseHistoryModal,
-  } = useOverallMetricsCard(customerId);
-  const { metricsHistory } = useHistoryContext();
+  } = useOverallMetricsCard(customerId)
+  const { metricsHistory } = useHistoryContext()
 
   if (!metrics) {
     return (
-      <div className="rounded-2xl border border-dashed border-border p-8 text-center">
-        <p className="text-muted-foreground">
-          ยังไม่มีข้อมูลภาพรวมของ Domain
-        </p>
+      <div className="border-border rounded-2xl border border-dashed p-8 text-center">
+        <p className="text-muted-foreground">ยังไม่มีข้อมูลภาพรวมของ Domain</p>
       </div>
-    );
+    )
   }
 
   const trafficChange = calculateMetricChange(
     metrics.organicTraffic,
     metricsHistory,
-    "organicTraffic",
-  );
+    'organicTraffic',
+  )
   const keywordsChange = calculateMetricChange(
     metrics.organicKeywords,
     metricsHistory,
-    "organicKeywords",
-  );
-  const backlinksChange = calculateMetricChange(
-    metrics.backlinks,
-    metricsHistory,
-    "backlinks",
-  );
-  const refDomainsChange = calculateMetricChange(
-    metrics.refDomains,
-    metricsHistory,
-    "refDomains",
-  );
-  const totalMonths = metrics.ageInYears * 12 + (metrics.ageInMonths || 0);
+    'organicKeywords',
+  )
+  const backlinksChange = calculateMetricChange(metrics.backlinks, metricsHistory, 'backlinks')
+  const refDomainsChange = calculateMetricChange(metrics.refDomains, metricsHistory, 'refDomains')
+  const totalMonths = metrics.ageInYears * 12 + (metrics.ageInMonths || 0)
 
   return (
     <>
-      <div className="rounded-2xl border border-border bg-background p-4 md:p-6">
+      <div className="border-border bg-background rounded-2xl border p-4 md:p-6">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-xl font-bold">Overall Domain Metrics</h3>
           <Tooltip>
@@ -84,7 +70,7 @@ export const OverallMetricsCard: React.FC<OverallMetricsCardProps> = ({
                 aria-label="ดูประวัติการเปลี่ยนแปลง"
                 onClick={handleOpenHistoryModal}
               >
-                <History className="size-4 text-info" />
+                <History className="text-info size-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>ดูประวัติการเปลี่ยนแปลง</TooltipContent>
@@ -105,10 +91,7 @@ export const OverallMetricsCard: React.FC<OverallMetricsCardProps> = ({
           <CustomLinearProgress
             label="Age"
             value={totalMonths}
-            displayValue={formatDuration(
-              metrics.ageInYears,
-              metrics.ageInMonths || 0,
-            )}
+            displayValue={formatDuration(metrics.ageInYears, metrics.ageInMonths || 0)}
             colorFunc={(m) => getAgeColor(Math.floor(m / 12), m % 12)}
           />
           <CustomLinearProgress
@@ -156,5 +139,5 @@ export const OverallMetricsCard: React.FC<OverallMetricsCardProps> = ({
         isLoading={isHistoryLoading}
       />
     </>
-  );
-};
+  )
+}

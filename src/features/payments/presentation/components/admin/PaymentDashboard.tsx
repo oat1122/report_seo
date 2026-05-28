@@ -1,14 +1,14 @@
-"use client";
+'use client'
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PaymentPlanList } from "./PaymentPlanList";
-import { BillingCycleTable } from "./BillingCycleTable";
-import { ContractFileUpload } from "./ContractFileUpload";
-import { ProofReviewList } from "./ProofReviewList";
-import { CycleDocumentView } from "@/features/billing-documents/presentation/components/admin/CycleDocumentView";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { PaymentPlanList } from './PaymentPlanList'
+import { BillingCycleTable } from './BillingCycleTable'
+import { ContractFileUpload } from './ContractFileUpload'
+import { ProofReviewList } from './ProofReviewList'
+import { CycleDocumentView } from '@/features/billing-documents/presentation/components/admin/CycleDocumentView'
 
 interface PaymentDashboardProps {
-  customerId: string;
+  customerId: string
 }
 
 export function PaymentDashboard({ customerId }: PaymentDashboardProps) {
@@ -42,5 +42,5 @@ export function PaymentDashboard({ customerId }: PaymentDashboardProps) {
         <CycleDocumentView customerId={customerId} />
       </TabsContent>
     </Tabs>
-  );
+  )
 }

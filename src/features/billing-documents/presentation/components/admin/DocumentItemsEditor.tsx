@@ -1,9 +1,9 @@
-"use client";
+'use client'
 
-import { Plus, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Plus, Trash2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Table,
   TableBody,
@@ -11,75 +11,63 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table'
 
 export interface EditableItem {
-  key: string;
-  description: string;
-  quantity: number;
-  unit: string;
-  unitPrice: number;
+  key: string
+  description: string
+  quantity: number
+  unit: string
+  unitPrice: number
 }
 
-let nextKey = 0;
+let nextKey = 0
 export function createItemKey() {
-  return `item-${++nextKey}`;
+  return `item-${++nextKey}`
 }
 
 function formatAmount(amount: number) {
-  return amount.toLocaleString("th-TH", { minimumFractionDigits: 2 });
+  return amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })
 }
 
 interface Props {
-  items: EditableItem[];
-  onItemsChange: (items: EditableItem[]) => void;
+  items: EditableItem[]
+  onItemsChange: (items: EditableItem[]) => void
 }
 
 export function DocumentItemsEditor({ items, onItemsChange }: Props) {
-  const total = items.reduce(
-    (sum, i) => sum + i.quantity * i.unitPrice,
-    0,
-  );
+  const total = items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)
 
   const handleItemChange = (
     key: string,
-    field: keyof Omit<EditableItem, "key">,
+    field: keyof Omit<EditableItem, 'key'>,
     value: string | number,
   ) => {
-    onItemsChange(
-      items.map((item) =>
-        item.key === key ? { ...item, [field]: value } : item,
-      ),
-    );
-  };
+    onItemsChange(items.map((item) => (item.key === key ? { ...item, [field]: value } : item)))
+  }
 
   const handleAddItem = () => {
     onItemsChange([
       ...items,
       {
         key: createItemKey(),
-        description: "",
+        description: '',
         quantity: 1,
-        unit: "รายการ",
+        unit: 'รายการ',
         unitPrice: 0,
       },
-    ]);
-  };
+    ])
+  }
 
   const handleRemoveItem = (key: string) => {
-    onItemsChange(items.filter((item) => item.key !== key));
-  };
+    onItemsChange(items.filter((item) => item.key !== key))
+  }
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <Label>รายการในเอกสาร</Label>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleAddItem}
-        >
+        <Button type="button" variant="outline" size="sm" onClick={handleAddItem}>
           <Plus className="mr-1 size-4" />
           เพิ่มรายการ
         </Button>
@@ -102,9 +90,7 @@ export function DocumentItemsEditor({ items, onItemsChange }: Props) {
               <TableCell className="p-1">
                 <Input
                   value={item.description}
-                  onChange={(e) =>
-                    handleItemChange(item.key, "description", e.target.value)
-                  }
+                  onChange={(e) => handleItemChange(item.key, 'description', e.target.value)}
                   placeholder="รายละเอียด..."
                   className="h-8"
                 />
@@ -117,7 +103,7 @@ export function DocumentItemsEditor({ items, onItemsChange }: Props) {
                   onChange={(e) =>
                     handleItemChange(
                       item.key,
-                      "quantity",
+                      'quantity',
                       Math.max(1, parseInt(e.target.value) || 1),
                     )
                   }
@@ -127,9 +113,7 @@ export function DocumentItemsEditor({ items, onItemsChange }: Props) {
               <TableCell className="p-1">
                 <Input
                   value={item.unit}
-                  onChange={(e) =>
-                    handleItemChange(item.key, "unit", e.target.value)
-                  }
+                  onChange={(e) => handleItemChange(item.key, 'unit', e.target.value)}
                   className="h-8"
                 />
               </TableCell>
@@ -142,7 +126,7 @@ export function DocumentItemsEditor({ items, onItemsChange }: Props) {
                   onChange={(e) =>
                     handleItemChange(
                       item.key,
-                      "unitPrice",
+                      'unitPrice',
                       Math.max(0, parseFloat(e.target.value) || 0),
                     )
                   }
@@ -160,7 +144,7 @@ export function DocumentItemsEditor({ items, onItemsChange }: Props) {
                   onClick={() => handleRemoveItem(item.key)}
                   disabled={items.length <= 1}
                 >
-                  <Trash2 className="size-4 text-destructive" />
+                  <Trash2 className="text-destructive size-4" />
                 </Button>
               </TableCell>
             </TableRow>
@@ -168,12 +152,10 @@ export function DocumentItemsEditor({ items, onItemsChange }: Props) {
         </TableBody>
       </Table>
 
-      <p className="text-right text-sm text-muted-foreground">
-        รวมทั้งสิ้น:{" "}
-        <span className="font-semibold text-foreground">
-          {formatAmount(total)} บาท
-        </span>
+      <p className="text-muted-foreground text-right text-sm">
+        รวมทั้งสิ้น:{' '}
+        <span className="text-foreground font-semibold">{formatAmount(total)} บาท</span>
       </p>
     </div>
-  );
+  )
 }

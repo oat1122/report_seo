@@ -1,8 +1,7 @@
 export const PaymentStatus = {
-  PENDING: "PENDING",
-  APPROVED: "APPROVED",
-  REJECTED: "REJECTED",
-} as const;
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+} as const
 
-export type PaymentStatus =
-  (typeof PaymentStatus)[keyof typeof PaymentStatus];
+export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus]

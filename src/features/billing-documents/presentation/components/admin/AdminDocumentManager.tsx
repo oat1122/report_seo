@@ -1,7 +1,7 @@
-"use client";
+'use client'
 
-import { Card, CardContent } from "@/components/ui/card";
-import { AllDocumentsTable } from "./AllDocumentsTable";
+import { Card, CardContent } from '@/components/ui/card'
+import { AllDocumentsTable } from './AllDocumentsTable'
 
 export function AdminDocumentManager() {
   return (
@@ -10,5 +10,5 @@ export function AdminDocumentManager() {
         <AllDocumentsTable />
       </CardContent>
     </Card>
-  );
+  )
 }

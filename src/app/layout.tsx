@@ -1,54 +1,57 @@
 // src/app/layout.tsx (โค้ดที่สะอาด)
-import type { Metadata, Viewport } from "next";
-import { Geist, Inter } from "next/font/google";
-import { Kanit } from "next/font/google";
-import { Providers } from "@/features/auth/presentation/providers";
-import { ThemedToastContainer } from "@/components/Layout/ThemedToastContainer";
-import "react-toastify/dist/ReactToastify.css";
-import "./globals.css";
-import { cn } from "@/lib/utils";
+import type { Metadata, Viewport } from 'next'
+import { Geist, Inter } from 'next/font/google'
+import { Kanit } from 'next/font/google'
+import { Providers } from '@/features/auth/presentation/providers'
+import { ThemedToastContainer } from '@/components/Layout/ThemedToastContainer'
+import 'react-toastify/dist/ReactToastify.css'
+import './globals.css'
+import { cn } from '@/lib/utils'
 
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
-
+const inter = Inter({ subsets: ['latin'], variable: '--font-sans' })
 
 // 1. กำหนดค่าฟอนต์ Kanit (ฟอนต์หลักภาษาไทย/Sans)
 const kanit = Kanit({
-  subsets: ["latin", "thai"],
+  subsets: ['latin', 'thai'],
   // โหลดน้ำหนักที่ใช้: Regular (400), Medium (500), Bold (700)
-  weight: ["400", "500", "700"],
-  variable: "--font-kanit", // ใช้ variable เพื่อให้ Tailwind ใช้ได้
-});
+  weight: ['400', '500', '700'],
+  variable: '--font-kanit', // ใช้ variable เพื่อให้ Tailwind ใช้ได้
+})
 
 // กำหนด Geist เป็นฟอนต์สำรอง (ใช้เฉพาะ variable)
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+  variable: '--font-geist-sans',
+  subsets: ['latin'],
+})
 
 export const viewport: Viewport = {
-  width: "device-width",
+  width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
-  viewportFit: "cover",
-};
+  viewportFit: 'cover',
+}
 
 export const metadata: Metadata = {
-  title: "SEO Report Dashboard",
-  description: "Dashboard for SEO keyword and domain reports",
+  title: 'SEO Report Dashboard',
+  description: 'Dashboard for SEO keyword and domain reports',
   icons: {
-    icon: "/img/LOGO_SEO_PRIME4_0-removebg.png",
+    icon: '/img/LOGO_SEO_PRIME4_0-removebg.png',
   },
-};
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
     // กำหนด CSS Variable ของฟอนต์ทั้งหมด
-    <html lang="th" suppressHydrationWarning className={cn(kanit.variable, geistSans.variable, "font-sans", inter.variable)}>
+    <html
+      lang="th"
+      suppressHydrationWarning
+      className={cn(kanit.variable, geistSans.variable, 'font-sans', inter.variable)}
+    >
       {/* ใช้ kanit.className บน body โดยตรงเพื่อบังคับให้ Kanit เป็นฟอนต์หลัก
           (คลาสนี้จะถูกกำหนด font-family โดย Next.js) */}
       <body className={`${kanit.className} font-sans antialiased`}>
@@ -58,5 +61,5 @@ export default function RootLayout({
         </Providers>
       </body>
     </html>
-  );
+  )
 }

@@ -1,32 +1,32 @@
-"use client";
+'use client'
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axios from "@/infrastructure/http/axios";
-import type { KeywordRecommend } from "@/types/metrics";
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import axios from '@/infrastructure/http/axios'
+import type { KeywordRecommend } from '@/types/metrics'
 
-type ApiData<T> = { data: T };
+type ApiData<T> = { data: T }
 
 export interface RecommendKeywordFormData {
-  keyword: string;
-  kd?: string | null;
-  isTopReport?: boolean;
-  note?: string | null;
+  keyword: string
+  kd?: string | null
+  isTopReport?: boolean
+  note?: string | null
 }
 
 export const useGetRecommendKeywords = (customerId: string) =>
   useQuery<KeywordRecommend[], Error>({
-    queryKey: ["recommendKeywords", customerId],
+    queryKey: ['recommendKeywords', customerId],
     queryFn: async () => {
       const { data } = await axios.get<ApiData<KeywordRecommend[]>>(
         `/customers/${customerId}/recommend-keywords`,
-      );
-      return data.data;
+      )
+      return data.data
     },
     enabled: !!customerId,
-  });
+  })
 
 export const useAddRecommendKeyword = () => {
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
   return useMutation<
     KeywordRecommend,
     Error,
@@ -36,66 +36,62 @@ export const useAddRecommendKeyword = () => {
       const { data } = await axios.post<ApiData<KeywordRecommend>>(
         `/customers/${customerId}/recommend-keywords`,
         keyword,
-      );
-      return data.data;
+      )
+      return data.data
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ["recommendKeywords", variables.customerId],
-      });
+        queryKey: ['recommendKeywords', variables.customerId],
+      })
       queryClient.invalidateQueries({
-        queryKey: ["customerReport", variables.customerId],
-      });
+        queryKey: ['customerReport', variables.customerId],
+      })
     },
-  });
-};
+  })
+}
 
 export const useUpdateRecommendKeyword = () => {
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
   return useMutation<
     KeywordRecommend,
     Error,
     {
-      customerId: string;
-      recommendId: string;
-      keyword: RecommendKeywordFormData;
+      customerId: string
+      recommendId: string
+      keyword: RecommendKeywordFormData
     }
   >({
     mutationFn: async ({ recommendId, keyword }) => {
       const { data } = await axios.put<ApiData<KeywordRecommend>>(
         `/customers/recommend-keywords/${recommendId}`,
         keyword,
-      );
-      return data.data;
+      )
+      return data.data
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ["recommendKeywords", variables.customerId],
-      });
+        queryKey: ['recommendKeywords', variables.customerId],
+      })
       queryClient.invalidateQueries({
-        queryKey: ["customerReport", variables.customerId],
-      });
+        queryKey: ['customerReport', variables.customerId],
+      })
     },
-  });
-};
+  })
+}
 
 export const useDeleteRecommendKeyword = () => {
-  const queryClient = useQueryClient();
-  return useMutation<
-    void,
-    Error,
-    { customerId: string; recommendId: string }
-  >({
+  const queryClient = useQueryClient()
+  return useMutation<void, Error, { customerId: string; recommendId: string }>({
     mutationFn: async ({ recommendId }) => {
-      await axios.delete(`/customers/recommend-keywords/${recommendId}`);
+      await axios.delete(`/customers/recommend-keywords/${recommendId}`)
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ["recommendKeywords", variables.customerId],
-      });
+        queryKey: ['recommendKeywords', variables.customerId],
+      })
       queryClient.invalidateQueries({
-        queryKey: ["customerReport", variables.customerId],
-      });
+        queryKey: ['customerReport', variables.customerId],
+      })
     },
-  });
-};
+  })
+}

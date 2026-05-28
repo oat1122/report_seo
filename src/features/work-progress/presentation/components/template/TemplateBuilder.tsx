@@ -1,8 +1,8 @@
-"use client";
+'use client'
 
-import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, Plus } from "lucide-react";
+import { useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
+import { ArrowLeft, Plus } from 'lucide-react'
 import {
   DndContext,
   PointerSensor,
@@ -10,52 +10,45 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  arrayMove,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
+} from '@dnd-kit/core'
+import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Switch } from '@/components/ui/switch'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ConfirmAlert } from "@/components/shared/ConfirmAlert";
-import { toast } from "react-toastify";
-import { TemplateGridRow } from "./TemplateGridRow";
-import { TemplateItemDialog } from "./TemplateItemDialog";
+} from '@/components/ui/select'
+import { Skeleton } from '@/components/ui/skeleton'
+import { ConfirmAlert } from '@/components/shared/ConfirmAlert'
+import { toast } from 'react-toastify'
+import { TemplateGridRow } from './TemplateGridRow'
+import { TemplateItemDialog } from './TemplateItemDialog'
 import {
   useDeleteTemplateItem,
   useReorderTemplateItems,
   useTemplate,
   useUpdateTemplate,
   useUpdateTemplateItem,
-} from "../../hooks/useTemplates";
-import { useCategories, useMarkTypes } from "../../hooks/useMasterTables";
-import {
-  updateTemplateSchema,
-  type UpdateTemplateInput,
-} from "@/features/work-progress/schemas";
-import type { WorkProgressTemplateItem } from "@/features/work-progress/domain/WorkProgressTemplate";
+} from '../../hooks/useTemplates'
+import { useCategories, useMarkTypes } from '../../hooks/useMasterTables'
+import { updateTemplateSchema, type UpdateTemplateInput } from '@/features/work-progress/schemas'
+import type { WorkProgressTemplateItem } from '@/features/work-progress/domain/WorkProgressTemplate'
 import {
   generateTemplateMonthSlots,
   type PeriodSeed,
-} from "../../../domain/policies/period-generator";
-import type { TemplateDefaultPeriods } from "../../../domain/policies/template-default-periods";
+} from '../../../domain/policies/period-generator'
+import type { TemplateDefaultPeriods } from '../../../domain/policies/template-default-periods'
 
 interface TemplateBuilderProps {
-  templateId: string;
-  backHref: string;
+  templateId: string
+  backHref: string
 }
 
 const COL_WIDTH = {
@@ -65,81 +58,70 @@ const COL_WIDTH = {
   duration: 90,
   period: 56,
   actions: 80,
-} as const;
+} as const
 
 export function TemplateBuilder({ templateId, backHref }: TemplateBuilderProps) {
-  const { data, isLoading } = useTemplate(templateId);
-  const { data: categories } = useCategories();
-  const { data: markTypes } = useMarkTypes();
-  const updateMut = useUpdateTemplate();
-  const deleteItemMut = useDeleteTemplateItem();
-  const reorderMut = useReorderTemplateItems();
-  const updateItemMut = useUpdateTemplateItem();
+  const { data, isLoading } = useTemplate(templateId)
+  const { data: categories } = useCategories()
+  const { data: markTypes } = useMarkTypes()
+  const updateMut = useUpdateTemplate()
+  const deleteItemMut = useDeleteTemplateItem()
+  const reorderMut = useReorderTemplateItems()
+  const updateItemMut = useUpdateTemplateItem()
 
-  const [itemDialogOpen, setItemDialogOpen] = useState(false);
-  const [editingItem, setEditingItem] =
-    useState<WorkProgressTemplateItem | null>(null);
-  const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
-  const [localOrder, setLocalOrder] = useState<string[] | null>(null);
+  const [itemDialogOpen, setItemDialogOpen] = useState(false)
+  const [editingItem, setEditingItem] = useState<WorkProgressTemplateItem | null>(null)
+  const [deleteItemId, setDeleteItemId] = useState<string | null>(null)
+  const [localOrder, setLocalOrder] = useState<string[] | null>(null)
 
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [durationMonths, setDurationMonths] = useState<number>(12);
-  const [isActive, setIsActive] = useState(true);
-  const [dirty, setDirty] = useState(false);
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [durationMonths, setDurationMonths] = useState<number>(12)
+  const [isActive, setIsActive] = useState(true)
+  const [dirty, setDirty] = useState(false)
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
-  );
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }))
 
   // sync form when data loads / refetches
   useEffect(() => {
     if (data) {
-      setName(data.name);
-      setDescription(data.description ?? "");
-      setDurationMonths(data.durationMonths);
-      setIsActive(data.isActive);
-      setDirty(false);
+      setName(data.name)
+      setDescription(data.description ?? '')
+      setDurationMonths(data.durationMonths)
+      setIsActive(data.isActive)
+      setDirty(false)
     }
-  }, [data]);
+  }, [data])
 
   const categoryById = useMemo(
     () => new Map((categories ?? []).map((c) => [c.id, c])),
     [categories],
-  );
+  )
 
   const sortedItems = useMemo(() => {
-    if (!data) return [];
-    const base = data.items.slice().sort((a, b) => a.orderIndex - b.orderIndex);
-    if (!localOrder) return base;
-    const byId = new Map(base.map((i) => [i.id, i]));
-    return localOrder
-      .map((id) => byId.get(id))
-      .filter((i): i is WorkProgressTemplateItem => !!i);
-  }, [data, localOrder]);
+    if (!data) return []
+    const base = data.items.slice().sort((a, b) => a.orderIndex - b.orderIndex)
+    if (!localOrder) return base
+    const byId = new Map(base.map((i) => [i.id, i]))
+    return localOrder.map((id) => byId.get(id)).filter((i): i is WorkProgressTemplateItem => !!i)
+  }, [data, localOrder])
 
   const periodSeeds = useMemo<PeriodSeed[]>(() => {
-    if (!data) return [];
-    return generateTemplateMonthSlots(data.durationMonths);
-  }, [data]);
+    if (!data) return []
+    return generateTemplateMonthSlots(data.durationMonths)
+  }, [data])
 
-  const activeMarkTypes = useMemo(
-    () => (markTypes ?? []).filter((m) => m.isActive),
-    [markTypes],
-  );
+  const activeMarkTypes = useMemo(() => (markTypes ?? []).filter((m) => m.isActive), [markTypes])
 
-  const gridTemplate = `${COL_WIDTH.drag}px ${COL_WIDTH.category}px ${COL_WIDTH.activity}px ${COL_WIDTH.duration}px repeat(${periodSeeds.length}, ${COL_WIDTH.period}px) ${COL_WIDTH.actions}px`;
+  const gridTemplate = `${COL_WIDTH.drag}px ${COL_WIDTH.category}px ${COL_WIDTH.activity}px ${COL_WIDTH.duration}px repeat(${periodSeeds.length}, ${COL_WIDTH.period}px) ${COL_WIDTH.actions}px`
 
-  const handleChangePeriodMark = (
-    itemId: string,
-    nextDefaultPeriods: TemplateDefaultPeriods,
-  ) => {
+  const handleChangePeriodMark = (itemId: string, nextDefaultPeriods: TemplateDefaultPeriods) => {
     updateItemMut.mutate({
       templateId,
       itemId,
       body: { defaultPeriods: nextDefaultPeriods },
-    });
-  };
+    })
+  }
 
   const handleSaveMeta = async () => {
     const body = {
@@ -147,28 +129,28 @@ export function TemplateBuilder({ templateId, backHref }: TemplateBuilderProps) 
       description: description.trim() || null,
       durationMonths,
       isActive,
-    };
-    const parsed = updateTemplateSchema.safeParse(body);
+    }
+    const parsed = updateTemplateSchema.safeParse(body)
     if (!parsed.success) {
-      toast.error(parsed.error.issues[0]?.message ?? "ข้อมูลไม่ถูกต้อง");
-      return;
+      toast.error(parsed.error.issues[0]?.message ?? 'ข้อมูลไม่ถูกต้อง')
+      return
     }
     await updateMut.mutateAsync({
       id: templateId,
       body: parsed.data as UpdateTemplateInput,
-    });
-    setDirty(false);
-  };
+    })
+    setDirty(false)
+  }
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const ids = sortedItems.map((i) => i.id);
-    const oldIdx = ids.indexOf(active.id as string);
-    const newIdx = ids.indexOf(over.id as string);
-    if (oldIdx < 0 || newIdx < 0) return;
-    const next = arrayMove(ids, oldIdx, newIdx);
-    setLocalOrder(next);
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const ids = sortedItems.map((i) => i.id)
+    const oldIdx = ids.indexOf(active.id as string)
+    const newIdx = ids.indexOf(over.id as string)
+    if (oldIdx < 0 || newIdx < 0) return
+    const next = arrayMove(ids, oldIdx, newIdx)
+    setLocalOrder(next)
     reorderMut.mutate(
       {
         templateId,
@@ -177,11 +159,11 @@ export function TemplateBuilder({ templateId, backHref }: TemplateBuilderProps) 
         },
       },
       { onSettled: () => setLocalOrder(null) },
-    );
-  };
+    )
+  }
 
-  if (isLoading) return <Skeleton className="h-96 w-full" />;
-  if (!data) return null;
+  if (isLoading) return <Skeleton className="h-96 w-full" />
+  if (!data) return null
 
   return (
     <div className="flex flex-col gap-4">
@@ -192,9 +174,7 @@ export function TemplateBuilder({ templateId, backHref }: TemplateBuilderProps) 
           </Link>
         </Button>
         <h1 className="text-xl font-semibold">{data.name}</h1>
-        {data.isSystem && (
-          <span className="rounded bg-muted px-2 py-0.5 text-xs">system</span>
-        )}
+        {data.isSystem && <span className="bg-muted rounded px-2 py-0.5 text-xs">system</span>}
       </div>
 
       <Card>
@@ -209,8 +189,8 @@ export function TemplateBuilder({ templateId, backHref }: TemplateBuilderProps) 
                 id="tb-name"
                 value={name}
                 onChange={(e) => {
-                  setName(e.target.value);
-                  setDirty(true);
+                  setName(e.target.value)
+                  setDirty(true)
                 }}
                 maxLength={200}
                 disabled={data.isSystem}
@@ -221,8 +201,8 @@ export function TemplateBuilder({ templateId, backHref }: TemplateBuilderProps) 
               <Select
                 value={String(durationMonths)}
                 onValueChange={(v) => {
-                  setDurationMonths(Number(v));
-                  setDirty(true);
+                  setDurationMonths(Number(v))
+                  setDirty(true)
                 }}
                 disabled={data.isSystem}
               >
@@ -240,16 +220,16 @@ export function TemplateBuilder({ templateId, backHref }: TemplateBuilderProps) 
             </div>
             <div className="grid gap-1.5">
               <Label>สถานะ</Label>
-              <div className="flex h-9 items-center gap-2 rounded-md border border-input px-3">
+              <div className="border-input flex h-9 items-center gap-2 rounded-md border px-3">
                 <Switch
                   checked={isActive}
                   onCheckedChange={(v) => {
-                    setIsActive(v);
-                    setDirty(true);
+                    setIsActive(v)
+                    setDirty(true)
                   }}
                   disabled={data.isSystem}
                 />
-                <span className="text-sm">{isActive ? "เปิดใช้" : "ปิด"}</span>
+                <span className="text-sm">{isActive ? 'เปิดใช้' : 'ปิด'}</span>
               </div>
             </div>
             <div className="grid gap-1.5 md:col-span-2">
@@ -258,8 +238,8 @@ export function TemplateBuilder({ templateId, backHref }: TemplateBuilderProps) 
                 id="tb-desc"
                 value={description}
                 onChange={(e) => {
-                  setDescription(e.target.value);
-                  setDirty(true);
+                  setDescription(e.target.value)
+                  setDirty(true)
                 }}
                 rows={2}
                 maxLength={5000}
@@ -269,11 +249,7 @@ export function TemplateBuilder({ templateId, backHref }: TemplateBuilderProps) 
           </div>
           {dirty && !data.isSystem && (
             <div className="mt-3 flex justify-end">
-              <Button
-                size="sm"
-                onClick={handleSaveMeta}
-                disabled={updateMut.isPending}
-              >
+              <Button size="sm" onClick={handleSaveMeta} disabled={updateMut.isPending}>
                 บันทึก
               </Button>
             </div>
@@ -288,8 +264,8 @@ export function TemplateBuilder({ templateId, backHref }: TemplateBuilderProps) 
             <Button
               size="sm"
               onClick={() => {
-                setEditingItem(null);
-                setItemDialogOpen(true);
+                setEditingItem(null)
+                setItemDialogOpen(true)
               }}
             >
               <Plus className="size-4" />
@@ -299,28 +275,21 @@ export function TemplateBuilder({ templateId, backHref }: TemplateBuilderProps) 
         </CardHeader>
         <CardContent>
           {sortedItems.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">
-              ยังไม่มี item
-            </p>
+            <p className="text-muted-foreground py-6 text-center text-sm">ยังไม่มี item</p>
           ) : (
-            <div className="overflow-x-auto rounded-md border border-border">
+            <div className="border-border overflow-x-auto rounded-md border">
               <div className="min-w-fit">
                 <div
-                  className="grid border-b border-border bg-muted text-xs font-medium text-muted-foreground"
+                  className="border-border bg-muted text-muted-foreground grid border-b text-xs font-medium"
                   style={{ gridTemplateColumns: gridTemplate }}
                   role="row"
                 >
-                  <div className="border-r border-border" />
-                  <div className="border-r border-border px-2 py-2">หมวด</div>
-                  <div className="border-r border-border px-2 py-2">
-                    กิจกรรม
-                  </div>
-                  <div className="border-r border-border px-2 py-2">ระยะ</div>
+                  <div className="border-border border-r" />
+                  <div className="border-border border-r px-2 py-2">หมวด</div>
+                  <div className="border-border border-r px-2 py-2">กิจกรรม</div>
+                  <div className="border-border border-r px-2 py-2">ระยะ</div>
                   {periodSeeds.map((p) => (
-                    <div
-                      key={p.seq}
-                      className="border-r border-border px-1 py-2 text-center"
-                    >
+                    <div key={p.seq} className="border-border border-r px-1 py-2 text-center">
                       {p.label}
                     </div>
                   ))}
@@ -345,8 +314,8 @@ export function TemplateBuilder({ templateId, backHref }: TemplateBuilderProps) 
                         gridTemplate={gridTemplate}
                         disabled={data.isSystem}
                         onEdit={() => {
-                          setEditingItem(i);
-                          setItemDialogOpen(true);
+                          setEditingItem(i)
+                          setItemDialogOpen(true)
                         }}
                         onDelete={() => setDeleteItemId(i.id)}
                         onChangePeriodMark={handleChangePeriodMark}
@@ -371,16 +340,16 @@ export function TemplateBuilder({ templateId, backHref }: TemplateBuilderProps) 
         open={deleteItemId !== null}
         onClose={() => setDeleteItemId(null)}
         onConfirm={async () => {
-          if (!deleteItemId) return;
+          if (!deleteItemId) return
           await deleteItemMut.mutateAsync({
             templateId,
             itemId: deleteItemId,
-          });
-          setDeleteItemId(null);
+          })
+          setDeleteItemId(null)
         }}
         title="ลบ item ใน template"
         message="ลบ item นี้ออกจาก template — แผนที่สร้างไปแล้วจะไม่ถูกกระทบ"
       />
     </div>
-  );
+  )
 }

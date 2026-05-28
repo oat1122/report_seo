@@ -1,98 +1,87 @@
-"use client";
+'use client'
 
-import { useMemo } from "react";
-import {
-  Bar,
-  CartesianGrid,
-  ComposedChart,
-  Line,
-  XAxis,
-  YAxis,
-} from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-import { ChartEmptyState } from "../components/ChartEmptyState";
-import { buildChartConfig } from "../lib/buildChartConfig";
+import { useMemo } from 'react'
+import { Bar, CartesianGrid, ComposedChart, Line, XAxis, YAxis } from 'recharts'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import { ChartEmptyState } from '../components/ChartEmptyState'
+import { buildChartConfig } from '../lib/buildChartConfig'
 import {
   computeBacklinkRatio,
   deduplicateByDay,
   downsampleWide,
   filterHistoryByPeriod,
   hasEnoughDataForChart,
-} from "../lib/historyCalculations";
-import { useHistoryContext } from "../contexts/HistoryContext";
-import { useReportFilters } from "../contexts/ReportFiltersContext";
+} from '../lib/historyCalculations'
+import { useHistoryContext } from '../contexts/HistoryContext'
+import { useReportFilters } from '../contexts/ReportFiltersContext'
 
 const chartConfig = buildChartConfig([
-  { key: "backlinks", label: "Backlinks", color: "var(--chart-2)" },
-  { key: "refDomains", label: "Ref. Domains", color: "var(--chart-1)" },
-  { key: "ratio", label: "Ratio", color: "var(--info)" },
-]);
+  { key: 'backlinks', label: 'Backlinks', color: 'var(--chart-2)' },
+  { key: 'refDomains', label: 'Ref. Domains', color: 'var(--chart-1)' },
+  { key: 'ratio', label: 'Ratio', color: 'var(--info)' },
+])
 
 const fmtNum = (val: number): string => {
-  if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(1)}M`;
-  if (val >= 1_000) return `${(val / 1_000).toFixed(0)}K`;
-  return val.toString();
-};
+  if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(1)}M`
+  if (val >= 1_000) return `${(val / 1_000).toFixed(0)}K`
+  return val.toString()
+}
 
 const fmtDateTick = (ms: number) =>
-  new Date(ms).toLocaleDateString("th-TH", {
-    day: "2-digit",
-    month: "short",
-  });
+  new Date(ms).toLocaleDateString('th-TH', {
+    day: '2-digit',
+    month: 'short',
+  })
 
 const fmtDateLabel = (ms: number) =>
-  new Date(ms).toLocaleDateString("th-TH", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  new Date(ms).toLocaleDateString('th-TH', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
 
 const interpretRatio = (ratio: number | null): string => {
-  if (ratio === null) return "ยังไม่มี referring domain";
-  if (ratio > 50) return "Ratio สูง — อาจมี link จากเว็บไม่หลากหลาย";
-  if (ratio > 10) return "Ratio ปานกลาง";
-  return "Ratio ดี — link หลากหลาย";
-};
+  if (ratio === null) return 'ยังไม่มี referring domain'
+  if (ratio > 50) return 'Ratio สูง — อาจมี link จากเว็บไม่หลากหลาย'
+  if (ratio > 10) return 'Ratio ปานกลาง'
+  return 'Ratio ดี — link หลากหลาย'
+}
 
 export const BacklinksVsRefDomains = () => {
-  const { metricsHistory } = useHistoryContext();
-  const { period } = useReportFilters();
+  const { metricsHistory } = useHistoryContext()
+  const { period } = useReportFilters()
 
   const { chartData, hasData, currentRatio } = useMemo(() => {
-    let filtered = deduplicateByDay(filterHistoryByPeriod(metricsHistory, period));
+    let filtered = deduplicateByDay(filterHistoryByPeriod(metricsHistory, period))
     if (filtered.length < 3 && metricsHistory.length >= 3) {
       const all = [...metricsHistory].sort(
         (a, b) => new Date(a.dateRecorded).getTime() - new Date(b.dateRecorded).getTime(),
-      );
-      filtered = deduplicateByDay(all);
+      )
+      filtered = deduplicateByDay(all)
     }
     if (!hasEnoughDataForChart(filtered.length)) {
-      return { chartData: [], hasData: false, currentRatio: null };
+      return { chartData: [], hasData: false, currentRatio: null }
     }
     const rows = filtered.map((r) => ({
       dateMs: new Date(r.dateRecorded).getTime(),
       backlinks: r.backlinks,
       refDomains: r.refDomains,
       ratio: computeBacklinkRatio(r.backlinks, r.refDomains) ?? 0,
-    }));
-    const latest = rows[rows.length - 1];
+    }))
+    const latest = rows[rows.length - 1]
     return {
       chartData: downsampleWide(rows, 60),
       hasData: true,
       currentRatio: computeBacklinkRatio(latest.backlinks, latest.refDomains),
-    };
-  }, [metricsHistory, period]);
+    }
+  }, [metricsHistory, period])
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Backlinks vs Referring Domains</CardTitle>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-muted-foreground text-xs">
           เปรียบเทียบจำนวน link กับจำนวนเว็บที่ link มา (link diversity)
         </p>
       </CardHeader>
@@ -102,19 +91,12 @@ export const BacklinksVsRefDomains = () => {
         ) : (
           <>
             <ChartContainer config={chartConfig} className="h-[240px] w-full">
-              <ComposedChart
-                data={chartData}
-                margin={{ top: 8, right: 16, left: 8, bottom: 8 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="var(--border)"
-                  vertical={false}
-                />
+              <ComposedChart data={chartData} margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                 <XAxis
                   dataKey="dateMs"
                   type="number"
-                  domain={["dataMin", "dataMax"]}
+                  domain={['dataMin', 'dataMax']}
                   scale="time"
                   tickFormatter={fmtDateTick}
                   stroke="var(--muted-foreground)"
@@ -138,27 +120,25 @@ export const BacklinksVsRefDomains = () => {
                 />
                 <ChartTooltip
                   cursor={{
-                    stroke: "var(--muted-foreground)",
-                    strokeDasharray: "3 3",
+                    stroke: 'var(--muted-foreground)',
+                    strokeDasharray: '3 3',
                   }}
                   content={
                     <ChartTooltipContent
                       labelFormatter={(_l, p) => {
-                        const ms = p?.[0]?.payload?.dateMs;
-                        return typeof ms === "number" ? fmtDateLabel(ms) : "";
+                        const ms = p?.[0]?.payload?.dateMs
+                        return typeof ms === 'number' ? fmtDateLabel(ms) : ''
                       }}
                       formatter={(v, name) => {
                         const label =
-                          name === "backlinks"
-                            ? "Backlinks"
-                            : name === "refDomains"
-                              ? "Ref. Domains"
-                              : "Ratio";
+                          name === 'backlinks'
+                            ? 'Backlinks'
+                            : name === 'refDomains'
+                              ? 'Ref. Domains'
+                              : 'Ratio'
                         const formatted =
-                          name === "ratio"
-                            ? Number(v).toFixed(1)
-                            : Number(v).toLocaleString();
-                        return [formatted, label];
+                          name === 'ratio' ? Number(v).toFixed(1) : Number(v).toLocaleString()
+                        return [formatted, label]
                       }}
                     />
                   }
@@ -188,15 +168,15 @@ export const BacklinksVsRefDomains = () => {
                 />
               </ComposedChart>
             </ChartContainer>
-            <p className="mt-3 text-center text-xs text-muted-foreground">
-              <span className="font-semibold text-foreground">
-                {currentRatio !== null ? currentRatio.toFixed(1) : "—"}
-              </span>{" "}
+            <p className="text-muted-foreground mt-3 text-center text-xs">
+              <span className="text-foreground font-semibold">
+                {currentRatio !== null ? currentRatio.toFixed(1) : '—'}
+              </span>{' '}
               backlinks ต่อ 1 referring domain — {interpretRatio(currentRatio)}
             </p>
           </>
         )}
       </CardContent>
     </Card>
-  );
-};
+  )
+}

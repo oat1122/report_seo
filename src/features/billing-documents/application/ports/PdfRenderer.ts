@@ -1,3 +1,3 @@
 export interface PdfRenderer {
-  renderToPdf(html: string): Promise<Buffer>;
+  renderToPdf(html: string): Promise<Buffer>
 }

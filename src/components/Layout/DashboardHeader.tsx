@@ -1,10 +1,10 @@
-"use client";
+'use client'
 
-import Image from "next/image";
-import { useSession } from "next-auth/react";
-import { Globe, Menu } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import Image from 'next/image'
+import { useSession } from 'next-auth/react'
+import { Globe, Menu } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Sheet,
   SheetContent,
@@ -12,25 +12,23 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet";
-import { Role } from "@/types";
-import { useMobileDrawer } from "@/hooks/ui/useMobileDrawer";
-import { UserMenu } from "./UserMenu";
-import { HistoryButton } from "./HistoryButton";
-import { MobileMenuContent } from "./MobileMenuContent";
-import { ThemeToggle } from "./ThemeToggle";
-import { NotificationBell } from "@/features/notifications/presentation/components/NotificationBell";
+} from '@/components/ui/sheet'
+import { Role } from '@/types'
+import { useMobileDrawer } from '@/hooks/ui/useMobileDrawer'
+import { UserMenu } from './UserMenu'
+import { HistoryButton } from './HistoryButton'
+import { MobileMenuContent } from './MobileMenuContent'
+import { ThemeToggle } from './ThemeToggle'
+import { NotificationBell } from '@/features/notifications/presentation/components/NotificationBell'
 
 export const DashboardHeader = () => {
-  const { data: session, status } = useSession();
-  const { mobileOpen, handleDrawerToggle, handleDrawerClose } =
-    useMobileDrawer();
+  const { data: session, status } = useSession()
+  const { mobileOpen, handleDrawerToggle, handleDrawerClose } = useMobileDrawer()
 
-  const isLoading = status === "loading";
-  const userName = session?.user?.name || "Guest";
-  const userRole = session?.user?.role;
-  const customerUserId =
-    userRole === Role.CUSTOMER ? (session?.user?.id ?? null) : null;
+  const isLoading = status === 'loading'
+  const userName = session?.user?.name || 'Guest'
+  const userRole = session?.user?.role
+  const customerUserId = userRole === Role.CUSTOMER ? (session?.user?.id ?? null) : null
 
   return (
     <header className="bg-background shadow-sm">
@@ -64,21 +62,14 @@ export const DashboardHeader = () => {
             onOpenChange={(o) => (o ? handleDrawerToggle() : handleDrawerClose())}
           >
             <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label="เปิดเมนู"
-                className="md:hidden"
-              >
+              <Button variant="ghost" size="icon-sm" aria-label="เปิดเมนู" className="md:hidden">
                 <Menu className="size-5" />
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-72">
               <SheetHeader>
                 <SheetTitle>เมนู</SheetTitle>
-                <SheetDescription className="sr-only">
-                  เมนูสำหรับผู้ใช้
-                </SheetDescription>
+                <SheetDescription className="sr-only">เมนูสำหรับผู้ใช้</SheetDescription>
               </SheetHeader>
               <MobileMenuContent
                 userName={userName}
@@ -91,19 +82,19 @@ export const DashboardHeader = () => {
           </Sheet>
         </div>
 
-        <div className="flex items-center gap-2 border-t border-border px-2 py-1">
-          <Globe className="size-4 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">
+        <div className="border-border flex items-center gap-2 border-t px-2 py-1">
+          <Globe className="text-muted-foreground size-4" />
+          <span className="text-muted-foreground text-xs">
             {isLoading ? (
               <Skeleton className="inline-block h-3 w-32" />
             ) : userRole === Role.CUSTOMER ? (
-              "Customer Report Panel"
+              'Customer Report Panel'
             ) : (
-              `${userRole || "USER"} Dashboard`
+              `${userRole || 'USER'} Dashboard`
             )}
           </span>
         </div>
       </div>
     </header>
-  );
-};
+  )
+}

@@ -1,16 +1,16 @@
-"use client";
+'use client'
 
-import { useId, useMemo } from "react";
+import { useId, useMemo } from 'react'
 
 interface MiniSparklineProps {
-  data: number[];
+  data: number[]
   /** CSS color string (token or rgb) — passed to stroke + fill */
-  color: string;
-  width?: number;
-  height?: number;
+  color: string
+  width?: number
+  height?: number
   /** lower-is-better (เช่น position) — flip path ขึ้นเมื่อค่าลด */
-  invert?: boolean;
-  ariaLabel?: string;
+  invert?: boolean
+  ariaLabel?: string
 }
 
 /**
@@ -25,37 +25,37 @@ export const MiniSparkline = ({
   invert = false,
   ariaLabel,
 }: MiniSparklineProps) => {
-  const gradientId = useId();
+  const gradientId = useId()
 
   const { points, areaPath } = useMemo(() => {
-    if (data.length === 0) return { points: "", areaPath: "" };
+    if (data.length === 0) return { points: '', areaPath: '' }
 
-    const min = Math.min(...data);
-    const max = Math.max(...data);
-    const range = max - min || 1;
-    const padding = 2;
-    const innerWidth = width - padding * 2;
-    const innerHeight = height - padding * 2;
+    const min = Math.min(...data)
+    const max = Math.max(...data)
+    const range = max - min || 1
+    const padding = 2
+    const innerWidth = width - padding * 2
+    const innerHeight = height - padding * 2
 
-    const xStep = data.length > 1 ? innerWidth / (data.length - 1) : 0;
+    const xStep = data.length > 1 ? innerWidth / (data.length - 1) : 0
     const coords = data.map((v, i) => {
-      const x = padding + i * xStep;
-      const normalized = (v - min) / range; // 0..1, higher is up visually
+      const x = padding + i * xStep
+      const normalized = (v - min) / range // 0..1, higher is up visually
       // SVG y axis flipped — value สูง = y น้อย
       // invert=true (lower-is-better): ค่าน้อย → ขึ้นสูง
-      const yNormalized = invert ? normalized : 1 - normalized;
-      const y = padding + yNormalized * innerHeight;
-      return { x, y };
-    });
+      const yNormalized = invert ? normalized : 1 - normalized
+      const y = padding + yNormalized * innerHeight
+      return { x, y }
+    })
 
-    const linePoints = coords.map((c) => `${c.x},${c.y}`).join(" ");
+    const linePoints = coords.map((c) => `${c.x},${c.y}`).join(' ')
     const area =
       `M ${coords[0].x},${height - padding} ` +
-      coords.map((c) => `L ${c.x},${c.y}`).join(" ") +
-      ` L ${coords[coords.length - 1].x},${height - padding} Z`;
+      coords.map((c) => `L ${c.x},${c.y}`).join(' ') +
+      ` L ${coords[coords.length - 1].x},${height - padding} Z`
 
-    return { points: linePoints, areaPath: area };
-  }, [data, width, height, invert]);
+    return { points: linePoints, areaPath: area }
+  }, [data, width, height, invert])
 
   if (data.length === 0) {
     return (
@@ -63,7 +63,7 @@ export const MiniSparkline = ({
         width={width}
         height={height}
         role="img"
-        aria-label={ariaLabel ?? "Sparkline (no data)"}
+        aria-label={ariaLabel ?? 'Sparkline (no data)'}
         className="text-muted-foreground"
       >
         <line
@@ -76,7 +76,7 @@ export const MiniSparkline = ({
           opacity={0.3}
         />
       </svg>
-    );
+    )
   }
 
   return (
@@ -85,7 +85,7 @@ export const MiniSparkline = ({
       height={height}
       role="img"
       aria-label={ariaLabel ?? `Sparkline ${data.length} points`}
-      style={{ overflow: "visible" }}
+      style={{ overflow: 'visible' }}
     >
       <defs>
         <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
@@ -103,5 +103,5 @@ export const MiniSparkline = ({
         strokeLinejoin="round"
       />
     </svg>
-  );
-};
+  )
+}

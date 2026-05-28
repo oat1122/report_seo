@@ -1,9 +1,9 @@
-import { defineConfig } from "prisma/config";
-import dotenv from "dotenv";
+import { defineConfig } from 'prisma/config'
+import dotenv from 'dotenv'
 
 // โหลดค่าจาก .env เข้ามาใน process.env
-dotenv.config();
+dotenv.config()
 
 export default defineConfig({
-  schema: "prisma/schema",
-});
+  schema: 'prisma/schema',
+})

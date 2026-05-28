@@ -1,11 +1,11 @@
-import { z } from "zod";
-import { Role } from "@/types/auth";
+import { z } from 'zod'
+import { Role } from '@/types/auth'
 
 export const userCreateSchema = z
   .object({
-    name: z.string().trim().min(1, "Name is required"),
-    email: z.email("Invalid email"),
-    password: z.string().min(10, "Password must be at least 10 characters"),
+    name: z.string().trim().min(1, 'Name is required'),
+    email: z.email('Invalid email'),
+    password: z.string().min(10, 'Password must be at least 10 characters'),
     role: z.enum(Role),
     companyName: z.string().trim().min(1).optional(),
     domain: z.string().trim().min(1).optional(),
@@ -15,24 +15,16 @@ export const userCreateSchema = z
     contactName: z.string().trim().max(100).optional(),
   })
   .strict()
-  .refine(
-    (data) =>
-      data.role !== Role.CUSTOMER ||
-      (!!data.companyName && !!data.domain),
-    {
-      message: "Company Name and Domain are required for CUSTOMER role",
-      path: ["companyName"],
-    },
-  )
-  .refine(
-    (data) => data.role !== Role.CUSTOMER || !!data.seoDevId,
-    {
-      message: "SEO Dev assignment is required for CUSTOMER role",
-      path: ["seoDevId"],
-    },
-  );
+  .refine((data) => data.role !== Role.CUSTOMER || (!!data.companyName && !!data.domain), {
+    message: 'Company Name and Domain are required for CUSTOMER role',
+    path: ['companyName'],
+  })
+  .refine((data) => data.role !== Role.CUSTOMER || !!data.seoDevId, {
+    message: 'SEO Dev assignment is required for CUSTOMER role',
+    path: ['seoDevId'],
+  })
 
-export type UserCreateInput = z.infer<typeof userCreateSchema>;
+export type UserCreateInput = z.infer<typeof userCreateSchema>
 
 // Update payload — admin only field set; CUSTOMER fields optional
 export const userUpdateSchema = z.object({
@@ -45,14 +37,14 @@ export const userUpdateSchema = z.object({
   address: z.string().trim().max(500).optional(),
   taxId: z.string().trim().max(13).optional(),
   contactName: z.string().trim().max(100).optional(),
-});
+})
 
-export type UserUpdateInput = z.infer<typeof userUpdateSchema>;
+export type UserUpdateInput = z.infer<typeof userUpdateSchema>
 
 // CUSTOMER/SEO_DEV self-update — name + email เท่านั้น
 export const userSelfUpdateSchema = z.object({
   name: z.string().trim().min(1).optional(),
   email: z.email().optional(),
-});
+})
 
-export type UserSelfUpdateInput = z.infer<typeof userSelfUpdateSchema>;
+export type UserSelfUpdateInput = z.infer<typeof userSelfUpdateSchema>

@@ -1,10 +1,29 @@
-# Ignore artifacts:
+# Dependencies
+node_modules
+
+# Build output
+.next
+out
 build
 coverage
 
-.env
-.env.local
-.env.production
+# Generated code
+src/generated
+prisma/schema/migrations
 
-server.js
-.next
+# Env / secrets
+.env*
+
+# Assets & uploads
+public/uploads
+
+# Lock files
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Misc
+*.min.js
+*.min.css
+.vercel
+*.tsbuildinfo

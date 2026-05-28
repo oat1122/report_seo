@@ -1,11 +1,9 @@
-import { Mail, Phone, Globe, MessageCircle } from "lucide-react";
-import { contactInfo } from "@/components/Home/constants/data";
+import { Mail, Phone, Globe, MessageCircle } from 'lucide-react'
+import { contactInfo } from '@/components/Home/constants/data'
 
 const FooterColumnTitle = ({ children }: { children: React.ReactNode }) => (
-  <h3 className="mb-3 text-xl font-semibold text-primary-foreground">
-    {children}
-  </h3>
-);
+  <h3 className="text-primary-foreground mb-3 text-xl font-semibold">{children}</h3>
+)
 
 export const Footer = () => {
   return (
@@ -15,8 +13,7 @@ export const Footer = () => {
           <div>
             <FooterColumnTitle>SEO PRIME</FooterColumnTitle>
             <p className="text-sm opacity-80">
-              ให้บริการด้านการตลาดออนไลน์ เกี่ยวกับจัดทำ SEO
-              ครบวงจรดูแลโดยทีมการตลาดที่มีประสบการณ์
+              ให้บริการด้านการตลาดออนไลน์ เกี่ยวกับจัดทำ SEO ครบวงจรดูแลโดยทีมการตลาดที่มีประสบการณ์
               เราพร้อมแล้วที่จะสร้างทีมที่แข็งแรงเพื่อเป็นหนึ่งในความสำเร็จสำคัญให้กับทุกธุรกิจของคุณ
             </p>
           </div>
@@ -42,10 +39,7 @@ export const Footer = () => {
               <li className="flex items-center gap-2">
                 <MessageCircle className="size-4" />
                 <span>LINE:</span>
-                <a
-                  href={contactInfo.line}
-                  className="underline-offset-4 hover:underline"
-                >
+                <a href={contactInfo.line} className="underline-offset-4 hover:underline">
                   คลิกที่นี่
                 </a>
               </li>
@@ -68,9 +62,9 @@ export const Footer = () => {
           </div>
         </div>
       </div>
-      <div className="border-t border-primary-foreground/10 py-3 text-center text-sm opacity-70">
+      <div className="border-primary-foreground/10 border-t py-3 text-center text-sm opacity-70">
         Copyright 2025 © SEO Prime
       </div>
     </footer>
-  );
-};
+  )
+}

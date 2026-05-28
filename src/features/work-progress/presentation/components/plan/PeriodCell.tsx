@@ -1,33 +1,26 @@
-"use client";
+'use client'
 
-import { memo, useState } from "react";
-import { Check, X } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
-import { useMarkTypes } from "../../hooks/useMasterTables";
-import {
-  useClearPeriodMark,
-  useSetPeriodMark,
-} from "../../hooks/useSetPeriodMark";
-import type { WorkProgressPeriodMarkWithType } from "@/features/work-progress";
+import { memo, useState } from 'react'
+import { Check, X } from 'lucide-react'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
+import { useMarkTypes } from '../../hooks/useMasterTables'
+import { useClearPeriodMark, useSetPeriodMark } from '../../hooks/useSetPeriodMark'
+import type { WorkProgressPeriodMarkWithType } from '@/features/work-progress'
 
 interface PeriodCellProps {
-  userId: string;
-  planId: string;
-  itemId: string;
-  periodId: string;
-  mark: WorkProgressPeriodMarkWithType | undefined;
-  subtaskPercent: number | null;
-  statusColor: string | null;
-  readOnly?: boolean;
+  userId: string
+  planId: string
+  itemId: string
+  periodId: string
+  mark: WorkProgressPeriodMarkWithType | undefined
+  subtaskPercent: number | null
+  statusColor: string | null
+  readOnly?: boolean
 }
 
 function PeriodCellInner({
@@ -40,37 +33,37 @@ function PeriodCellInner({
   statusColor,
   readOnly,
 }: PeriodCellProps) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false)
   const [percent, setPercent] = useState<string>(
-    mark?.progressPercent != null ? String(mark.progressPercent) : "",
-  );
-  const [note, setNote] = useState(mark?.note ?? "");
+    mark?.progressPercent != null ? String(mark.progressPercent) : '',
+  )
+  const [note, setNote] = useState(mark?.note ?? '')
 
-  const { data: markTypes } = useMarkTypes();
-  const setMut = useSetPeriodMark();
-  const clearMut = useClearPeriodMark();
+  const { data: markTypes } = useMarkTypes()
+  const setMut = useSetPeriodMark()
+  const clearMut = useClearPeriodMark()
 
   const reset = () => {
-    setPercent(mark?.progressPercent != null ? String(mark.progressPercent) : "");
-    setNote(mark?.note ?? "");
-  };
+    setPercent(mark?.progressPercent != null ? String(mark.progressPercent) : '')
+    setNote(mark?.note ?? '')
+  }
 
   const handleOpenChange = (next: boolean) => {
-    if (next) reset();
-    setOpen(next);
-  };
+    if (next) reset()
+    setOpen(next)
+  }
 
-  const activeMarkTypes = (markTypes ?? []).filter((m) => m.isActive);
-  const defaultMarkType = activeMarkTypes[0] ?? null;
+  const activeMarkTypes = (markTypes ?? []).filter((m) => m.isActive)
+  const defaultMarkType = activeMarkTypes[0] ?? null
   const effectiveMarkType =
-    activeMarkTypes.find((m) => m.id === mark?.markTypeId) ?? defaultMarkType;
+    activeMarkTypes.find((m) => m.id === mark?.markTypeId) ?? defaultMarkType
 
   const handleSave = async () => {
-    if (!effectiveMarkType) return;
-    const p = percent.trim();
-    const parsedPercent = p ? Number(p) : null;
+    if (!effectiveMarkType) return
+    const p = percent.trim()
+    const parsedPercent = p ? Number(p) : null
     if (p && (Number.isNaN(parsedPercent) || parsedPercent! < 0 || parsedPercent! > 100)) {
-      return;
+      return
     }
     await setMut.mutateAsync({
       userId,
@@ -83,47 +76,49 @@ function PeriodCellInner({
         note: note.trim() || null,
       },
       markType: effectiveMarkType,
-    });
-    setOpen(false);
-  };
+    })
+    setOpen(false)
+  }
 
   const handleClear = async () => {
     if (!mark) {
-      setOpen(false);
-      return;
+      setOpen(false)
+      return
     }
-    await clearMut.mutateAsync({ userId, planId, itemId, periodId });
-    setOpen(false);
-  };
+    await clearMut.mutateAsync({ userId, planId, itemId, periodId })
+    setOpen(false)
+  }
 
-  const markColor = mark ? (statusColor ?? mark.markType.color ?? null) : null;
-  const bgStyle = markColor ? { backgroundColor: markColor } : undefined;
-  const iconCls = markColor ? "text-white drop-shadow" : "text-foreground";
+  const markColor = mark ? (statusColor ?? mark.markType.color ?? null) : null
+  const bgStyle = markColor ? { backgroundColor: markColor } : undefined
+  const iconCls = markColor ? 'text-white drop-shadow' : 'text-foreground'
 
   if (readOnly) {
     return (
       <div
         className={cn(
-          "flex h-full w-full items-center justify-center text-xs",
-          mark && !markColor && "bg-muted",
-          !mark && "text-muted-foreground/40",
+          'flex h-full w-full items-center justify-center text-xs',
+          mark && !markColor && 'bg-muted',
+          !mark && 'text-muted-foreground/40',
         )}
         style={bgStyle}
-        title={mark ? `${mark.markType.name}${subtaskPercent != null ? ` · ${subtaskPercent}%` : ""}` : ""}
+        title={
+          mark
+            ? `${mark.markType.name}${subtaskPercent != null ? ` · ${subtaskPercent}%` : ''}`
+            : ''
+        }
       >
         {mark ? (
           subtaskPercent != null ? (
-            <span className={cn("font-medium", iconCls)}>
-              {subtaskPercent}%
-            </span>
+            <span className={cn('font-medium', iconCls)}>{subtaskPercent}%</span>
           ) : (
-            <Check className={cn("size-4", iconCls)} />
+            <Check className={cn('size-4', iconCls)} />
           )
         ) : (
-          "·"
+          '·'
         )}
       </div>
-    );
+    )
   }
 
   return (
@@ -132,23 +127,21 @@ function PeriodCellInner({
         <button
           type="button"
           className={cn(
-            "h-full w-full cursor-pointer transition hover:ring-2 hover:ring-primary/40",
-            mark && !markColor && "bg-muted",
-            !mark && "bg-muted/50",
+            'hover:ring-primary/40 h-full w-full cursor-pointer transition hover:ring-2',
+            mark && !markColor && 'bg-muted',
+            !mark && 'bg-muted/50',
           )}
           style={bgStyle}
-          aria-label={mark ? `mark: ${mark.markType.name}` : "ว่าง"}
+          aria-label={mark ? `mark: ${mark.markType.name}` : 'ว่าง'}
         >
           {mark ? (
             subtaskPercent != null ? (
-              <span className={cn("text-xs font-medium", iconCls)}>
-                {subtaskPercent}%
-              </span>
+              <span className={cn('text-xs font-medium', iconCls)}>{subtaskPercent}%</span>
             ) : (
-              <Check className={cn("mx-auto size-4", iconCls)} />
+              <Check className={cn('mx-auto size-4', iconCls)} />
             )
           ) : (
-            <span className="text-xs text-muted-foreground/40">·</span>
+            <span className="text-muted-foreground/40 text-xs">·</span>
           )}
         </button>
       </PopoverTrigger>
@@ -187,12 +180,7 @@ function PeriodCellInner({
 
           <div className="flex justify-between gap-2 pt-1">
             {mark ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={handleClear}
-              >
+              <Button type="button" variant="ghost" size="sm" onClick={handleClear}>
                 <X className="size-4" />
                 ลบ
               </Button>
@@ -200,12 +188,7 @@ function PeriodCellInner({
               <span />
             )}
             <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setOpen(false)}
-              >
+              <Button type="button" variant="outline" size="sm" onClick={() => setOpen(false)}>
                 ยกเลิก
               </Button>
               <Button
@@ -221,7 +204,7 @@ function PeriodCellInner({
         </div>
       </PopoverContent>
     </Popover>
-  );
+  )
 }
 
-export const PeriodCell = memo(PeriodCellInner);
+export const PeriodCell = memo(PeriodCellInner)

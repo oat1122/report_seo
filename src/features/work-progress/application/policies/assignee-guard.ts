@@ -1,4 +1,4 @@
-import { BadRequestError, ForbiddenError } from "@/lib/errors";
+import { BadRequestError, ForbiddenError } from '@/lib/errors'
 
 /**
  * Pure policy — validate ว่า userId คนใดสามารถถูก assign ให้ customer ที่กำหนดได้
@@ -12,25 +12,23 @@ import { BadRequestError, ForbiddenError } from "@/lib/errors";
  * (rule 09 — application layer ไม่ depend on infrastructure ตรง)
  */
 export interface AssigneeInfo {
-  id: string;
-  role: string;
-  deletedAt: Date | null;
+  id: string
+  role: string
+  deletedAt: Date | null
 }
 
-export type AssigneeLookup = (userId: string) => Promise<AssigneeInfo | null>;
+export type AssigneeLookup = (userId: string) => Promise<AssigneeInfo | null>
 
 export async function assertAssigneeAllowed(
   assignedToId: string,
   customerSeoDevId: string | null,
   lookup: AssigneeLookup,
 ): Promise<void> {
-  const user = await lookup(assignedToId);
+  const user = await lookup(assignedToId)
   if (!user || user.deletedAt) {
-    throw new BadRequestError("ผู้รับผิดชอบไม่พบในระบบ");
+    throw new BadRequestError('ผู้รับผิดชอบไม่พบในระบบ')
   }
-  if (user.role === "ADMIN") return;
-  if (user.role === "SEO_DEV" && customerSeoDevId === assignedToId) return;
-  throw new ForbiddenError(
-    "ผู้รับผิดชอบต้องเป็น ADMIN หรือ SEO_DEV ที่ดูแลลูกค้านี้",
-  );
+  if (user.role === 'ADMIN') return
+  if (user.role === 'SEO_DEV' && customerSeoDevId === assignedToId) return
+  throw new ForbiddenError('ผู้รับผิดชอบต้องเป็น ADMIN หรือ SEO_DEV ที่ดูแลลูกค้านี้')
 }

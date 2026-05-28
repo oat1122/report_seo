@@ -1,40 +1,38 @@
-import React from "react";
-import { Plus, Trash2, Pencil, Save } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Field, FieldGroup } from "@/components/ui/field";
+import React from 'react'
+import { Plus, Trash2, Pencil, Save } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/components/ui/badge'
+import { Field, FieldGroup } from '@/components/ui/field'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { cn } from "@/lib/utils";
-import { KdLevel, KD_LEVELS } from "@/types/kd";
-import { KeywordRecommend, KeywordRecommendForm } from "@/types/metrics";
+} from '@/components/ui/select'
+import { cn } from '@/lib/utils'
+import { KdLevel, KD_LEVELS } from '@/types/kd'
+import { KeywordRecommend, KeywordRecommendForm } from '@/types/metrics'
 
-const NONE_KD = "__none__";
+const NONE_KD = '__none__'
 
 interface RecommendKeywordSectionProps {
-  newRecommend: KeywordRecommendForm;
-  recommendKeywordsData: KeywordRecommend[];
-  editingRecommendId: string | null;
-  onRecommendChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onRecommendSelectChange: (value: KdLevel | "") => void;
-  onAddRecommend: () => void;
-  onSetEditingRecommend: (keyword: KeywordRecommend) => void;
-  onClearEditingRecommend: () => void;
-  onDeleteRecommendKeyword: (id: string) => void;
+  newRecommend: KeywordRecommendForm
+  recommendKeywordsData: KeywordRecommend[]
+  editingRecommendId: string | null
+  onRecommendChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onRecommendSelectChange: (value: KdLevel | '') => void
+  onAddRecommend: () => void
+  onSetEditingRecommend: (keyword: KeywordRecommend) => void
+  onClearEditingRecommend: () => void
+  onDeleteRecommendKeyword: (id: string) => void
 }
 
-export const RecommendKeywordSection: React.FC<
-  RecommendKeywordSectionProps
-> = ({
+export const RecommendKeywordSection: React.FC<RecommendKeywordSectionProps> = ({
   newRecommend,
   recommendKeywordsData,
   editingRecommendId,
@@ -45,25 +43,24 @@ export const RecommendKeywordSection: React.FC<
   onClearEditingRecommend,
   onDeleteRecommendKeyword,
 }) => (
-  <div className="rounded-2xl border border-border p-4 sm:p-6">
+  <div className="border-border rounded-2xl border p-4 sm:p-6">
     <div className="mb-4">
       <h3 className="text-lg font-bold">Keyword Recommend</h3>
-      <p className="mt-1 text-sm text-muted-foreground">
+      <p className="text-muted-foreground mt-1 text-sm">
         บันทึกคีย์เวิร์ดที่แนะนำให้ลูกค้า พร้อมระดับความยากและหมายเหตุสั้น ๆ
       </p>
     </div>
 
     <div
       className={cn(
-        "mb-4 rounded-xl border border-border p-4",
-        editingRecommendId ? "bg-warning/10" : "bg-muted/50",
+        'border-border mb-4 rounded-xl border p-4',
+        editingRecommendId ? 'bg-warning/10' : 'bg-muted/50',
       )}
     >
       <FieldGroup>
         {editingRecommendId && (
-          <div className="rounded-md border border-info/30 bg-info/10 px-3 py-2 text-sm text-info">
-            กำลังแก้ไข Keyword Recommend รายการเดิม
-            สามารถปรับข้อมูลแล้วกดบันทึกการแก้ไขได้ทันที
+          <div className="border-info/30 bg-info/10 text-info rounded-md border px-3 py-2 text-sm">
+            กำลังแก้ไข Keyword Recommend รายการเดิม สามารถปรับข้อมูลแล้วกดบันทึกการแก้ไขได้ทันที
           </div>
         )}
 
@@ -83,9 +80,7 @@ export const RecommendKeywordSection: React.FC<
             <Label htmlFor="rec-kd">KD</Label>
             <Select
               value={newRecommend.kd ?? NONE_KD}
-              onValueChange={(v) =>
-                onRecommendSelectChange(v === NONE_KD ? "" : (v as KdLevel))
-              }
+              onValueChange={(v) => onRecommendSelectChange(v === NONE_KD ? '' : (v as KdLevel))}
             >
               <SelectTrigger id="rec-kd">
                 <SelectValue />
@@ -103,17 +98,17 @@ export const RecommendKeywordSection: React.FC<
             </Select>
           </Field>
 
-          <div className="flex items-center gap-2 rounded-md border border-dashed border-border px-3">
+          <div className="border-border flex items-center gap-2 rounded-md border border-dashed px-3">
             <Checkbox
               id="rec-top"
               checked={newRecommend.isTopReport}
               onCheckedChange={(c) =>
                 onRecommendChange({
                   target: {
-                    name: "isTopReport",
-                    type: "checkbox",
+                    name: 'isTopReport',
+                    type: 'checkbox',
                     checked: c === true,
-                    value: "",
+                    value: '',
                   },
                 } as unknown as React.ChangeEvent<HTMLInputElement>)
               }
@@ -130,10 +125,8 @@ export const RecommendKeywordSection: React.FC<
             id="rec-note"
             name="note"
             placeholder="เช่น ยากมาก"
-            value={newRecommend.note || ""}
-            onChange={
-              onRecommendChange as unknown as React.ChangeEventHandler<HTMLTextAreaElement>
-            }
+            value={newRecommend.note || ''}
+            onChange={onRecommendChange as unknown as React.ChangeEventHandler<HTMLTextAreaElement>}
             rows={3}
           />
         </Field>
@@ -150,7 +143,7 @@ export const RecommendKeywordSection: React.FC<
             className="bg-warning text-warning-foreground hover:bg-warning/90"
           >
             {editingRecommendId ? <Save /> : <Plus />}
-            {editingRecommendId ? "บันทึกการแก้ไข" : "เพิ่ม Keyword แนะนำ"}
+            {editingRecommendId ? 'บันทึกการแก้ไข' : 'เพิ่ม Keyword แนะนำ'}
           </Button>
         </div>
       </FieldGroup>
@@ -165,7 +158,7 @@ export const RecommendKeywordSection: React.FC<
       </div>
 
       {recommendKeywordsData.length === 0 ? (
-        <div className="rounded-xl border border-border p-6 text-center text-sm text-muted-foreground">
+        <div className="border-border text-muted-foreground rounded-xl border p-6 text-center text-sm">
           ยังไม่มี Keyword ที่แนะนำ
         </div>
       ) : (
@@ -173,23 +166,20 @@ export const RecommendKeywordSection: React.FC<
           {recommendKeywordsData.map((kw) => (
             <li
               key={kw.id}
-              className="flex items-start justify-between gap-3 rounded-xl border border-border p-4"
+              className="border-border flex items-start justify-between gap-3 rounded-xl border p-4"
             >
               <div className="min-w-0 flex-1">
                 <div className="mb-1 flex flex-wrap items-center gap-2">
                   <span className="font-semibold">{kw.keyword}</span>
                   {kw.isTopReport && (
-                    <Badge
-                      variant="outline"
-                      className="border-warning/40 text-warning"
-                    >
+                    <Badge variant="outline" className="border-warning/40 text-warning">
                       Top Report
                     </Badge>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  KD: {kw.kd || "ไม่ระบุ"}
-                  {kw.note ? ` | หมายเหตุ: ${kw.note}` : ""}
+                <p className="text-muted-foreground text-sm">
+                  KD: {kw.kd || 'ไม่ระบุ'}
+                  {kw.note ? ` | หมายเหตุ: ${kw.note}` : ''}
                 </p>
               </div>
               <div className="flex gap-0.5">
@@ -217,4 +207,4 @@ export const RecommendKeywordSection: React.FC<
       )}
     </div>
   </div>
-);
+)

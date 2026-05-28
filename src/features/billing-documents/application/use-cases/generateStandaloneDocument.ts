@@ -1,54 +1,46 @@
-import type { GenerateDocumentDeps, RenderData } from "./generateDocument";
-import type { BillingDocumentType } from "../../domain/DocumentType";
-import { BadRequestError } from "@/lib/errors";
-import { sanitizeFilename } from "@/infrastructure/upload/validators";
+import type { GenerateDocumentDeps, RenderData } from './generateDocument'
+import type { BillingDocumentType } from '../../domain/DocumentType'
+import { BadRequestError } from '@/lib/errors'
+import { sanitizeFilename } from '@/infrastructure/upload/validators'
 
 interface StandaloneInput {
-  customerId?: string | null;
+  customerId?: string | null
   customer: {
-    name: string;
-    address?: string | null;
-    taxId?: string | null;
-    contactName?: string | null;
-  };
-  type: BillingDocumentType;
-  templateId: string;
+    name: string
+    address?: string | null
+    taxId?: string | null
+    contactName?: string | null
+  }
+  type: BillingDocumentType
+  templateId: string
   items: Array<{
-    description: string;
-    quantity: number;
-    unit: string;
-    unitPrice: number;
-  }>;
-  note?: string | null;
-  dueDate?: string | null;
-  paidDate?: string | null;
+    description: string
+    quantity: number
+    unit: string
+    unitPrice: number
+  }>
+  note?: string | null
+  dueDate?: string | null
+  paidDate?: string | null
 }
 
 export function generateStandaloneDocumentUseCase(deps: GenerateDocumentDeps) {
   return async (input: StandaloneInput) => {
     if (input.items.length === 0) {
-      throw new BadRequestError("ต้องมีอย่างน้อย 1 รายการ");
+      throw new BadRequestError('ต้องมีอย่างน้อย 1 รายการ')
     }
 
-    const company = await deps.getCompanySettings();
+    const company = await deps.getCompanySettings()
     if (!company) {
-      throw new BadRequestError(
-        "กรุณาตั้งค่าข้อมูลบริษัทก่อนสร้างเอกสาร",
-      );
+      throw new BadRequestError('กรุณาตั้งค่าข้อมูลบริษัทก่อนสร้างเอกสาร')
     }
 
-    const year = new Date().getFullYear();
-    const documentNumber = await deps.repo.getNextDocumentNumber(
-      input.type,
-      year,
-    );
+    const year = new Date().getFullYear()
+    const documentNumber = await deps.repo.getNextDocumentNumber(input.type, year)
 
-    const totalAmount = input.items.reduce(
-      (sum, item) => sum + item.quantity * item.unitPrice,
-      0,
-    );
+    const totalAmount = input.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
 
-    const now = new Date();
+    const now = new Date()
     const renderData: RenderData = {
       type: input.type,
       documentNumber,
@@ -69,12 +61,12 @@ export function generateStandaloneDocumentUseCase(deps: GenerateDocumentDeps) {
       dueDate: input.dueDate ?? null,
       paidDate: input.paidDate ?? null,
       generatedAt: now,
-    };
+    }
 
-    const html = deps.renderDocumentHtml(renderData);
-    const pdfBuffer = await deps.renderer.renderToPdf(html);
-    const filename = sanitizeFilename(`${documentNumber}.pdf`);
-    const pdfUrl = await deps.storage.savePdf(pdfBuffer, filename);
+    const html = deps.renderDocumentHtml(renderData)
+    const pdfBuffer = await deps.renderer.renderToPdf(html)
+    const filename = sanitizeFilename(`${documentNumber}.pdf`)
+    const pdfUrl = await deps.storage.savePdf(pdfBuffer, filename)
 
     return deps.repo.createDocument({
       customerId: input.customerId ?? null,
@@ -85,6 +77,6 @@ export function generateStandaloneDocumentUseCase(deps: GenerateDocumentDeps) {
       totalAmount,
       note: input.note ?? null,
       billingCycleId: null,
-    });
-  };
+    })
+  }
 }

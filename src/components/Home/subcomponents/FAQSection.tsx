@@ -3,14 +3,14 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { faqs } from "@/components/Home/constants/data";
+} from '@/components/ui/accordion'
+import { faqs } from '@/components/Home/constants/data'
 
 export const FAQSection = () => {
   return (
     <section className="bg-card py-12">
       <div className="mx-auto w-full max-w-3xl px-4">
-        <h2 className="mb-8 text-center text-3xl font-bold text-primary md:text-4xl">
+        <h2 className="text-primary mb-8 text-center text-3xl font-bold md:text-4xl">
           คำถามที่พบบ่อย
         </h2>
         <Accordion type="single" collapsible className="space-y-2">
@@ -18,18 +18,16 @@ export const FAQSection = () => {
             <AccordionItem
               key={faq.question}
               value={`item-${index}`}
-              className="rounded-lg border border-border bg-background px-4"
+              className="border-border bg-background rounded-lg border px-4"
             >
-              <AccordionTrigger className="text-base font-semibold text-primary md:text-lg">
+              <AccordionTrigger className="text-primary text-base font-semibold md:text-lg">
                 {faq.question}
               </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground">
-                {faq.answer}
-              </AccordionContent>
+              <AccordionContent className="text-muted-foreground">{faq.answer}</AccordionContent>
             </AccordionItem>
           ))}
         </Accordion>
       </div>
     </section>
-  );
-};
+  )
+}

@@ -1,58 +1,55 @@
-"use client";
+'use client'
 
-import { useMemo } from "react";
-import { Cell, Pie, PieChart } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useMemo } from 'react'
+import { Cell, Pie, PieChart } from 'recharts'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
-} from "@/components/ui/chart";
-import { useWorkProgressPlan } from "../../hooks/useWorkProgressPlan";
+} from '@/components/ui/chart'
+import { useWorkProgressPlan } from '../../hooks/useWorkProgressPlan'
 
 interface CategoryBreakdownChartProps {
-  userId: string;
-  planId: string;
+  userId: string
+  planId: string
 }
 
 const FALLBACK_PALETTE = [
-  "var(--chart-1)",
-  "var(--chart-2)",
-  "var(--chart-3)",
-  "var(--chart-4)",
-  "var(--chart-5)",
-];
+  'var(--chart-1)',
+  'var(--chart-2)',
+  'var(--chart-3)',
+  'var(--chart-4)',
+  'var(--chart-5)',
+]
 
-export default function CategoryBreakdownChart({
-  userId,
-  planId,
-}: CategoryBreakdownChartProps) {
-  const { data, isLoading } = useWorkProgressPlan(userId, planId);
+export default function CategoryBreakdownChart({ userId, planId }: CategoryBreakdownChartProps) {
+  const { data, isLoading } = useWorkProgressPlan(userId, planId)
 
   const rows = useMemo(() => {
-    if (!data) return [];
+    if (!data) return []
     const buckets = new Map<
       string,
       { id: string; name: string; color: string | null; count: number }
-    >();
+    >()
     for (const item of data.items) {
-      const cur = buckets.get(item.categoryId);
-      if (cur) cur.count += 1;
+      const cur = buckets.get(item.categoryId)
+      if (cur) cur.count += 1
       else
         buckets.set(item.categoryId, {
           id: item.categoryId,
           name: item.category.name,
           color: item.category.color,
           count: 1,
-        });
+        })
     }
-    return Array.from(buckets.values());
-  }, [data]);
+    return Array.from(buckets.values())
+  }, [data])
 
-  if (isLoading) return <Skeleton className="h-64 w-full" />;
-  if (!data || rows.length === 0) return null;
+  if (isLoading) return <Skeleton className="h-64 w-full" />
+  if (!data || rows.length === 0) return null
 
   const config: ChartConfig = Object.fromEntries(
     rows.map((r, i) => [
@@ -62,7 +59,7 @@ export default function CategoryBreakdownChart({
         color: r.color ?? FALLBACK_PALETTE[i % FALLBACK_PALETTE.length],
       },
     ]),
-  );
+  )
 
   return (
     <Card>
@@ -82,15 +79,12 @@ export default function CategoryBreakdownChart({
               strokeWidth={2}
             >
               {rows.map((r, i) => (
-                <Cell
-                  key={r.id}
-                  fill={r.color ?? FALLBACK_PALETTE[i % FALLBACK_PALETTE.length]}
-                />
+                <Cell key={r.id} fill={r.color ?? FALLBACK_PALETTE[i % FALLBACK_PALETTE.length]} />
               ))}
             </Pie>
           </PieChart>
         </ChartContainer>
       </CardContent>
     </Card>
-  );
+  )
 }

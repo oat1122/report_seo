@@ -1,8 +1,6 @@
-import type { WorkProgressTemplateRepository } from "../../ports/WorkProgressTemplateRepository";
+import type { WorkProgressTemplateRepository } from '../../ports/WorkProgressTemplateRepository'
 
-export function listTemplatesUseCase(
-  templateRepo: WorkProgressTemplateRepository,
-) {
+export function listTemplatesUseCase(templateRepo: WorkProgressTemplateRepository) {
   return (options: { includeInactive?: boolean } = {}) =>
-    templateRepo.list({ includeInactive: options.includeInactive ?? false });
+    templateRepo.list({ includeInactive: options.includeInactive ?? false })
 }

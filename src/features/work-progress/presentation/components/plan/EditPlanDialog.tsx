@@ -1,150 +1,142 @@
-"use client";
+'use client'
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from 'react'
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import {
-  updatePlanSchema,
-  type UpdatePlanInput,
-} from "@/features/work-progress/schemas";
-import { FieldError, parseFieldErrors, type FieldErrors } from "../FieldError";
-import type { WorkProgressPlan } from "@/features/work-progress/domain/WorkProgressPlan";
-import { useUpdatePlan } from "../../hooks/useWorkProgressPlans";
+} from '@/components/ui/select'
+import { updatePlanSchema, type UpdatePlanInput } from '@/features/work-progress/schemas'
+import { FieldError, parseFieldErrors, type FieldErrors } from '../FieldError'
+import type { WorkProgressPlan } from '@/features/work-progress/domain/WorkProgressPlan'
+import { useUpdatePlan } from '../../hooks/useWorkProgressPlans'
 
 const THAI_MONTHS = [
-  "ม.ค.",
-  "ก.พ.",
-  "มี.ค.",
-  "เม.ย.",
-  "พ.ค.",
-  "มิ.ย.",
-  "ก.ค.",
-  "ส.ค.",
-  "ก.ย.",
-  "ต.ค.",
-  "พ.ย.",
-  "ธ.ค.",
-] as const;
+  'ม.ค.',
+  'ก.พ.',
+  'มี.ค.',
+  'เม.ย.',
+  'พ.ค.',
+  'มิ.ย.',
+  'ก.ค.',
+  'ส.ค.',
+  'ก.ย.',
+  'ต.ค.',
+  'พ.ย.',
+  'ธ.ค.',
+] as const
 
 function countMonths(sm: number, sy: number, em: number, ey: number): number {
-  return (ey - sy) * 12 + (em - sm) + 1;
+  return (ey - sy) * 12 + (em - sm) + 1
 }
 
 interface EditPlanDialogProps {
-  userId: string;
-  plan: WorkProgressPlan;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  userId: string
+  plan: WorkProgressPlan
+  open: boolean
+  onOpenChange: (open: boolean) => void
 }
 
-export function EditPlanDialog({
-  userId,
-  plan,
-  open,
-  onOpenChange,
-}: EditPlanDialogProps) {
-  const updateMut = useUpdatePlan();
+export function EditPlanDialog({ userId, plan, open, onOpenChange }: EditPlanDialogProps) {
+  const updateMut = useUpdatePlan()
 
-  const currentYear = new Date().getFullYear();
+  const currentYear = new Date().getFullYear()
 
-  const [title, setTitle] = useState("");
-  const [startMonth, setStartMonth] = useState<number>(1);
-  const [startYear, setStartYear] = useState<number>(currentYear);
-  const [endMonth, setEndMonth] = useState<number>(1);
-  const [endYear, setEndYear] = useState<number>(currentYear);
-  const [packageName, setPackageName] = useState("");
-  const [note, setNote] = useState("");
-  const [errors, setErrors] = useState<FieldErrors>({});
+  const [title, setTitle] = useState('')
+  const [startMonth, setStartMonth] = useState<number>(1)
+  const [startYear, setStartYear] = useState<number>(currentYear)
+  const [endMonth, setEndMonth] = useState<number>(1)
+  const [endYear, setEndYear] = useState<number>(currentYear)
+  const [packageName, setPackageName] = useState('')
+  const [note, setNote] = useState('')
+  const [errors, setErrors] = useState<FieldErrors>({})
 
-  const hasDateRange = plan.startDate !== null && plan.endDate !== null;
+  const hasDateRange = plan.startDate !== null && plan.endDate !== null
 
   useEffect(() => {
-    if (!open) return;
-    setTitle(plan.title);
-    setPackageName(plan.packageName ?? "");
-    setNote(plan.note ?? "");
-    setErrors({});
+    if (!open) return
+    setTitle(plan.title)
+    setPackageName(plan.packageName ?? '')
+    setNote(plan.note ?? '')
+    setErrors({})
 
     if (plan.startDate) {
-      const sd = new Date(plan.startDate);
-      setStartMonth(sd.getMonth() + 1);
-      setStartYear(sd.getFullYear());
+      const sd = new Date(plan.startDate)
+      setStartMonth(sd.getMonth() + 1)
+      setStartYear(sd.getFullYear())
     }
     if (plan.endDate) {
-      const ed = new Date(plan.endDate);
-      setEndMonth(ed.getMonth() + 1);
-      setEndYear(ed.getFullYear());
+      const ed = new Date(plan.endDate)
+      setEndMonth(ed.getMonth() + 1)
+      setEndYear(ed.getFullYear())
     }
-  }, [open, plan]);
+  }, [open, plan])
 
   const yearOptions = useMemo(() => {
-    const base = currentYear;
-    return Array.from({ length: 11 }, (_, i) => base - 2 + i);
-  }, [currentYear]);
+    const base = currentYear
+    return Array.from({ length: 11 }, (_, i) => base - 2 + i)
+  }, [currentYear])
 
   const monthCount = useMemo(() => {
-    const c = countMonths(startMonth, startYear, endMonth, endYear);
-    return c > 0 ? c : null;
-  }, [startMonth, startYear, endMonth, endYear]);
+    const c = countMonths(startMonth, startYear, endMonth, endYear)
+    return c > 0 ? c : null
+  }, [startMonth, startYear, endMonth, endYear])
 
   const rangeInvalid = useMemo(
     () => countMonths(startMonth, startYear, endMonth, endYear) <= 0,
     [startMonth, startYear, endMonth, endYear],
-  );
+  )
 
   const handleSubmit = async () => {
-    const newErrors: FieldErrors = {};
+    const newErrors: FieldErrors = {}
     if (hasDateRange && rangeInvalid) {
-      newErrors.endMonth = "เดือนจบต้องไม่อยู่ก่อนเดือนเริ่ม";
+      newErrors.endMonth = 'เดือนจบต้องไม่อยู่ก่อนเดือนเริ่ม'
     }
 
     if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
+      setErrors(newErrors)
+      return
     }
 
     const body: Record<string, unknown> = {
       title: title.trim(),
       packageName: packageName.trim() || null,
       note: note.trim() || null,
-    };
-
-    if (hasDateRange) {
-      body.startMonth = startMonth;
-      body.startYear = startYear;
-      body.endMonth = endMonth;
-      body.endYear = endYear;
     }
 
-    const parsed = updatePlanSchema.safeParse(body);
+    if (hasDateRange) {
+      body.startMonth = startMonth
+      body.startYear = startYear
+      body.endMonth = endMonth
+      body.endYear = endYear
+    }
+
+    const parsed = updatePlanSchema.safeParse(body)
     if (!parsed.success) {
-      setErrors(parseFieldErrors(parsed.error));
-      return;
+      setErrors(parseFieldErrors(parsed.error))
+      return
     }
 
     await updateMut.mutateAsync({
       userId,
       planId: plan.id,
       body: parsed.data as UpdatePlanInput,
-    });
-    onOpenChange(false);
-  };
+    })
+    onOpenChange(false)
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -161,8 +153,8 @@ export function EditPlanDialog({
               id="ep-title"
               value={title}
               onChange={(e) => {
-                setTitle(e.target.value);
-                setErrors((prev) => ({ ...prev, title: "" }));
+                setTitle(e.target.value)
+                setErrors((prev) => ({ ...prev, title: '' }))
               }}
               placeholder="เช่น SEO Plan 2026"
               maxLength={200}
@@ -171,7 +163,7 @@ export function EditPlanDialog({
           </div>
 
           {hasDateRange && (
-            <div className="grid gap-3 rounded-md border border-border bg-muted/30 p-3">
+            <div className="border-border bg-muted/30 grid gap-3 rounded-md border p-3">
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <div className="grid gap-1.5">
                   <Label className="text-xs">เริ่มเดือน</Label>
@@ -193,10 +185,7 @@ export function EditPlanDialog({
                 </div>
                 <div className="grid gap-1.5">
                   <Label className="text-xs">เริ่มปี</Label>
-                  <Select
-                    value={String(startYear)}
-                    onValueChange={(v) => setStartYear(Number(v))}
-                  >
+                  <Select value={String(startYear)} onValueChange={(v) => setStartYear(Number(v))}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -211,10 +200,7 @@ export function EditPlanDialog({
                 </div>
                 <div className="grid gap-1.5">
                   <Label className="text-xs">ถึงเดือน</Label>
-                  <Select
-                    value={String(endMonth)}
-                    onValueChange={(v) => setEndMonth(Number(v))}
-                  >
+                  <Select value={String(endMonth)} onValueChange={(v) => setEndMonth(Number(v))}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -229,10 +215,7 @@ export function EditPlanDialog({
                 </div>
                 <div className="grid gap-1.5">
                   <Label className="text-xs">ถึงปี</Label>
-                  <Select
-                    value={String(endYear)}
-                    onValueChange={(v) => setEndYear(Number(v))}
-                  >
+                  <Select value={String(endYear)} onValueChange={(v) => setEndYear(Number(v))}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -247,18 +230,14 @@ export function EditPlanDialog({
                 </div>
               </div>
               <FieldError error={errors.endMonth} />
-              <div className="text-xs text-muted-foreground">
+              <div className="text-muted-foreground text-xs">
                 {rangeInvalid ? (
-                  <span className="text-destructive">
-                    เดือนจบต้องไม่อยู่ก่อนเดือนเริ่ม
-                  </span>
+                  <span className="text-destructive">เดือนจบต้องไม่อยู่ก่อนเดือนเริ่ม</span>
                 ) : (
                   <>
-                    {THAI_MONTHS[startMonth - 1]} {startYear} →{" "}
-                    {THAI_MONTHS[endMonth - 1]} {endYear}
-                    {monthCount !== null && (
-                      <span className="ml-1">({monthCount} เดือน)</span>
-                    )}
+                    {THAI_MONTHS[startMonth - 1]} {startYear} → {THAI_MONTHS[endMonth - 1]}{' '}
+                    {endYear}
+                    {monthCount !== null && <span className="ml-1">({monthCount} เดือน)</span>}
                   </>
                 )}
               </div>
@@ -292,10 +271,10 @@ export function EditPlanDialog({
             ยกเลิก
           </Button>
           <Button onClick={handleSubmit} disabled={updateMut.isPending}>
-            {updateMut.isPending ? "กำลังบันทึก..." : "บันทึก"}
+            {updateMut.isPending ? 'กำลังบันทึก...' : 'บันทึก'}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

@@ -1,5 +1,5 @@
 // src/components/shared/users/hooks/useCustomerMetricsModal.ts
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import {
   openMetricsModal,
   closeMetricsModal,
@@ -7,8 +7,8 @@ import {
   closeHistoryModal,
   openKeywordHistoryModal,
   closeKeywordHistoryModal,
-} from "@/store/features/metrics/metricsSlice";
-import { User } from "@/types/user";
+} from '@/store/features/metrics/metricsSlice'
+import { User } from '@/types/user'
 import {
   useGetCustomerReport,
   useGetKeywords,
@@ -26,17 +26,12 @@ import {
   useAddAiOverview,
   useUpdateAiOverview,
   useDeleteAiOverview,
-} from "@/hooks/api/useCustomersApi";
-import { showPromiseToast } from "@/components/shared/toast/lib/toastify";
-import {
-  KeywordReport,
-  KeywordReportForm,
-  KeywordRecommendForm,
-  OverallMetricsForm,
-} from "@/types";
+} from '@/hooks/api/useCustomersApi'
+import { showPromiseToast } from '@/components/shared/toast/lib/toastify'
+import { KeywordReport, KeywordReportForm, KeywordRecommendForm, OverallMetricsForm } from '@/types'
 
 export const useCustomerMetricsModal = (users: User[]) => {
-  const dispatch = useAppDispatch();
+  const dispatch = useAppDispatch()
   // ดึงเฉพาะ UI State จาก Redux
   const {
     isMetricsModalOpen,
@@ -44,208 +39,201 @@ export const useCustomerMetricsModal = (users: User[]) => {
     isHistoryModalOpen,
     isKeywordHistoryModalOpen,
     selectedKeyword,
-  } = useAppSelector((state) => state.metrics);
+  } = useAppSelector((state) => state.metrics)
 
-  const selectedCustomer =
-    users.find((u) => u.id === selectedCustomerId) || null;
+  const selectedCustomer = users.find((u) => u.id === selectedCustomerId) || null
 
   // --- ใช้ React Query Hooks ---
   // ใช้ customerReport เป็น source ของ metrics (cache shared กับ ReportPage)
-  const { data: customerReport, isLoading: isLoadingMetrics } =
-    useGetCustomerReport(selectedCustomerId || "");
-  const metricsData = customerReport?.metrics ?? null;
+  const { data: customerReport, isLoading: isLoadingMetrics } = useGetCustomerReport(
+    selectedCustomerId || '',
+  )
+  const metricsData = customerReport?.metrics ?? null
 
-  const { data: keywordsData = [], isLoading: isLoadingKeywords } =
-    useGetKeywords(selectedCustomerId || "");
+  const { data: keywordsData = [], isLoading: isLoadingKeywords } = useGetKeywords(
+    selectedCustomerId || '',
+  )
 
   const { data: recommendKeywordsData = [], isLoading: isLoadingRecommend } =
-    useGetRecommendKeywords(selectedCustomerId || "");
+    useGetRecommendKeywords(selectedCustomerId || '')
 
-  const { data: aiOverviewsData = [], isLoading: isLoadingAiOverviews } =
-    useGetAiOverviews(selectedCustomerId || "");
+  const { data: aiOverviewsData = [], isLoading: isLoadingAiOverviews } = useGetAiOverviews(
+    selectedCustomerId || '',
+  )
 
-  const { data: combinedHistoryData, isFetching: isLoadingCombinedHistory } =
-    useGetCombinedHistory(isHistoryModalOpen ? selectedCustomerId : null);
+  const { data: combinedHistoryData, isFetching: isLoadingCombinedHistory } = useGetCombinedHistory(
+    isHistoryModalOpen ? selectedCustomerId : null,
+  )
 
-  const {
-    data: specificKeywordHistoryData = [],
-    isFetching: isLoadingSpecificHistory,
-  } = useGetKeywordSpecificHistory(
-    isKeywordHistoryModalOpen ? (selectedKeyword?.id ?? null) : null,
-  );
+  const { data: specificKeywordHistoryData = [], isFetching: isLoadingSpecificHistory } =
+    useGetKeywordSpecificHistory(isKeywordHistoryModalOpen ? (selectedKeyword?.id ?? null) : null)
 
   // --- ใช้ React Query Mutations ---
-  const saveMetricsMutation = useSaveMetrics();
-  const addKeywordMutation = useAddKeyword();
-  const updateKeywordMutation = useUpdateKeyword();
-  const deleteKeywordMutation = useDeleteKeyword();
-  const addRecommendKeywordMutation = useAddRecommendKeyword();
-  const updateRecommendKeywordMutation = useUpdateRecommendKeyword();
-  const deleteRecommendKeywordMutation = useDeleteRecommendKeyword();
-  const addAiOverviewMutation = useAddAiOverview();
-  const updateAiOverviewMutation = useUpdateAiOverview();
-  const deleteAiOverviewMutation = useDeleteAiOverview();
+  const saveMetricsMutation = useSaveMetrics()
+  const addKeywordMutation = useAddKeyword()
+  const updateKeywordMutation = useUpdateKeyword()
+  const deleteKeywordMutation = useDeleteKeyword()
+  const addRecommendKeywordMutation = useAddRecommendKeyword()
+  const updateRecommendKeywordMutation = useUpdateRecommendKeyword()
+  const deleteRecommendKeywordMutation = useDeleteRecommendKeyword()
+  const addAiOverviewMutation = useAddAiOverview()
+  const updateAiOverviewMutation = useUpdateAiOverview()
+  const deleteAiOverviewMutation = useDeleteAiOverview()
 
   // --- แก้ไข Handler Functions ---
   const handleOpenMetrics = (user: User) => {
-    dispatch(openMetricsModal(user));
+    dispatch(openMetricsModal(user))
     // ไม่ต้อง dispatch(fetch...) แล้ว React Query จะ fetch เองเมื่อ selectedCustomerId เปลี่ยน
-  };
+  }
 
-  const handleCloseMetrics = () => dispatch(closeMetricsModal());
+  const handleCloseMetrics = () => dispatch(closeMetricsModal())
 
   const handleSaveMetrics = async (data: Partial<OverallMetricsForm>) => {
-    if (!selectedCustomerId) return;
+    if (!selectedCustomerId) return
     const promise = saveMetricsMutation.mutateAsync({
       customerId: selectedCustomerId,
       metrics: data as OverallMetricsForm,
-    });
+    })
     showPromiseToast(promise, {
-      pending: "กำลังบันทึก Metrics...",
-      success: "บันทึก Metrics สำเร็จ!",
-      error: "ไม่สามารถบันทึก Metrics ได้",
-    });
-  };
+      pending: 'กำลังบันทึก Metrics...',
+      success: 'บันทึก Metrics สำเร็จ!',
+      error: 'ไม่สามารถบันทึก Metrics ได้',
+    })
+  }
 
   const handleAddKeyword = async (keyword: KeywordReportForm) => {
-    if (!selectedCustomerId) return;
+    if (!selectedCustomerId) return
     const promise = addKeywordMutation.mutateAsync({
       customerId: selectedCustomerId,
       keyword: keyword,
-    });
+    })
     showPromiseToast(promise, {
-      pending: "กำลังเพิ่ม Keyword...",
-      success: "เพิ่ม Keyword สำเร็จ!",
-      error: "ไม่สามารถเพิ่ม Keyword ได้",
-    });
-  };
+      pending: 'กำลังเพิ่ม Keyword...',
+      success: 'เพิ่ม Keyword สำเร็จ!',
+      error: 'ไม่สามารถเพิ่ม Keyword ได้',
+    })
+  }
 
   const handleDeleteKeyword = async (keywordId: string) => {
-    if (!selectedCustomerId) return;
+    if (!selectedCustomerId) return
     const promise = deleteKeywordMutation.mutateAsync({
       customerId: selectedCustomerId,
       keywordId,
-    });
+    })
     showPromiseToast(promise, {
-      pending: "กำลังลบ Keyword...",
-      success: "ลบ Keyword สำเร็จ!",
-      error: "ไม่สามารถลบ Keyword ได้",
-    });
-  };
+      pending: 'กำลังลบ Keyword...',
+      success: 'ลบ Keyword สำเร็จ!',
+      error: 'ไม่สามารถลบ Keyword ได้',
+    })
+  }
 
-  const handleUpdateKeyword = async (
-    keywordId: string,
-    data: KeywordReportForm,
-  ) => {
-    if (!selectedCustomerId) return;
+  const handleUpdateKeyword = async (keywordId: string, data: KeywordReportForm) => {
+    if (!selectedCustomerId) return
     const promise = updateKeywordMutation.mutateAsync({
       customerId: selectedCustomerId,
       keywordId,
       keyword: data,
-    });
+    })
     showPromiseToast(promise, {
-      pending: "กำลังอัปเดต Keyword...",
-      success: "อัปเดต Keyword สำเร็จ!",
-      error: "ไม่สามารถอัปเดต Keyword ได้",
-    });
-  };
+      pending: 'กำลังอัปเดต Keyword...',
+      success: 'อัปเดต Keyword สำเร็จ!',
+      error: 'ไม่สามารถอัปเดต Keyword ได้',
+    })
+  }
 
   const handleAddRecommendKeyword = async (keyword: KeywordRecommendForm) => {
-    if (!selectedCustomerId) return;
+    if (!selectedCustomerId) return
     const promise = addRecommendKeywordMutation.mutateAsync({
       customerId: selectedCustomerId,
       keyword: keyword,
-    });
+    })
     showPromiseToast(promise, {
-      pending: "กำลังเพิ่ม Recommend Keyword...",
-      success: "เพิ่ม Recommend Keyword สำเร็จ!",
-      error: "ไม่สามารถเพิ่ม Recommend Keyword ได้",
-    });
-  };
+      pending: 'กำลังเพิ่ม Recommend Keyword...',
+      success: 'เพิ่ม Recommend Keyword สำเร็จ!',
+      error: 'ไม่สามารถเพิ่ม Recommend Keyword ได้',
+    })
+  }
 
   const handleDeleteRecommendKeyword = async (recommendId: string) => {
-    if (!selectedCustomerId) return;
+    if (!selectedCustomerId) return
     const promise = deleteRecommendKeywordMutation.mutateAsync({
       customerId: selectedCustomerId,
       recommendId,
-    });
+    })
     showPromiseToast(promise, {
-      pending: "กำลังลบ Recommend Keyword...",
-      success: "ลบ Recommend Keyword สำเร็จ!",
-      error: "ไม่สามารถลบ Recommend Keyword ได้",
-    });
-  };
+      pending: 'กำลังลบ Recommend Keyword...',
+      success: 'ลบ Recommend Keyword สำเร็จ!',
+      error: 'ไม่สามารถลบ Recommend Keyword ได้',
+    })
+  }
 
-  const handleUpdateRecommendKeyword = async (
-    recommendId: string,
-    data: KeywordRecommendForm,
-  ) => {
-    if (!selectedCustomerId) return;
+  const handleUpdateRecommendKeyword = async (recommendId: string, data: KeywordRecommendForm) => {
+    if (!selectedCustomerId) return
     const promise = updateRecommendKeywordMutation.mutateAsync({
       customerId: selectedCustomerId,
       recommendId,
       keyword: data,
-    });
+    })
     showPromiseToast(promise, {
-      pending: "กำลังอัปเดต Recommend Keyword...",
-      success: "อัปเดต Recommend Keyword สำเร็จ!",
-      error: "ไม่สามารถอัปเดต Recommend Keyword ได้",
-    });
-  };
+      pending: 'กำลังอัปเดต Recommend Keyword...',
+      success: 'อัปเดต Recommend Keyword สำเร็จ!',
+      error: 'ไม่สามารถอัปเดต Recommend Keyword ได้',
+    })
+  }
 
   const handleAddAiOverview = async (formData: FormData) => {
-    if (!selectedCustomerId) return;
+    if (!selectedCustomerId) return
     const promise = addAiOverviewMutation.mutateAsync({
       customerId: selectedCustomerId,
       formData,
-    });
+    })
     showPromiseToast(promise, {
-      pending: "กำลังอัปโหลด AI Overview...",
-      success: "เพิ่ม AI Overview สำเร็จ!",
-      error: "ไม่สามารถเพิ่ม AI Overview ได้",
-    });
-  };
+      pending: 'กำลังอัปโหลด AI Overview...',
+      success: 'เพิ่ม AI Overview สำเร็จ!',
+      error: 'ไม่สามารถเพิ่ม AI Overview ได้',
+    })
+  }
 
   const handleUpdateAiOverview = async (id: string, formData: FormData) => {
-    if (!selectedCustomerId) return;
+    if (!selectedCustomerId) return
     const promise = updateAiOverviewMutation.mutateAsync({
       customerId: selectedCustomerId,
       id,
       formData,
-    });
+    })
     showPromiseToast(promise, {
-      pending: "กำลังอัปเดท AI Overview...",
-      success: "อัปเดท AI Overview สำเร็จ!",
-      error: "ไม่สามารถอัปเดท AI Overview ได้",
-    });
-  };
+      pending: 'กำลังอัปเดท AI Overview...',
+      success: 'อัปเดท AI Overview สำเร็จ!',
+      error: 'ไม่สามารถอัปเดท AI Overview ได้',
+    })
+  }
 
   const handleDeleteAiOverview = async (aiOverviewId: string) => {
-    if (!selectedCustomerId) return;
+    if (!selectedCustomerId) return
     const promise = deleteAiOverviewMutation.mutateAsync({
       customerId: selectedCustomerId,
       aiOverviewId,
-    });
+    })
     showPromiseToast(promise, {
-      pending: "กำลังลบ AI Overview...",
-      success: "ลบ AI Overview สำเร็จ!",
-      error: "ไม่สามารถลบ AI Overview ได้",
-    });
-  };
+      pending: 'กำลังลบ AI Overview...',
+      success: 'ลบ AI Overview สำเร็จ!',
+      error: 'ไม่สามารถลบ AI Overview ได้',
+    })
+  }
 
   const handleOpenHistory = () => {
-    dispatch(openHistoryModal());
+    dispatch(openHistoryModal())
     // ไม่ต้อง dispatch(fetch...) แล้ว
-  };
+  }
 
-  const handleCloseHistory = () => dispatch(closeHistoryModal());
+  const handleCloseHistory = () => dispatch(closeHistoryModal())
 
   const handleOpenKeywordHistory = (keyword: KeywordReport) => {
-    dispatch(openKeywordHistoryModal(keyword));
+    dispatch(openKeywordHistoryModal(keyword))
     // ไม่ต้อง dispatch(fetch...) แล้ว
-  };
+  }
 
-  const handleCloseKeywordHistory = () => dispatch(closeKeywordHistoryModal());
+  const handleCloseKeywordHistory = () => dispatch(closeKeywordHistoryModal())
 
   // --- Return ค่า ---
   return {
@@ -289,5 +277,5 @@ export const useCustomerMetricsModal = (users: User[]) => {
     handleCloseHistory,
     handleOpenKeywordHistory,
     handleCloseKeywordHistory,
-  };
-};
+  }
+}

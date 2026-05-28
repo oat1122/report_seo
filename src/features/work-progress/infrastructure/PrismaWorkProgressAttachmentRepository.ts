@@ -1,24 +1,21 @@
-import { prisma } from "@/infrastructure/prisma/client";
-import type {
-  AttachmentKind,
-  WorkProgressAttachment,
-} from "../domain/WorkProgressAttachment";
+import { prisma } from '@/infrastructure/prisma/client'
+import type { AttachmentKind, WorkProgressAttachment } from '../domain/WorkProgressAttachment'
 import type {
   CreateAttachmentData,
   WorkProgressAttachmentRepository,
-} from "../application/ports/WorkProgressAttachmentRepository";
+} from '../application/ports/WorkProgressAttachmentRepository'
 
 function toDomain(row: {
-  id: string;
-  itemId: string;
-  kind: string;
-  url: string;
-  filename: string | null;
-  mimeType: string | null;
-  sizeBytes: number | null;
-  caption: string | null;
-  uploadedById: string | null;
-  createdAt: Date;
+  id: string
+  itemId: string
+  kind: string
+  url: string
+  filename: string | null
+  mimeType: string | null
+  sizeBytes: number | null
+  caption: string | null
+  uploadedById: string | null
+  createdAt: Date
 }): WorkProgressAttachment {
   return {
     id: row.id,
@@ -31,27 +28,23 @@ function toDomain(row: {
     caption: row.caption,
     uploadedById: row.uploadedById,
     createdAt: row.createdAt,
-  };
+  }
 }
 
-export class PrismaWorkProgressAttachmentRepository
-  implements WorkProgressAttachmentRepository
-{
+export class PrismaWorkProgressAttachmentRepository implements WorkProgressAttachmentRepository {
   async listByItem(itemId: string): Promise<WorkProgressAttachment[]> {
     const rows = await prisma.workProgressAttachment.findMany({
       where: { itemId },
-      orderBy: { createdAt: "desc" },
-    });
-    return rows.map(toDomain);
+      orderBy: { createdAt: 'desc' },
+    })
+    return rows.map(toDomain)
   }
 
-  async findById(
-    attachmentId: string,
-  ): Promise<WorkProgressAttachment | null> {
+  async findById(attachmentId: string): Promise<WorkProgressAttachment | null> {
     const row = await prisma.workProgressAttachment.findUnique({
       where: { id: attachmentId },
-    });
-    return row ? toDomain(row) : null;
+    })
+    return row ? toDomain(row) : null
   }
 
   async create(data: CreateAttachmentData): Promise<WorkProgressAttachment> {
@@ -66,11 +59,11 @@ export class PrismaWorkProgressAttachmentRepository
         caption: data.caption,
         uploadedById: data.uploadedById,
       },
-    });
-    return toDomain(row);
+    })
+    return toDomain(row)
   }
 
   async delete(attachmentId: string): Promise<void> {
-    await prisma.workProgressAttachment.delete({ where: { id: attachmentId } });
+    await prisma.workProgressAttachment.delete({ where: { id: attachmentId } })
   }
 }

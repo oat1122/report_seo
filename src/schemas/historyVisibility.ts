@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod'
 
 /**
  * Toggle visibility ของ history row(s) — รองรับทั้ง single และ bulk
@@ -11,8 +11,8 @@ export const historyVisibilitySchema = z
     isVisible: z.boolean(),
   })
   .refine((d) => Boolean(d.historyId) !== Boolean(d.historyIds), {
-    message: "ต้องระบุ historyId หรือ historyIds อย่างใดอย่างหนึ่ง",
-    path: ["historyId"],
-  });
+    message: 'ต้องระบุ historyId หรือ historyIds อย่างใดอย่างหนึ่ง',
+    path: ['historyId'],
+  })
 
-export type HistoryVisibilityInput = z.infer<typeof historyVisibilitySchema>;
+export type HistoryVisibilityInput = z.infer<typeof historyVisibilitySchema>

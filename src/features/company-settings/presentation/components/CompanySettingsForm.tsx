@@ -1,57 +1,49 @@
-"use client";
+'use client'
 
-import { useEffect, useRef, useState } from "react";
-import { ImagePlus, Loader2, Save, Upload } from "lucide-react";
-import { toast } from "react-toastify";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Field, FieldGroup } from "@/components/ui/field";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { useEffect, useRef, useState } from 'react'
+import { ImagePlus, Loader2, Save, Upload } from 'lucide-react'
+import { toast } from 'react-toastify'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Field, FieldGroup } from '@/components/ui/field'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   useGetCompanySettings,
   useUpsertCompanySettings,
   useUploadLogo,
-} from "../hooks/useCompanySettings";
+} from '../hooks/useCompanySettings'
 
 export function CompanySettingsForm() {
-  const { data: settings, isLoading } = useGetCompanySettings();
-  const upsertMutation = useUpsertCompanySettings();
-  const uploadLogoMutation = useUploadLogo();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { data: settings, isLoading } = useGetCompanySettings()
+  const upsertMutation = useUpsertCompanySettings()
+  const uploadLogoMutation = useUploadLogo()
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [form, setForm] = useState({
-    name: "",
-    address: "",
-    taxId: "",
-    phone: "",
-    email: "",
-  });
+    name: '',
+    address: '',
+    taxId: '',
+    phone: '',
+    email: '',
+  })
 
   useEffect(() => {
     if (settings) {
       setForm({
-        name: settings.name || "",
-        address: settings.address || "",
-        taxId: settings.taxId || "",
-        phone: settings.phone || "",
-        email: settings.email || "",
-      });
+        name: settings.name || '',
+        address: settings.address || '',
+        taxId: settings.taxId || '',
+        phone: settings.phone || '',
+        email: settings.email || '',
+      })
     }
-  }, [settings]);
+  }, [settings])
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+  }
 
   const handleSave = () => {
     upsertMutation.mutate(
@@ -63,26 +55,26 @@ export function CompanySettingsForm() {
         email: form.email || null,
       },
       {
-        onSuccess: () => toast.success("บันทึกข้อมูลบริษัทเรียบร้อย"),
+        onSuccess: () => toast.success('บันทึกข้อมูลบริษัทเรียบร้อย'),
       },
-    );
-  };
+    )
+  }
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const file = e.target.files?.[0]
+    if (!file) return
     uploadLogoMutation.mutate(file, {
-      onSuccess: () => toast.success("อัปโหลดโลโก้เรียบร้อย"),
-    });
-    e.target.value = "";
-  };
+      onSuccess: () => toast.success('อัปโหลดโลโก้เรียบร้อย'),
+    })
+    e.target.value = ''
+  }
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="size-6 animate-spin text-muted-foreground" />
+        <Loader2 className="text-muted-foreground size-6 animate-spin" />
       </div>
-    );
+    )
   }
 
   return (
@@ -91,8 +83,7 @@ export function CompanySettingsForm() {
         <CardHeader>
           <CardTitle>ข้อมูลบริษัท</CardTitle>
           <CardDescription>
-            ข้อมูลนี้จะแสดงบนเอกสาร PDF (ใบวางบิล, ใบแจ้งหนี้, ใบเสร็จ,
-            ใบกำกับภาษี)
+            ข้อมูลนี้จะแสดงบนเอกสาร PDF (ใบวางบิล, ใบแจ้งหนี้, ใบเสร็จ, ใบกำกับภาษี)
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -159,7 +150,7 @@ export function CompanySettingsForm() {
             <Button
               onClick={handleSave}
               disabled={upsertMutation.isPending || !form.name || !form.address || !form.taxId}
-              className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90 sm:w-auto"
+              className="bg-secondary text-secondary-foreground hover:bg-secondary/90 w-full sm:w-auto"
             >
               {upsertMutation.isPending ? (
                 <Loader2 className="mr-2 size-4 animate-spin" />
@@ -175,21 +166,15 @@ export function CompanySettingsForm() {
       <Card>
         <CardHeader>
           <CardTitle>โลโก้บริษัท</CardTitle>
-          <CardDescription>
-            รูปภาพ JPG/PNG ขนาดไม่เกิน 5MB
-          </CardDescription>
+          <CardDescription>รูปภาพ JPG/PNG ขนาดไม่เกิน 5MB</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-4">
-          <div className="flex size-40 items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-border bg-muted/30">
+          <div className="border-border bg-muted/30 flex size-40 items-center justify-center overflow-hidden rounded-lg border-2 border-dashed">
             {settings?.logoUrl ? (
               /* eslint-disable-next-line @next/next/no-img-element -- dynamic upload path not in remotePatterns */
-              <img
-                src={settings.logoUrl}
-                alt="โลโก้บริษัท"
-                className="size-full object-contain"
-              />
+              <img src={settings.logoUrl} alt="โลโก้บริษัท" className="size-full object-contain" />
             ) : (
-              <ImagePlus className="size-10 text-muted-foreground" />
+              <ImagePlus className="text-muted-foreground size-10" />
             )}
           </div>
 
@@ -211,10 +196,10 @@ export function CompanySettingsForm() {
             ) : (
               <Upload className="mr-2 size-4" />
             )}
-            {settings?.logoUrl ? "เปลี่ยนโลโก้" : "อัปโหลดโลโก้"}
+            {settings?.logoUrl ? 'เปลี่ยนโลโก้' : 'อัปโหลดโลโก้'}
           </Button>
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

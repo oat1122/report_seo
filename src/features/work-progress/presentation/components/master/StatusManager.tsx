@@ -1,54 +1,53 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { Plus, Pencil, EyeOff, Flag, Star } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { DataTable } from "@/components/shared/DataTable";
-import { ConfirmAlert } from "@/components/shared/ConfirmAlert";
-import { MasterRowDialog } from "./MasterRowDialog";
-import { useStatuses } from "../../hooks/useMasterTables";
+import { useState } from 'react'
+import { Plus, Pencil, EyeOff, Flag, Star } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
+import { DataTable } from '@/components/shared/DataTable'
+import { ConfirmAlert } from '@/components/shared/ConfirmAlert'
+import { MasterRowDialog } from './MasterRowDialog'
+import { useStatuses } from '../../hooks/useMasterTables'
 import {
   useCreateStatus,
   useUpdateStatus,
   useDeactivateMaster,
-} from "../../hooks/useMasterMutations";
+} from '../../hooks/useMasterMutations'
 import type {
   WorkProgressStatus,
   UpsertStatusInput,
   UpdateStatusInput,
-} from "@/features/work-progress";
+} from '@/features/work-progress'
 
 export function StatusManager() {
-  const { data, isLoading } = useStatuses();
-  const createMut = useCreateStatus();
-  const updateMut = useUpdateStatus();
-  const deactivateMut = useDeactivateMaster();
+  const { data, isLoading } = useStatuses()
+  const createMut = useCreateStatus()
+  const updateMut = useUpdateStatus()
+  const deactivateMut = useDeactivateMaster()
 
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editing, setEditing] = useState<WorkProgressStatus | null>(null);
-  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [editing, setEditing] = useState<WorkProgressStatus | null>(null)
+  const [confirmId, setConfirmId] = useState<string | null>(null)
 
-  const submitting = createMut.isPending || updateMut.isPending;
+  const submitting = createMut.isPending || updateMut.isPending
 
   if (isLoading) {
-    return <Skeleton className="h-64 w-full" />;
+    return <Skeleton className="h-64 w-full" />
   }
 
-  const rows = (data ?? []).slice().sort((a, b) => a.orderIndex - b.orderIndex);
+  const rows = (data ?? []).slice().sort((a, b) => a.orderIndex - b.orderIndex)
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          สถานะของ item · isDefault จำกัด 1 ตัว · isTerminal = ปลายทาง
-          (COMPLETED/CANCELLED)
+        <p className="text-muted-foreground text-sm">
+          สถานะของ item · isDefault จำกัด 1 ตัว · isTerminal = ปลายทาง (COMPLETED/CANCELLED)
         </p>
         <Button
           onClick={() => {
-            setEditing(null);
-            setDialogOpen(true);
+            setEditing(null)
+            setDialogOpen(true)
           }}
           size="sm"
         >
@@ -63,22 +62,20 @@ export function StatusManager() {
         emptyState="ยังไม่มีสถานะ"
         columns={[
           {
-            key: "code",
-            header: "Code",
+            key: 'code',
+            header: 'Code',
             cell: (r) => <span className="font-mono text-xs">{r.code}</span>,
-            className: "w-40",
+            className: 'w-40',
           },
           {
-            key: "name",
-            header: "ชื่อ",
+            key: 'name',
+            header: 'ชื่อ',
             cell: (r) => (
               <div className="flex items-center gap-2">
                 <span
                   className="inline-block size-3 rounded-full"
                   style={
-                    r.color
-                      ? { backgroundColor: r.color }
-                      : { backgroundColor: "var(--muted)" }
+                    r.color ? { backgroundColor: r.color } : { backgroundColor: 'var(--muted)' }
                   }
                   aria-hidden
                 />
@@ -92,8 +89,8 @@ export function StatusManager() {
             ),
           },
           {
-            key: "flags",
-            header: "คุณสมบัติ",
+            key: 'flags',
+            header: 'คุณสมบัติ',
             cell: (r) => (
               <div className="flex flex-wrap gap-1">
                 {r.isDefault && (
@@ -110,39 +107,39 @@ export function StatusManager() {
                 )}
               </div>
             ),
-            className: "w-44",
+            className: 'w-44',
           },
           {
-            key: "order",
-            header: "ลำดับ",
+            key: 'order',
+            header: 'ลำดับ',
             cell: (r) => r.orderIndex,
-            align: "right",
-            className: "w-20",
+            align: 'right',
+            className: 'w-20',
           },
           {
-            key: "active",
-            header: "สถานะ",
+            key: 'active',
+            header: 'สถานะ',
             cell: (r) =>
               r.isActive ? (
                 <Badge variant="default">เปิดใช้</Badge>
               ) : (
                 <Badge variant="outline">ปิด</Badge>
               ),
-            className: "w-24",
+            className: 'w-24',
           },
           {
-            key: "actions",
-            header: "",
-            align: "right",
-            className: "w-32",
+            key: 'actions',
+            header: '',
+            align: 'right',
+            className: 'w-32',
             cell: (r) => (
               <div className="flex justify-end gap-1">
                 <Button
                   size="icon"
                   variant="ghost"
                   onClick={() => {
-                    setEditing(r);
-                    setDialogOpen(true);
+                    setEditing(r)
+                    setDialogOpen(true)
                   }}
                   aria-label="แก้ไข"
                 >
@@ -174,11 +171,11 @@ export function StatusManager() {
             await updateMut.mutateAsync({
               id: editing.id,
               body: body as UpdateStatusInput,
-            });
+            })
           } else {
-            await createMut.mutateAsync(body as UpsertStatusInput);
+            await createMut.mutateAsync(body as UpsertStatusInput)
           }
-          setDialogOpen(false);
+          setDialogOpen(false)
         }}
         submitting={submitting}
       />
@@ -187,13 +184,13 @@ export function StatusManager() {
         open={confirmId !== null}
         onClose={() => setConfirmId(null)}
         onConfirm={async () => {
-          if (!confirmId) return;
-          await deactivateMut.mutateAsync({ kind: "status", id: confirmId });
-          setConfirmId(null);
+          if (!confirmId) return
+          await deactivateMut.mutateAsync({ kind: 'status', id: confirmId })
+          setConfirmId(null)
         }}
         title="ปิดใช้งานสถานะ"
         message="สถานะที่ปิดใช้จะไม่ปรากฏในตัวเลือก แต่ item ที่ใช้อยู่จะยังคงอยู่"
       />
     </div>
-  );
+  )
 }

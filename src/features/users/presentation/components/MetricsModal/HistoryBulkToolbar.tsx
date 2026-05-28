@@ -1,14 +1,14 @@
-"use client";
+'use client'
 
-import { Eye, EyeOff } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Eye, EyeOff } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 interface HistoryBulkToolbarProps {
-  visibleCount: number;
-  totalCount: number;
-  selectedCount: number;
-  onShow: () => void;
-  onHide: () => void;
+  visibleCount: number
+  totalCount: number
+  selectedCount: number
+  onShow: () => void
+  onHide: () => void
 }
 
 // Bulk action toolbar — shared by HistoryMetricsTab + HistoryKeywordsTab
@@ -21,7 +21,7 @@ export const HistoryBulkToolbar = ({
 }: HistoryBulkToolbarProps) => {
   return (
     <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
-      <p className="text-sm text-muted-foreground">
+      <p className="text-muted-foreground text-sm">
         แสดงให้ลูกค้าเห็น {visibleCount} จาก {totalCount} รายการ
       </p>
       {selectedCount > 0 && (
@@ -47,5 +47,5 @@ export const HistoryBulkToolbar = ({
         </div>
       )}
     </div>
-  );
-};
+  )
+}

@@ -1,21 +1,18 @@
-import type { RenderData } from "../../application/use-cases/generateDocument";
+import type { RenderData } from '../../application/use-cases/generateDocument'
 import {
   wrapDocument,
   formatCurrency,
   formatDate,
   escapeHtml,
   resolveLogoSrc,
-} from "./base-template";
+} from './base-template'
 
 export function renderInvoice(data: RenderData): string {
-  const subtotal = data.items.reduce(
-    (sum, i) => sum + i.quantity * i.unitPrice,
-    0,
-  );
+  const subtotal = data.items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)
 
   const logoHtml = data.company.logoUrl
     ? `<img src="${escapeHtml(resolveLogoSrc(data.company.logoUrl))}" class="new-logo" alt="logo" />`
-    : `<h2 class="new-company-name">${escapeHtml(data.company.name)}</h2>`;
+    : `<h2 class="new-company-name">${escapeHtml(data.company.name)}</h2>`
 
   const rowsHtml = data.items
     .map(
@@ -31,9 +28,9 @@ export function renderInvoice(data: RenderData): string {
     </tr>
   `,
     )
-    .join("");
+    .join('')
 
-  const addressLine = [data.customer.address].filter(Boolean).join(" ");
+  const addressLine = [data.customer.address].filter(Boolean).join(' ')
 
   const body = `
     <div class="new-invoice-container">
@@ -58,7 +55,7 @@ export function renderInvoice(data: RenderData): string {
             </tr>
             <tr>
               <td class="label">Phone</td>
-              <td class="value">: ${escapeHtml(data.customer.contactName || "-")}</td>
+              <td class="value">: ${escapeHtml(data.customer.contactName || '-')}</td>
             </tr>
             <tr>
               <td class="label">Mail</td>
@@ -66,7 +63,7 @@ export function renderInvoice(data: RenderData): string {
             </tr>
             <tr>
               <td class="label" style="vertical-align: top;">Address</td>
-              <td class="value">: ${escapeHtml(addressLine || "-")}</td>
+              <td class="value">: ${escapeHtml(addressLine || '-')}</td>
             </tr>
             ${
               data.customer.taxId
@@ -75,7 +72,7 @@ export function renderInvoice(data: RenderData): string {
               <td class="label">Tax ID</td>
               <td class="value">: ${escapeHtml(data.customer.taxId)}</td>
             </tr>`
-                : ""
+                : ''
             }
           </table>
         </div>
@@ -94,7 +91,7 @@ export function renderInvoice(data: RenderData): string {
               <td class="label">Phone</td>
               <td class="value">: ${escapeHtml(data.company.phone)}</td>
             </tr>`
-                : ""
+                : ''
             }
             ${
               data.company.email
@@ -103,7 +100,7 @@ export function renderInvoice(data: RenderData): string {
               <td class="label">Mail</td>
               <td class="value">: ${escapeHtml(data.company.email)}</td>
             </tr>`
-                : ""
+                : ''
             }
             <tr>
               <td class="label" style="vertical-align: top;">Address</td>
@@ -152,11 +149,11 @@ export function renderInvoice(data: RenderData): string {
           <table class="new-info-table">
             <tr>
               <td class="label">Phone</td>
-              <td class="value">: ${escapeHtml(data.company.phone || "-")}</td>
+              <td class="value">: ${escapeHtml(data.company.phone || '-')}</td>
             </tr>
             <tr>
               <td class="label">Mail</td>
-              <td class="value">: ${escapeHtml(data.company.email || "-")}</td>
+              <td class="value">: ${escapeHtml(data.company.email || '-')}</td>
             </tr>
             <tr>
               <td class="label">Website</td>
@@ -169,13 +166,13 @@ export function renderInvoice(data: RenderData): string {
           <h2>THANK YOU</h2>
           <div class="terms">
             <h4>Terms and Condition.</h4>
-            <p>${escapeHtml(data.note || "Lorem ipsum dolor sit amet delgado iner consectetueri adipiing in elite mor sedet diami nonummy nibhi euismod tincidunt utility laoreet dolore al desadi magnasted aliquad.")}</p>
+            <p>${escapeHtml(data.note || 'Lorem ipsum dolor sit amet delgado iner consectetueri adipiing in elite mor sedet diami nonummy nibhi euismod tincidunt utility laoreet dolore al desadi magnasted aliquad.')}</p>
           </div>
         </div>
       </div>
       <div class="new-footer-bottom-bar"></div>
     </div>
-  `;
+  `
 
-  return wrapDocument(body, `ใบแจ้งหนี้ ${data.documentNumber}`);
+  return wrapDocument(body, `ใบแจ้งหนี้ ${data.documentNumber}`)
 }

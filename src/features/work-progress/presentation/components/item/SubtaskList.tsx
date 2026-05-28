@@ -1,61 +1,51 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import {
-  useAddSubtask,
-  useDeleteSubtask,
-  useToggleSubtask,
-} from "../../hooks/useSubtaskActions";
-import type { WorkProgressSubtask } from "@/features/work-progress";
+import { useState } from 'react'
+import { Plus, Trash2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import { useAddSubtask, useDeleteSubtask, useToggleSubtask } from '../../hooks/useSubtaskActions'
+import type { WorkProgressSubtask } from '@/features/work-progress'
 
 interface SubtaskListProps {
-  userId: string;
-  planId: string;
-  itemId: string;
-  subtasks: WorkProgressSubtask[];
-  readOnly?: boolean;
+  userId: string
+  planId: string
+  itemId: string
+  subtasks: WorkProgressSubtask[]
+  readOnly?: boolean
 }
 
-export function SubtaskList({
-  userId,
-  planId,
-  itemId,
-  subtasks,
-  readOnly,
-}: SubtaskListProps) {
-  const addMut = useAddSubtask();
-  const toggleMut = useToggleSubtask();
-  const deleteMut = useDeleteSubtask();
-  const [newTitle, setNewTitle] = useState("");
+export function SubtaskList({ userId, planId, itemId, subtasks, readOnly }: SubtaskListProps) {
+  const addMut = useAddSubtask()
+  const toggleMut = useToggleSubtask()
+  const deleteMut = useDeleteSubtask()
+  const [newTitle, setNewTitle] = useState('')
 
-  const sorted = subtasks.slice().sort((a, b) => a.orderIndex - b.orderIndex);
+  const sorted = subtasks.slice().sort((a, b) => a.orderIndex - b.orderIndex)
 
   const handleAdd = async () => {
-    const t = newTitle.trim();
-    if (!t) return;
+    const t = newTitle.trim()
+    if (!t) return
     await addMut.mutateAsync({
       userId,
       planId,
       itemId,
       body: { title: t },
-    });
-    setNewTitle("");
-  };
+    })
+    setNewTitle('')
+  }
 
   return (
     <div className="flex flex-col gap-2">
       {sorted.length === 0 ? (
-        <p className="text-xs text-muted-foreground">ยังไม่มีงานย่อย</p>
+        <p className="text-muted-foreground text-xs">ยังไม่มีงานย่อย</p>
       ) : (
         <ul className="flex flex-col gap-1">
           {sorted.map((s) => (
             <li
               key={s.id}
-              className="flex items-center gap-2 rounded-md border border-border px-2 py-1.5"
+              className="border-border flex items-center gap-2 rounded-md border px-2 py-1.5"
             >
               <Checkbox
                 checked={s.isDone}
@@ -71,9 +61,7 @@ export function SubtaskList({
               />
               <span
                 className={
-                  s.isDone
-                    ? "flex-1 text-sm text-muted-foreground line-through"
-                    : "flex-1 text-sm"
+                  s.isDone ? 'text-muted-foreground flex-1 text-sm line-through' : 'flex-1 text-sm'
                 }
               >
                 {s.title}
@@ -106,9 +94,9 @@ export function SubtaskList({
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                handleAdd();
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                handleAdd()
               }
             }}
             placeholder="เพิ่มงานย่อย..."
@@ -126,5 +114,5 @@ export function SubtaskList({
         </div>
       )}
     </div>
-  );
+  )
 }

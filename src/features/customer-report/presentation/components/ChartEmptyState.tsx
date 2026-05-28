@@ -1,25 +1,25 @@
-"use client";
+'use client'
 
-import React from "react";
-import { TrendingUp } from "lucide-react";
-import { cn } from "@/lib/utils";
+import React from 'react'
+import { TrendingUp } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface ChartEmptyStateProps {
-  message?: string;
-  height?: string;
-  className?: string;
+  message?: string
+  height?: string
+  className?: string
 }
 
 // Placeholder when chart history < 2 records — shows faded mock curve + message
 export const ChartEmptyState: React.FC<ChartEmptyStateProps> = ({
-  message = "ยังไม่มีข้อมูลเพียงพอสำหรับแสดงแนวโน้ม",
-  height = "100%",
+  message = 'ยังไม่มีข้อมูลเพียงพอสำหรับแสดงแนวโน้ม',
+  height = '100%',
   className,
 }) => {
   return (
     <div
       className={cn(
-        "relative flex w-full flex-col items-center justify-center overflow-hidden rounded-lg border border-dashed border-border bg-card",
+        'border-border bg-card relative flex w-full flex-col items-center justify-center overflow-hidden rounded-lg border border-dashed',
         className,
       )}
       style={{ height }}
@@ -44,13 +44,11 @@ export const ChartEmptyState: React.FC<ChartEmptyStateProps> = ({
         </svg>
       </div>
 
-      <TrendingUp className="mb-2 size-12 text-muted-foreground" />
-      <p className="px-4 text-center text-sm text-muted-foreground">{message}</p>
-      <p className="mt-1 text-xs text-muted-foreground/80">
-        ต้องมีข้อมูลอย่างน้อย 2 รายการ
-      </p>
+      <TrendingUp className="text-muted-foreground mb-2 size-12" />
+      <p className="text-muted-foreground px-4 text-center text-sm">{message}</p>
+      <p className="text-muted-foreground/80 mt-1 text-xs">ต้องมีข้อมูลอย่างน้อย 2 รายการ</p>
     </div>
-  );
-};
+  )
+}
 
-export default ChartEmptyState;
+export default ChartEmptyState

@@ -1,16 +1,10 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { Download, Loader2, Pencil, Trash2 } from "lucide-react";
-import { toast } from "react-toastify";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { useState } from 'react'
+import { Download, Loader2, Pencil, Trash2 } from 'lucide-react'
+import { toast } from 'react-toastify'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -18,44 +12,42 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { useListDocuments, useDeleteDocument } from "../../hooks/useDocuments";
-import { EditDocumentDialog } from "./EditDocumentDialog";
-import { DOCUMENT_TYPE_LABELS } from "../../../domain/DocumentType";
-import type { BillingDocumentType } from "../../../domain/DocumentType";
-import type { BillingDocument } from "../../../domain/BillingDocument";
+} from '@/components/ui/table'
+import { useListDocuments, useDeleteDocument } from '../../hooks/useDocuments'
+import { EditDocumentDialog } from './EditDocumentDialog'
+import { DOCUMENT_TYPE_LABELS } from '../../../domain/DocumentType'
+import type { BillingDocumentType } from '../../../domain/DocumentType'
+import type { BillingDocument } from '../../../domain/BillingDocument'
 
 interface Props {
-  customerId: string;
+  customerId: string
 }
 
 export function DocumentList({ customerId }: Props) {
-  const { data: documents = [], isLoading } = useListDocuments(customerId);
-  const deleteMutation = useDeleteDocument(customerId);
-  const [editingDoc, setEditingDoc] = useState<BillingDocument | null>(null);
+  const { data: documents = [], isLoading } = useListDocuments(customerId)
+  const deleteMutation = useDeleteDocument(customerId)
+  const [editingDoc, setEditingDoc] = useState<BillingDocument | null>(null)
 
   const handleDelete = (documentId: string, docNumber: string) => {
-    if (!confirm(`ต้องการลบเอกสาร ${docNumber} ใช่หรือไม่?`)) return;
+    if (!confirm(`ต้องการลบเอกสาร ${docNumber} ใช่หรือไม่?`)) return
     deleteMutation.mutate(documentId, {
       onSuccess: () => toast.success(`ลบเอกสาร ${docNumber} เรียบร้อย`),
-    });
-  };
+    })
+  }
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-10">
-        <Loader2 className="size-5 animate-spin text-muted-foreground" />
+        <Loader2 className="text-muted-foreground size-5 animate-spin" />
       </div>
-    );
+    )
   }
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>เอกสารที่สร้างแล้ว</CardTitle>
-        <CardDescription>
-          รายการเอกสาร PDF ทั้งหมดของลูกค้ารายนี้
-        </CardDescription>
+        <CardDescription>รายการเอกสาร PDF ทั้งหมดของลูกค้ารายนี้</CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
@@ -71,54 +63,40 @@ export function DocumentList({ customerId }: Props) {
           <TableBody>
             {documents.map((doc) => (
               <TableRow key={doc.id}>
-                <TableCell className="font-medium">
-                  {doc.documentNumber}
-                </TableCell>
+                <TableCell className="font-medium">{doc.documentNumber}</TableCell>
                 <TableCell>
-                  {DOCUMENT_TYPE_LABELS[doc.type as BillingDocumentType] ??
-                    doc.type}
+                  {DOCUMENT_TYPE_LABELS[doc.type as BillingDocumentType] ?? doc.type}
                 </TableCell>
                 <TableCell className="text-right">
-                  {Number(doc.totalAmount).toLocaleString("th-TH", {
+                  {Number(doc.totalAmount).toLocaleString('th-TH', {
                     minimumFractionDigits: 2,
-                  })}{" "}
+                  })}{' '}
                   บาท
                 </TableCell>
                 <TableCell>
-                  {new Date(doc.generatedAt).toLocaleDateString("th-TH", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
+                  {new Date(doc.generatedAt).toLocaleDateString('th-TH', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
                   })}
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon-sm" asChild>
-                      <a
-                        href={doc.pdfUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        download
-                      >
+                      <a href={doc.pdfUrl} target="_blank" rel="noopener noreferrer" download>
                         <Download className="size-4" />
                       </a>
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => setEditingDoc(doc)}
-                    >
+                    <Button variant="ghost" size="icon-sm" onClick={() => setEditingDoc(doc)}>
                       <Pencil className="size-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      onClick={() =>
-                        handleDelete(doc.id, doc.documentNumber)
-                      }
+                      onClick={() => handleDelete(doc.id, doc.documentNumber)}
                       disabled={deleteMutation.isPending}
                     >
-                      <Trash2 className="size-4 text-destructive" />
+                      <Trash2 className="text-destructive size-4" />
                     </Button>
                   </div>
                 </TableCell>
@@ -126,10 +104,7 @@ export function DocumentList({ customerId }: Props) {
             ))}
             {documents.length === 0 && (
               <TableRow>
-                <TableCell
-                  colSpan={5}
-                  className="py-8 text-center text-muted-foreground"
-                >
+                <TableCell colSpan={5} className="text-muted-foreground py-8 text-center">
                   ยังไม่มีเอกสาร
                 </TableCell>
               </TableRow>
@@ -144,10 +119,10 @@ export function DocumentList({ customerId }: Props) {
           customerId={customerId}
           open={!!editingDoc}
           onOpenChange={(open) => {
-            if (!open) setEditingDoc(null);
+            if (!open) setEditingDoc(null)
           }}
         />
       )}
     </Card>
-  );
+  )
 }

@@ -1,45 +1,33 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import { Loader2, CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
-import { th } from "date-fns/locale";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { useEffect, useState } from 'react'
+import { Loader2, CalendarIcon } from 'lucide-react'
+import { format } from 'date-fns'
+import { th } from 'date-fns/locale'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { cn } from "@/lib/utils";
-import {
-  useCreatePaymentPlan,
-  useUpdatePaymentPlan,
-} from "../../hooks/usePaymentPlans";
-import { TemplateSelector } from "@/features/billing-documents/presentation/components/admin/TemplateSelector";
-import type { PaymentPlan } from "../../../index";
+} from '@/components/ui/select'
+import { cn } from '@/lib/utils'
+import { useCreatePaymentPlan, useUpdatePaymentPlan } from '../../hooks/usePaymentPlans'
+import { TemplateSelector } from '@/features/billing-documents/presentation/components/admin/TemplateSelector'
+import type { PaymentPlan } from '../../../index'
 
 interface PaymentPlanFormProps {
-  customerId: string;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  editPlan?: PaymentPlan | null;
+  customerId: string
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  editPlan?: PaymentPlan | null
 }
 
 export function PaymentPlanForm({
@@ -48,54 +36,55 @@ export function PaymentPlanForm({
   onOpenChange,
   editPlan,
 }: PaymentPlanFormProps) {
-  const isEdit = !!editPlan;
+  const isEdit = !!editPlan
 
-  const [type, setType] = useState<"MONTHLY" | "INSTALLMENT">("MONTHLY");
-  const [amount, setAmount] = useState("");
-  const [description, setDescription] = useState("");
-  const [billingDay, setBillingDay] = useState("1");
-  const [totalInstallments, setTotalInstallments] = useState("12");
-  const [startDate, setStartDate] = useState<Date | undefined>(new Date());
-  const [note, setNote] = useState("");
-  const [documentTemplateId, setDocumentTemplateId] = useState<string | null>(null);
+  const [type, setType] = useState<'MONTHLY' | 'INSTALLMENT'>('MONTHLY')
+  const [amount, setAmount] = useState('')
+  const [description, setDescription] = useState('')
+  const [billingDay, setBillingDay] = useState('1')
+  const [totalInstallments, setTotalInstallments] = useState('12')
+  const [startDate, setStartDate] = useState<Date | undefined>(new Date())
+  const [note, setNote] = useState('')
+  const [documentTemplateId, setDocumentTemplateId] = useState<string | null>(null)
 
-  const createMutation = useCreatePaymentPlan();
-  const updateMutation = useUpdatePaymentPlan();
-  const isPending = createMutation.isPending || updateMutation.isPending;
+  const createMutation = useCreatePaymentPlan()
+  const updateMutation = useUpdatePaymentPlan()
+  const isPending = createMutation.isPending || updateMutation.isPending
 
-  const activeType = isEdit
-    ? (editPlan.type as "MONTHLY" | "INSTALLMENT")
-    : type;
+  const activeType = isEdit ? (editPlan.type as 'MONTHLY' | 'INSTALLMENT') : type
 
   useEffect(() => {
     if (editPlan && open) {
-      setType(editPlan.type as "MONTHLY" | "INSTALLMENT");
-      setAmount(String(editPlan.amount));
-      setDescription(editPlan.description);
-      setBillingDay(String(editPlan.billingDay ?? 1));
-      setTotalInstallments(String(editPlan.totalInstallments ?? 12));
-      setStartDate(new Date(editPlan.startDate));
-      setNote(editPlan.note ?? "");
-      setDocumentTemplateId((editPlan as PaymentPlan & { documentTemplateId?: string | null }).documentTemplateId ?? null);
+      setType(editPlan.type as 'MONTHLY' | 'INSTALLMENT')
+      setAmount(String(editPlan.amount))
+      setDescription(editPlan.description)
+      setBillingDay(String(editPlan.billingDay ?? 1))
+      setTotalInstallments(String(editPlan.totalInstallments ?? 12))
+      setStartDate(new Date(editPlan.startDate))
+      setNote(editPlan.note ?? '')
+      setDocumentTemplateId(
+        (editPlan as PaymentPlan & { documentTemplateId?: string | null }).documentTemplateId ??
+          null,
+      )
     } else if (!editPlan && open) {
-      resetForm();
+      resetForm()
     }
-  }, [editPlan, open]);
+  }, [editPlan, open])
 
   const resetForm = () => {
-    setType("MONTHLY");
-    setAmount("");
-    setDescription("");
-    setBillingDay("1");
-    setTotalInstallments("12");
-    setStartDate(new Date());
-    setNote("");
-    setDocumentTemplateId(null);
-  };
+    setType('MONTHLY')
+    setAmount('')
+    setDescription('')
+    setBillingDay('1')
+    setTotalInstallments('12')
+    setStartDate(new Date())
+    setNote('')
+    setDocumentTemplateId(null)
+  }
 
   const handleSubmit = () => {
-    const parsedAmount = parseFloat(amount);
-    if (!parsedAmount || !description.trim() || !startDate) return;
+    const parsedAmount = parseFloat(amount)
+    if (!parsedAmount || !description.trim() || !startDate) return
 
     if (isEdit) {
       updateMutation.mutate(
@@ -107,9 +96,7 @@ export function PaymentPlanForm({
             amount: parsedAmount,
             billingDay: parseInt(billingDay, 10),
             totalInstallments:
-              activeType === "INSTALLMENT"
-                ? parseInt(totalInstallments, 10)
-                : null,
+              activeType === 'INSTALLMENT' ? parseInt(totalInstallments, 10) : null,
             startDate,
             endDate: null,
             note: note.trim() || null,
@@ -117,7 +104,7 @@ export function PaymentPlanForm({
           },
         },
         { onSuccess: () => onOpenChange(false) },
-      );
+      )
     } else {
       createMutation.mutate(
         {
@@ -127,8 +114,7 @@ export function PaymentPlanForm({
             amount: parsedAmount,
             description: description.trim(),
             billingDay: parseInt(billingDay, 10),
-            totalInstallments:
-              type === "INSTALLMENT" ? parseInt(totalInstallments, 10) : null,
+            totalInstallments: type === 'INSTALLMENT' ? parseInt(totalInstallments, 10) : null,
             startDate,
             note: note.trim() || null,
             documentTemplateId,
@@ -136,21 +122,19 @@ export function PaymentPlanForm({
         },
         {
           onSuccess: () => {
-            resetForm();
-            onOpenChange(false);
+            resetForm()
+            onOpenChange(false)
           },
         },
-      );
+      )
     }
-  };
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>
-            {isEdit ? "แก้ไขแผนชำระเงิน" : "สร้างแผนชำระเงิน"}
-          </DialogTitle>
+          <DialogTitle>{isEdit ? 'แก้ไขแผนชำระเงิน' : 'สร้างแผนชำระเงิน'}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -158,7 +142,7 @@ export function PaymentPlanForm({
             <Label>ประเภท</Label>
             <Select
               value={activeType}
-              onValueChange={(v) => setType(v as "MONTHLY" | "INSTALLMENT")}
+              onValueChange={(v) => setType(v as 'MONTHLY' | 'INSTALLMENT')}
               disabled={isEdit}
             >
               <SelectTrigger>
@@ -166,9 +150,7 @@ export function PaymentPlanForm({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="MONTHLY">รายเดือน</SelectItem>
-                <SelectItem value="INSTALLMENT">
-                  ผ่อนชำระ (จำนวนงวด)
-                </SelectItem>
+                <SelectItem value="INSTALLMENT">ผ่อนชำระ (จำนวนงวด)</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -205,7 +187,7 @@ export function PaymentPlanForm({
             />
           </div>
 
-          {activeType === "INSTALLMENT" && (
+          {activeType === 'INSTALLMENT' && (
             <div className="space-y-2">
               <Label>จำนวนงวดทั้งหมด</Label>
               <Input
@@ -225,14 +207,12 @@ export function PaymentPlanForm({
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !startDate && "text-muted-foreground",
+                    'w-full justify-start text-left font-normal',
+                    !startDate && 'text-muted-foreground',
                   )}
                 >
                   <CalendarIcon className="mr-2 size-4" />
-                  {startDate
-                    ? format(startDate, "d MMM yyyy", { locale: th })
-                    : "เลือกวันที่"}
+                  {startDate ? format(startDate, 'd MMM yyyy', { locale: th }) : 'เลือกวันที่'}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -246,10 +226,7 @@ export function PaymentPlanForm({
             </Popover>
           </div>
 
-          <TemplateSelector
-            value={documentTemplateId}
-            onValueChange={setDocumentTemplateId}
-          />
+          <TemplateSelector value={documentTemplateId} onValueChange={setDocumentTemplateId} />
 
           <div className="space-y-2">
             <Label>หมายเหตุ (ไม่บังคับ)</Label>
@@ -271,10 +248,10 @@ export function PaymentPlanForm({
             disabled={isPending || !amount || !description.trim() || !startDate}
           >
             {isPending && <Loader2 className="mr-1 size-3 animate-spin" />}
-            {isEdit ? "บันทึก" : "สร้างแผน"}
+            {isEdit ? 'บันทึก' : 'สร้างแผน'}
           </Button>
         </div>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

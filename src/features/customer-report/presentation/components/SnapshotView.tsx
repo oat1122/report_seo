@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import { Camera } from "lucide-react";
+import { Camera } from 'lucide-react'
 import {
   Table,
   TableBody,
@@ -8,22 +8,22 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 
 export interface SnapshotEntry {
-  keyword: string;
-  position: number | null;
-  traffic: number;
-  color: string;
+  keyword: string
+  position: number | null
+  traffic: number
+  color: string
 }
 
 interface SnapshotViewProps {
-  entries: SnapshotEntry[];
+  entries: SnapshotEntry[]
   /** ข้อความบอกบริบท เช่น "ยังมีข้อมูลแค่ 1 รอบ — แสดงเป็น snapshot" */
-  note?: string;
-  className?: string;
+  note?: string
+  className?: string
 }
 
 /**
@@ -31,18 +31,13 @@ interface SnapshotViewProps {
  * แทนการแสดง "ยังไม่มีข้อมูลเพียงพอ" ที่ไม่ได้ value
  */
 export const SnapshotView = ({ entries, note, className }: SnapshotViewProps) => {
-  if (entries.length === 0) return null;
+  if (entries.length === 0) return null
 
   return (
-    <div
-      className={cn(
-        "rounded-xl border border-dashed border-border bg-card p-4",
-        className,
-      )}
-    >
-      <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
+    <div className={cn('border-border bg-card rounded-xl border border-dashed p-4', className)}>
+      <div className="text-muted-foreground mb-2 flex items-center gap-2 text-sm">
         <Camera className="size-4" />
-        <span>{note ?? "ยังมีข้อมูลแค่รอบเดียว — แสดงเป็น snapshot"}</span>
+        <span>{note ?? 'ยังมีข้อมูลแค่รอบเดียว — แสดงเป็น snapshot'}</span>
       </div>
       <Table>
         <TableHeader>
@@ -81,5 +76,5 @@ export const SnapshotView = ({ entries, note, className }: SnapshotViewProps) =>
         </TableBody>
       </Table>
     </div>
-  );
-};
+  )
+}

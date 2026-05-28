@@ -144,16 +144,12 @@ src/app/
 
 ```ts
 // domain/types.ts (pure TS)
-export type PeriodTypeCode =
-  | "YEAR_12_MONTHS"
-  | "YEAR_4_QUARTERS"
-  | "HALF_2_PERIODS"
-  | "CUSTOM";
+export type PeriodTypeCode = 'YEAR_12_MONTHS' | 'YEAR_4_QUARTERS' | 'HALF_2_PERIODS' | 'CUSTOM'
 
 // Master tables ใช้ string code อยู่แล้ว (DB row) — ไม่ต้อง mirror
-export type StatusCode = string;
-export type CategoryCode = string;
-export type MarkCode = string;
+export type StatusCode = string
+export type CategoryCode = string
+export type MarkCode = string
 ```
 
 ใน `application/` schema / `infrastructure/` adapter — import `WorkProgressPeriodType` จาก `@prisma/client` ได้
@@ -390,64 +386,58 @@ application/use-cases/
 
 ```ts
 // domain/policies/progress-calculator.ts
-import type { WorkProgressItem } from "../WorkProgressItem";
+import type { WorkProgressItem } from '../WorkProgressItem'
 
 export function calcOverallPercent(items: readonly WorkProgressItem[]): number {
-  if (items.length === 0) return 0;
-  const totalWeight = items.reduce((sum, i) => sum + i.weight, 0);
-  if (totalWeight === 0) return 0;
-  const weighted = items.reduce(
-    (sum, i) => sum + i.progressPercent * i.weight,
-    0,
-  );
-  return Math.round(weighted / totalWeight);
+  if (items.length === 0) return 0
+  const totalWeight = items.reduce((sum, i) => sum + i.weight, 0)
+  if (totalWeight === 0) return 0
+  const weighted = items.reduce((sum, i) => sum + i.progressPercent * i.weight, 0)
+  return Math.round(weighted / totalWeight)
 }
 ```
 
 ```ts
 // domain/policies/period-generator.ts
-import type { PeriodTypeCode } from "../types";
+import type { PeriodTypeCode } from '../types'
 
 const THAI_MONTHS = [
-  "ม.ค.",
-  "ก.พ.",
-  "มี.ค.",
-  "เม.ย.",
-  "พ.ค.",
-  "มิ.ย.",
-  "ก.ค.",
-  "ส.ค.",
-  "ก.ย.",
-  "ต.ค.",
-  "พ.ย.",
-  "ธ.ค.",
-] as const;
+  'ม.ค.',
+  'ก.พ.',
+  'มี.ค.',
+  'เม.ย.',
+  'พ.ค.',
+  'มิ.ย.',
+  'ก.ค.',
+  'ส.ค.',
+  'ก.ย.',
+  'ต.ค.',
+  'พ.ย.',
+  'ธ.ค.',
+] as const
 
 export interface PeriodSeed {
-  seq: number;
-  label: string;
-  startDate?: Date;
-  endDate?: Date;
+  seq: number
+  label: string
+  startDate?: Date
+  endDate?: Date
 }
 
-export function generatePeriods(
-  type: PeriodTypeCode,
-  year?: number,
-): PeriodSeed[] {
+export function generatePeriods(type: PeriodTypeCode, year?: number): PeriodSeed[] {
   switch (type) {
-    case "YEAR_12_MONTHS":
+    case 'YEAR_12_MONTHS':
       return THAI_MONTHS.map((label, i) => ({
         seq: i + 1,
         label,
         startDate: year ? new Date(year, i, 1) : undefined,
         endDate: year ? new Date(year, i + 1, 0) : undefined,
-      }));
-    case "YEAR_4_QUARTERS":
-      return [1, 2, 3, 4].map((q) => ({ seq: q, label: `Q${q}` }));
-    case "HALF_2_PERIODS":
-      return [1, 2].map((h) => ({ seq: h, label: `H${h}` }));
-    case "CUSTOM":
-      return [];
+      }))
+    case 'YEAR_4_QUARTERS':
+      return [1, 2, 3, 4].map((q) => ({ seq: q, label: `Q${q}` }))
+    case 'HALF_2_PERIODS':
+      return [1, 2].map((h) => ({ seq: h, label: `H${h}` }))
+    case 'CUSTOM':
+      return []
   }
 }
 ```
@@ -458,42 +448,24 @@ export function generatePeriods(
 
 ```ts
 // app/api/customers/[customerId]/work-progress/route.ts
-import { z } from "zod";
-import {
-  withApiHandler,
-  customerAccessGuard,
-  ok,
-  created,
-} from "@/infrastructure/http";
-import {
-  listPlans,
-  createPlan,
-  createPlanSchema,
-} from "@/features/work-progress";
+import { z } from 'zod'
+import { withApiHandler, customerAccessGuard, ok, created } from '@/infrastructure/http'
+import { listPlans, createPlan, createPlanSchema } from '@/features/work-progress'
 
-const paramsSchema = z.object({ customerId: z.uuid() });
+const paramsSchema = z.object({ customerId: z.uuid() })
 
-export const GET = withApiHandler(
-  { params: paramsSchema },
-  async ({ params }) => {
-    const ctx = await customerAccessGuard(
-      { byUserId: params.customerId },
-      "read",
-    );
-    return ok(await listPlans(ctx.customer.id));
-  },
-);
+export const GET = withApiHandler({ params: paramsSchema }, async ({ params }) => {
+  const ctx = await customerAccessGuard({ byUserId: params.customerId }, 'read')
+  return ok(await listPlans(ctx.customer.id))
+})
 
 export const POST = withApiHandler(
   { params: paramsSchema, body: createPlanSchema },
   async ({ params, body, session }) => {
-    const ctx = await customerAccessGuard(
-      { byUserId: params.customerId },
-      "manage",
-    );
-    return created(await createPlan(ctx.customer.id, session.user.id, body));
+    const ctx = await customerAccessGuard({ byUserId: params.customerId }, 'manage')
+    return created(await createPlan(ctx.customer.id, session.user.id, body))
   },
-);
+)
 ```
 
 ### Customer-scoped routes (14 endpoints)
@@ -526,30 +498,29 @@ export const POST = withApiHandler(
 
 ```ts
 // schemas/plan.ts
-import { z } from "zod";
-import { WorkProgressPeriodType } from "@prisma/client";
+import { z } from 'zod'
+import { WorkProgressPeriodType } from '@prisma/client'
 
 export const customPeriodSchema = z.object({
   label: z.string().min(1).max(50),
   startDate: z.coerce.date().optional(),
   endDate: z.coerce.date().optional(),
-});
+})
 
 export const createPlanSchema = z
   .object({
     title: z.string().min(1).max(200),
-    periodType: z.nativeEnum(WorkProgressPeriodType).default("YEAR_12_MONTHS"),
+    periodType: z.nativeEnum(WorkProgressPeriodType).default('YEAR_12_MONTHS'),
     year: z.number().int().min(2020).max(2099).optional(),
     customPeriods: z.array(customPeriodSchema).optional(),
     packageName: z.string().max(200).optional().nullable(),
     note: z.string().max(5000).optional().nullable(),
   })
-  .refine(
-    (d) => d.periodType !== "CUSTOM" || (d.customPeriods?.length ?? 0) > 0,
-    { message: "CUSTOM ต้องระบุ customPeriods อย่างน้อย 1" },
-  );
+  .refine((d) => d.periodType !== 'CUSTOM' || (d.customPeriods?.length ?? 0) > 0, {
+    message: 'CUSTOM ต้องระบุ customPeriods อย่างน้อย 1',
+  })
 
-export type CreatePlanInput = z.infer<typeof createPlanSchema>;
+export type CreatePlanInput = z.infer<typeof createPlanSchema>
 ```
 
 ```ts
@@ -570,7 +541,7 @@ export const upsertCategorySchema = z.object({
   icon: z.string().max(50).optional().nullable(),
   orderIndex: z.number().int().min(0).default(0),
   isActive: z.boolean().default(true),
-});
+})
 ```
 
 ## 1.5 Acceptance — Phase 1
@@ -980,11 +951,7 @@ features/work-progress/presentation/
 // แทนที่ bg-red-500 ใน badge
 <span
   className="rounded px-2 py-1 text-xs"
-  style={
-    category.color
-      ? { backgroundColor: category.color, color: "#fff" }
-      : undefined
-  }
+  style={category.color ? { backgroundColor: category.color, color: '#fff' } : undefined}
 >
   {category.name}
 </span>

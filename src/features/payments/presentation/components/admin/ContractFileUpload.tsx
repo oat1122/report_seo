@@ -1,10 +1,10 @@
-"use client";
+'use client'
 
-import { useRef, useState } from "react";
-import { Upload, FileText, Trash2, Loader2, Eye } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useRef, useState } from 'react'
+import { Upload, FileText, Trash2, Loader2, Eye } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,50 +14,50 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog'
 import {
   useListContractFiles,
   useUploadContractFile,
   useDeleteContractFile,
-} from "../../hooks/useContractFiles";
+} from '../../hooks/useContractFiles'
 
 interface ContractFileUploadProps {
-  customerId: string;
+  customerId: string
 }
 
 function formatDate(date: Date | string): string {
-  return new Date(date).toLocaleDateString("th-TH", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  return new Date(date).toLocaleDateString('th-TH', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
 }
 
 export function ContractFileUpload({ customerId }: ContractFileUploadProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [deleteTarget, setDeleteTarget] = useState<{
-    id: string;
-    name: string;
-  } | null>(null);
-  const { data: files, isLoading } = useListContractFiles(customerId);
-  const uploadMutation = useUploadContractFile();
-  const deleteMutation = useDeleteContractFile();
+    id: string
+    name: string
+  } | null>(null)
+  const { data: files, isLoading } = useListContractFiles(customerId)
+  const uploadMutation = useUploadContractFile()
+  const deleteMutation = useDeleteContractFile()
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    uploadMutation.mutate({ customerId, file });
-    e.target.value = "";
-  };
+    const file = e.target.files?.[0]
+    if (!file) return
+    uploadMutation.mutate({ customerId, file })
+    e.target.value = ''
+  }
 
   const handleConfirmDelete = () => {
-    if (!deleteTarget) return;
-    deleteMutation.mutate({ customerId, contractId: deleteTarget.id });
-    setDeleteTarget(null);
-  };
+    if (!deleteTarget) return
+    deleteMutation.mutate({ customerId, contractId: deleteTarget.id })
+    setDeleteTarget(null)
+  }
 
   if (isLoading) {
-    return <Skeleton className="h-48 w-full" />;
+    return <Skeleton className="h-48 w-full" />
   }
 
   return (
@@ -89,7 +89,7 @@ export function ContractFileUpload({ customerId }: ContractFileUploadProps) {
 
       {files?.length === 0 && (
         <Card>
-          <CardContent className="py-8 text-center text-muted-foreground">
+          <CardContent className="text-muted-foreground py-8 text-center">
             ยังไม่มีไฟล์สัญญา
           </CardContent>
         </Card>
@@ -100,21 +100,17 @@ export function ContractFileUpload({ customerId }: ContractFileUploadProps) {
           <Card key={file.id}>
             <CardContent className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-3">
-                <FileText className="size-5 text-muted-foreground" />
+                <FileText className="text-muted-foreground size-5" />
                 <div>
                   <p className="text-sm font-medium">{file.fileName}</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-muted-foreground text-xs">
                     อัปโหลดเมื่อ {formatDate(file.uploadDate)}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-1">
                 <Button size="sm" variant="ghost" asChild>
-                  <a
-                    href={file.fileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  <a href={file.fileUrl} target="_blank" rel="noopener noreferrer">
                     <Eye className="size-4" />
                   </a>
                 </Button>
@@ -122,9 +118,7 @@ export function ContractFileUpload({ customerId }: ContractFileUploadProps) {
                   size="sm"
                   variant="ghost"
                   className="text-destructive"
-                  onClick={() =>
-                    setDeleteTarget({ id: file.id, name: file.fileName })
-                  }
+                  onClick={() => setDeleteTarget({ id: file.id, name: file.fileName })}
                   disabled={deleteMutation.isPending}
                 >
                   <Trash2 className="size-4" />
@@ -138,7 +132,7 @@ export function ContractFileUpload({ customerId }: ContractFileUploadProps) {
       <AlertDialog
         open={!!deleteTarget}
         onOpenChange={(open) => {
-          if (!open) setDeleteTarget(null);
+          if (!open) setDeleteTarget(null)
         }}
       >
         <AlertDialogContent>
@@ -150,15 +144,12 @@ export function ContractFileUpload({ customerId }: ContractFileUploadProps) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              onClick={handleConfirmDelete}
-            >
+            <AlertDialogAction variant="destructive" onClick={handleConfirmDelete}>
               ยืนยัน
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  );
+  )
 }
