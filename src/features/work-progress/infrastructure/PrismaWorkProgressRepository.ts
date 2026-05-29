@@ -254,6 +254,10 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
         orderIndex,
         startDate: data.startDate,
         dueDate: data.dueDate,
+        isRecurring: data.isRecurring,
+        recurrenceFreq: data.recurrenceFreq,
+        recurrenceInterval: data.recurrenceInterval,
+        recurrenceDayOfMonth: data.recurrenceDayOfMonth,
       },
     })
   }
@@ -301,11 +305,13 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
         markTypeId: data.markTypeId,
         progressPercent: data.progressPercent,
         note: data.note,
+        scheduledDate: data.scheduledDate,
       },
       update: {
         markTypeId: data.markTypeId,
         progressPercent: data.progressPercent,
         note: data.note,
+        scheduledDate: data.scheduledDate,
       },
     })
   }
@@ -330,11 +336,13 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
             markTypeId: m.markTypeId,
             progressPercent: m.progressPercent,
             note: m.note,
+            scheduledDate: m.scheduledDate,
           },
           update: {
             markTypeId: m.markTypeId,
             progressPercent: m.progressPercent,
             note: m.note,
+            scheduledDate: m.scheduledDate,
           },
         }),
       ),

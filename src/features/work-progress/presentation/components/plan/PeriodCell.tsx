@@ -20,7 +20,20 @@ interface PeriodCellProps {
   mark: WorkProgressPeriodMarkWithType | undefined
   subtaskPercent: number | null
   statusColor: string | null
+  // วันที่แนะนำของรอบนี้ (มาจากกฎ recurrence เช่น "ทุกวันที่ 14") — ใช้ prefill ตอนยังไม่มี mark
+  defaultScheduledDate?: Date | string | null
   readOnly?: boolean
+}
+
+// แปลง Date | string (จาก API) → 'yyyy-mm-dd' สำหรับ <input type="date"> (ใช้เวลาท้องถิ่น)
+function toDateInputValue(d: Date | string | null | undefined): string {
+  if (d == null) return ''
+  const date = typeof d === 'string' ? new Date(d) : d
+  if (Number.isNaN(date.getTime())) return ''
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
 }
 
 function PeriodCellInner({
@@ -31,6 +44,7 @@ function PeriodCellInner({
   mark,
   subtaskPercent,
   statusColor,
+  defaultScheduledDate,
   readOnly,
 }: PeriodCellProps) {
   const [open, setOpen] = useState(false)
@@ -38,6 +52,9 @@ function PeriodCellInner({
     mark?.progressPercent != null ? String(mark.progressPercent) : '',
   )
   const [note, setNote] = useState(mark?.note ?? '')
+  const [scheduledDate, setScheduledDate] = useState<string>(
+    toDateInputValue(mark?.scheduledDate ?? defaultScheduledDate),
+  )
 
   const { data: markTypes } = useMarkTypes()
   const setMut = useSetPeriodMark()
@@ -46,7 +63,10 @@ function PeriodCellInner({
   const reset = () => {
     setPercent(mark?.progressPercent != null ? String(mark.progressPercent) : '')
     setNote(mark?.note ?? '')
+    setScheduledDate(toDateInputValue(mark?.scheduledDate ?? defaultScheduledDate))
   }
+
+  const scheduledDay = mark?.scheduledDate ? new Date(mark.scheduledDate).getDate() : null
 
   const handleOpenChange = (next: boolean) => {
     if (next) reset()
@@ -74,6 +94,7 @@ function PeriodCellInner({
         markTypeId: effectiveMarkType.id,
         progressPercent: parsedPercent,
         note: note.trim() || null,
+        scheduledDate: scheduledDate ? new Date(scheduledDate) : null,
       },
       markType: effectiveMarkType,
     })
@@ -104,13 +125,15 @@ function PeriodCellInner({
         style={bgStyle}
         title={
           mark
-            ? `${mark.markType.name}${subtaskPercent != null ? ` · ${subtaskPercent}%` : ''}`
+            ? `${mark.markType.name}${scheduledDay != null ? ` · วันที่ ${scheduledDay}` : ''}${subtaskPercent != null ? ` · ${subtaskPercent}%` : ''}`
             : ''
         }
       >
         {mark ? (
           subtaskPercent != null ? (
             <span className={cn('font-medium', iconCls)}>{subtaskPercent}%</span>
+          ) : scheduledDay != null ? (
+            <span className={cn('font-medium', iconCls)}>{scheduledDay}</span>
           ) : (
             <Check className={cn('size-4', iconCls)} />
           )
@@ -137,6 +160,8 @@ function PeriodCellInner({
           {mark ? (
             subtaskPercent != null ? (
               <span className={cn('text-xs font-medium', iconCls)}>{subtaskPercent}%</span>
+            ) : scheduledDay != null ? (
+              <span className={cn('text-xs font-medium', iconCls)}>{scheduledDay}</span>
             ) : (
               <Check className={cn('mx-auto size-4', iconCls)} />
             )
@@ -163,6 +188,19 @@ function PeriodCellInner({
                 className="h-8"
               />
             </div>
+          </div>
+
+          <div className="grid gap-1">
+            <Label htmlFor={`pc-date-${itemId}-${periodId}`} className="text-xs">
+              วันที่ทำงาน (ในเดือนนี้)
+            </Label>
+            <Input
+              id={`pc-date-${itemId}-${periodId}`}
+              type="date"
+              value={scheduledDate}
+              onChange={(e) => setScheduledDate(e.target.value)}
+              className="h-8"
+            />
           </div>
 
           <div className="grid gap-1">

@@ -1,6 +1,10 @@
 import 'temporal-polyfill/global'
 import type { CalendarEvent } from '@schedule-x/calendar'
 import type { WorkProgressPlanDetail, WorkProgressItemWithMarks } from '@/features/work-progress'
+import {
+  deriveRecurrenceOccurrences,
+  readItemRecurrence,
+} from '@/features/work-progress/domain/policies/recurrence'
 import type { BillingCycleWithPlan } from '@/features/payments'
 import type { BillingCycleStatus } from '@/features/payments'
 
@@ -23,51 +27,90 @@ const STATUS_TO_CALENDAR_ID: Record<BillingCycleStatus, string> = {
 
 export type CalendarItemLookup = Map<string, WorkProgressItemWithMarks & { planTitle: string }>
 
+function wpCustomContent(item: WorkProgressItemWithMarks, planTitle: string) {
+  return {
+    categoryName: item.category.name,
+    statusName: item.status.name,
+    planTitle,
+  }
+}
+
 export function workProgressPlanToEvents(
   plan: WorkProgressPlanDetail,
   itemLookup: CalendarItemLookup,
 ): CalendarEvent[] {
   const periodMap = new Map(plan.periods.map((p) => [p.id, p]))
+  const events: CalendarEvent[] = []
 
-  return plan.items
-    .map((item) => {
-      let start: Temporal.PlainDate | null = null
-      let end: Temporal.PlainDate | null = null
+  for (const item of plan.items) {
+    const markByPeriod = new Map(item.periodMarks.map((m) => [m.periodId, m]))
 
-      if (item.startDate != null && item.dueDate != null) {
-        start = toPlainDate(item.startDate)
-        end = toPlainDate(item.dueDate)
-      } else if (item.periodMarks.length > 0) {
-        const markedPeriods = item.periodMarks
-          .map((m) => periodMap.get(m.periodId))
-          .filter((p) => p != null && p.startDate != null && p.endDate != null)
-          .sort((a, b) => a!.seq - b!.seq)
+    // วันที่ระดับวันต่อเดือน: รวม period ที่ (1) มี mark พร้อม scheduledDate
+    // (2) เป็นรอบของงานทำซ้ำตามกฎ (เช่น ทุกวันที่ 14)
+    const rule = readItemRecurrence(item)
+    const occurrences = rule ? deriveRecurrenceOccurrences(plan.periods, rule) : new Map<string, Date>()
 
-        if (markedPeriods.length > 0) {
-          start = toPlainDate(markedPeriods[0]!.startDate!)
-          end = toPlainDate(markedPeriods[markedPeriods.length - 1]!.endDate!)
-        }
+    const dayLevelPeriodIds = new Set<string>()
+    for (const m of item.periodMarks) {
+      if (m.scheduledDate != null) dayLevelPeriodIds.add(m.periodId)
+    }
+    for (const pid of occurrences.keys()) dayLevelPeriodIds.add(pid)
+
+    if (dayLevelPeriodIds.size > 0) {
+      // โหมดระดับวัน → 1 event ต่อรอบ (single-day)
+      for (const periodId of dayLevelPeriodIds) {
+        const mark = markByPeriod.get(periodId)
+        const rawDate = mark?.scheduledDate ?? occurrences.get(periodId) ?? null
+        if (rawDate == null) continue
+        const date = toPlainDate(rawDate)
+        const eventId = `wp-${item.id}-${periodId}`
+        itemLookup.set(eventId, { ...item, planTitle: plan.title })
+        events.push({
+          id: eventId,
+          start: date,
+          end: date,
+          title: item.activity,
+          calendarId: 'work-progress',
+          _customContent: wpCustomContent(item, plan.title),
+        })
       }
+      continue
+    }
 
-      if (!start || !end) return null
+    // Fallback (งาน one-shot ที่ไม่ผูกวัน): ใช้ช่วงของ item หรือช่วง period ที่ถูก mark
+    let start: Temporal.PlainDate | null = null
+    let end: Temporal.PlainDate | null = null
 
-      const eventId = `wp-${item.id}`
-      itemLookup.set(eventId, { ...item, planTitle: plan.title })
+    if (item.startDate != null && item.dueDate != null) {
+      start = toPlainDate(item.startDate)
+      end = toPlainDate(item.dueDate)
+    } else if (item.periodMarks.length > 0) {
+      const markedPeriods = item.periodMarks
+        .map((m) => periodMap.get(m.periodId))
+        .filter((p) => p != null && p.startDate != null && p.endDate != null)
+        .sort((a, b) => a!.seq - b!.seq)
 
-      return {
-        id: eventId,
-        start,
-        end,
-        title: item.activity,
-        calendarId: 'work-progress',
-        _customContent: {
-          categoryName: item.category.name,
-          statusName: item.status.name,
-          planTitle: plan.title,
-        },
+      if (markedPeriods.length > 0) {
+        start = toPlainDate(markedPeriods[0]!.startDate!)
+        end = toPlainDate(markedPeriods[markedPeriods.length - 1]!.endDate!)
       }
+    }
+
+    if (!start || !end) continue
+
+    const eventId = `wp-${item.id}`
+    itemLookup.set(eventId, { ...item, planTitle: plan.title })
+    events.push({
+      id: eventId,
+      start,
+      end,
+      title: item.activity,
+      calendarId: 'work-progress',
+      _customContent: wpCustomContent(item, plan.title),
     })
-    .filter((e): e is NonNullable<typeof e> => e != null)
+  }
+
+  return events
 }
 
 function formatAmount(amount: number): string {

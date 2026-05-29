@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ScheduleXCalendar, useCalendarApp } from '@schedule-x/react'
-import { createViewMonthGrid } from '@schedule-x/calendar'
+import { createViewMonthGrid, createViewWeek, createViewDay } from '@schedule-x/calendar'
 import type { CalendarEvent } from '@schedule-x/calendar'
 import '@schedule-x/theme-shadcn/dist/index.css'
 
@@ -48,6 +48,8 @@ const thTH = {
 }
 
 const monthView = createViewMonthGrid()
+const weekView = createViewWeek()
+const dayView = createViewDay()
 
 interface CustomerCalendarProps {
   userId: string
@@ -67,7 +69,7 @@ export function CustomerCalendar({ userId }: CustomerCalendarProps) {
   }, [])
 
   const calendarApp = useCalendarApp({
-    views: [monthView],
+    views: [monthView, weekView, dayView],
     events: [],
     calendars: calendarTypes,
     locale: 'th-TH',

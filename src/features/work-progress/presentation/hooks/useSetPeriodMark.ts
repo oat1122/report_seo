@@ -37,6 +37,7 @@ function applyMarkPatch(
         markTypeId: body.markTypeId,
         progressPercent: body.progressPercent ?? null,
         note: body.note ?? null,
+        scheduledDate: body.scheduledDate ?? null,
         updatedAt: new Date(),
         markType,
       }

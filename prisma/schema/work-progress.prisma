@@ -133,6 +133,13 @@ model WorkProgressItem {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  // Recurrence — งานที่ทำซ้ำเป็นรอบ เช่น "ทุกวันที่ 14 ของทุกเดือน"
+  // เก็บแค่ "กฎ" ไว้ที่ item แล้วคำนวณวันของแต่ละเดือนตอนแสดง (derive-on-read)
+  isRecurring          Boolean   @default(false)
+  recurrenceFreq       String?   // 'MONTHLY' (เผื่ออนาคต: WEEKLY/QUARTERLY)
+  recurrenceInterval   Int       @default(1) // ทุก N เดือน (1 = ทุกเดือน)
+  recurrenceDayOfMonth Int?      // 1-31 — วันในเดือนที่ครบกำหนด (เกินสิ้นเดือนจะถูก clamp)
+
   assignedToId String?
   assignedTo   User?   @relation("WorkProgressItemAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
 
@@ -157,6 +164,8 @@ model WorkProgressItemPeriodMark {
   markType        WorkProgressMarkType @relation(fields: [markTypeId], references: [id], onDelete: Restrict)
   progressPercent Int?
   note            String?  @db.Text
+  // วันที่ทำงานจริงของรอบนี้ภายในเดือน (เช่น วันที่ 14) — ใช้ป้อน big calendar ระดับวัน
+  scheduledDate   DateTime?
   updatedAt       DateTime @updatedAt
 
   @@unique([itemId, periodId])

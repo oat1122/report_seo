@@ -5,6 +5,8 @@ export const setPeriodMarkSchema = z.object({
   markTypeId: z.string().uuid(),
   progressPercent: z.number().int().min(0).max(100).optional().nullable(),
   note: z.string().max(2000).optional().nullable(),
+  // วันที่ทำงานจริงของรอบนี้ในเดือน (เช่น วันที่ 14) — ป้อน calendar ระดับวัน
+  scheduledDate: z.coerce.date().optional().nullable(),
 })
 
 export type SetPeriodMarkInput = z.infer<typeof setPeriodMarkSchema>

@@ -48,6 +48,7 @@ export function addItemUseCase(
       }
     }
 
+    const isRecurring = input.isRecurring ?? false
     const created = await repo.addItem({
       planId,
       categoryId: input.categoryId,
@@ -60,6 +61,10 @@ export function addItemUseCase(
       orderIndex: input.orderIndex ?? null,
       startDate: input.startDate ?? null,
       dueDate: input.dueDate ?? null,
+      isRecurring,
+      recurrenceFreq: isRecurring ? (input.recurrenceFreq ?? null) : null,
+      recurrenceInterval: input.recurrenceInterval ?? 1,
+      recurrenceDayOfMonth: isRecurring ? (input.recurrenceDayOfMonth ?? null) : null,
     })
     await activityRepo.log({
       planId,

@@ -1,7 +1,7 @@
 'use client'
 
 import { memo, useMemo } from 'react'
-import { GripVertical, MoreHorizontal, Pencil, PanelRight, Trash2 } from 'lucide-react'
+import { GripVertical, MoreHorizontal, Pencil, PanelRight, Repeat, Trash2 } from 'lucide-react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Button } from '@/components/ui/button'
@@ -24,6 +24,10 @@ import { cn } from '@/lib/utils'
 import { PeriodCell } from './PeriodCell'
 import { useStatuses } from '../../hooks/useMasterTables'
 import { useUpdateItem } from '../../hooks/useItemMutations'
+import {
+  deriveRecurrenceOccurrences,
+  readItemRecurrence,
+} from '@/features/work-progress/domain/policies/recurrence'
 import type { WorkProgressItemWithMarks, WorkProgressPeriod } from '@/features/work-progress'
 
 interface PlanGridRowProps {
@@ -66,6 +70,13 @@ function PlanGridRowInner({
 
   const marksByPeriod = new Map(item.periodMarks.map((m) => [m.periodId, m]))
   const rowBg = selected ? 'bg-secondary/20' : 'bg-background'
+
+  // งานทำซ้ำ: คำนวณวันที่แนะนำของแต่ละเดือนจากกฎ (เช่น "ทุกวันที่ 14") เพื่อ prefill cell
+  const suggestedDates = useMemo(() => {
+    const rule = readItemRecurrence(item)
+    if (!rule) return new Map<string, Date>()
+    return deriveRecurrenceOccurrences(periods, rule)
+  }, [item, periods])
 
   const subtaskPercent = useMemo(() => {
     const total = item.subtasks.length
@@ -145,7 +156,15 @@ function PlanGridRowInner({
         onClick={() => onOpenDetail(item)}
         className="border-border hover:bg-muted/30 focus-visible:bg-muted/50 flex flex-col justify-center border-r px-3 py-2 text-left transition"
       >
-        <span className="line-clamp-2 text-sm font-medium">{item.activity}</span>
+        <span className="flex items-center gap-1.5 text-sm font-medium">
+          {item.isRecurring && (
+            <Repeat
+              className="text-muted-foreground size-3.5 shrink-0"
+              aria-label="งานทำซ้ำรายเดือน"
+            />
+          )}
+          <span className="line-clamp-2">{item.activity}</span>
+        </span>
         {item.description && (
           <span className="text-muted-foreground line-clamp-1 text-xs">{item.description}</span>
         )}
@@ -213,6 +232,7 @@ function PlanGridRowInner({
             mark={marksByPeriod.get(p.id)}
             subtaskPercent={subtaskPercent}
             statusColor={item.status.color}
+            defaultScheduledDate={suggestedDates.get(p.id) ?? null}
             readOnly={readOnly}
           />
         </div>

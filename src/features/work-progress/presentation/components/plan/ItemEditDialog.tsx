@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Switch } from '@/components/ui/switch'
 import {
   Select,
   SelectContent,
@@ -48,6 +49,9 @@ interface FormState {
   weight: number
   progressPercent: number
   note: string
+  isRecurring: boolean
+  recurrenceInterval: number
+  recurrenceDayOfMonth: number
 }
 
 const empty: FormState = {
@@ -59,6 +63,9 @@ const empty: FormState = {
   weight: 1,
   progressPercent: 0,
   note: '',
+  isRecurring: false,
+  recurrenceInterval: 1,
+  recurrenceDayOfMonth: 1,
 }
 
 export function ItemEditDialog({
@@ -92,6 +99,9 @@ export function ItemEditDialog({
       weight: initial.weight,
       progressPercent: initial.progressPercent,
       note: initial.note ?? '',
+      isRecurring: initial.isRecurring,
+      recurrenceInterval: initial.recurrenceInterval || 1,
+      recurrenceDayOfMonth: initial.recurrenceDayOfMonth ?? 1,
     })
   }, [open, initial])
 
@@ -108,6 +118,20 @@ export function ItemEditDialog({
       return
     }
 
+    const recurrencePayload = form.isRecurring
+      ? {
+          isRecurring: true,
+          recurrenceFreq: 'MONTHLY' as const,
+          recurrenceInterval: form.recurrenceInterval,
+          recurrenceDayOfMonth: form.recurrenceDayOfMonth,
+        }
+      : {
+          isRecurring: false,
+          recurrenceFreq: null,
+          recurrenceInterval: 1,
+          recurrenceDayOfMonth: null,
+        }
+
     if (isEdit && initial) {
       const body: Record<string, unknown> = {
         categoryId: form.categoryId,
@@ -118,6 +142,7 @@ export function ItemEditDialog({
         weight: form.weight,
         progressPercent: form.progressPercent,
         note: form.note.trim() || null,
+        ...recurrencePayload,
       }
       const parsed = updateItemSchema.safeParse(body)
       if (!parsed.success) {
@@ -139,6 +164,7 @@ export function ItemEditDialog({
         duration: form.duration.trim() || null,
         weight: form.weight,
         note: form.note.trim() || null,
+        ...recurrencePayload,
       }
       const parsed = addItemSchema.safeParse(body)
       if (!parsed.success) {
@@ -281,6 +307,61 @@ export function ItemEditDialog({
                     setErrors((prev) => ({ ...prev, progressPercent: '' }))
                   }}
                 />
+              </div>
+            )}
+          </div>
+
+          <div className="bg-muted/30 grid gap-3 rounded-md border p-3">
+            <div className="flex items-center justify-between">
+              <div className="grid gap-0.5">
+                <Label htmlFor="ie-recurring" className="text-sm">
+                  ทำซ้ำทุกเดือน
+                </Label>
+                <span className="text-muted-foreground text-xs">
+                  เช่น อัพเดทบทความทุกวันที่ 14 ของทุกเดือน
+                </span>
+              </div>
+              <Switch
+                id="ie-recurring"
+                checked={form.isRecurring}
+                onCheckedChange={(v) => setForm((s) => ({ ...s, isRecurring: v }))}
+              />
+            </div>
+
+            {form.isRecurring && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="ie-rec-day">วันที่ในเดือน</Label>
+                  <Input
+                    id="ie-rec-day"
+                    type="number"
+                    min={1}
+                    max={31}
+                    value={form.recurrenceDayOfMonth}
+                    onChange={(e) =>
+                      setForm((s) => ({
+                        ...s,
+                        recurrenceDayOfMonth: Math.min(31, Math.max(1, Number(e.target.value) || 1)),
+                      }))
+                    }
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="ie-rec-interval">ทุกกี่เดือน</Label>
+                  <Input
+                    id="ie-rec-interval"
+                    type="number"
+                    min={1}
+                    max={12}
+                    value={form.recurrenceInterval}
+                    onChange={(e) =>
+                      setForm((s) => ({
+                        ...s,
+                        recurrenceInterval: Math.min(12, Math.max(1, Number(e.target.value) || 1)),
+                      }))
+                    }
+                  />
+                </div>
               </div>
             )}
           </div>
