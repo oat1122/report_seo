@@ -61,6 +61,7 @@ export function updateDocumentUseCase(deps: DocumentGenerationDeps) {
       type: input.type,
       pdfUrl,
       totalAmount,
+      items: input.items,
       note: input.note ?? null,
     })
   }

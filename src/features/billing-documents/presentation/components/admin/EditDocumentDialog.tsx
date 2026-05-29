@@ -42,16 +42,27 @@ function formatAmount(amount: number) {
   return amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })
 }
 
-function buildInitialItems(totalAmount: number): EditableItem[] {
-  return [
-    {
-      key: createItemKey(),
-      description: 'ค่าบริการ',
-      quantity: 1,
-      unit: 'รายการ',
-      unitPrice: totalAmount,
-    },
-  ]
+function buildInitialItems(doc: BillingDocument): EditableItem[] {
+  // เอกสารเก่า (ก่อนมี field items) เก็บแค่ยอดรวม — fallback เป็นรายการเดียว
+  if (!doc.items || doc.items.length === 0) {
+    return [
+      {
+        key: createItemKey(),
+        description: 'ค่าบริการ',
+        quantity: 1,
+        unit: 'รายการ',
+        unitPrice: Number(doc.totalAmount),
+      },
+    ]
+  }
+
+  return doc.items.map((item) => ({
+    key: createItemKey(),
+    description: item.description,
+    quantity: item.quantity,
+    unit: item.unit,
+    unitPrice: item.unitPrice,
+  }))
 }
 
 export function EditDocumentDialog({
@@ -67,9 +78,7 @@ export function EditDocumentDialog({
   const [note, setNote] = useState(doc.note ?? '')
   const [dueDate, setDueDate] = useState('')
   const [paidDate, setPaidDate] = useState('')
-  const [items, setItems] = useState<EditableItem[]>(() =>
-    buildInitialItems(Number(doc.totalAmount)),
-  )
+  const [items, setItems] = useState<EditableItem[]>(() => buildInitialItems(doc))
 
   const total = items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)
 

@@ -54,12 +54,8 @@ export function renderInvoice(data: RenderData): string {
               <td class="value">: ${escapeHtml(data.customer.name)}</td>
             </tr>
             <tr>
-              <td class="label">Phone</td>
+              <td class="label">Contact</td>
               <td class="value">: ${escapeHtml(data.customer.contactName || '-')}</td>
-            </tr>
-            <tr>
-              <td class="label">Mail</td>
-              <td class="value">: -</td>
             </tr>
             <tr>
               <td class="label" style="vertical-align: top;">Address</td>

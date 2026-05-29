@@ -1,567 +1,542 @@
-# Graph Report - .  (2026-05-28)
+# Graph Report - src + prisma  (2026-05-29)
 
 ## Corpus Check
-- Large corpus: 733 files · ~310,007 words. Semantic extraction will be expensive (many Claude tokens). Consider running on a subfolder.
+- Large corpus: 636 files · ~123,854 words. Semantic extraction will be expensive (many Claude tokens). Consider running on a subfolder.
 
 ## Summary
-- 2885 nodes · 8880 edges · 111 communities (104 shown, 7 thin omitted)
+- 2776 nodes · 8430 edges · 106 communities (99 shown, 7 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Community Hubs (Navigation)
-- [[_COMMUNITY_Billing Document Use Cases|Billing Document Use Cases]]
-- [[_COMMUNITY_Work Progress Use Cases|Work Progress Use Cases]]
-- [[_COMMUNITY_Landing & Marketing Home|Landing & Marketing Home]]
-- [[_COMMUNITY_Work Progress Master Data|Work Progress Master Data]]
-- [[_COMMUNITY_API Route Schemas|API Route Schemas]]
-- [[_COMMUNITY_Report Filters & Brackets|Report Filters & Brackets]]
-- [[_COMMUNITY_Shared UI Primitives|Shared UI Primitives]]
-- [[_COMMUNITY_AI Overview Backend|AI Overview Backend]]
-- [[_COMMUNITY_Auth & Activity API Routes|Auth & Activity API Routes]]
-- [[_COMMUNITY_Work Progress Domain & Repo|Work Progress Domain & Repo]]
-- [[_COMMUNITY_Billing Cycle Table & Formatters|Billing Cycle Table & Formatters]]
-- [[_COMMUNITY_Field Error & Query Keys|Field Error & Query Keys]]
-- [[_COMMUNITY_HTTP Error Classes|HTTP Error Classes]]
-- [[_COMMUNITY_Contract Upload & Doc Forms|Contract Upload & Doc Forms]]
-- [[_COMMUNITY_User Management & Visibility|User Management & Visibility]]
-- [[_COMMUNITY_Chart Configs & KD Analytics|Chart Configs & KD Analytics]]
-- [[_COMMUNITY_Anomaly Dots & Filter Context|Anomaly Dots & Filter Context]]
-- [[_COMMUNITY_Hub Stats & Proof Review|Hub Stats & Proof Review]]
-- [[_COMMUNITY_Document Items Editor|Document Items Editor]]
-- [[_COMMUNITY_Payment Plan Use Cases|Payment Plan Use Cases]]
-- [[_COMMUNITY_Cycle Document Views|Cycle Document Views]]
-- [[_COMMUNITY_Admin Layouts & Loading|Admin Layouts & Loading]]
-- [[_COMMUNITY_Document PDF Rendering|Document PDF Rendering]]
+- [[_COMMUNITY_Documents & Work-Progress UI|Documents & Work-Progress UI]]
+- [[_COMMUNITY_Billing & Payment Tables|Billing & Payment Tables]]
+- [[_COMMUNITY_Users & Auth Persistence|Users & Auth Persistence]]
+- [[_COMMUNITY_Shared UI & Customer Search|Shared UI & Customer Search]]
+- [[_COMMUNITY_Work-Progress Schemas & Master UC|Work-Progress Schemas & Master UC]]
+- [[_COMMUNITY_Payments & Calendar UI|Payments & Calendar UI]]
+- [[_COMMUNITY_Customer API Routes|Customer API Routes]]
+- [[_COMMUNITY_Work-Progress Template Domain|Work-Progress Template Domain]]
+- [[_COMMUNITY_Work-Progress Plan Repository|Work-Progress Plan Repository]]
+- [[_COMMUNITY_WP Template Routes & RoleGuard|WP Template Routes & RoleGuard]]
+- [[_COMMUNITY_Work-Progress Master Data|Work-Progress Master Data]]
+- [[_COMMUNITY_Work-Progress Item Hooks|Work-Progress Item Hooks]]
+- [[_COMMUNITY_Customer Report Metrics Lib|Customer Report Metrics Lib]]
+- [[_COMMUNITY_Customer Report Charts|Customer Report Charts]]
+- [[_COMMUNITY_Work-Progress Use Cases|Work-Progress Use Cases]]
+- [[_COMMUNITY_Work-Progress Subtasks|Work-Progress Subtasks]]
+- [[_COMMUNITY_Customer Report Anomaly Charts|Customer Report Anomaly Charts]]
+- [[_COMMUNITY_User Management UI|User Management UI]]
+- [[_COMMUNITY_Attachments & File Upload|Attachments & File Upload]]
+- [[_COMMUNITY_Metrics Persistence|Metrics Persistence]]
+- [[_COMMUNITY_Metrics Types & Hooks|Metrics Types & Hooks]]
 - [[_COMMUNITY_Customer Access Context|Customer Access Context]]
-- [[_COMMUNITY_Misc API Route Handlers|Misc API Route Handlers]]
-- [[_COMMUNITY_Keywords Domain & Repo|Keywords Domain & Repo]]
-- [[_COMMUNITY_Login & Form Components|Login & Form Components]]
-- [[_COMMUNITY_History Context & Backlinks|History Context & Backlinks]]
-- [[_COMMUNITY_Metrics Slice & Report Types|Metrics Slice & Report Types]]
-- [[_COMMUNITY_Template Hooks & User Menu|Template Hooks & User Menu]]
-- [[_COMMUNITY_Work Progress Marks & Patches|Work Progress Marks & Patches]]
-- [[_COMMUNITY_Recommendations Domain|Recommendations Domain]]
-- [[_COMMUNITY_Metrics Domain & Repo|Metrics Domain & Repo]]
-- [[_COMMUNITY_Trend Indicators & Progress|Trend Indicators & Progress]]
-- [[_COMMUNITY_Work Progress Template Codes|Work Progress Template Codes]]
-- [[_COMMUNITY_Document Template Use Cases|Document Template Use Cases]]
-- [[_COMMUNITY_Work Progress Item Hooks|Work Progress Item Hooks]]
-- [[_COMMUNITY_Sparklines & Coverage Stats|Sparklines & Coverage Stats]]
-- [[_COMMUNITY_Notification API Use Cases|Notification API Use Cases]]
-- [[_COMMUNITY_Company Settings Backend|Company Settings Backend]]
-- [[_COMMUNITY_Delete Route Handlers|Delete Route Handlers]]
-- [[_COMMUNITY_Hub Clients & Notifications Panel|Hub Clients & Notifications Panel]]
-- [[_COMMUNITY_Customer Report Hooks|Customer Report Hooks]]
-- [[_COMMUNITY_PDF Document Templates|PDF Document Templates]]
-- [[_COMMUNITY_Tab Controls & Provider|Tab Controls & Provider]]
-- [[_COMMUNITY_Keyword Visibility Routes|Keyword Visibility Routes]]
-- [[_COMMUNITY_Work Progress Attachment Storage|Work Progress Attachment Storage]]
-- [[_COMMUNITY_Customer Dashboard Auth|Customer Dashboard Auth]]
-- [[_COMMUNITY_User Repository & Profile|User Repository & Profile]]
-- [[_COMMUNITY_Document & Logo Storage|Document & Logo Storage]]
-- [[_COMMUNITY_Payment Plan Routes|Payment Plan Routes]]
-- [[_COMMUNITY_Notification Repository|Notification Repository]]
-- [[_COMMUNITY_API Handler Wrapper|API Handler Wrapper]]
-- [[_COMMUNITY_Payment Domain Entities|Payment Domain Entities]]
-- [[_COMMUNITY_Work Progress Activity Log|Work Progress Activity Log]]
-- [[_COMMUNITY_Payment Storage & HTTP Utils|Payment Storage & HTTP Utils]]
-- [[_COMMUNITY_Gauge & Duration UI|Gauge & Duration UI]]
-- [[_COMMUNITY_History Buttons & Tabs|History Buttons & Tabs]]
-- [[_COMMUNITY_Admin Hub Summary|Admin Hub Summary]]
-- [[_COMMUNITY_Template Item Hooks|Template Item Hooks]]
-- [[_COMMUNITY_Template Query Hooks|Template Query Hooks]]
-- [[_COMMUNITY_Root Layout & Fonts|Root Layout & Fonts]]
-- [[_COMMUNITY_Billing Document Repository|Billing Document Repository]]
-- [[_COMMUNITY_User Entity & Repo|User Entity & Repo]]
-- [[_COMMUNITY_Customer Report Snapshot|Customer Report Snapshot]]
-- [[_COMMUNITY_Customer Calendar|Customer Calendar]]
-- [[_COMMUNITY_Customer Hub Summary|Customer Hub Summary]]
-- [[_COMMUNITY_Notification Preferences|Notification Preferences]]
-- [[_COMMUNITY_Work Progress Subtasks|Work Progress Subtasks]]
-- [[_COMMUNITY_Customer Hub Client|Customer Hub Client]]
-- [[_COMMUNITY_SEO Dashboard & Cards|SEO Dashboard & Cards]]
-- [[_COMMUNITY_AdminSEO Plan Detail Pages|Admin/SEO Plan Detail Pages]]
-- [[_COMMUNITY_Work Progress Attachments|Work Progress Attachments]]
-- [[_COMMUNITY_Contract File Storage|Contract File Storage]]
-- [[_COMMUNITY_Plan & Period Generation|Plan & Period Generation]]
-- [[_COMMUNITY_Calendar Event Transforms|Calendar Event Transforms]]
-- [[_COMMUNITY_User Schemas|User Schemas]]
-- [[_COMMUNITY_Empty Plans State|Empty Plans State]]
-- [[_COMMUNITY_NextAuth & Role Guards|NextAuth & Role Guards]]
-- [[_COMMUNITY_Period Selector Toggle|Period Selector Toggle]]
-- [[_COMMUNITY_Notification Socket Emitter|Notification Socket Emitter]]
-- [[_COMMUNITY_Pagination Helpers|Pagination Helpers]]
-- [[_COMMUNITY_Payment Proof Upload|Payment Proof Upload]]
-- [[_COMMUNITY_User Table & Role Display|User Table & Role Display]]
-- [[_COMMUNITY_Plan List & Tabs|Plan List & Tabs]]
-- [[_COMMUNITY_Prisma Client Wrapper|Prisma Client Wrapper]]
-- [[_COMMUNITY_Payment Proof Routes|Payment Proof Routes]]
-- [[_COMMUNITY_Notification Type Catalog|Notification Type Catalog]]
-- [[_COMMUNITY_Password Hasher|Password Hasher]]
-- [[_COMMUNITY_User Detail Routes|User Detail Routes]]
-- [[_COMMUNITY_Plan Routes|Plan Routes]]
-- [[_COMMUNITY_Billing Cycle Provider|Billing Cycle Provider]]
-- [[_COMMUNITY_AI Recommendations Tab|AI Recommendations Tab]]
-- [[_COMMUNITY_Payment Plan Detail Routes|Payment Plan Detail Routes]]
-- [[_COMMUNITY_Keyword UpdateDelete Routes|Keyword Update/Delete Routes]]
-- [[_COMMUNITY_Notification Socket Hook|Notification Socket Hook]]
-- [[_COMMUNITY_Admin Payments Page|Admin Payments Page]]
-- [[_COMMUNITY_All Documents Admin Table|All Documents Admin Table]]
-- [[_COMMUNITY_Document List Route|Document List Route]]
-- [[_COMMUNITY_Keyword Add Route|Keyword Add Route]]
-- [[_COMMUNITY_Prisma Seed|Prisma Seed]]
-- [[_COMMUNITY_Tab Panel Component|Tab Panel Component]]
-- [[_COMMUNITY_Common API Error Types|Common API Error Types]]
-- [[_COMMUNITY_Orphan PUT Route|Orphan PUT Route]]
-- [[_COMMUNITY_Orphan PATCH Route|Orphan PATCH Route]]
-- [[_COMMUNITY_Orphan PUT Route 2|Orphan PUT Route 2]]
-- [[_COMMUNITY_Orphan PATCH Route 2|Orphan PATCH Route 2]]
+- [[_COMMUNITY_Billing Documents Public API|Billing Documents Public API]]
+- [[_COMMUNITY_Customer Keyword API Routes|Customer Keyword API Routes]]
+- [[_COMMUNITY_Notifications|Notifications]]
+- [[_COMMUNITY_Admin Pages|Admin Pages]]
+- [[_COMMUNITY_Keyword Recommendations|Keyword Recommendations]]
+- [[_COMMUNITY_HTTP Errors & Master Kind|HTTP Errors & Master Kind]]
+- [[_COMMUNITY_Work-Progress Plan Grid|Work-Progress Plan Grid]]
+- [[_COMMUNITY_AI Overview|AI Overview]]
+- [[_COMMUNITY_Community 30|Community 30]]
+- [[_COMMUNITY_Community 31|Community 31]]
+- [[_COMMUNITY_Community 32|Community 32]]
+- [[_COMMUNITY_Community 33|Community 33]]
+- [[_COMMUNITY_Community 34|Community 34]]
+- [[_COMMUNITY_Community 35|Community 35]]
+- [[_COMMUNITY_Community 36|Community 36]]
+- [[_COMMUNITY_Community 37|Community 37]]
+- [[_COMMUNITY_Community 38|Community 38]]
+- [[_COMMUNITY_Community 39|Community 39]]
+- [[_COMMUNITY_Community 40|Community 40]]
+- [[_COMMUNITY_Community 41|Community 41]]
+- [[_COMMUNITY_Community 42|Community 42]]
+- [[_COMMUNITY_Community 43|Community 43]]
+- [[_COMMUNITY_Community 44|Community 44]]
+- [[_COMMUNITY_Community 45|Community 45]]
+- [[_COMMUNITY_Community 46|Community 46]]
+- [[_COMMUNITY_Community 47|Community 47]]
+- [[_COMMUNITY_Community 48|Community 48]]
+- [[_COMMUNITY_Community 49|Community 49]]
+- [[_COMMUNITY_Community 50|Community 50]]
+- [[_COMMUNITY_Community 51|Community 51]]
+- [[_COMMUNITY_Community 52|Community 52]]
+- [[_COMMUNITY_Community 53|Community 53]]
+- [[_COMMUNITY_Community 54|Community 54]]
+- [[_COMMUNITY_Community 55|Community 55]]
+- [[_COMMUNITY_Community 56|Community 56]]
+- [[_COMMUNITY_Community 57|Community 57]]
+- [[_COMMUNITY_Community 58|Community 58]]
+- [[_COMMUNITY_Community 59|Community 59]]
+- [[_COMMUNITY_Community 60|Community 60]]
+- [[_COMMUNITY_Community 61|Community 61]]
+- [[_COMMUNITY_Community 62|Community 62]]
+- [[_COMMUNITY_Community 63|Community 63]]
+- [[_COMMUNITY_Community 64|Community 64]]
+- [[_COMMUNITY_Community 65|Community 65]]
+- [[_COMMUNITY_Community 66|Community 66]]
+- [[_COMMUNITY_Community 67|Community 67]]
+- [[_COMMUNITY_Community 68|Community 68]]
+- [[_COMMUNITY_Community 69|Community 69]]
+- [[_COMMUNITY_Community 70|Community 70]]
+- [[_COMMUNITY_Community 71|Community 71]]
+- [[_COMMUNITY_Community 72|Community 72]]
+- [[_COMMUNITY_Community 73|Community 73]]
+- [[_COMMUNITY_Community 74|Community 74]]
+- [[_COMMUNITY_Community 75|Community 75]]
+- [[_COMMUNITY_Community 76|Community 76]]
+- [[_COMMUNITY_Community 77|Community 77]]
+- [[_COMMUNITY_Community 78|Community 78]]
+- [[_COMMUNITY_Community 79|Community 79]]
+- [[_COMMUNITY_Community 80|Community 80]]
+- [[_COMMUNITY_Community 81|Community 81]]
+- [[_COMMUNITY_Community 82|Community 82]]
+- [[_COMMUNITY_Community 83|Community 83]]
+- [[_COMMUNITY_Community 84|Community 84]]
+- [[_COMMUNITY_Community 85|Community 85]]
+- [[_COMMUNITY_Community 86|Community 86]]
+- [[_COMMUNITY_Community 87|Community 87]]
+- [[_COMMUNITY_Community 88|Community 88]]
+- [[_COMMUNITY_Community 89|Community 89]]
+- [[_COMMUNITY_Community 90|Community 90]]
+- [[_COMMUNITY_Community 91|Community 91]]
+- [[_COMMUNITY_Community 92|Community 92]]
+- [[_COMMUNITY_Community 93|Community 93]]
+- [[_COMMUNITY_Community 94|Community 94]]
+- [[_COMMUNITY_Community 95|Community 95]]
+- [[_COMMUNITY_Community 96|Community 96]]
+- [[_COMMUNITY_Community 97|Community 97]]
+- [[_COMMUNITY_Community 102|Community 102]]
+- [[_COMMUNITY_Community 103|Community 103]]
+- [[_COMMUNITY_Community 104|Community 104]]
+- [[_COMMUNITY_Community 105|Community 105]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `cn()` - 210 edges
-2. `withApiHandler()` - 87 edges
-3. `Button()` - 86 edges
-4. `Role` - 78 edges
-5. `ok()` - 67 edges
-6. `NotFoundError` - 60 edges
-7. `BadRequestError` - 59 edges
-8. `customerAccessGuard()` - 55 edges
-9. `Badge()` - 47 edges
-10. `Card()` - 47 edges
+2. `withApiHandler()` - 83 edges
+3. `Button()` - 82 edges
+4. `Role` - 75 edges
+5. `ok()` - 64 edges
+6. `BadRequestError` - 60 edges
+7. `NotFoundError` - 57 edges
+8. `customerAccessGuard()` - 54 edges
+9. `Badge()` - 44 edges
+10. `Card()` - 44 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `RootLayout()` --calls--> `cn()`  [EXTRACTED]
   src/app/layout.tsx → src/lib/utils.ts
-- `AdminPaymentsPage()` --calls--> `requireAdmin()`  [EXTRACTED]
-  src/app/admin/customers/[userId]/payments/page.tsx → src/lib/auth-utils.ts
-- `AdminWorkProgressListPage()` --calls--> `requireAdmin()`  [EXTRACTED]
-  src/app/admin/customers/[userId]/work-progress/page.tsx → src/lib/auth-utils.ts
 - `AdminPlanDetailPage()` --calls--> `requireAdmin()`  [EXTRACTED]
   src/app/admin/customers/[userId]/work-progress/[planId]/page.tsx → src/lib/auth-utils.ts
+- `TemplateBuilderPage()` --calls--> `requireAdmin()`  [EXTRACTED]
+  src/app/admin/settings/work-progress/templates/[id]/page.tsx → src/lib/auth-utils.ts
 - `PromotionCard()` --calls--> `cn()`  [EXTRACTED]
   src/app/customer/PromotionGrid.tsx → src/lib/utils.ts
+- `CustomerPlanDetailPage()` --calls--> `requireCustomer()`  [EXTRACTED]
+  src/app/customer/[userId]/work-progress/[planId]/page.tsx → src/lib/auth-utils.ts
 
-## Communities (111 total, 7 thin omitted)
+## Communities (106 total, 7 thin omitted)
 
-### Community 0 - "Billing Document Use Cases"
-Cohesion: 0.04
-Nodes (73): commonDeps, createDocumentTemplate, cycleProvider, deleteDocument, deleteDocumentTemplate, generateAllForCycle, generateDocument, generateStandaloneDocument (+65 more)
-
-### Community 1 - "Work Progress Use Cases"
-Cohesion: 0.03
-Nodes (67): addLinkAttachmentUseCase(), deleteAttachmentUseCase(), uploadAttachmentUseCase(), addItemUseCase(), assignItemUseCase(), bulkDeleteItemsUseCase(), bulkUpdateItemStatusUseCase(), deleteItemUseCase() (+59 more)
-
-### Community 2 - "Landing & Marketing Home"
-Cohesion: 0.05
-Nodes (52): contactInfo, faqs, navItems, packages, services, stats, HistoryProvider(), AttachCtx (+44 more)
-
-### Community 3 - "Work Progress Master Data"
-Cohesion: 0.05
-Nodes (63): ApiData, kindPath, kindQueryKey, useCreateMarkType(), useUpdateMarkType(), MasterRowDialogProps, createCategoryUseCase(), updateCategoryUseCase() (+55 more)
-
-### Community 4 - "API Route Schemas"
-Cohesion: 0.04
-Nodes (49): bodySchema, paramsSchema, POST, paramsSchema, POST, listDocumentsByCycles, paramsSchema, POST (+41 more)
-
-### Community 5 - "Report Filters & Brackets"
-Cohesion: 0.04
-Nodes (55): PeriodSelectorProps, ReportFiltersValue, PeriodOption, AuthorityAxis, AuthorityRadarPoint, BRACKET_LABELS, bracketForPos(), BracketTransitionsResult (+47 more)
-
-### Community 6 - "Shared UI Primitives"
+### Community 0 - "Documents & Work-Progress UI"
 Cohesion: 0.07
-Nodes (52): CustomerSearchCombobox(), SnapshotView(), ActionTooltipButton(), useCustomerSearch(), AssignItemPopoverProps, cn(), ColorPickerInput(), LoginForm() (+44 more)
+Nodes (67): createItemKey(), EditableItem, CreateDocumentDialog(), DialogProps, Props, UploadDocumentDialog(), buildInitialItems(), EditDocumentDialog() (+59 more)
 
-### Community 7 - "AI Overview Backend"
-Cohesion: 0.08
-Nodes (36): createAiOverview, deleteAiOverview, listAiOverviews, repo, storage, updateAiOverview, GET, paramsSchema (+28 more)
+### Community 1 - "Billing & Payment Tables"
+Cohesion: 0.06
+Nodes (54): BillingCycleTable(), BillingCycleTableProps, STATUS_CONFIG, DocumentItemsEditor(), formatAmount(), Props, SnapshotViewProps, TrafficProgressBar() (+46 more)
 
-### Community 8 - "Auth & Activity API Routes"
+### Community 2 - "Users & Auth Persistence"
 Cohesion: 0.05
-Nodes (34): GET, POST, PUT, POST, GET, GET, POST, RoleGuardProps (+26 more)
+Nodes (42): CustomerProfile, User, idParamsSchema, BcryptPasswordHasher, adminUserSelect, PrismaUserRepository, publicUserSelect, PasswordHasher (+34 more)
 
-### Community 9 - "Work Progress Domain & Repo"
+### Community 3 - "Shared UI & Customer Search"
+Cohesion: 0.05
+Nodes (64): CustomerSearchCombobox(), Props, SnapshotView(), useCustomerSearch(), useAssignItem(), AssignItemPopover(), AssignItemPopoverProps, cn() (+56 more)
+
+### Community 4 - "Work-Progress Schemas & Master UC"
+Cohesion: 0.05
+Nodes (60): ApiData, PlanCtx, bulkDeleteItemsUseCase(), MasterRowDialogProps, createCategoryUseCase(), updateCategoryUseCase(), createMarkTypeUseCase(), updateMarkTypeUseCase() (+52 more)
+
+### Community 5 - "Payments & Calendar UI"
+Cohesion: 0.07
+Nodes (40): ProofReviewList(), ProofReviewListProps, STATUS_CONFIG, CustomerCalendar(), CustomerCalendarProps, monthView, thTH, useCalendarEvents() (+32 more)
+
+### Community 6 - "Customer API Routes"
+Cohesion: 0.04
+Nodes (46): bodySchema, paramsSchema, POST, paramsSchema, POST, getCustomerForDocument(), paramsSchema, POST (+38 more)
+
+### Community 7 - "Work-Progress Template Domain"
+Cohesion: 0.07
+Nodes (35): CategoryCode, MarkCode, PeriodTypeCode, StatusCode, WorkProgressTemplate, WorkProgressTemplateDetail, WorkProgressTemplateItem, WorkProgressTemplateSubtask (+27 more)
+
+### Community 8 - "Work-Progress Plan Repository"
 Cohesion: 0.07
 Nodes (24): WorkProgressItem, WorkProgressItemPeriodMark, WorkProgressPeriod, WorkProgressPlan, WorkProgressPlanDetail, PrismaWorkProgressRepository, BulkActionToolbarProps, CreatePlanDialogProps (+16 more)
 
-### Community 10 - "Billing Cycle Table & Formatters"
-Cohesion: 0.10
-Nodes (36): BillingCycleTable(), BillingCycleTableProps, STATUS_CONFIG, SnapshotEntry, SnapshotViewProps, MyBillingCycles(), MyBillingCyclesProps, STATUS_CONFIG (+28 more)
+### Community 9 - "WP Template Routes & RoleGuard"
+Cohesion: 0.05
+Nodes (32): GET, POST, DELETE, paramsSchema, POST, GET, GET, POST (+24 more)
 
-### Community 11 - "Field Error & Query Keys"
-Cohesion: 0.10
-Nodes (33): FieldError(), FieldErrors, parseFieldErrors(), PromotionImageDialogProps, UploadProofDialogProps, ApiData, plansKey(), useCreatePlan() (+25 more)
-
-### Community 12 - "HTTP Error Classes"
-Cohesion: 0.16
-Nodes (14): BadRequestError, ForbiddenError, HttpError, NotFoundError, UnauthorizedError, UnprocessableEntityError, logger, assertAssigneeAllowed() (+6 more)
-
-### Community 13 - "Contract Upload & Doc Forms"
-Cohesion: 0.09
-Nodes (33): ContractFileUpload(), ContractFileUploadProps, DocumentTemplateList(), PaymentPlanForm(), ConfirmAction, PaymentPlanList(), PaymentPlanListProps, STATUS_BADGE (+25 more)
-
-### Community 14 - "User Management & Visibility"
-Cohesion: 0.09
-Nodes (31): UserManagement(), UserManagementSeoDev(), UserModal(), UserModalProps, useToggleKeywordHistoryVisibility(), useToggleMetricsHistoryVisibility(), ApiData, useAddUser() (+23 more)
-
-### Community 15 - "Chart Configs & KD Analytics"
+### Community 10 - "Work-Progress Master Data"
 Cohesion: 0.07
-Nodes (38): buildChartConfig(), ChartConfigItem, computeKdSuccessRate(), computeTrafficForecast(), groupKeywordsByKd(), KdLevelString, VelocityQuadrant, ChartConfig (+30 more)
+Nodes (34): WorkProgressCategory, WorkProgressMarkType, WorkProgressStatus, ApiData, kindPath, kindQueryKey, useCreateCategory(), useCreateMarkType() (+26 more)
 
-### Community 16 - "Anomaly Dots & Filter Context"
+### Community 11 - "Work-Progress Item Hooks"
 Cohesion: 0.06
-Nodes (25): AnomalyDot(), AnomalyDotProps, ChartEmptyState(), ChartEmptyStateProps, ClippedDot(), ClippedDotProps, ReportFiltersContext, CHART_COLORS (+17 more)
+Nodes (40): useAddItem(), useBulkDeleteItems(), useBulkSetPeriodAcrossItems(), useBulkUpdateItemStatus(), useInvalidatePlan(), useUpdateItem(), useMarkTypes(), useStatuses() (+32 more)
 
-### Community 17 - "Hub Stats & Proof Review"
+### Community 12 - "Customer Report Metrics Lib"
+Cohesion: 0.05
+Nodes (46): AuthorityAxis, AuthorityRadarPoint, BRACKET_LABELS, bracketForPos(), BracketTransitionsResult, buildSparkline(), calculateMetricChange(), calculatePercentageChange() (+38 more)
+
+### Community 13 - "Customer Report Charts"
+Cohesion: 0.06
+Nodes (41): buildChartConfig(), ChartConfigItem, computeKdSuccessRate(), computeTrafficForecast(), groupKeywordsByKd(), KdLevelString, VelocityQuadrant, RecommendKeywordTable() (+33 more)
+
+### Community 14 - "Work-Progress Use Cases"
+Cohesion: 0.04
+Nodes (45): addItemUseCase(), bulkUpdateItemStatusUseCase(), updateItemUseCase(), bulkSetPeriodAcrossItemsUseCase(), setPeriodMarkUseCase(), deactivateMasterRowUseCase(), listCategoriesUseCase(), listMarkTypesUseCase() (+37 more)
+
+### Community 15 - "Work-Progress Subtasks"
+Cohesion: 0.09
+Nodes (24): WorkProgressSubtask, PrismaWorkProgressSubtaskRepository, assignItemUseCase(), deleteItemUseCase(), reorderItemsUseCase(), SubtaskListProps, ForbiddenError, clearPeriodMarkUseCase() (+16 more)
+
+### Community 16 - "Customer Report Anomaly Charts"
+Cohesion: 0.06
+Nodes (26): AnomalyDot(), AnomalyDotProps, ChartEmptyState(), ChartEmptyStateProps, ClippedDot(), ClippedDotProps, SnapshotEntry, MetricSeriesConfig (+18 more)
+
+### Community 17 - "User Management UI"
+Cohesion: 0.10
+Nodes (30): UserManagement(), UserManagementSeoDev(), UserModal(), UserModalProps, UserTable(), UserTableProps, useToggleKeywordHistoryVisibility(), useToggleMetricsHistoryVisibility() (+22 more)
+
+### Community 18 - "Attachments & File Upload"
+Cohesion: 0.08
+Nodes (27): addLinkAttachmentUseCase(), deleteAttachmentUseCase(), uploadAttachmentUseCase(), AttachmentKind, WorkProgressAttachment, UPLOAD_CATEGORY, UPLOAD_DIR, LocalWorkProgressAttachmentStorage (+19 more)
+
+### Community 19 - "Metrics Persistence"
+Cohesion: 0.10
+Nodes (23): MetricsHistoryEntry, OverallMetrics, PrismaMetricsRepository, bulkSetMetricsHistoryVisibility, repo, saveMetrics, setMetricsHistoryVisibility, GET (+15 more)
+
+### Community 20 - "Metrics Types & Hooks"
 Cohesion: 0.07
-Nodes (32): ProofReviewList(), ProofReviewListProps, STATUS_CONFIG, CustomerOverviewSection(), stats, MyPaymentHistory(), MyPaymentHistoryProps, STATUS_CONFIG (+24 more)
+Nodes (32): ApiData, CombinedHistoryData, ApiData, KeywordFormData, VisibilityPayload, ApiData, VisibilityPayload, ApiError (+24 more)
 
-### Community 18 - "Document Items Editor"
-Cohesion: 0.12
-Nodes (33): DocumentGeneratorPanel(), Props, createItemKey(), DocumentItemsEditor(), EditableItem, formatAmount(), Props, DocumentTemplateEditor() (+25 more)
-
-### Community 19 - "Payment Plan Use Cases"
-Cohesion: 0.10
-Nodes (29): listContractFilesUseCase(), listBillingCyclesUseCase(), updateBillingCycleUseCase(), BillingCycleStatus, BillingCycleWithProofs, PaymentPlanStatus, PaymentPlanType, PaymentPlanWithCycles (+21 more)
-
-### Community 20 - "Cycle Document Views"
-Cohesion: 0.10
-Nodes (26): CycleDocumentView(), groupByCycle(), Props, DocumentList(), Props, CustomerQuickNavProps, CustomerSummaryCard(), formatNumber() (+18 more)
-
-### Community 21 - "Admin Layouts & Loading"
-Cohesion: 0.10
-Nodes (25): AdminDocumentManager(), AdminDashboard(), CompanySettingsPage(), metadata, WorkProgressSettingsTabs(), CreateDocumentPage(), metadata, DocumentTemplatesPage() (+17 more)
-
-### Community 22 - "Document PDF Rendering"
-Cohesion: 0.16
-Nodes (21): AdminBillingDocument, CompanySettings, BillingDocumentType, DOCUMENT_TYPE_PREFIXES, PuppeteerPdfRenderer, getNextDocumentNumber(), TransactionClient, BillingCycleProvider (+13 more)
-
-### Community 23 - "Customer Access Context"
+### Community 21 - "Customer Access Context"
 Cohesion: 0.10
 Nodes (17): customerRepository, resolveCustomerAccess, sessionGateway, CustomerAccessContext, SessionUser, Customer, AccessMode, customerAccessGuard() (+9 more)
 
-### Community 24 - "Misc API Route Handlers"
+### Community 22 - "Billing Documents Public API"
+Cohesion: 0.07
+Nodes (34): commonDeps, deleteDocument, generateStandaloneDocument, getDocument, listAllDocuments, renderer, repo, searchCustomers() (+26 more)
+
+### Community 23 - "Customer Keyword API Routes"
 Cohesion: 0.05
 Nodes (31): paramsSchema, POST, GET, paramsSchema, POST, POST, created(), paramsSchema (+23 more)
 
-### Community 25 - "Keywords Domain & Repo"
-Cohesion: 0.12
-Nodes (17): KeywordHistoryEntry, KeywordReport, PrismaKeywordRepository, getKeywordHistoryByCustomer, repo, KeywordRepository, KeywordInput, keywordSchema (+9 more)
-
-### Community 26 - "Login & Form Components"
-Cohesion: 0.11
-Nodes (23): ColorPickerInputProps, AiOverviewSection, AiOverviewSectionHandle, DatePickerField(), ImagePreviewTile(), KeywordReportSection(), AiOverviewSection, MetricFieldConfig (+15 more)
-
-### Community 27 - "History Context & Backlinks"
-Cohesion: 0.09
-Nodes (26): HistoryContext, HistoryContextValue, HistoryProviderProps, useHistoryContext(), useReportFilters(), CurrentKeyword, Bracket, computeBacklinkRatio() (+18 more)
-
-### Community 28 - "Metrics Slice & Report Types"
+### Community 24 - "Notifications"
 Cohesion: 0.08
-Nodes (34): CustomerReportData, initialState, metricsSlice, MetricsState, AiOverviewSectionProps, KeywordReportSectionProps, MetricsModal(), MetricsModalProps (+26 more)
+Nodes (32): NOTIFICATION_TYPE_GROUPS, NOTIFICATION_TYPE_LABELS, NOTIFICATION_TYPES, deleteNotification, emitter, getPreferences, getUnreadCount, listNotifications (+24 more)
 
-### Community 29 - "Template Hooks & User Menu"
-Cohesion: 0.08
-Nodes (26): useCreateTemplate(), useDeleteTemplate(), useTemplates(), UserMenu(), UserMenuProps, PlanGridRow, PERIOD_LABEL, PlanCardProps (+18 more)
+### Community 25 - "Admin Pages"
+Cohesion: 0.10
+Nodes (26): AdminDocumentManager(), AdminDashboard(), PaymentDashboard(), CompanySettingsPage(), metadata, WorkProgressSettingsTabs(), CreateDocumentPage(), metadata (+18 more)
 
-### Community 30 - "Work Progress Marks & Patches"
-Cohesion: 0.11
-Nodes (16): MasterKind, WorkProgressCategory, WorkProgressMarkType, WorkProgressStatus, WorkProgressItemWithMarks, WorkProgressPeriodMarkWithType, MarkCtx, PrismaWorkProgressMasterRepository (+8 more)
-
-### Community 31 - "Recommendations Domain"
+### Community 26 - "Keyword Recommendations"
 Cohesion: 0.11
 Nodes (22): KeywordRecommend, CreatePayload, PrismaRecommendationRepository, RecommendationRepository, GET, paramsSchema, POST, addRecommendation (+14 more)
 
-### Community 32 - "Metrics Domain & Repo"
-Cohesion: 0.11
-Nodes (20): MetricsHistoryEntry, OverallMetrics, PrismaMetricsRepository, bulkSetMetricsHistoryVisibility, getMetricsHistory, repo, setMetricsHistoryVisibility, MetricsRepository (+12 more)
+### Community 27 - "HTTP Errors & Master Kind"
+Cohesion: 0.17
+Nodes (11): MasterKind, BadRequestError, ConflictError, HttpError, NotFoundError, UnauthorizedError, UnprocessableEntityError, WorkProgressMasterRepository (+3 more)
 
-### Community 33 - "Trend Indicators & Progress"
-Cohesion: 0.09
-Nodes (27): MetricChangeIndicator(), MetricChangeIndicatorProps, Trend, trendConfig, TrafficProgressBar(), TrafficProgressBarProps, Trend, trendStyle (+19 more)
+### Community 28 - "Work-Progress Plan Grid"
+Cohesion: 0.08
+Nodes (29): useDeleteItem(), useReorderItems(), useWorkProgressPlan(), PlanGrid(), PERIOD_LABEL, PlanHeaderBar(), PlanHeaderBarProps, AdminPlanDetailPage() (+21 more)
 
-### Community 34 - "Work Progress Template Codes"
-Cohesion: 0.13
-Nodes (15): CategoryCode, MarkCode, PeriodTypeCode, StatusCode, WorkProgressTemplate, WorkProgressTemplateDetail, WorkProgressTemplateItem, WorkProgressTemplateSubtask (+7 more)
-
-### Community 35 - "Document Template Use Cases"
-Cohesion: 0.13
-Nodes (18): Props, createTemplateUseCase(), deleteTemplateUseCase(), getTemplateUseCase(), listTemplatesUseCase(), updateTemplateUseCase(), upsertTemplateItemsUseCase(), DocumentTemplate (+10 more)
-
-### Community 36 - "Work Progress Item Hooks"
-Cohesion: 0.12
-Nodes (27): ApiData, PlanCtx, useAddItem(), useAssignItem(), useBulkDeleteItems(), useBulkSetPeriodAcrossItems(), useBulkUpdateItemStatus(), useDeleteItem() (+19 more)
-
-### Community 37 - "Sparklines & Coverage Stats"
-Cohesion: 0.09
-Nodes (26): MiniSparkline(), MiniSparklineProps, bucketForPosition(), computeCoverageStats(), computePositionDistribution(), computeSparklineTopN(), KpiSnapshot, PositionDistributionResult (+18 more)
-
-### Community 38 - "Notification API Use Cases"
-Cohesion: 0.09
-Nodes (26): deleteNotification, emitter, getPreferences, getUnreadCount, listNotifications, markAllAsRead, markAsRead, notifRepo (+18 more)
-
-### Community 39 - "Company Settings Backend"
-Cohesion: 0.11
-Nodes (20): getCompanySettings, logoStorage, repo, uploadLogo, upsertCompanySettings, GET, PUT, CompanySettingsForm() (+12 more)
-
-### Community 40 - "Delete Route Handlers"
-Cohesion: 0.06
-Nodes (24): DELETE, paramsSchema, DELETE, paramsSchema, noContent(), handler, idParamsSchema, passwordBodySchema (+16 more)
-
-### Community 41 - "Hub Clients & Notifications Panel"
+### Community 29 - "AI Overview"
 Cohesion: 0.15
-Nodes (24): AdminHubClient(), CustomerNotificationsPanel(), HubNotificationsPanel(), HubStatsRow(), HubStatsRowProps, stats, NotificationBell(), NotificationCenter() (+16 more)
+Nodes (19): repo, storage, AiOverview, AiOverviewImage, serializeAiOverview(), SerializedAiOverview, SerializedAiOverviewImage, PrismaAiOverviewRepository (+11 more)
 
-### Community 42 - "Customer Report Hooks"
-Cohesion: 0.16
-Nodes (24): ApiData, useAddAiOverview(), useDeleteAiOverview(), useGetAiOverviews(), useUpdateAiOverview(), useGetCustomerReport(), ApiData, KeywordFormData (+16 more)
-
-### Community 43 - "PDF Document Templates"
-Cohesion: 0.24
-Nodes (22): CompanyData, CustomerData, escapeHtml(), FONTS_DIR, formatCurrency(), formatDate(), getFontBold(), getFontRegular() (+14 more)
-
-### Community 44 - "Tab Controls & Provider"
+### Community 30 - "Community 30"
 Cohesion: 0.14
-Nodes (21): PaymentDashboardProps, isTabValue(), TAB_VALUES, TabValue, WorkProgressSettingsTabsInner(), ReportFiltersProvider(), CustomerPaymentPageProps, MasterTablesShell() (+13 more)
+Nodes (18): DocumentList(), Props, AdminBillingDocument, BillingDocument, BillingDocumentWithCycle, BillingDocumentType, DOCUMENT_TYPE_PREFIXES, queryKey() (+10 more)
 
-### Community 45 - "Keyword Visibility Routes"
+### Community 31 - "Community 31"
+Cohesion: 0.10
+Nodes (21): CustomerCalendar, CustomerHubClient(), CustomerHubClientProps, CustomerHubHero(), CustomerHubHeroProps, CustomerQuickNav(), CustomerStatsRow(), CustomerStatsRowProps (+13 more)
+
+### Community 32 - "Community 32"
+Cohesion: 0.10
+Nodes (27): useHistoryContext(), useReportFilters(), CustomerReportData, Bracket, computeDomainPhase(), SankeyNode, KeywordReportTable(), KeywordTrendChart() (+19 more)
+
+### Community 33 - "Community 33"
+Cohesion: 0.08
+Nodes (23): PeriodSelectorProps, ReportFiltersContext, ReportFiltersProvider(), ReportFiltersValue, CHART_COLORS, DOMAIN_METRICS_SERIES, getKeywordColor(), KEYWORD_COLORS (+15 more)
+
+### Community 34 - "Community 34"
+Cohesion: 0.12
+Nodes (20): deleteContractFileUseCase(), listContractFilesUseCase(), uploadContractFileUseCase(), listBillingCyclesUseCase(), updateBillingCycleUseCase(), contractStorage, deleteContractFile, imageStorage (+12 more)
+
+### Community 35 - "Community 35"
+Cohesion: 0.12
+Nodes (21): getCompanySettings, logoStorage, repo, uploadLogo, upsertCompanySettings, GET, PUT, CompanySettingsForm() (+13 more)
+
+### Community 36 - "Community 36"
+Cohesion: 0.13
+Nodes (23): PaymentDashboardProps, isTabValue(), TAB_VALUES, TabValue, WorkProgressSettingsTabsInner(), CustomerPaymentPageProps, MasterTablesShell(), HistoryKeywordsTab() (+15 more)
+
+### Community 37 - "Community 37"
+Cohesion: 0.12
+Nodes (10): PaymentPlanFormProps, BillingCycle, ContractFile, PaymentPlan, PaymentPlanWithCycles, decimalToNumber(), PrismaPaymentRepository, BillingCycleSeed (+2 more)
+
+### Community 38 - "Community 38"
+Cohesion: 0.23
+Nodes (23): CompanyData, CustomerData, escapeHtml(), FONTS_DIR, formatCurrency(), formatDate(), getFontBold(), getFontRegular() (+15 more)
+
+### Community 39 - "Community 39"
+Cohesion: 0.14
+Nodes (18): DELETE, paramsSchema, PUT, deleteKeyword, getKeywordHistoryByCustomer, repo, updateKeyword, KeywordRepository (+10 more)
+
+### Community 40 - "Community 40"
+Cohesion: 0.11
+Nodes (26): createPaymentPlan, getPaymentPlan, listPaymentPlans, updatePaymentPlan, GET, paramsSchema, POST, CreatePaymentPlanInput (+18 more)
+
+### Community 41 - "Community 41"
+Cohesion: 0.07
+Nodes (23): DELETE, paramsSchema, noContent(), handler, idParamsSchema, passwordBodySchema, DELETE, paramsSchema (+15 more)
+
+### Community 42 - "Community 42"
+Cohesion: 0.13
+Nodes (17): getAdminHubSummary, repo, AdminHubClient(), CustomerOverviewSection(), CustomerOverviewSectionProps, CustomerSummaryCard(), CustomerSummaryCardProps, formatNumber() (+9 more)
+
+### Community 43 - "Community 43"
+Cohesion: 0.10
+Nodes (20): CustomLinearProgress(), CustomLinearProgressProps, GaugeChart(), GaugeChartProps, MetricChangeIndicator(), MetricChangeIndicatorProps, Trend, trendConfig (+12 more)
+
+### Community 44 - "Community 44"
+Cohesion: 0.13
+Nodes (19): ContractFileUploadProps, PaymentPlanForm(), ConfirmAction, PaymentPlanListProps, STATUS_BADGE, TYPE_LABEL, useCreatePaymentPlan(), useUpdatePaymentPlan() (+11 more)
+
+### Community 45 - "Community 45"
 Cohesion: 0.07
 Nodes (22): paramsSchema, POST, bulkSetKeywordHistoryVisibility, setKeywordHistoryVisibility, paramsSchema, PUT, createNotification, approveRejectProof (+14 more)
 
-### Community 46 - "Work Progress Attachment Storage"
+### Community 46 - "Community 46"
+Cohesion: 0.12
+Nodes (18): ensureUploadDir(), LocalAiOverviewImageStorage, safeUnlink(), UPLOAD_CATEGORY, UPLOAD_DIR, validateAll(), LocalDocumentStorage, buildPublicUrl() (+10 more)
+
+### Community 47 - "Community 47"
 Cohesion: 0.11
-Nodes (21): LocalWorkProgressAttachmentStorage, UPLOAD_CATEGORY, UPLOAD_DIR, AttachmentStorage, SavedAttachment, buildAllowedSets(), DEFAULT_KINDS, FILE_EXT (+13 more)
+Nodes (20): MiniSparkline(), MiniSparklineProps, computeCoverageStats(), computeSparklineTopN(), KpiSnapshot, buildDeltaInfo(), DeltaBadge(), DeltaInfo (+12 more)
 
-### Community 47 - "Customer Dashboard Auth"
-Cohesion: 0.12
-Nodes (21): CustomerPaymentPage(), CustomerDashboard(), getCustomerReport, getSession(), hasRole(), requireAuth(), requireCustomer(), requireRole() (+13 more)
-
-### Community 48 - "User Repository & Profile"
-Cohesion: 0.13
-Nodes (18): CustomerProfile, UserRepository, changePasswordUseCase(), getUserByIdUseCase(), listManagedCustomersUseCase(), listSeoDevsUseCase(), listUsersUseCase(), restoreUserUseCase() (+10 more)
-
-### Community 49 - "Document & Logo Storage"
-Cohesion: 0.12
-Nodes (17): LocalDocumentStorage, UPLOAD_CATEGORY, UPLOAD_DIR, LocalLogoStorage, UPLOAD_CATEGORY, UPLOAD_DIR, buildPublicUrl(), getUploadDir() (+9 more)
-
-### Community 50 - "Payment Plan Routes"
-Cohesion: 0.13
-Nodes (22): createPaymentPlan, listPaymentPlans, GET, paramsSchema, POST, CreatePaymentPlanInput, createPaymentPlanSchema, ListBillingCyclesQuery (+14 more)
-
-### Community 51 - "Notification Repository"
-Cohesion: 0.14
-Nodes (12): NotificationItem(), NotificationItemProps, Notification, actorSelect, PrismaNotificationRepository, toEntity(), CreateNotificationData, ListNotificationsQuery (+4 more)
-
-### Community 52 - "API Handler Wrapper"
+### Community 48 - "Community 48"
 Cohesion: 0.14
 Nodes (15): parseJsonBody(), parseParams(), parseQuery(), ApiHandlerOptions, HandlerContext, InferSchema, RouteContext, masterIdParamSchema (+7 more)
 
-### Community 53 - "Payment Domain Entities"
-Cohesion: 0.14
-Nodes (6): PaymentPlanFormProps, BillingCycle, ContractFile, PaymentPlan, decimalToNumber(), PrismaPaymentRepository
-
-### Community 54 - "Work Progress Activity Log"
-Cohesion: 0.16
-Nodes (14): ACTIVITY_ACTIONS, ACTIVITY_ENTITIES, WorkProgressActivity, WorkProgressActivityAction, WorkProgressActivityDiff, WorkProgressActivityEntity, ApiData, UseDashboardSummaryOptions (+6 more)
-
-### Community 55 - "Payment Storage & HTTP Utils"
-Cohesion: 0.12
-Nodes (15): LocalPaymentImageStorage, UPLOAD_CATEGORY, UPLOAD_DIR, isPrismaKnownError(), PrismaKnownError, toErrorResponse(), baseOptions, PrismaLikeError (+7 more)
-
-### Community 56 - "Gauge & Duration UI"
-Cohesion: 0.14
-Nodes (14): CustomLinearProgress(), CustomLinearProgressProps, GaugeChart(), GaugeChartProps, formatDuration(), calculateMetricChange(), calculatePercentageChange(), calculateTrafficChange() (+6 more)
-
-### Community 57 - "History Buttons & Tabs"
+### Community 49 - "Community 49"
 Cohesion: 0.15
-Nodes (15): ApiData, CombinedHistoryData, ApiData, VisibilityPayload, HistoryButtonProps, HistoryKeywordsTab(), HistoryKeywordsTabProps, HistoryMetricsTab() (+7 more)
+Nodes (9): actorSelect, PrismaNotificationRepository, toEntity(), CreateNotificationData, ListNotificationsQuery, ListNotificationsResult, NotificationRepository, getUnreadCountUseCase() (+1 more)
 
-### Community 58 - "Admin Hub Summary"
-Cohesion: 0.21
-Nodes (10): getAdminHubSummary, repo, CustomerOverviewSectionProps, CustomerSummaryCardProps, AdminHubSummary, CustomerHubCard, ApiData, PrismaAdminHubRepository (+2 more)
-
-### Community 59 - "Template Item Hooks"
-Cohesion: 0.17
-Nodes (17): useCategories(), useAddTemplateItem(), useDeleteTemplateItem(), useReorderTemplateItems(), useUpdateTemplate(), useUpdateTemplateItem(), parseTemplateDefaultPeriods(), TemplateDefaultPeriodEntry (+9 more)
-
-### Community 60 - "Template Query Hooks"
+### Community 50 - "Community 50"
 Cohesion: 0.14
-Nodes (15): ApiData, detailKey(), listKey(), useTemplate(), UseTemplatesOptions, AddTemplateItemInput, ListTemplatesQuery, listTemplatesQuerySchema (+7 more)
+Nodes (18): CustomerPaymentPage(), CustomerDashboard(), metadata, getCustomerReport, getSession(), hasRole(), requireAuth(), requireCustomer() (+10 more)
 
-### Community 61 - "Root Layout & Fonts"
-Cohesion: 0.14
-Nodes (13): geistSans, inter, kanit, metadata, RootLayout(), viewport, ThemedToastContainer(), Providers() (+5 more)
-
-### Community 62 - "Billing Document Repository"
-Cohesion: 0.16
-Nodes (8): Props, GroupedCycle, Props, BillingDocument, BillingDocumentWithCycle, PrismaBillingDocumentRepository, toBillingDocument(), CustomerForDocument
-
-### Community 63 - "User Entity & Repo"
-Cohesion: 0.17
-Nodes (3): User, PrismaUserRepository, UserCreateInput
-
-### Community 64 - "Customer Report Snapshot"
+### Community 51 - "Community 51"
 Cohesion: 0.24
-Nodes (10): profileRepo, CustomerHistoryReport, CustomerReportSnapshot, PrismaCustomerProfileRepository, getKeywords, getMetrics, CustomerProfile, CustomerProfileRepository (+2 more)
+Nodes (19): ApiData, useAddAiOverview(), useDeleteAiOverview(), useGetAiOverviews(), useUpdateAiOverview(), useGetCustomerReport(), useAddKeyword(), useDeleteKeyword() (+11 more)
 
-### Community 65 - "Customer Calendar"
+### Community 52 - "Community 52"
+Cohesion: 0.17
+Nodes (14): getCustomerHistoryReport, profileRepo, CustomerHistoryReport, CustomerReportSnapshot, PrismaCustomerProfileRepository, getKeywords, getMetrics, getMetricsHistory (+6 more)
+
+### Community 53 - "Community 53"
+Cohesion: 0.14
+Nodes (16): HistoryContext, HistoryContextValue, HistoryProvider(), HistoryProviderProps, CurrentKeyword, useGetCombinedHistory(), HistoryButton(), HistoryButtonProps (+8 more)
+
+### Community 54 - "Community 54"
+Cohesion: 0.18
+Nodes (11): PuppeteerPdfRenderer, BillingDocumentRepository, DocumentStorage, PdfRenderer, deleteDocumentUseCase(), generateStandaloneDocumentUseCase(), StandaloneInput, DocumentGenerationDeps (+3 more)
+
+### Community 55 - "Community 55"
+Cohesion: 0.23
+Nodes (12): ACTIVITY_ACTIONS, ACTIVITY_ENTITIES, WorkProgressActivity, WorkProgressActivityAction, WorkProgressActivityDiff, WorkProgressActivityEntity, PrismaWorkProgressActivityRepository, ActivityListQuery (+4 more)
+
+### Community 56 - "Community 56"
+Cohesion: 0.22
+Nodes (14): ItemDetailSheet(), DashboardHeader(), UserMenu(), Header(), Sheet(), SheetClose(), SheetContent(), SheetDescription() (+6 more)
+
+### Community 57 - "Community 57"
+Cohesion: 0.18
+Nodes (16): buildAllowedSets(), DEFAULT_KINDS, FILE_EXT, FILE_MIME, FileValidationResult, IMAGE_EXT, IMAGE_MIME, sanitizeFilename() (+8 more)
+
+### Community 58 - "Community 58"
+Cohesion: 0.22
+Nodes (15): CustomerNotificationsPanel(), HubNotificationsPanel(), NotificationBell(), NotificationCenter(), NotificationCenterProps, NotificationPreferencesDialog(), ApiData, ApiPaginated (+7 more)
+
+### Community 59 - "Community 59"
+Cohesion: 0.15
+Nodes (8): BillingCycleStatus, BillingCycleWithPlan, BillingCycleWithProofs, PaymentProof, PaymentProofWithCustomer, ApiData, ApiData, PaymentStatus
+
+### Community 60 - "Community 60"
+Cohesion: 0.18
+Nodes (4): KeywordHistoryEntry, KeywordReport, PrismaKeywordRepository, KdLevel
+
+### Community 61 - "Community 61"
+Cohesion: 0.28
+Nodes (8): NotificationPreference, NotificationType, PrismaNotificationPreferenceRepository, toEntity(), NotificationPreferenceRepository, UpsertPreferenceData, PreferenceWithLabel, UpdatePreferencesInput
+
+### Community 62 - "Community 62"
+Cohesion: 0.14
+Nodes (11): KeywordReportSection(), AiOverviewSection, MetricFieldConfig, MetricSectionConfig, metricSections, MetricsFieldKey, MetricsStep, stepLabels (+3 more)
+
+### Community 63 - "Community 63"
 Cohesion: 0.19
-Nodes (12): calendarTypes, CalendarLegend(), LEGEND_ITEMS, CustomerCalendar(), CustomerCalendarProps, monthView, thTH, useCalendarEvents() (+4 more)
+Nodes (12): createPlanUseCase(), resolvePeriods(), updatePlanUseCase(), countMonthsInRange(), CustomPeriodInput, generateMonthRangePeriods(), generatePeriods(), generateTemplateMonthSlots() (+4 more)
 
-### Community 66 - "Customer Hub Summary"
-Cohesion: 0.29
-Nodes (7): CustomerStatsRowProps, getCustomerHubSummary, repo, CustomerHubSummary, PrismaCustomerHubRepository, CustomerHubRepository, getCustomerHubSummaryUseCase()
+### Community 64 - "Community 64"
+Cohesion: 0.23
+Nodes (8): NotificationItem(), NotificationItemProps, Notification, SocketIoNotificationEmitter, NotificationEmitter, getSocketServer(), CreateNotificationInput, createNotificationUseCase()
 
-### Community 67 - "Notification Preferences"
-Cohesion: 0.30
-Nodes (7): NotificationPreference, PrismaNotificationPreferenceRepository, toEntity(), NotificationPreferenceRepository, UpsertPreferenceData, UpdatePreferencesInput, updatePreferencesUseCase()
+### Community 65 - "Community 65"
+Cohesion: 0.18
+Nodes (7): NotificationSocketInit(), KEYS, useNotificationSocket(), metadata, PageProps, TemplateBuilderPage(), DashboardLayoutProps
 
-### Community 68 - "Work Progress Subtasks"
-Cohesion: 0.26
-Nodes (4): WorkProgressSubtask, PrismaWorkProgressSubtaskRepository, AddSubtaskData, UpdateSubtaskData
+### Community 66 - "Community 66"
+Cohesion: 0.16
+Nodes (11): geistSans, inter, kanit, metadata, RootLayout(), viewport, ThemedToastContainer(), Providers() (+3 more)
 
-### Community 69 - "Customer Hub Client"
-Cohesion: 0.19
-Nodes (10): CustomerCalendar, CustomerHubClient(), CustomerHubClientProps, CustomerHubHero(), CustomerHubHeroProps, CustomerQuickNav(), CustomerStatsRow(), metadata (+2 more)
-
-### Community 70 - "SEO Dashboard & Cards"
+### Community 67 - "Community 67"
 Cohesion: 0.19
 Nodes (10): requireStaff(), SeoDashboard(), CardColor, cardColorClass, DashboardCard, DashboardPageLayout(), DashboardPageLayoutProps, metadata (+2 more)
 
-### Community 71 - "Admin/SEO Plan Detail Pages"
-Cohesion: 0.18
-Nodes (10): AdminPlanDetailPage(), SeoPlanDetailPage(), metadata, PageProps, metadata, PageProps, CategoryBreakdownChart, PlanDashboardPanel() (+2 more)
+### Community 68 - "Community 68"
+Cohesion: 0.32
+Nodes (10): SubtaskCtx, useAddSubtask(), useDeleteSubtask(), useInvalidate(), useReorderSubtasks(), useToggleSubtask(), useUpdateSubtask(), ApiData (+2 more)
 
-### Community 72 - "Work Progress Attachments"
-Cohesion: 0.35
-Nodes (6): AttachmentKind, WorkProgressAttachment, PrismaWorkProgressAttachmentRepository, toDomain(), CreateAttachmentData, WorkProgressAttachmentRepository
+### Community 69 - "Community 69"
+Cohesion: 0.21
+Nodes (8): billingCyclesToEvents(), CalendarItemLookup, STATUS_TO_CALENDAR_ID, workProgressPlanToEvents(), ApiData, WorkProgressItemWithMarks, ItemDetailSheetProps, ItemEditDialogProps
 
-### Community 73 - "Contract File Storage"
-Cohesion: 0.23
-Nodes (7): deleteContractFileUseCase(), uploadContractFileUseCase(), LocalContractFileStorage, UPLOAD_CATEGORY, UPLOAD_DIR, ContractFileStorage, SavedContractFile
+### Community 70 - "Community 70"
+Cohesion: 0.27
+Nodes (6): LocalPaymentImageStorage, UPLOAD_CATEGORY, UPLOAD_DIR, PaymentImageStorage, SavedPaymentImage, uploadPaymentProofUseCase()
 
-### Community 74 - "Plan & Period Generation"
-Cohesion: 0.24
-Nodes (10): createPlanUseCase(), resolvePeriods(), countMonthsInRange(), CustomPeriodInput, generateMonthRangePeriods(), generatePeriods(), generateTemplateMonthSlots(), MonthRangeInput (+2 more)
-
-### Community 75 - "Calendar Event Transforms"
-Cohesion: 0.23
-Nodes (6): billingCyclesToEvents(), CalendarItemLookup, STATUS_TO_CALENDAR_ID, workProgressPlanToEvents(), ApiData, BillingCycleWithPlan
-
-### Community 76 - "User Schemas"
-Cohesion: 0.36
-Nodes (7): userCreateSchema, UserSelfUpdateInput, userSelfUpdateSchema, UserUpdateInput, userUpdateSchema, result, updateUserUseCase()
-
-### Community 77 - "Empty Plans State"
-Cohesion: 0.29
-Nodes (6): EmptyPlansState(), EmptyPlansStateProps, Button(), buttonVariants, Calendar(), CalendarDayButton()
-
-### Community 78 - "NextAuth & Role Guards"
+### Community 71 - "Community 71"
 Cohesion: 0.36
 Nodes (6): authOptions, DUMMY_BCRYPT_HASH, getCurrentSession(), requireRole(), requireSession(), handler
 
-### Community 79 - "Period Selector Toggle"
-Cohesion: 0.31
-Nodes (6): PERIOD_OPTIONS, ToggleGroup(), ToggleGroupContext, ToggleGroupItem(), Toggle(), toggleVariants
+### Community 72 - "Community 72"
+Cohesion: 0.22
+Nodes (5): contactInfo, FAQSection(), Footer(), HeroSection(), PackagesSection()
 
-### Community 80 - "Notification Socket Emitter"
-Cohesion: 0.31
-Nodes (5): SocketIoNotificationEmitter, NotificationEmitter, getSocketServer(), CreateNotificationInput, createNotificationUseCase()
-
-### Community 81 - "Pagination Helpers"
+### Community 73 - "Community 73"
 Cohesion: 0.29
 Nodes (7): ApiPaginated, okPaginated(), buildPageInfo(), PageInfo, PageMeta, PageQuery, paginationQuerySchema
 
-### Community 82 - "Payment Proof Upload"
-Cohesion: 0.24
-Nodes (4): PaymentProof, ApiData, useUploadPaymentProof(), PaymentStatus
-
-### Community 83 - "User Table & Role Display"
-Cohesion: 0.27
-Nodes (6): UserTable(), UserTableProps, getRoleBadgeClass(), getRoleIcon(), getRoleLabel(), DataTableColumn
-
-### Community 84 - "Plan List & Tabs"
+### Community 74 - "Community 74"
 Cohesion: 0.22
-Nodes (7): useDeletePlan(), PlanList(), metadata, PageProps, WorkProgressTab(), WorkProgressTabProps, AdminWorkProgressListPage()
+Nodes (7): Accent, accentClass, PromotionCard(), PromotionItem, PROMOTIONS, PromotionImageDialog(), PromotionImageDialogProps
 
-### Community 85 - "Prisma Client Wrapper"
-Cohesion: 0.39
-Nodes (5): adminUserSelect, publicUserSelect, globalForPrisma, prisma, prismaBase
+### Community 75 - "Community 75"
+Cohesion: 0.22
+Nodes (8): listPaymentProofs, uploadPaymentProof, GET, paramsSchema, POST, POST, GET, listUserIdsByRole()
 
-### Community 86 - "Payment Proof Routes"
-Cohesion: 0.25
-Nodes (7): listPaymentProofs, uploadPaymentProof, GET, paramsSchema, POST, GET, POST
+### Community 76 - "Community 76"
+Cohesion: 0.24
+Nodes (5): faqs, navItems, packages, services, stats
 
-### Community 87 - "Notification Type Catalog"
-Cohesion: 0.36
-Nodes (6): NOTIFICATION_TYPE_GROUPS, NOTIFICATION_TYPE_LABELS, NOTIFICATION_TYPES, NotificationType, getPreferencesUseCase(), PreferenceWithLabel
+### Community 77 - "Community 77"
+Cohesion: 0.31
+Nodes (7): ApiData, plansKey(), useArchivePlan(), useDeletePlan(), UsePlansOptions, useWorkProgressPlans(), PlanList()
 
-### Community 88 - "Password Hasher"
-Cohesion: 0.36
-Nodes (3): BcryptPasswordHasher, PasswordHasher, createUserUseCase()
+### Community 78 - "Community 78"
+Cohesion: 0.33
+Nodes (5): LocalLogoStorage, UPLOAD_CATEGORY, UPLOAD_DIR, LogoStorage, SavedLogo
 
-### Community 89 - "User Detail Routes"
-Cohesion: 0.25
-Nodes (7): idParamsSchema, DELETE, GET, PUT, getUserById, softDeleteUser, updateUser
+### Community 79 - "Community 79"
+Cohesion: 0.28
+Nodes (7): AllDocumentsTable(), queryKey(), useAllDocuments(), useDeleteDocumentAdmin(), ApiSuccess, GenerateStandaloneDocumentInput, ListAllDocumentsQuery
 
-### Community 90 - "Plan Routes"
+### Community 80 - "Community 80"
+Cohesion: 0.31
+Nodes (6): calendarTypes, CalendarLegend(), LEGEND_ITEMS, AppColors, colors, colorsDark
+
+### Community 81 - "Community 81"
+Cohesion: 0.33
+Nodes (6): PaymentPlanStatus, PaymentPlanType, createPaymentPlanUseCase(), clampDay(), generateBillingCycles(), GenerateParams
+
+### Community 82 - "Community 82"
+Cohesion: 0.32
+Nodes (7): bucketForPosition(), computePositionDistribution(), PositionDistributionResult, BucketConfig, BUCKETS, PositionDistribution(), PositionDistributionProps
+
+### Community 83 - "Community 83"
 Cohesion: 0.25
 Nodes (7): DELETE, GET, paramsSchema, PATCH, deletePlan, getPlanDetail, updatePlan
 
-### Community 91 - "Billing Cycle Provider"
-Cohesion: 0.43
-Nodes (4): planSelect, PrismaBillingCycleProvider, toInfo(), BillingCycleInfo
+### Community 84 - "Community 84"
+Cohesion: 0.57
+Nodes (6): AttachCtx, useAddLinkAttachment(), useDeleteAttachment(), useInvalidate(), useUploadAttachment(), AttachmentGallery()
 
-### Community 92 - "AI Recommendations Tab"
+### Community 85 - "Community 85"
+Cohesion: 0.36
+Nodes (5): PromiseToastMessages, showPromiseToast(), ErrorToast(), PendingToast(), SuccessToast()
+
+### Community 86 - "Community 86"
 Cohesion: 0.29
-Nodes (6): AiOverviewCard(), formatThaiLongDate(), RecommendKeywordTable(), AiRecommendationsTab(), AiRecommendationsTabProps, AiOverviewTimelineBar()
+Nodes (5): deleteAiOverview, updateAiOverview, paramsSchema, DELETE, PUT
 
-### Community 93 - "Payment Plan Detail Routes"
+### Community 87 - "Community 87"
+Cohesion: 0.38
+Nodes (5): PaymentPlanList(), ApiData, useCancelPaymentPlan(), useListPaymentPlans(), useReactivatePaymentPlan()
+
+### Community 88 - "Community 88"
 Cohesion: 0.33
-Nodes (5): getPaymentPlan, updatePaymentPlan, GET, paramsSchema, PATCH
+Nodes (4): LocalContractFileStorage, UPLOAD_CATEGORY, UPLOAD_DIR, SavedContractFile
 
-### Community 94 - "Keyword Update/Delete Routes"
+### Community 89 - "Community 89"
+Cohesion: 0.38
+Nodes (6): ContractFileUpload(), MyContractFiles(), ApiData, useDeleteContractFile(), useListContractFiles(), useUploadContractFile()
+
+### Community 90 - "Community 90"
 Cohesion: 0.33
-Nodes (5): DELETE, paramsSchema, PUT, deleteKeyword, updateKeyword
+Nodes (5): createAiOverview, listAiOverviews, GET, paramsSchema, POST
 
-### Community 95 - "Notification Socket Hook"
+### Community 91 - "Community 91"
+Cohesion: 0.33
+Nodes (3): WorkProgressPeriodMarkWithType, MarkCtx, PeriodCellProps
+
+### Community 92 - "Community 92"
 Cohesion: 0.60
-Nodes (3): NotificationSocketInit(), KEYS, useNotificationSocket()
+Nodes (4): Accordion(), AccordionContent(), AccordionItem(), AccordionTrigger()
 
-### Community 96 - "Admin Payments Page"
-Cohesion: 0.40
-Nodes (4): PaymentDashboard(), AdminPaymentsPage(), metadata, PageProps
-
-### Community 97 - "All Documents Admin Table"
-Cohesion: 0.60
-Nodes (4): AllDocumentsTable(), queryKey(), useAllDocuments(), useDeleteDocumentAdmin()
-
-### Community 98 - "Document List Route"
+### Community 93 - "Community 93"
 Cohesion: 0.40
 Nodes (4): listDocuments, paramsSchema, querySchema, GET
 
-### Community 99 - "Keyword Add Route"
-Cohesion: 0.40
-Nodes (4): addKeyword, GET, paramsSchema, POST
+### Community 94 - "Community 94"
+Cohesion: 0.50
+Nodes (3): MobileMenuContent(), MobileMenuContentProps, ThemeToggle()
 
 ## Knowledge Gaps
-- **587 isolated node(s):** `prisma`, `userRole`, `config`, `inter`, `kanit` (+582 more)
+- **570 isolated node(s):** `userRole`, `config`, `inter`, `kanit`, `geistSans` (+565 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **7 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `cn()` connect `Shared UI Primitives` to `Landing & Marketing Home`, `Report Filters & Brackets`, `Billing Cycle Table & Formatters`, `Field Error & Query Keys`, `Contract Upload & Doc Forms`, `Chart Configs & KD Analytics`, `Anomaly Dots & Filter Context`, `Hub Stats & Proof Review`, `Document Items Editor`, `Cycle Document Views`, `Login & Form Components`, `History Context & Backlinks`, `Template Hooks & User Menu`, `Trend Indicators & Progress`, `Work Progress Item Hooks`, `Sparklines & Coverage Stats`, `Hub Clients & Notifications Panel`, `Tab Controls & Provider`, `Notification Repository`, `Template Item Hooks`, `Root Layout & Fonts`, `SEO Dashboard & Cards`, `Empty Plans State`, `Period Selector Toggle`, `User Table & Role Display`?**
-  _High betweenness centrality (0.102) - this node is a cross-community bridge._
-- **Why does `Role` connect `Auth & Activity API Routes` to `Billing Document Use Cases`, `Landing & Marketing Home`, `Field Error & Query Keys`, `User Management & Visibility`, `Payment Plan Use Cases`, `Customer Access Context`, `Misc API Route Handlers`, `Login & Form Components`, `Company Settings Backend`, `Delete Route Handlers`, `Customer Dashboard Auth`, `User Repository & Profile`, `Payment Plan Routes`, `API Handler Wrapper`, `History Buttons & Tabs`, `User Entity & Repo`, `SEO Dashboard & Cards`, `Plan & Period Generation`, `User Schemas`, `NextAuth & Role Guards`, `User Table & Role Display`, `Plan List & Tabs`, `Prisma Client Wrapper`, `Payment Proof Routes`, `Password Hasher`, `User Detail Routes`?**
-  _High betweenness centrality (0.075) - this node is a cross-community bridge._
-- **Why does `Button()` connect `Empty Plans State` to `Landing & Marketing Home`, `Shared UI Primitives`, `Billing Cycle Table & Formatters`, `Field Error & Query Keys`, `Contract Upload & Doc Forms`, `User Management & Visibility`, `Anomaly Dots & Filter Context`, `Hub Stats & Proof Review`, `Document Items Editor`, `Cycle Document Views`, `Admin Layouts & Loading`, `Login & Form Components`, `Template Hooks & User Menu`, `Trend Indicators & Progress`, `Work Progress Item Hooks`, `Hub Clients & Notifications Panel`, `Customer Dashboard Auth`, `Notification Repository`, `Gauge & Duration UI`, `History Buttons & Tabs`, `Template Item Hooks`, `User Table & Role Display`?**
-  _High betweenness centrality (0.058) - this node is a cross-community bridge._
-- **What connects `prisma`, `userRole`, `config` to the rest of the system?**
-  _587 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `Billing Document Use Cases` be split into smaller, more focused modules?**
-  _Cohesion score 0.03700516351118761 - nodes in this community are weakly interconnected._
-- **Should `Work Progress Use Cases` be split into smaller, more focused modules?**
-  _Cohesion score 0.0340258958145137 - nodes in this community are weakly interconnected._
-- **Should `Landing & Marketing Home` be split into smaller, more focused modules?**
-  _Cohesion score 0.050239234449760764 - nodes in this community are weakly interconnected._
+- **Why does `cn()` connect `Shared UI & Customer Search` to `Documents & Work-Progress UI`, `Billing & Payment Tables`, `Payments & Calendar UI`, `Work-Progress Master Data`, `Work-Progress Item Hooks`, `Customer Report Charts`, `Customer Report Anomaly Charts`, `Community 32`, `Community 33`, `Community 36`, `Community 43`, `Community 44`, `Community 47`, `Community 56`, `Community 58`, `Community 62`, `Community 64`, `Community 66`, `Community 67`, `Community 74`, `Community 82`, `Community 92`?**
+  _High betweenness centrality (0.084) - this node is a cross-community bridge._
+- **Why does `Role` connect `WP Template Routes & RoleGuard` to `Documents & Work-Progress UI`, `Billing & Payment Tables`, `Users & Auth Persistence`, `Shared UI & Customer Search`, `User Management UI`, `Customer Access Context`, `Customer Keyword API Routes`, `HTTP Errors & Master Kind`, `Community 34`, `Community 35`, `Community 36`, `Community 37`, `Community 41`, `Community 48`, `Community 50`, `Community 53`, `Community 56`, `Community 63`, `Community 67`, `Community 71`, `Community 75`, `Community 94`?**
+  _High betweenness centrality (0.065) - this node is a cross-community bridge._
+- **Why does `Button()` connect `Payments & Calendar UI` to `Documents & Work-Progress UI`, `Billing & Payment Tables`, `Shared UI & Customer Search`, `Work-Progress Master Data`, `Work-Progress Item Hooks`, `Customer Report Anomaly Charts`, `User Management UI`, `Admin Pages`, `Work-Progress Plan Grid`, `Community 42`, `Community 43`, `Community 44`, `Community 50`, `Community 53`, `Community 56`, `Community 58`, `Community 62`, `Community 64`, `Community 68`, `Community 72`, `Community 74`, `Community 84`, `Community 94`?**
+  _High betweenness centrality (0.050) - this node is a cross-community bridge._
+- **What connects `userRole`, `config`, `inter` to the rest of the system?**
+  _570 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `Documents & Work-Progress UI` be split into smaller, more focused modules?**
+  _Cohesion score 0.0746896696823059 - nodes in this community are weakly interconnected._
+- **Should `Billing & Payment Tables` be split into smaller, more focused modules?**
+  _Cohesion score 0.0640218878248974 - nodes in this community are weakly interconnected._
+- **Should `Users & Auth Persistence` be split into smaller, more focused modules?**
+  _Cohesion score 0.051582278481012656 - nodes in this community are weakly interconnected._

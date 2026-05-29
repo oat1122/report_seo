@@ -5,7 +5,7 @@ import axios from '@/infrastructure/http/axios'
 import type { ApiSuccess } from '@/infrastructure/http/responses'
 import type { CustomerForDocument } from '../../application/ports/BillingDocumentRepository'
 
-export function useCustomerSearch(query: string) {
+export function useCustomerSearch(query: string, enabled = true) {
   return useQuery<CustomerForDocument[]>({
     queryKey: ['admin', 'customers-search', query],
     queryFn: async () => {
@@ -15,7 +15,7 @@ export function useCustomerSearch(query: string) {
       )
       return data.data
     },
-    enabled: query.length >= 1,
+    enabled,
     staleTime: 30_000,
   })
 }

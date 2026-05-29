@@ -2,6 +2,7 @@ import type {
   BillingDocument,
   AdminBillingDocument,
   BillingDocumentWithCycle,
+  DocumentLineItem,
 } from '../../domain/BillingDocument'
 import type { BillingDocumentType } from '../../domain/DocumentType'
 
@@ -12,6 +13,7 @@ export interface CreateDocumentInput {
   type: BillingDocumentType
   pdfUrl: string
   totalAmount: number
+  items: DocumentLineItem[]
   note?: string | null
   billingCycleId?: string | null
 }
@@ -20,6 +22,7 @@ export interface UpdateDocumentInput {
   type: BillingDocumentType
   pdfUrl: string
   totalAmount: number
+  items: DocumentLineItem[]
   note?: string | null
 }
 

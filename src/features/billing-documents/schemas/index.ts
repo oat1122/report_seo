@@ -58,7 +58,7 @@ export const uploadDocumentSchema = z.object({
 })
 
 export const searchCustomersQuerySchema = z.object({
-  q: z.string().min(1),
+  q: z.string().optional().default(''),
 })
 
 // --- Inferred Types ---

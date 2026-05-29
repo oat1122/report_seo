@@ -4,6 +4,7 @@ import { useState, useDeferredValue } from 'react'
 import { Download, Loader2, Pencil, Search, Trash2 } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { Button } from '@/components/ui/button'
+import { ConfirmAlert } from '@/components/shared/ConfirmAlert'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import {
@@ -39,6 +40,11 @@ export function AllDocumentsTable() {
   const [typeFilter, setTypeFilter] = useState<string>(ALL_TYPES_KEY)
   const deferredSearch = useDeferredValue(search)
   const [editingDoc, setEditingDoc] = useState<AdminBillingDocument | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<{
+    userId: string
+    documentId: string
+    docNumber: string
+  } | null>(null)
 
   const filters: ListAllDocumentsQuery = {
     ...(deferredSearch ? { search: deferredSearch } : {}),
@@ -48,14 +54,16 @@ export function AllDocumentsTable() {
   const { data: documents = [], isLoading } = useAllDocuments(filters)
   const deleteMutation = useDeleteDocumentAdmin()
 
-  const handleDelete = (userId: string, documentId: string, docNumber: string) => {
-    if (!confirm(`ต้องการลบเอกสาร ${docNumber} ใช่หรือไม่?`)) return
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return
+    const { userId, documentId, docNumber } = deleteTarget
     deleteMutation.mutate(
       { userId, documentId },
       {
         onSuccess: () => toast.success(`ลบเอกสาร ${docNumber} เรียบร้อย`),
       },
     )
+    setDeleteTarget(null)
   }
 
   return (
@@ -164,7 +172,11 @@ export function AllDocumentsTable() {
                       variant="ghost"
                       size="icon-sm"
                       onClick={() =>
-                        handleDelete(doc.customer?.userId ?? '', doc.id, doc.documentNumber)
+                        setDeleteTarget({
+                          userId: doc.customer?.userId ?? '',
+                          documentId: doc.id,
+                          docNumber: doc.documentNumber,
+                        })
                       }
                       disabled={deleteMutation.isPending}
                     >
@@ -196,6 +208,14 @@ export function AllDocumentsTable() {
           }}
         />
       )}
+
+      <ConfirmAlert
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleConfirmDelete}
+        title="ยืนยันการลบเอกสาร"
+        message={`ต้องการลบเอกสาร ${deleteTarget?.docNumber ?? ''} ใช่หรือไม่?`}
+      />
     </div>
   )
 }

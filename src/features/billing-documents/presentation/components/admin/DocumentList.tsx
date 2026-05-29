@@ -5,6 +5,7 @@ import { Download, FilePlus, Loader2, Pencil, Trash2, Upload } from 'lucide-reac
 import { toast } from 'react-toastify'
 import { useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
+import { ConfirmAlert } from '@/components/shared/ConfirmAlert'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Dialog,
@@ -57,12 +58,15 @@ export function DocumentList({ customerId }: Props) {
   const [editingDoc, setEditingDoc] = useState<BillingDocument | null>(null)
   const [uploadOpen, setUploadOpen] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; docNumber: string } | null>(null)
 
-  const handleDelete = (documentId: string, docNumber: string) => {
-    if (!confirm(`ต้องการลบเอกสาร ${docNumber} ใช่หรือไม่?`)) return
-    deleteMutation.mutate(documentId, {
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return
+    const { id, docNumber } = deleteTarget
+    deleteMutation.mutate(id, {
       onSuccess: () => toast.success(`ลบเอกสาร ${docNumber} เรียบร้อย`),
     })
+    setDeleteTarget(null)
   }
 
   return (
@@ -136,7 +140,9 @@ export function DocumentList({ customerId }: Props) {
                       <Button
                         variant="ghost"
                         size="icon-sm"
-                        onClick={() => handleDelete(doc.id, doc.documentNumber)}
+                        onClick={() =>
+                          setDeleteTarget({ id: doc.id, docNumber: doc.documentNumber })
+                        }
                         disabled={deleteMutation.isPending}
                       >
                         <Trash2 className="text-destructive size-4" />
@@ -178,6 +184,14 @@ export function DocumentList({ customerId }: Props) {
         customerId={customerId}
         open={createOpen}
         onOpenChange={setCreateOpen}
+      />
+
+      <ConfirmAlert
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleConfirmDelete}
+        title="ยืนยันการลบเอกสาร"
+        message={`ต้องการลบเอกสาร ${deleteTarget?.docNumber ?? ''} ใช่หรือไม่?`}
       />
     </Card>
   )

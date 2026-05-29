@@ -74,6 +74,7 @@ export function generateStandaloneDocumentUseCase(deps: DocumentGenerationDeps) 
       type: input.type,
       pdfUrl,
       totalAmount,
+      items: input.items,
       note: input.note ?? null,
       billingCycleId: null,
     })

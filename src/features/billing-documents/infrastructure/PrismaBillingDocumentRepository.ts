@@ -1,8 +1,10 @@
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/infrastructure/prisma/client'
 import type {
   BillingDocument,
   AdminBillingDocument,
   BillingDocumentWithCycle,
+  DocumentLineItem,
 } from '../domain/BillingDocument'
 import type { BillingDocumentType } from '../domain/DocumentType'
 import { getNextDocumentNumber as getNextDocNum } from '../domain/policies/document-number'
@@ -20,6 +22,7 @@ function toBillingDocument(row: {
   type: string
   pdfUrl: string
   totalAmount: unknown
+  items?: unknown
   note: string | null
   generatedAt: Date
   customerId: string | null
@@ -30,6 +33,7 @@ function toBillingDocument(row: {
     ...row,
     type: row.type as BillingDocumentType,
     totalAmount: Number(row.totalAmount),
+    items: (row.items as DocumentLineItem[] | null) ?? null,
     customerName: row.customerName ?? null,
   }
 }
@@ -42,6 +46,7 @@ export class PrismaBillingDocumentRepository implements BillingDocumentRepositor
         type: input.type,
         pdfUrl: input.pdfUrl,
         totalAmount: input.totalAmount,
+        items: input.items as Prisma.InputJsonValue,
         note: input.note,
         customerId: input.customerId,
         customerName: input.customerName ?? null,
@@ -95,6 +100,7 @@ export class PrismaBillingDocumentRepository implements BillingDocumentRepositor
         type: input.type,
         pdfUrl: input.pdfUrl,
         totalAmount: input.totalAmount,
+        items: input.items as Prisma.InputJsonValue,
         note: input.note,
       },
     })
@@ -181,10 +187,11 @@ export class PrismaBillingDocumentRepository implements BillingDocumentRepositor
   }
 
   async searchCustomers(query: string): Promise<CustomerForDocument[]> {
+    const trimmed = query.trim()
     return prisma.customer.findMany({
-      where: {
-        OR: [{ name: { contains: query } }, { domain: { contains: query } }],
-      },
+      where: trimmed
+        ? { OR: [{ name: { contains: trimmed } }, { domain: { contains: trimmed } }] }
+        : undefined,
       select: {
         id: true,
         name: true,
@@ -193,7 +200,8 @@ export class PrismaBillingDocumentRepository implements BillingDocumentRepositor
         taxId: true,
         contactName: true,
       },
-      take: 20,
+      orderBy: { name: 'asc' },
+      take: 50,
     }) as Promise<CustomerForDocument[]>
   }
 }

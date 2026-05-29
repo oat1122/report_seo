@@ -1,11 +1,19 @@
 import type { BillingDocumentType } from './DocumentType'
 
+export interface DocumentLineItem {
+  description: string
+  quantity: number
+  unit: string
+  unitPrice: number
+}
+
 export interface BillingDocument {
   id: string
   documentNumber: string
   type: BillingDocumentType
   pdfUrl: string
   totalAmount: number
+  items: DocumentLineItem[] | null
   note: string | null
   generatedAt: Date
   customerId: string | null

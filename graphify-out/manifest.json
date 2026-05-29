@@ -100,9 +100,9 @@
     "semantic_hash": "f20738540f52a50bd1e8dca5609d6c22"
   },
   "E:\\report_seo\\src\\app\\admin\\customers\\[userId]\\documents\\page.tsx": {
-    "mtime": 1779933199.9100733,
-    "ast_hash": "c37702ad2f3267166d1df00f24679d46",
-    "semantic_hash": "c37702ad2f3267166d1df00f24679d46"
+    "mtime": 1780025988.4220662,
+    "ast_hash": "a96bdf9ebf1f8d934d3668d7f8dcb559",
+    "semantic_hash": "a96bdf9ebf1f8d934d3668d7f8dcb559"
   },
   "E:\\report_seo\\src\\app\\admin\\customers\\[userId]\\payments\\page.tsx": {
     "mtime": 1779933199.9276145,
@@ -118,11 +118,6 @@
     "mtime": 1779933199.9514565,
     "ast_hash": "e712d88cca32103aa23056b757b0c2e5",
     "semantic_hash": "e712d88cca32103aa23056b757b0c2e5"
-  },
-  "E:\\report_seo\\src\\app\\admin\\document-templates\\page.tsx": {
-    "mtime": 1779933199.9712389,
-    "ast_hash": "ddc24dc8e0e778033e58bf141573019b",
-    "semantic_hash": "ddc24dc8e0e778033e58bf141573019b"
   },
   "E:\\report_seo\\src\\app\\admin\\documents\\page.tsx": {
     "mtime": 1779933199.9617076,
@@ -168,21 +163,6 @@
     "mtime": 1779933200.0793345,
     "ast_hash": "0d681184203ed408992ee6becaf4428c",
     "semantic_hash": "0d681184203ed408992ee6becaf4428c"
-  },
-  "E:\\report_seo\\src\\app\\api\\admin\\document-templates\\route.ts": {
-    "mtime": 1779933200.0903745,
-    "ast_hash": "3a7b500b11f83d1ece5e9109caca3aa9",
-    "semantic_hash": "3a7b500b11f83d1ece5e9109caca3aa9"
-  },
-  "E:\\report_seo\\src\\app\\api\\admin\\document-templates\\[templateId]\\route.ts": {
-    "mtime": 1779933200.1224701,
-    "ast_hash": "66b8db4c222347989fb81781fa9aea47",
-    "semantic_hash": "66b8db4c222347989fb81781fa9aea47"
-  },
-  "E:\\report_seo\\src\\app\\api\\admin\\document-templates\\[templateId]\\items\\route.ts": {
-    "mtime": 1779933200.1129465,
-    "ast_hash": "ed27d12793e6a8997bce20d810618d75",
-    "semantic_hash": "ed27d12793e6a8997bce20d810618d75"
   },
   "E:\\report_seo\\src\\app\\api\\admin\\hub-summary\\route.ts": {
     "mtime": 1779933200.134616,
@@ -238,21 +218,6 @@
     "mtime": 1779933200.301011,
     "ast_hash": "5011acdb351cf5c2ec28b80852b9cc62",
     "semantic_hash": "5011acdb351cf5c2ec28b80852b9cc62"
-  },
-  "E:\\report_seo\\src\\app\\api\\customers\\[customerId]\\billing-documents\\by-cycles\\route.ts": {
-    "mtime": 1779933200.241414,
-    "ast_hash": "c7beaef6b4fbb803794149671facd254",
-    "semantic_hash": "c7beaef6b4fbb803794149671facd254"
-  },
-  "E:\\report_seo\\src\\app\\api\\customers\\[customerId]\\billing-documents\\generate\\route.ts": {
-    "mtime": 1779933200.2794504,
-    "ast_hash": "06bc4f03671176431982435bc2d7803f",
-    "semantic_hash": "06bc4f03671176431982435bc2d7803f"
-  },
-  "E:\\report_seo\\src\\app\\api\\customers\\[customerId]\\billing-documents\\generate-all\\route.ts": {
-    "mtime": 1779933200.2674396,
-    "ast_hash": "a84ffc111b42e531c335c47a675f68fe",
-    "semantic_hash": "a84ffc111b42e531c335c47a675f68fe"
   },
   "E:\\report_seo\\src\\app\\api\\customers\\[customerId]\\billing-documents\\[documentId]\\route.ts": {
     "mtime": 1779933200.2549305,
@@ -995,9 +960,9 @@
     "semantic_hash": "086966479191102877b9dc031c659d3f"
   },
   "E:\\report_seo\\src\\features\\admin-hub\\presentation\\components\\QuickNavSection.tsx": {
-    "mtime": 1779933202.4642868,
-    "ast_hash": "3d6d6dc24e6ba669362ccbb0b84ecb5f",
-    "semantic_hash": "3d6d6dc24e6ba669362ccbb0b84ecb5f"
+    "mtime": 1780025991.7361817,
+    "ast_hash": "db4fa5b5292e396214faf0b106c8dc9a",
+    "semantic_hash": "db4fa5b5292e396214faf0b106c8dc9a"
   },
   "E:\\report_seo\\src\\features\\admin-hub\\presentation\\hooks\\useAdminHub.ts": {
     "mtime": 1779933202.4806664,
@@ -1085,14 +1050,9 @@
     "semantic_hash": "5a8242a503c51551eda70c24727e7d78"
   },
   "E:\\report_seo\\src\\features\\billing-documents\\index.ts": {
-    "mtime": 1779933202.9703898,
-    "ast_hash": "03dbbc49880354b3bb79725067827000",
-    "semantic_hash": "03dbbc49880354b3bb79725067827000"
-  },
-  "E:\\report_seo\\src\\features\\billing-documents\\application\\ports\\BillingCycleProvider.ts": {
-    "mtime": 1779933202.699723,
-    "ast_hash": "3f50ab321343687d1a95f1bc27d24aa3",
-    "semantic_hash": "3f50ab321343687d1a95f1bc27d24aa3"
+    "mtime": 1780025779.849852,
+    "ast_hash": "d7d4b7a78cadc5563dd04d8bd67d6399",
+    "semantic_hash": "d7d4b7a78cadc5563dd04d8bd67d6399"
   },
   "E:\\report_seo\\src\\features\\billing-documents\\application\\ports\\BillingDocumentRepository.ts": {
     "mtime": 1779933202.7161074,
@@ -1100,14 +1060,9 @@
     "semantic_hash": "0578864334f8baf40bb2e47cb88d148e"
   },
   "E:\\report_seo\\src\\features\\billing-documents\\application\\ports\\DocumentStorage.ts": {
-    "mtime": 1779933202.7226276,
-    "ast_hash": "4b1075e98fa81b49d55bb6366da4b129",
-    "semantic_hash": "4b1075e98fa81b49d55bb6366da4b129"
-  },
-  "E:\\report_seo\\src\\features\\billing-documents\\application\\ports\\DocumentTemplateRepository.ts": {
-    "mtime": 1779933202.7296352,
-    "ast_hash": "30042c79b0f9daa61a9fc5a77414e588",
-    "semantic_hash": "30042c79b0f9daa61a9fc5a77414e588"
+    "mtime": 1780025734.7615917,
+    "ast_hash": "07e16817957f8db4329dc9165d3ef2d0",
+    "semantic_hash": "07e16817957f8db4329dc9165d3ef2d0"
   },
   "E:\\report_seo\\src\\features\\billing-documents\\application\\ports\\PdfRenderer.ts": {
     "mtime": 1779933202.73647,
@@ -1119,20 +1074,10 @@
     "ast_hash": "3ceedca90332cacef0c4ebf35b677317",
     "semantic_hash": "3ceedca90332cacef0c4ebf35b677317"
   },
-  "E:\\report_seo\\src\\features\\billing-documents\\application\\use-cases\\generateAllForCycle.ts": {
-    "mtime": 1779933202.8235562,
-    "ast_hash": "a4921177f8648f3ec227b6e8b3b0b24e",
-    "semantic_hash": "a4921177f8648f3ec227b6e8b3b0b24e"
-  },
-  "E:\\report_seo\\src\\features\\billing-documents\\application\\use-cases\\generateDocument.ts": {
-    "mtime": 1779933202.8396235,
-    "ast_hash": "c4085766792812bb07c5e4545d614546",
-    "semantic_hash": "c4085766792812bb07c5e4545d614546"
-  },
   "E:\\report_seo\\src\\features\\billing-documents\\application\\use-cases\\generateStandaloneDocument.ts": {
-    "mtime": 1779933202.8524964,
-    "ast_hash": "0632de0a28a3bcbe123a249451a365f0",
-    "semantic_hash": "0632de0a28a3bcbe123a249451a365f0"
+    "mtime": 1780025708.1783228,
+    "ast_hash": "c63907c861edd387968ee78db4d492ae",
+    "semantic_hash": "c63907c861edd387968ee78db4d492ae"
   },
   "E:\\report_seo\\src\\features\\billing-documents\\application\\use-cases\\getDocument.ts": {
     "mtime": 1779933202.8594985,
@@ -1149,55 +1094,15 @@
     "ast_hash": "b924824607da8516d3aa8d1067f7de9c",
     "semantic_hash": "b924824607da8516d3aa8d1067f7de9c"
   },
-  "E:\\report_seo\\src\\features\\billing-documents\\application\\use-cases\\listDocumentsByCycles.ts": {
-    "mtime": 1779933202.8761795,
-    "ast_hash": "b49909258aa39890dd6545a00fdd08de",
-    "semantic_hash": "b49909258aa39890dd6545a00fdd08de"
-  },
   "E:\\report_seo\\src\\features\\billing-documents\\application\\use-cases\\updateDocument.ts": {
-    "mtime": 1779933202.900768,
-    "ast_hash": "9299fd36ee92d91499970f58a0735fb0",
-    "semantic_hash": "9299fd36ee92d91499970f58a0735fb0"
-  },
-  "E:\\report_seo\\src\\features\\billing-documents\\application\\use-cases\\document-templates\\createTemplate.ts": {
-    "mtime": 1779933202.7612977,
-    "ast_hash": "3cb46040a29695e85b5cec061f1181ce",
-    "semantic_hash": "3cb46040a29695e85b5cec061f1181ce"
-  },
-  "E:\\report_seo\\src\\features\\billing-documents\\application\\use-cases\\document-templates\\deleteTemplate.ts": {
-    "mtime": 1779933202.7696605,
-    "ast_hash": "d3548246aebdd36a46c44d7e3d8bd4c2",
-    "semantic_hash": "d3548246aebdd36a46c44d7e3d8bd4c2"
-  },
-  "E:\\report_seo\\src\\features\\billing-documents\\application\\use-cases\\document-templates\\getTemplate.ts": {
-    "mtime": 1779933202.7776775,
-    "ast_hash": "5214a927e6d1a7458f390d26269f2e77",
-    "semantic_hash": "5214a927e6d1a7458f390d26269f2e77"
-  },
-  "E:\\report_seo\\src\\features\\billing-documents\\application\\use-cases\\document-templates\\listTemplates.ts": {
-    "mtime": 1779933202.7862022,
-    "ast_hash": "1cc967eeb689779d7fd54c046b99a0ec",
-    "semantic_hash": "1cc967eeb689779d7fd54c046b99a0ec"
-  },
-  "E:\\report_seo\\src\\features\\billing-documents\\application\\use-cases\\document-templates\\updateTemplate.ts": {
-    "mtime": 1779933202.7937367,
-    "ast_hash": "731a9608d4ec5b294c304079960b4e18",
-    "semantic_hash": "731a9608d4ec5b294c304079960b4e18"
-  },
-  "E:\\report_seo\\src\\features\\billing-documents\\application\\use-cases\\document-templates\\upsertTemplateItems.ts": {
-    "mtime": 1779933202.803508,
-    "ast_hash": "d9c0d2cad5e4a0668555b2439f76d125",
-    "semantic_hash": "d9c0d2cad5e4a0668555b2439f76d125"
+    "mtime": 1780025715.4411516,
+    "ast_hash": "1aae7a002994225e214aa9cadfc9d852",
+    "semantic_hash": "1aae7a002994225e214aa9cadfc9d852"
   },
   "E:\\report_seo\\src\\features\\billing-documents\\domain\\BillingDocument.ts": {
     "mtime": 1779933202.914311,
     "ast_hash": "1a1c20e624d2aeb879c034efc60fee99",
     "semantic_hash": "1a1c20e624d2aeb879c034efc60fee99"
-  },
-  "E:\\report_seo\\src\\features\\billing-documents\\domain\\DocumentTemplate.ts": {
-    "mtime": 1779933202.9217708,
-    "ast_hash": "5bfdea12a79b7071d5c23a434334f5ca",
-    "semantic_hash": "5bfdea12a79b7071d5c23a434334f5ca"
   },
   "E:\\report_seo\\src\\features\\billing-documents\\domain\\DocumentType.ts": {
     "mtime": 1779933202.9292798,
@@ -1210,24 +1115,14 @@
     "semantic_hash": "dbdb967c1a4e314a9c67a1f2c649caee"
   },
   "E:\\report_seo\\src\\features\\billing-documents\\infrastructure\\LocalDocumentStorage.ts": {
-    "mtime": 1779933202.9834816,
-    "ast_hash": "2c2182b22e6571ab556ac73da8f65e16",
-    "semantic_hash": "2c2182b22e6571ab556ac73da8f65e16"
-  },
-  "E:\\report_seo\\src\\features\\billing-documents\\infrastructure\\PrismaBillingCycleProvider.ts": {
-    "mtime": 1779933202.9935453,
-    "ast_hash": "f938dd5cbe48c3ef7d356c135269bba0",
-    "semantic_hash": "f938dd5cbe48c3ef7d356c135269bba0"
+    "mtime": 1780025740.4776542,
+    "ast_hash": "edd8484c143c2409bef0a437fe1a676e",
+    "semantic_hash": "edd8484c143c2409bef0a437fe1a676e"
   },
   "E:\\report_seo\\src\\features\\billing-documents\\infrastructure\\PrismaBillingDocumentRepository.ts": {
     "mtime": 1779933203.0237477,
     "ast_hash": "9817dc9deed77cd5601683edd076fde3",
     "semantic_hash": "9817dc9deed77cd5601683edd076fde3"
-  },
-  "E:\\report_seo\\src\\features\\billing-documents\\infrastructure\\PrismaDocumentTemplateRepository.ts": {
-    "mtime": 1779933203.0485773,
-    "ast_hash": "972b9c0dda9f61ebfe9d4df15aa8c3be",
-    "semantic_hash": "972b9c0dda9f61ebfe9d4df15aa8c3be"
   },
   "E:\\report_seo\\src\\features\\billing-documents\\infrastructure\\PuppeteerPdfRenderer.ts": {
     "mtime": 1779933203.0557795,
@@ -1240,24 +1135,24 @@
     "semantic_hash": "fd3de1d6385767fc1e2d1afd61ffd669"
   },
   "E:\\report_seo\\src\\features\\billing-documents\\infrastructure\\templates\\billing-note.ts": {
-    "mtime": 1779933203.093137,
-    "ast_hash": "f7cee2c0e5a7497ab0ce5d2f5f901585",
-    "semantic_hash": "f7cee2c0e5a7497ab0ce5d2f5f901585"
+    "mtime": 1780025694.1258676,
+    "ast_hash": "9dc562444c034fcbb2e049ec52c201d8",
+    "semantic_hash": "9dc562444c034fcbb2e049ec52c201d8"
   },
   "E:\\report_seo\\src\\features\\billing-documents\\infrastructure\\templates\\invoice.ts": {
-    "mtime": 1779933203.1234941,
-    "ast_hash": "48d4149f4ff278da288c0ccb455ef7d0",
-    "semantic_hash": "48d4149f4ff278da288c0ccb455ef7d0"
+    "mtime": 1780025693.147906,
+    "ast_hash": "1fc54e3b694e2b379584efc339f5a23b",
+    "semantic_hash": "1fc54e3b694e2b379584efc339f5a23b"
   },
   "E:\\report_seo\\src\\features\\billing-documents\\infrastructure\\templates\\receipt.ts": {
-    "mtime": 1779933203.1334329,
-    "ast_hash": "ed04bf1bd56b90e209bfc9aae25338e6",
-    "semantic_hash": "ed04bf1bd56b90e209bfc9aae25338e6"
+    "mtime": 1780025691.7049394,
+    "ast_hash": "e25a61db1906958fd9e4f276dcc96bce",
+    "semantic_hash": "e25a61db1906958fd9e4f276dcc96bce"
   },
   "E:\\report_seo\\src\\features\\billing-documents\\infrastructure\\templates\\render-document.ts": {
-    "mtime": 1779933203.1409502,
-    "ast_hash": "8a44f32a16576c442a32f8927f14379e",
-    "semantic_hash": "8a44f32a16576c442a32f8927f14379e"
+    "mtime": 1780025689.3564687,
+    "ast_hash": "9889c63f930d43537426526691f96b13",
+    "semantic_hash": "9889c63f930d43537426526691f96b13"
   },
   "E:\\report_seo\\src\\features\\billing-documents\\infrastructure\\templates\\styles.ts": {
     "mtime": 1779933203.152064,
@@ -1265,9 +1160,9 @@
     "semantic_hash": "0c2c1f3f2ac481ddc8cfecfcafe83d0c"
   },
   "E:\\report_seo\\src\\features\\billing-documents\\infrastructure\\templates\\tax-invoice.ts": {
-    "mtime": 1779933203.161758,
-    "ast_hash": "a02936829304d0712b0c0d88ea9ab8bb",
-    "semantic_hash": "a02936829304d0712b0c0d88ea9ab8bb"
+    "mtime": 1780025690.753061,
+    "ast_hash": "b05ce3c7006023de32ec35bd20d1d784",
+    "semantic_hash": "b05ce3c7006023de32ec35bd20d1d784"
   },
   "E:\\report_seo\\src\\features\\billing-documents\\presentation\\components\\admin\\AdminDocumentManager.tsx": {
     "mtime": 1779933203.1845918,
@@ -1284,60 +1179,30 @@
     "ast_hash": "59b90686b2f5db09aba536115c11c1fd",
     "semantic_hash": "59b90686b2f5db09aba536115c11c1fd"
   },
-  "E:\\report_seo\\src\\features\\billing-documents\\presentation\\components\\admin\\CycleDocumentView.tsx": {
-    "mtime": 1779933203.2879527,
-    "ast_hash": "d0e29f693a629fbbeedbfbba0bf0bcea",
-    "semantic_hash": "d0e29f693a629fbbeedbfbba0bf0bcea"
-  },
-  "E:\\report_seo\\src\\features\\billing-documents\\presentation\\components\\admin\\DocumentGeneratorPanel.tsx": {
-    "mtime": 1779933203.361734,
-    "ast_hash": "6edb8b48e6eaf4fa5119022ad66f034a",
-    "semantic_hash": "6edb8b48e6eaf4fa5119022ad66f034a"
-  },
   "E:\\report_seo\\src\\features\\billing-documents\\presentation\\components\\admin\\DocumentItemsEditor.tsx": {
     "mtime": 1779933203.4073408,
     "ast_hash": "0a73457d2bafc5cee27e83890dfe2fe2",
     "semantic_hash": "0a73457d2bafc5cee27e83890dfe2fe2"
   },
   "E:\\report_seo\\src\\features\\billing-documents\\presentation\\components\\admin\\DocumentList.tsx": {
-    "mtime": 1779933203.4309185,
-    "ast_hash": "d352ab3fc7724b50e986387f604eba93",
-    "semantic_hash": "d352ab3fc7724b50e986387f604eba93"
-  },
-  "E:\\report_seo\\src\\features\\billing-documents\\presentation\\components\\admin\\DocumentTemplateEditor.tsx": {
-    "mtime": 1779933203.4693475,
-    "ast_hash": "0096bccacee20a9b89914c3b22083068",
-    "semantic_hash": "0096bccacee20a9b89914c3b22083068"
-  },
-  "E:\\report_seo\\src\\features\\billing-documents\\presentation\\components\\admin\\DocumentTemplateList.tsx": {
-    "mtime": 1779933203.4912298,
-    "ast_hash": "f669e93d342e4f4769a6349ad09682ea",
-    "semantic_hash": "f669e93d342e4f4769a6349ad09682ea"
+    "mtime": 1780025975.1408162,
+    "ast_hash": "daab4c5a5449118b0b8e0e82c54ccdcf",
+    "semantic_hash": "daab4c5a5449118b0b8e0e82c54ccdcf"
   },
   "E:\\report_seo\\src\\features\\billing-documents\\presentation\\components\\admin\\EditDocumentDialog.tsx": {
-    "mtime": 1779933203.5199068,
-    "ast_hash": "1e4ca6b08d167073baa4125bc4e43ab1",
-    "semantic_hash": "1e4ca6b08d167073baa4125bc4e43ab1"
+    "mtime": 1780025929.3992126,
+    "ast_hash": "f721dea87ff6b956cd53aa04c8366af6",
+    "semantic_hash": "f721dea87ff6b956cd53aa04c8366af6"
   },
   "E:\\report_seo\\src\\features\\billing-documents\\presentation\\components\\admin\\StandaloneDocumentCreator.tsx": {
-    "mtime": 1779933203.565951,
-    "ast_hash": "a2f93d6049fe77bb29e8c83c2b30be4d",
-    "semantic_hash": "a2f93d6049fe77bb29e8c83c2b30be4d"
-  },
-  "E:\\report_seo\\src\\features\\billing-documents\\presentation\\components\\admin\\TemplateSelector.tsx": {
-    "mtime": 1779933203.5754673,
-    "ast_hash": "68dd0770e5b00edb5d58bdbe054a5373",
-    "semantic_hash": "68dd0770e5b00edb5d58bdbe054a5373"
+    "mtime": 1780025900.8929708,
+    "ast_hash": "e5b74391171bf9a805168edc7c16d558",
+    "semantic_hash": "e5b74391171bf9a805168edc7c16d558"
   },
   "E:\\report_seo\\src\\features\\billing-documents\\presentation\\hooks\\useAllDocuments.ts": {
     "mtime": 1779933203.5893388,
     "ast_hash": "fbb34cc94fd3024bcc6c0054230f547d",
     "semantic_hash": "fbb34cc94fd3024bcc6c0054230f547d"
-  },
-  "E:\\report_seo\\src\\features\\billing-documents\\presentation\\hooks\\useBillingCyclesForDocuments.ts": {
-    "mtime": 1779933203.5963528,
-    "ast_hash": "38f7c776ca6f9c4787d35cfbbdb6bd45",
-    "semantic_hash": "38f7c776ca6f9c4787d35cfbbdb6bd45"
   },
   "E:\\report_seo\\src\\features\\billing-documents\\presentation\\hooks\\useCustomerSearch.ts": {
     "mtime": 1779933203.6048932,
@@ -1345,14 +1210,9 @@
     "semantic_hash": "84999af12006aee04c8198d3dd9fc092"
   },
   "E:\\report_seo\\src\\features\\billing-documents\\presentation\\hooks\\useDocuments.ts": {
-    "mtime": 1779933203.619405,
-    "ast_hash": "efa1e3a9301305d95ec08718ab37f0cd",
-    "semantic_hash": "efa1e3a9301305d95ec08718ab37f0cd"
-  },
-  "E:\\report_seo\\src\\features\\billing-documents\\presentation\\hooks\\useDocumentTemplates.ts": {
-    "mtime": 1779933203.635007,
-    "ast_hash": "ac6d0376a6d7936fe76d03b820a574ad",
-    "semantic_hash": "ac6d0376a6d7936fe76d03b820a574ad"
+    "mtime": 1780025853.0499525,
+    "ast_hash": "f01bfeba2206560edd41747b9f78a5a8",
+    "semantic_hash": "f01bfeba2206560edd41747b9f78a5a8"
   },
   "E:\\report_seo\\src\\features\\billing-documents\\presentation\\hooks\\useStandaloneDocument.ts": {
     "mtime": 1779933203.6559224,
@@ -1360,9 +1220,9 @@
     "semantic_hash": "b795093755a2ae2822b0eebbbfd4f444"
   },
   "E:\\report_seo\\src\\features\\billing-documents\\schemas\\index.ts": {
-    "mtime": 1779933203.6875033,
-    "ast_hash": "5b800eb782bafeddae5876e6dad194b6",
-    "semantic_hash": "5b800eb782bafeddae5876e6dad194b6"
+    "mtime": 1780025767.5428834,
+    "ast_hash": "72c0659d15b878b8b6f9d35a6912cad5",
+    "semantic_hash": "72c0659d15b878b8b6f9d35a6912cad5"
   },
   "E:\\report_seo\\src\\features\\company-settings\\index.ts": {
     "mtime": 1779933203.779764,
@@ -2070,9 +1930,9 @@
     "semantic_hash": "d6847e21a2cc55fa251d99b693526175"
   },
   "E:\\report_seo\\src\\features\\payments\\application\\ports\\PaymentRepository.ts": {
-    "mtime": 1779933205.7835052,
-    "ast_hash": "1d2a3b4595bae2344addbcabd67df9b7",
-    "semantic_hash": "1d2a3b4595bae2344addbcabd67df9b7"
+    "mtime": 1780026048.3222518,
+    "ast_hash": "a747884a98770e70107983e26e8469b4",
+    "semantic_hash": "a747884a98770e70107983e26e8469b4"
   },
   "E:\\report_seo\\src\\features\\payments\\application\\use-cases\\listPaymentProofs.ts": {
     "mtime": 1779933205.841146,
@@ -2145,9 +2005,9 @@
     "semantic_hash": "ed50e8406f7023e579ef90f67d302fd9"
   },
   "E:\\report_seo\\src\\features\\payments\\domain\\BillingCycle.ts": {
-    "mtime": 1779933205.9169004,
-    "ast_hash": "38ebbe0da5acdb07052288afdc60965a",
-    "semantic_hash": "38ebbe0da5acdb07052288afdc60965a"
+    "mtime": 1780026045.0495203,
+    "ast_hash": "ea0b4a2b981c6abf5324ec3c4deb0b29",
+    "semantic_hash": "ea0b4a2b981c6abf5324ec3c4deb0b29"
   },
   "E:\\report_seo\\src\\features\\payments\\domain\\ContractFile.ts": {
     "mtime": 1779933205.9357727,
@@ -2155,9 +2015,9 @@
     "semantic_hash": "bf4128136b09910a71732bd97b11f5f2"
   },
   "E:\\report_seo\\src\\features\\payments\\domain\\PaymentPlan.ts": {
-    "mtime": 1779933205.9438183,
-    "ast_hash": "097779ea863f6b5e2ee3833d97fe2031",
-    "semantic_hash": "097779ea863f6b5e2ee3833d97fe2031"
+    "mtime": 1780026043.1596062,
+    "ast_hash": "4c1987546bf08ca65d7a8f1365a6f655",
+    "semantic_hash": "4c1987546bf08ca65d7a8f1365a6f655"
   },
   "E:\\report_seo\\src\\features\\payments\\domain\\PaymentProof.ts": {
     "mtime": 1779933205.9503248,
@@ -2180,9 +2040,9 @@
     "semantic_hash": "bc266483be2de911acac8be6e8f85648"
   },
   "E:\\report_seo\\src\\features\\payments\\infrastructure\\PrismaPaymentRepository.ts": {
-    "mtime": 1779933206.0342276,
-    "ast_hash": "676e88c5c82e5bc9d4d037326d3aa603",
-    "semantic_hash": "676e88c5c82e5bc9d4d037326d3aa603"
+    "mtime": 1780026064.4060931,
+    "ast_hash": "ac15995aa81f824a63ad06df37a480f9",
+    "semantic_hash": "ac15995aa81f824a63ad06df37a480f9"
   },
   "E:\\report_seo\\src\\features\\payments\\presentation\\components\\admin\\BillingCycleTable.tsx": {
     "mtime": 1779933206.0651171,
@@ -2195,14 +2055,14 @@
     "semantic_hash": "4f7d0453e16b04d2fa4408f3aa657855"
   },
   "E:\\report_seo\\src\\features\\payments\\presentation\\components\\admin\\PaymentDashboard.tsx": {
-    "mtime": 1779933206.0923936,
-    "ast_hash": "970791394ae472b3e4ed3bb76ae9f9fe",
-    "semantic_hash": "970791394ae472b3e4ed3bb76ae9f9fe"
+    "mtime": 1780025985.1182094,
+    "ast_hash": "938d6eab7a17b27d8ac2067f6651e02a",
+    "semantic_hash": "938d6eab7a17b27d8ac2067f6651e02a"
   },
   "E:\\report_seo\\src\\features\\payments\\presentation\\components\\admin\\PaymentPlanForm.tsx": {
-    "mtime": 1779933206.1239858,
-    "ast_hash": "5d1f6714242bdf2f533d2ef333d7a2cc",
-    "semantic_hash": "5d1f6714242bdf2f533d2ef333d7a2cc"
+    "mtime": 1780026101.0236435,
+    "ast_hash": "cfd6419380961592c1ece31c84645d47",
+    "semantic_hash": "cfd6419380961592c1ece31c84645d47"
   },
   "E:\\report_seo\\src\\features\\payments\\presentation\\components\\admin\\PaymentPlanList.tsx": {
     "mtime": 1779933206.1482573,
@@ -3280,9 +3140,9 @@
     "semantic_hash": "2542b8c5052e6b18f31d38d21670dff9"
   },
   "E:\\report_seo\\src\\schemas\\payment.ts": {
-    "mtime": 1779933209.1672063,
-    "ast_hash": "21ee546a39a0380abcc0ee9900ec26b6",
-    "semantic_hash": "21ee546a39a0380abcc0ee9900ec26b6"
+    "mtime": 1780026041.736659,
+    "ast_hash": "81e7c1a0c0f9a129fc35c74a438be286",
+    "semantic_hash": "81e7c1a0c0f9a129fc35c74a438be286"
   },
   "E:\\report_seo\\src\\schemas\\recommendKeyword.ts": {
     "mtime": 1779933209.1767201,
@@ -3373,5 +3233,30 @@
     "mtime": 1779933209.361132,
     "ast_hash": "d97c5c24f523e8828837bb3a98d3cf03",
     "semantic_hash": "d97c5c24f523e8828837bb3a98d3cf03"
+  },
+  "E:\\report_seo\\src\\app\\api\\customers\\[customerId]\\billing-documents\\customer-info\\route.ts": {
+    "mtime": 1780025792.042956,
+    "ast_hash": "991559bef7da1c041dc4cc74c9228e73",
+    "semantic_hash": "991559bef7da1c041dc4cc74c9228e73"
+  },
+  "E:\\report_seo\\src\\app\\api\\customers\\[customerId]\\billing-documents\\upload\\route.ts": {
+    "mtime": 1780025789.5572748,
+    "ast_hash": "1e31502c0b776c2c8047e9647f60f410",
+    "semantic_hash": "1e31502c0b776c2c8047e9647f60f410"
+  },
+  "E:\\report_seo\\src\\features\\billing-documents\\application\\use-cases\\render-data.ts": {
+    "mtime": 1780025664.7255187,
+    "ast_hash": "db000f04c8f1a1424b69c6eff202e4c3",
+    "semantic_hash": "db000f04c8f1a1424b69c6eff202e4c3"
+  },
+  "E:\\report_seo\\src\\features\\billing-documents\\application\\use-cases\\uploadCustomerDocument.ts": {
+    "mtime": 1780025750.2892861,
+    "ast_hash": "91340daf790e07fe087e63bdf95af42b",
+    "semantic_hash": "91340daf790e07fe087e63bdf95af42b"
+  },
+  "E:\\report_seo\\prisma\\schema\\migrations\\20260529034430_remove_document_templates\\migration.sql": {
+    "mtime": 1780026270.6734078,
+    "ast_hash": "b637ba7209eecc45048a229be2ee25e2",
+    "semantic_hash": "b637ba7209eecc45048a229be2ee25e2"
   }
 }

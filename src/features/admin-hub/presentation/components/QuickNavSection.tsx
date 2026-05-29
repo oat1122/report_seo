@@ -8,7 +8,6 @@ import {
   FileBarChart,
   Building2,
   FileText,
-  FilePlus,
 } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -43,12 +42,6 @@ const navItems = [
     label: 'จัดการเอกสาร',
     href: '/admin/documents',
     icon: FileText,
-    disabled: false,
-  },
-  {
-    label: 'สร้างเอกสารใหม่',
-    href: '/admin/create-document',
-    icon: FilePlus,
     disabled: false,
   },
   {

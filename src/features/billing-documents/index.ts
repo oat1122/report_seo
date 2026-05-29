@@ -64,6 +64,7 @@ export type {
   BillingDocument,
   BillingDocumentWithCycle,
   AdminBillingDocument,
+  DocumentLineItem,
 } from './domain/BillingDocument'
 export type { BillingDocumentType } from './domain/DocumentType'
 export { DOCUMENT_TYPE_LABELS } from './domain/DocumentType'
