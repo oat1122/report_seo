@@ -5,6 +5,7 @@ import { renderDocumentHtml } from './infrastructure/templates/render-document'
 import { getCompanySettings } from '@/features/company-settings'
 
 import { generateStandaloneDocumentUseCase } from './application/use-cases/generateStandaloneDocument'
+import { generateCycleInvoicePdfUseCase } from './application/use-cases/generateCycleInvoicePdf'
 import { uploadCustomerDocumentUseCase } from './application/use-cases/uploadCustomerDocument'
 import { listDocumentsUseCase } from './application/use-cases/listDocuments'
 import { getDocumentUseCase } from './application/use-cases/getDocument'
@@ -28,6 +29,7 @@ const commonDeps = {
 
 // Documents
 export const generateStandaloneDocument = generateStandaloneDocumentUseCase(commonDeps)
+export const generateCycleInvoicePdf = generateCycleInvoicePdfUseCase(commonDeps)
 export const uploadCustomerDocument = uploadCustomerDocumentUseCase({ repo, storage })
 export const listDocuments = listDocumentsUseCase(repo)
 export const getDocument = getDocumentUseCase(repo)

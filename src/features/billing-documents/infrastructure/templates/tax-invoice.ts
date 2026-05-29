@@ -8,13 +8,11 @@ import {
   renderNote,
   renderSignatureFooter,
 } from './base-template'
-
-const VAT_RATE = 0.07
+import { computeVatBreakdown } from '../../domain/vat'
 
 export function renderTaxInvoice(data: RenderData): string {
   const subtotal = data.items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)
-  const vat = subtotal * VAT_RATE
-  const grandTotal = subtotal + vat
+  const { vat, grandTotal } = computeVatBreakdown(subtotal)
 
   const body = `
     ${renderCompanyHeader(data.company, 'ใบกำกับภาษี', data.documentNumber, data.generatedAt)}

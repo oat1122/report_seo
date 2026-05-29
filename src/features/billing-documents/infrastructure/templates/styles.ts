@@ -329,6 +329,15 @@ export const documentStyles = `
     justify-content: flex-end;
     margin-top: 10px;
   }
+  .new-totals-box {
+    width: 240px;
+  }
+  .new-subtotal-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    color: #555;
+  }
   .new-grand-total {
     border-top: 1px solid #00b4a4;
     border-bottom: 1px solid #00b4a4;

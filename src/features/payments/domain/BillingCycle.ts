@@ -26,4 +26,6 @@ export interface BillingCycleWithPlan extends BillingCycle {
     type: string
   }
   proofs: PaymentProof[]
+  // มีเอกสารชนิดใบแจ้งหนี้ (INVOICE) ผูกกับงวดนี้แล้วหรือยัง — ใช้คุมปุ่มโหลดใบแจ้งหนี้ฝั่งลูกค้า
+  hasInvoiceDocument: boolean
 }

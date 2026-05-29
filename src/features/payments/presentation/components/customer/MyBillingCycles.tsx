@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Clock, CheckCircle, AlertTriangle, XCircle, Search } from 'lucide-react'
+import { Clock, CheckCircle, AlertTriangle, XCircle, Search, Download, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
@@ -14,7 +14,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { useListBillingCycles } from '../../hooks/useBillingCycles'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { useListBillingCycles, useDownloadCycleInvoice } from '../../hooks/useBillingCycles'
 import { UploadProofDialog } from './UploadProofDialog'
 
 interface MyBillingCyclesProps {
@@ -54,6 +60,7 @@ function formatCurrency(amount: number): string {
 export function MyBillingCycles({ customerId }: MyBillingCyclesProps) {
   const [uploadCycleId, setUploadCycleId] = useState<string | null>(null)
   const { data: cycles, isLoading } = useListBillingCycles(customerId)
+  const downloadInvoice = useDownloadCycleInvoice(customerId)
 
   if (isLoading) {
     return <Skeleton className="h-64 w-full" />
@@ -88,6 +95,8 @@ export function MyBillingCycles({ customerId }: MyBillingCyclesProps) {
               {cycles.map((cycle) => {
                 const config = STATUS_CONFIG[cycle.status] ?? STATUS_CONFIG.PENDING
                 const Icon = config.icon
+                const isDownloading =
+                  downloadInvoice.isPending && downloadInvoice.variables?.cycleId === cycle.id
                 return (
                   <TableRow key={cycle.id}>
                     <TableCell className="font-medium">{cycle.cycleNumber}</TableCell>
@@ -103,15 +112,53 @@ export function MyBillingCycles({ customerId }: MyBillingCyclesProps) {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      {(cycle.status === 'PENDING' || cycle.status === 'OVERDUE') && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setUploadCycleId(cycle.id)}
-                        >
-                          อัปโหลดหลักฐาน
-                        </Button>
-                      )}
+                      <div className="flex justify-end gap-2">
+                        {(cycle.status === 'PENDING' || cycle.status === 'OVERDUE') && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={!cycle.hasInvoiceDocument}
+                            title={
+                              cycle.hasInvoiceDocument
+                                ? undefined
+                                : 'ยังไม่มีใบแจ้งหนี้สำหรับงวดนี้'
+                            }
+                            onClick={() => setUploadCycleId(cycle.id)}
+                          >
+                            อัปโหลดหลักฐาน
+                          </Button>
+                        )}
+                        {cycle.hasInvoiceDocument && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button size="sm" variant="outline" disabled={isDownloading}>
+                                {isDownloading ? (
+                                  <Loader2 className="size-4 animate-spin" />
+                                ) : (
+                                  <Download className="size-4" />
+                                )}
+                                ใบแจ้งหนี้
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  downloadInvoice.mutate({ cycleId: cycle.id, includeVat: false })
+                                }
+                              >
+                                ไม่รวม VAT
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  downloadInvoice.mutate({ cycleId: cycle.id, includeVat: true })
+                                }
+                              >
+                                รวม VAT 7%
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 )

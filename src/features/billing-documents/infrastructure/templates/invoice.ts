@@ -6,9 +6,35 @@ import {
   escapeHtml,
   resolveLogoSrc,
 } from './base-template'
+import { computeVatBreakdown } from '../../domain/vat'
 
 export function renderInvoice(data: RenderData): string {
   const subtotal = data.items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)
+
+  const totalsHtml = data.includeVat
+    ? (() => {
+        const { vat, grandTotal } = computeVatBreakdown(subtotal)
+        return `
+          <div class="new-totals-box">
+            <div class="new-subtotal-row">
+              <span>Subtotal</span>
+              <span>${formatCurrency(subtotal)}</span>
+            </div>
+            <div class="new-subtotal-row">
+              <span>VAT 7%</span>
+              <span>${formatCurrency(vat)}</span>
+            </div>
+            <div class="new-grand-total">
+              <span class="label">Grand Total</span>
+              <span class="value">${formatCurrency(grandTotal)}</span>
+            </div>
+          </div>`
+      })()
+    : `
+          <div class="new-grand-total">
+            <span class="label">Grand Total</span>
+            <span class="value">${formatCurrency(subtotal)}</span>
+          </div>`
 
   const logoHtml = data.company.logoUrl
     ? `<img src="${escapeHtml(resolveLogoSrc(data.company.logoUrl))}" class="new-logo" alt="logo" />`
@@ -39,6 +65,7 @@ export function renderInvoice(data: RenderData): string {
           <h1>INVOICE</h1>
           <p>No. ${escapeHtml(data.documentNumber)}</p>
           <p>Date. ${formatDate(data.generatedAt)}</p>
+          ${data.dueDate ? `<p>วันครบกำหนด ${formatDate(data.dueDate)}</p>` : ''}
         </div>
         <div class="new-header-right">
           ${logoHtml}
@@ -132,10 +159,7 @@ export function renderInvoice(data: RenderData): string {
         </table>
         
         <div class="new-totals-section">
-          <div class="new-grand-total">
-            <span class="label">Grand Total</span>
-            <span class="value">${formatCurrency(subtotal)}</span>
-          </div>
+          ${totalsHtml}
         </div>
       </div>
 

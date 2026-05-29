@@ -204,6 +204,7 @@ export class PrismaPaymentRepository implements PaymentRepository {
       include: {
         plan: { select: { id: true, description: true, type: true } },
         proofs: { orderBy: { uploadDate: 'desc' } },
+        documents: { where: { type: 'INVOICE' }, select: { id: true }, take: 1 },
       },
       orderBy: { cycleNumber: 'asc' },
     })
@@ -215,6 +216,7 @@ export class PrismaPaymentRepository implements PaymentRepository {
         ...p,
         billingCycleId: p.billingCycleId ?? null,
       })),
+      hasInvoiceDocument: r.documents.length > 0,
     }))
   }
 
@@ -224,6 +226,7 @@ export class PrismaPaymentRepository implements PaymentRepository {
       include: {
         plan: { select: { id: true, description: true, type: true } },
         proofs: { orderBy: { uploadDate: 'desc' } },
+        documents: { where: { type: 'INVOICE' }, select: { id: true }, take: 1 },
       },
       orderBy: { dueDate: 'asc' },
     })
@@ -235,6 +238,7 @@ export class PrismaPaymentRepository implements PaymentRepository {
         ...p,
         billingCycleId: p.billingCycleId ?? null,
       })),
+      hasInvoiceDocument: r.documents.length > 0,
     }))
   }
 

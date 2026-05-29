@@ -26,6 +26,8 @@ export interface RenderData {
   dueDate: string | null
   paidDate: string | null
   generatedAt: Date
+  // INVOICE: เลือกแสดงยอดแบบรวม VAT 7% หรือไม่ (เอกสารชนิดอื่นไม่ใช้)
+  includeVat?: boolean
 }
 
 export interface DocumentGenerationDeps {
