@@ -58,6 +58,10 @@ export function renderInvoice(data: RenderData): string {
               <td class="value">: ${escapeHtml(data.customer.phone || '-')}</td>
             </tr>
             <tr>
+              <td class="label">Mail</td>
+              <td class="value">: ${escapeHtml(data.customer.email || '-')}</td>
+            </tr>
+            <tr>
               <td class="label" style="vertical-align: top;">Address</td>
               <td class="value">: ${escapeHtml(addressLine || '-')}</td>
             </tr>

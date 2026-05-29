@@ -10,6 +10,7 @@ import { listDocumentsUseCase } from './application/use-cases/listDocuments'
 import { getDocumentUseCase } from './application/use-cases/getDocument'
 import { deleteDocumentUseCase } from './application/use-cases/deleteDocument'
 import { updateDocumentUseCase } from './application/use-cases/updateDocument'
+import { assignDocumentToCycleUseCase } from './application/use-cases/assignDocumentToCycle'
 import { listAllDocumentsUseCase } from './application/use-cases/listAllDocuments'
 import { updateCustomerInfoUseCase } from './application/use-cases/updateCustomerInfo'
 
@@ -32,6 +33,7 @@ export const listDocuments = listDocumentsUseCase(repo)
 export const getDocument = getDocumentUseCase(repo)
 export const deleteDocument = deleteDocumentUseCase(repo, storage)
 export const updateDocument = updateDocumentUseCase(commonDeps)
+export const assignDocumentToCycle = assignDocumentToCycleUseCase({ repo })
 export const listAllDocuments = listAllDocumentsUseCase(repo)
 
 export async function searchCustomers(query: string) {
@@ -51,6 +53,7 @@ export {
   listAllDocumentsQuerySchema,
   generateStandaloneDocumentSchema,
   uploadDocumentSchema,
+  assignDocumentCycleSchema,
   searchCustomersQuerySchema,
   updateCustomerInfoSchema,
 } from './schemas'
@@ -60,6 +63,7 @@ export type {
   ListAllDocumentsQuery,
   GenerateStandaloneDocumentInput,
   UploadDocumentInput,
+  AssignDocumentCycleInput,
   SearchCustomersQuery,
   UpdateCustomerInfoInput,
 } from './schemas'

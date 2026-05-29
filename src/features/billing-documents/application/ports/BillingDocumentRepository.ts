@@ -15,6 +15,8 @@ export interface CreateDocumentInput {
   totalAmount: number
   items: DocumentLineItem[]
   note?: string | null
+  dueDate?: Date | null
+  paidDate?: Date | null
   billingCycleId?: string | null
 }
 
@@ -24,6 +26,9 @@ export interface UpdateDocumentInput {
   totalAmount: number
   items: DocumentLineItem[]
   note?: string | null
+  dueDate?: Date | null
+  paidDate?: Date | null
+  customerName?: string | null
 }
 
 export interface AllDocumentsFilter {
@@ -40,6 +45,7 @@ export interface CustomerForDocument {
   taxId: string | null
   contactName: string | null
   phone: string | null
+  email: string | null
 }
 
 export interface UpdateCustomerInfoInput {
@@ -63,6 +69,10 @@ export interface BillingDocumentRepository {
   getNextDocumentNumber(type: BillingDocumentType, year: number): Promise<string>
 
   updateDocument(documentId: string, input: UpdateDocumentInput): Promise<BillingDocument>
+
+  setDocumentCycle(documentId: string, billingCycleId: string | null): Promise<BillingDocument>
+
+  cycleBelongsToCustomer(cycleId: string, customerId: string): Promise<boolean>
 
   listAllDocuments(filters?: AllDocumentsFilter): Promise<AdminBillingDocument[]>
 

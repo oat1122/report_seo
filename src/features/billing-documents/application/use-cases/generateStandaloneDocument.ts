@@ -40,6 +40,11 @@ export function generateStandaloneDocumentUseCase(deps: DocumentGenerationDeps) 
 
     const totalAmount = input.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
 
+    // email บนเอกสารดึงจากบัญชี User ของลูกค้า (read-only) — เฉพาะกรณีเลือกลูกค้าจากระบบ
+    const dbCustomer = input.customerId
+      ? await deps.repo.getCustomerForDocument(input.customerId)
+      : null
+
     const now = new Date()
     const renderData: RenderData = {
       type: input.type,
@@ -51,6 +56,7 @@ export function generateStandaloneDocumentUseCase(deps: DocumentGenerationDeps) 
         taxId: input.customer.taxId ?? null,
         contactName: input.customer.contactName ?? null,
         phone: input.customer.phone ?? null,
+        email: dbCustomer?.email ?? null,
       },
       items: input.items.map((i) => ({
         description: i.description,
@@ -78,6 +84,8 @@ export function generateStandaloneDocumentUseCase(deps: DocumentGenerationDeps) 
       totalAmount,
       items: input.items,
       note: input.note ?? null,
+      dueDate: input.dueDate ? new Date(input.dueDate) : null,
+      paidDate: input.paidDate ? new Date(input.paidDate) : null,
       billingCycleId: null,
     })
   }

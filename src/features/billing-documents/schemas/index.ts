@@ -2,6 +2,15 @@ import { z } from 'zod'
 
 const documentTypeSchema = z.enum(['BILLING_NOTE', 'INVOICE', 'RECEIPT', 'TAX_INVOICE'])
 
+// ข้อมูลลูกค้าบนเอกสาร — ใช้ทั้งตอนสร้าง (standalone) และตอนแก้ไข
+export const standaloneCustomerSchema = z.object({
+  name: z.string().trim().min(1, 'กรุณาระบุชื่อลูกค้า'),
+  address: z.string().trim().nullable().optional(),
+  taxId: z.string().trim().nullable().optional(),
+  contactName: z.string().trim().nullable().optional(),
+  phone: z.string().trim().nullable().optional(),
+})
+
 // --- Document Update (regenerate PDF from manual items) ---
 
 export const updateDocumentItemSchema = z.object({
@@ -16,6 +25,8 @@ export const updateDocumentSchema = z.object({
   note: z.string().trim().max(500).nullable().optional(),
   dueDate: z.string().nullable().optional(),
   paidDate: z.string().nullable().optional(),
+  // ข้อมูลลูกค้าที่แก้บนเอกสาร (optional) — ถ้าไม่ส่งจะ render จากข้อมูลใน DB
+  customer: standaloneCustomerSchema.optional(),
   items: z.array(updateDocumentItemSchema).min(1, 'ต้องมีอย่างน้อย 1 รายการ'),
 })
 
@@ -26,14 +37,6 @@ export const listAllDocumentsQuerySchema = z.object({
 })
 
 // --- Standalone Document ---
-
-export const standaloneCustomerSchema = z.object({
-  name: z.string().trim().min(1, 'กรุณาระบุชื่อลูกค้า'),
-  address: z.string().trim().nullable().optional(),
-  taxId: z.string().trim().nullable().optional(),
-  contactName: z.string().trim().nullable().optional(),
-  phone: z.string().trim().nullable().optional(),
-})
 
 // --- Update Customer Info (sync DB ให้ตรงกับเอกสารที่สร้าง) ---
 
@@ -66,6 +69,13 @@ export const generateStandaloneDocumentSchema = z.object({
 
 export const uploadDocumentSchema = z.object({
   type: documentTypeSchema,
+  billingCycleId: z.string().uuid().nullable().optional(),
+})
+
+// --- Assign Document to Billing Cycle (ผูก/ถอดเอกสารกับงวด) ---
+
+export const assignDocumentCycleSchema = z.object({
+  billingCycleId: z.string().uuid().nullable(),
 })
 
 export const searchCustomersQuerySchema = z.object({
@@ -81,4 +91,5 @@ export type StandaloneCustomerInfo = z.infer<typeof standaloneCustomerSchema>
 export type UpdateCustomerInfoInput = z.infer<typeof updateCustomerInfoSchema>
 export type GenerateStandaloneDocumentInput = z.infer<typeof generateStandaloneDocumentSchema>
 export type UploadDocumentInput = z.infer<typeof uploadDocumentSchema>
+export type AssignDocumentCycleInput = z.infer<typeof assignDocumentCycleSchema>
 export type SearchCustomersQuery = z.infer<typeof searchCustomersQuerySchema>

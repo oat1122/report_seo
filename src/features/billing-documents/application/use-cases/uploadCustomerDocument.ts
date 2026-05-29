@@ -9,9 +9,19 @@ interface UploadCustomerDocumentDeps {
 }
 
 export function uploadCustomerDocumentUseCase(deps: UploadCustomerDocumentDeps) {
-  return async (file: File, customerId: string, type: BillingDocumentType) => {
+  return async (
+    file: File,
+    customerId: string,
+    type: BillingDocumentType,
+    billingCycleId: string | null = null,
+  ) => {
     const customer = await deps.repo.getCustomerForDocument(customerId)
     if (!customer) throw new BadRequestError('ไม่พบข้อมูลลูกค้า')
+
+    if (billingCycleId) {
+      const belongs = await deps.repo.cycleBelongsToCustomer(billingCycleId, customerId)
+      if (!belongs) throw new BadRequestError('งวดไม่ตรงกับลูกค้ารายนี้')
+    }
 
     const saved = await deps.storage.saveUpload(file)
     try {
@@ -27,7 +37,7 @@ export function uploadCustomerDocumentUseCase(deps: UploadCustomerDocumentDeps) 
         totalAmount: 0,
         items: [],
         note: null,
-        billingCycleId: null,
+        billingCycleId,
       })
     } catch (error) {
       await deps.storage.deletePdf(saved.url)

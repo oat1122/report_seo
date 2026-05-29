@@ -17,6 +17,32 @@ import type {
   UpdateCustomerInfoInput,
 } from '../application/ports/BillingDocumentRepository'
 
+// email มาจากบัญชี User ของลูกค้า (read-only) — ไม่มี column email บน Customer
+const customerForDocumentSelect = {
+  id: true,
+  name: true,
+  domain: true,
+  address: true,
+  taxId: true,
+  contactName: true,
+  phone: true,
+  user: { select: { email: true } },
+} as const
+
+function toCustomerForDocument(row: {
+  id: string
+  name: string
+  domain: string
+  address: string | null
+  taxId: string | null
+  contactName: string | null
+  phone: string | null
+  user: { email: string } | null
+}): CustomerForDocument {
+  const { user, ...rest } = row
+  return { ...rest, email: user?.email ?? null }
+}
+
 function toBillingDocument(row: {
   id: string
   documentNumber: string
@@ -25,6 +51,8 @@ function toBillingDocument(row: {
   totalAmount: unknown
   items?: unknown
   note: string | null
+  dueDate?: Date | null
+  paidDate?: Date | null
   generatedAt: Date
   customerId: string | null
   customerName?: string | null
@@ -35,6 +63,8 @@ function toBillingDocument(row: {
     type: row.type as BillingDocumentType,
     totalAmount: Number(row.totalAmount),
     items: (row.items as DocumentLineItem[] | null) ?? null,
+    dueDate: row.dueDate ?? null,
+    paidDate: row.paidDate ?? null,
     customerName: row.customerName ?? null,
   }
 }
@@ -49,6 +79,8 @@ export class PrismaBillingDocumentRepository implements BillingDocumentRepositor
         totalAmount: input.totalAmount,
         items: input.items as Prisma.InputJsonValue,
         note: input.note,
+        dueDate: input.dueDate ?? null,
+        paidDate: input.paidDate ?? null,
         customerId: input.customerId,
         customerName: input.customerName ?? null,
         billingCycleId: input.billingCycleId,
@@ -77,18 +109,11 @@ export class PrismaBillingDocumentRepository implements BillingDocumentRepositor
   }
 
   async getCustomerForDocument(customerId: string): Promise<CustomerForDocument | null> {
-    return prisma.customer.findUnique({
+    const row = await prisma.customer.findUnique({
       where: { id: customerId },
-      select: {
-        id: true,
-        name: true,
-        domain: true,
-        address: true,
-        taxId: true,
-        contactName: true,
-        phone: true,
-      },
-    }) as Promise<CustomerForDocument | null>
+      select: customerForDocumentSelect,
+    })
+    return row ? toCustomerForDocument(row) : null
   }
 
   async updateCustomerInfo(customerId: string, input: UpdateCustomerInfoInput): Promise<void> {
@@ -117,9 +142,31 @@ export class PrismaBillingDocumentRepository implements BillingDocumentRepositor
         totalAmount: input.totalAmount,
         items: input.items as Prisma.InputJsonValue,
         note: input.note,
+        ...(input.dueDate !== undefined ? { dueDate: input.dueDate } : {}),
+        ...(input.paidDate !== undefined ? { paidDate: input.paidDate } : {}),
+        ...(input.customerName !== undefined ? { customerName: input.customerName } : {}),
       },
     })
     return toBillingDocument(row)
+  }
+
+  async setDocumentCycle(
+    documentId: string,
+    billingCycleId: string | null,
+  ): Promise<BillingDocument> {
+    const row = await prisma.billingDocument.update({
+      where: { id: documentId },
+      data: { billingCycleId },
+    })
+    return toBillingDocument(row)
+  }
+
+  async cycleBelongsToCustomer(cycleId: string, customerId: string): Promise<boolean> {
+    const row = await prisma.billingCycle.findFirst({
+      where: { id: cycleId, plan: { customerId } },
+      select: { id: true },
+    })
+    return !!row
   }
 
   async listAllDocuments(filters?: AllDocumentsFilter): Promise<AdminBillingDocument[]> {
@@ -203,21 +250,14 @@ export class PrismaBillingDocumentRepository implements BillingDocumentRepositor
 
   async searchCustomers(query: string): Promise<CustomerForDocument[]> {
     const trimmed = query.trim()
-    return prisma.customer.findMany({
+    const rows = await prisma.customer.findMany({
       where: trimmed
         ? { OR: [{ name: { contains: trimmed } }, { domain: { contains: trimmed } }] }
         : undefined,
-      select: {
-        id: true,
-        name: true,
-        domain: true,
-        address: true,
-        taxId: true,
-        contactName: true,
-        phone: true,
-      },
+      select: customerForDocumentSelect,
       orderBy: { name: 'asc' },
       take: 50,
-    }) as Promise<CustomerForDocument[]>
+    })
+    return rows.map(toCustomerForDocument)
   }
 }

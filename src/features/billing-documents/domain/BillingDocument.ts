@@ -15,6 +15,8 @@ export interface BillingDocument {
   totalAmount: number
   items: DocumentLineItem[] | null
   note: string | null
+  dueDate: Date | null
+  paidDate: Date | null
   generatedAt: Date
   customerId: string | null
   customerName: string | null

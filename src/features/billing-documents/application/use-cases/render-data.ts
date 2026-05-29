@@ -14,6 +14,7 @@ export interface RenderData {
     taxId: string | null
     contactName: string | null
     phone: string | null
+    email: string | null
   }
   items: Array<{
     description: string

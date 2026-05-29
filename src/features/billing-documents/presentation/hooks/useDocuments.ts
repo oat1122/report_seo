@@ -67,11 +67,16 @@ export function useUpdateDocument(customerId: string) {
 
 export function useUploadCustomerDocument(customerId: string) {
   const qc = useQueryClient()
-  return useMutation<BillingDocument, Error, { file: File; type: BillingDocumentType }>({
-    mutationFn: async ({ file, type }) => {
+  return useMutation<
+    BillingDocument,
+    Error,
+    { file: File; type: BillingDocumentType; billingCycleId?: string | null }
+  >({
+    mutationFn: async ({ file, type, billingCycleId }) => {
       const formData = new FormData()
       formData.append('file', file)
       formData.append('type', type)
+      if (billingCycleId) formData.append('billingCycleId', billingCycleId)
       const { data } = await axios.post<ApiSuccess<BillingDocument>>(
         `/customers/${customerId}/billing-documents/upload`,
         formData,
@@ -80,4 +85,23 @@ export function useUploadCustomerDocument(customerId: string) {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKey(customerId) }),
   })
+}
+
+export function useAssignDocumentCycle(customerId: string) {
+  const qc = useQueryClient()
+  return useMutation<BillingDocument, Error, { documentId: string; billingCycleId: string | null }>(
+    {
+      mutationFn: async ({ documentId, billingCycleId }) => {
+        const { data } = await axios.patch<ApiSuccess<BillingDocument>>(
+          `/customers/${customerId}/billing-documents/${documentId}/cycle`,
+          { billingCycleId },
+        )
+        return data.data
+      },
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: queryKey(customerId) })
+        qc.invalidateQueries({ queryKey: ['admin', 'all-billing-documents'] })
+      },
+    },
+  )
 }

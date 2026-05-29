@@ -12,8 +12,12 @@ export const POST = withApiHandler({ params: paramsSchema }, async ({ req, param
   const file = formData.get('file') as File | null
   if (!file) throw new BadRequestError('กรุณาเลือกไฟล์ที่ต้องการอัปโหลด')
 
-  const { type } = uploadDocumentSchema.parse({ type: formData.get('type') })
+  const rawCycleId = formData.get('billingCycleId')
+  const { type, billingCycleId } = uploadDocumentSchema.parse({
+    type: formData.get('type'),
+    billingCycleId: typeof rawCycleId === 'string' && rawCycleId ? rawCycleId : null,
+  })
 
-  const result = await uploadCustomerDocument(file, ctx.customer.id, type)
+  const result = await uploadCustomerDocument(file, ctx.customer.id, type, billingCycleId ?? null)
   return created(result)
 })
