@@ -104,7 +104,6 @@ export class PrismaPaymentRepository implements PaymentRepository {
           startDate: data.startDate,
           endDate: data.endDate,
           note: data.note,
-          documentTemplateId: data.documentTemplateId,
         },
       })
 
@@ -203,7 +202,7 @@ export class PrismaPaymentRepository implements PaymentRepository {
     const rows = await prisma.billingCycle.findMany({
       where: { planId },
       include: {
-        plan: { select: { id: true, description: true, type: true, documentTemplateId: true } },
+        plan: { select: { id: true, description: true, type: true } },
         proofs: { orderBy: { uploadDate: 'desc' } },
       },
       orderBy: { cycleNumber: 'asc' },
@@ -223,7 +222,7 @@ export class PrismaPaymentRepository implements PaymentRepository {
     const rows = await prisma.billingCycle.findMany({
       where: { plan: { customerId, status: { not: 'CANCELLED' } } },
       include: {
-        plan: { select: { id: true, description: true, type: true, documentTemplateId: true } },
+        plan: { select: { id: true, description: true, type: true } },
         proofs: { orderBy: { uploadDate: 'desc' } },
       },
       orderBy: { dueDate: 'asc' },
@@ -332,7 +331,6 @@ export class PrismaPaymentRepository implements PaymentRepository {
       endDate: row.endDate,
       status: row.status,
       note: row.note,
-      documentTemplateId: row.documentTemplateId ?? null,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { FileText, Loader2 } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { Button } from '@/components/ui/button'
@@ -18,10 +18,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { TemplateSelector } from './TemplateSelector'
 import { CustomerSearchCombobox } from './CustomerSearchCombobox'
 import { DocumentItemsEditor, createItemKey, type EditableItem } from './DocumentItemsEditor'
-import { useDocumentTemplate } from '../../hooks/useDocumentTemplates'
 import { useGenerateStandaloneDocument } from '../../hooks/useStandaloneDocument'
 import { DOCUMENT_TYPE_LABELS } from '../../../domain/DocumentType'
 import type { BillingDocumentType } from '../../../domain/DocumentType'
@@ -29,19 +27,32 @@ import type { CustomerForDocument } from '../../../application/ports/BillingDocu
 
 type Mode = 'manual' | 'autofill'
 
-export function StandaloneDocumentCreator() {
+export interface LockedCustomer {
+  id: string
+  name: string
+  address: string | null
+  taxId: string | null
+  contactName: string | null
+}
+
+interface Props {
+  lockedCustomer?: LockedCustomer
+  onSuccess?: () => void
+}
+
+export function StandaloneDocumentCreator({ lockedCustomer, onSuccess }: Props) {
   const generateMutation = useGenerateStandaloneDocument()
+  const isLocked = !!lockedCustomer
 
   const [mode, setMode] = useState<Mode>('manual')
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerForDocument | null>(null)
 
-  const [customerName, setCustomerName] = useState('')
-  const [customerAddress, setCustomerAddress] = useState('')
-  const [customerTaxId, setCustomerTaxId] = useState('')
-  const [customerContactName, setCustomerContactName] = useState('')
+  const [customerName, setCustomerName] = useState(lockedCustomer?.name ?? '')
+  const [customerAddress, setCustomerAddress] = useState(lockedCustomer?.address ?? '')
+  const [customerTaxId, setCustomerTaxId] = useState(lockedCustomer?.taxId ?? '')
+  const [customerContactName, setCustomerContactName] = useState(lockedCustomer?.contactName ?? '')
 
   const [type, setType] = useState<BillingDocumentType>('INVOICE')
-  const [templateId, setTemplateId] = useState<string | null>(null)
   const [note, setNote] = useState('')
   const [dueDate, setDueDate] = useState('')
   const [paidDate, setPaidDate] = useState('')
@@ -55,24 +66,6 @@ export function StandaloneDocumentCreator() {
       unitPrice: 0,
     },
   ])
-
-  const { data: template } = useDocumentTemplate(templateId)
-
-  useEffect(() => {
-    if (template?.items && template.items.length > 0) {
-      setItems(
-        [...template.items]
-          .sort((a, b) => a.orderIndex - b.orderIndex)
-          .map((i) => ({
-            key: createItemKey(),
-            description: i.description,
-            quantity: i.quantity,
-            unit: i.unit,
-            unitPrice: i.unitPrice,
-          })),
-      )
-    }
-  }, [template])
 
   const handleCustomerSelect = (customer: CustomerForDocument | null) => {
     setSelectedCustomer(customer)
@@ -94,15 +87,13 @@ export function StandaloneDocumentCreator() {
   const total = items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)
 
   const isValid =
-    customerName.trim().length > 0 &&
-    templateId !== null &&
-    items.length > 0 &&
-    items.every((i) => i.description.trim())
+    customerName.trim().length > 0 && items.length > 0 && items.every((i) => i.description.trim())
 
   const handleGenerate = () => {
+    const customerId = lockedCustomer?.id ?? selectedCustomer?.id ?? null
     generateMutation.mutate(
       {
-        customerId: selectedCustomer?.id ?? null,
+        customerId,
         customer: {
           name: customerName.trim(),
           address: customerAddress.trim() || null,
@@ -110,7 +101,6 @@ export function StandaloneDocumentCreator() {
           contactName: customerContactName.trim() || null,
         },
         type,
-        templateId: templateId!,
         items: items.map((i) => ({
           description: i.description,
           quantity: i.quantity,
@@ -125,6 +115,7 @@ export function StandaloneDocumentCreator() {
         onSuccess: (doc) => {
           toast.success(`สร้าง${DOCUMENT_TYPE_LABELS[type]} ${doc.documentNumber} เรียบร้อย`)
           setNote('')
+          onSuccess?.()
         },
       },
     )
@@ -136,22 +127,28 @@ export function StandaloneDocumentCreator() {
       <Card>
         <CardHeader>
           <CardTitle>ข้อมูลลูกค้า</CardTitle>
-          <CardDescription>กรอกข้อมูลเอง หรือเลือกจากลูกค้าที่มีในระบบ</CardDescription>
+          <CardDescription>
+            {isLocked
+              ? 'ออกเอกสารให้ลูกค้ารายนี้ — แก้ไขข้อมูลบนเอกสารได้ก่อนสร้าง'
+              : 'กรอกข้อมูลเอง หรือเลือกจากลูกค้าที่มีในระบบ'}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <FieldGroup>
-            <Tabs value={mode} onValueChange={handleModeChange}>
-              <TabsList className="w-full">
-                <TabsTrigger value="manual" className="flex-1">
-                  กรอกเอง
-                </TabsTrigger>
-                <TabsTrigger value="autofill" className="flex-1">
-                  เลือกจากระบบ
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
+            {!isLocked && (
+              <Tabs value={mode} onValueChange={handleModeChange}>
+                <TabsList className="w-full">
+                  <TabsTrigger value="manual" className="flex-1">
+                    กรอกเอง
+                  </TabsTrigger>
+                  <TabsTrigger value="autofill" className="flex-1">
+                    เลือกจากระบบ
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            )}
 
-            {mode === 'autofill' && (
+            {!isLocked && mode === 'autofill' && (
               <Field>
                 <Label>ค้นหาลูกค้า</Label>
                 <CustomerSearchCombobox
@@ -161,9 +158,9 @@ export function StandaloneDocumentCreator() {
               </Field>
             )}
 
-            {selectedCustomer && (
+            {(selectedCustomer || lockedCustomer) && (
               <div className="flex items-center gap-2">
-                <Badge variant="secondary">{selectedCustomer.name}</Badge>
+                <Badge variant="secondary">{lockedCustomer?.name ?? selectedCustomer?.name}</Badge>
                 <span className="text-muted-foreground text-xs">
                   ข้อมูลจากระบบ — แก้ไขได้ก่อนสร้างเอกสาร
                 </span>
@@ -238,8 +235,6 @@ export function StandaloneDocumentCreator() {
               </Select>
             </Field>
 
-            <TemplateSelector value={templateId} onValueChange={setTemplateId} />
-
             {(type === 'INVOICE' || type === 'BILLING_NOTE') && (
               <Field>
                 <Label>กำหนดชำระ</Label>
@@ -271,11 +266,7 @@ export function StandaloneDocumentCreator() {
       <Card>
         <CardHeader>
           <CardTitle>รายการในเอกสาร</CardTitle>
-          <CardDescription>
-            {template
-              ? `โหลดจาก template "${template.name}" — แก้ไขได้`
-              : 'เลือก template เพื่อโหลดรายการ หรือเพิ่มรายการเอง'}
-          </CardDescription>
+          <CardDescription>เพิ่ม / แก้ไขรายการสินค้าหรือบริการในเอกสาร</CardDescription>
         </CardHeader>
         <CardContent>
           <DocumentItemsEditor items={items} onItemsChange={setItems} />

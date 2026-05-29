@@ -1,4 +1,4 @@
-import type { RenderData } from '../../application/use-cases/generateDocument'
+import type { RenderData } from '../../application/use-cases/render-data'
 import { renderBillingNote } from './billing-note'
 import { renderInvoice } from './invoice'
 import { renderReceipt } from './receipt'

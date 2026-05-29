@@ -3,12 +3,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from '@/infrastructure/http/axios'
 import type { ApiSuccess } from '@/infrastructure/http/responses'
-import type { BillingDocument, BillingDocumentWithCycle } from '../../domain/BillingDocument'
-import type {
-  GenerateDocumentInput,
-  UpdateDocumentInput,
-  GenerateAllForCycleInput,
-} from '../../schemas'
+import type { BillingDocument } from '../../domain/BillingDocument'
+import type { CustomerForDocument } from '../../application/ports/BillingDocumentRepository'
+import type { BillingDocumentType } from '../../domain/DocumentType'
+import type { UpdateDocumentInput } from '../../schemas'
 
 function queryKey(customerId: string) {
   return ['customer', customerId, 'billing-documents'] as const
@@ -27,17 +25,16 @@ export function useListDocuments(customerId: string) {
   })
 }
 
-export function useGenerateDocument(customerId: string) {
-  const qc = useQueryClient()
-  return useMutation<BillingDocument, Error, GenerateDocumentInput>({
-    mutationFn: async (input) => {
-      const { data } = await axios.post<ApiSuccess<BillingDocument>>(
-        `/customers/${customerId}/billing-documents/generate`,
-        input,
+export function useCustomerDocumentInfo(customerId: string) {
+  return useQuery<CustomerForDocument>({
+    queryKey: ['customer', customerId, 'billing-documents', 'customer-info'],
+    queryFn: async () => {
+      const { data } = await axios.get<ApiSuccess<CustomerForDocument>>(
+        `/customers/${customerId}/billing-documents/customer-info`,
       )
       return data.data
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKey(customerId) }),
+    staleTime: 5 * 60 * 1000,
   })
 }
 
@@ -63,44 +60,24 @@ export function useUpdateDocument(customerId: string) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKey(customerId) })
-      qc.invalidateQueries({
-        queryKey: ['customer', customerId, 'billing-documents-by-cycles'],
-      })
-      qc.invalidateQueries({
-        queryKey: ['admin', 'all-billing-documents'],
-      })
+      qc.invalidateQueries({ queryKey: ['admin', 'all-billing-documents'] })
     },
   })
 }
 
-export function useGenerateAllForCycle(customerId: string) {
+export function useUploadCustomerDocument(customerId: string) {
   const qc = useQueryClient()
-  return useMutation<BillingDocument[], Error, GenerateAllForCycleInput>({
-    mutationFn: async (input) => {
-      const { data } = await axios.post<ApiSuccess<BillingDocument[]>>(
-        `/customers/${customerId}/billing-documents/generate-all`,
-        input,
+  return useMutation<BillingDocument, Error, { file: File; type: BillingDocumentType }>({
+    mutationFn: async ({ file, type }) => {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('type', type)
+      const { data } = await axios.post<ApiSuccess<BillingDocument>>(
+        `/customers/${customerId}/billing-documents/upload`,
+        formData,
       )
       return data.data
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: queryKey(customerId) })
-      qc.invalidateQueries({
-        queryKey: ['customer', customerId, 'billing-documents-by-cycles'],
-      })
-    },
-  })
-}
-
-export function useListDocumentsByCycles(customerId: string) {
-  return useQuery<BillingDocumentWithCycle[]>({
-    queryKey: ['customer', customerId, 'billing-documents-by-cycles'],
-    queryFn: async () => {
-      const { data } = await axios.get<ApiSuccess<BillingDocumentWithCycle[]>>(
-        `/customers/${customerId}/billing-documents/by-cycles`,
-      )
-      return data.data
-    },
-    staleTime: 60 * 1000,
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKey(customerId) }),
   })
 }

@@ -5,7 +5,7 @@ import { PaymentPlanList } from './PaymentPlanList'
 import { BillingCycleTable } from './BillingCycleTable'
 import { ContractFileUpload } from './ContractFileUpload'
 import { ProofReviewList } from './ProofReviewList'
-import { CycleDocumentView } from '@/features/billing-documents/presentation/components/admin/CycleDocumentView'
+import { DocumentList } from '@/features/billing-documents/presentation/components/admin/DocumentList'
 
 interface PaymentDashboardProps {
   customerId: string
@@ -39,7 +39,7 @@ export function PaymentDashboard({ customerId }: PaymentDashboardProps) {
       </TabsContent>
 
       <TabsContent value="documents" className="mt-6">
-        <CycleDocumentView customerId={customerId} />
+        <DocumentList customerId={customerId} />
       </TabsContent>
     </Tabs>
   )

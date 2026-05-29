@@ -1,7 +1,6 @@
 import { requireAdmin } from '@/lib/auth-utils'
 import { DashboardLayout } from '@/components/Layout/DashboardLayout'
 import { BackButton } from '@/components/shared/BackButton'
-import { DocumentGeneratorPanel } from '@/features/billing-documents/presentation/components/admin/DocumentGeneratorPanel'
 import { DocumentList } from '@/features/billing-documents/presentation/components/admin/DocumentList'
 
 export const metadata = {
@@ -28,12 +27,7 @@ export default async function AdminDocumentsPage({ params }: PageProps) {
             </p>
           </header>
         </div>
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <DocumentList customerId={userId} />
-          </div>
-          <DocumentGeneratorPanel customerId={userId} />
-        </div>
+        <DocumentList customerId={userId} />
       </div>
     </DashboardLayout>
   )

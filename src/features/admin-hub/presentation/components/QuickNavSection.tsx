@@ -8,7 +8,6 @@ import {
   FileBarChart,
   Building2,
   FileText,
-  FileStack,
   FilePlus,
 } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
@@ -38,12 +37,6 @@ const navItems = [
     label: 'Templates',
     href: '/admin/settings/work-progress/templates',
     icon: LayoutTemplate,
-    disabled: false,
-  },
-  {
-    label: 'Template เอกสาร',
-    href: '/admin/document-templates',
-    icon: FileStack,
     disabled: false,
   },
   {

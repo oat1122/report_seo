@@ -28,14 +28,12 @@ import { useUpdateDocument } from '../../hooks/useDocuments'
 import { DOCUMENT_TYPE_LABELS } from '../../../domain/DocumentType'
 import type { BillingDocumentType } from '../../../domain/DocumentType'
 import type { BillingDocument } from '../../../domain/BillingDocument'
-import type { DocumentTemplateDetail } from '../../../domain/DocumentTemplate'
 import { DocumentItemsEditor, createItemKey, type EditableItem } from './DocumentItemsEditor'
 
 interface Props {
   document: BillingDocument
   customerId: string
   cycleAmount?: number | null
-  template?: DocumentTemplateDetail | null
   open: boolean
   onOpenChange: (open: boolean) => void
 }
@@ -44,22 +42,7 @@ function formatAmount(amount: number) {
   return amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })
 }
 
-function buildInitialItems(
-  template: DocumentTemplateDetail | null | undefined,
-  totalAmount: number,
-): EditableItem[] {
-  if (template && template.items.length > 0) {
-    return template.items
-      .sort((a, b) => a.orderIndex - b.orderIndex)
-      .map((i) => ({
-        key: createItemKey(),
-        description: i.description,
-        quantity: i.quantity,
-        unit: i.unit,
-        unitPrice: i.unitPrice,
-      }))
-  }
-
+function buildInitialItems(totalAmount: number): EditableItem[] {
   return [
     {
       key: createItemKey(),
@@ -75,7 +58,6 @@ export function EditDocumentDialog({
   document: doc,
   customerId,
   cycleAmount,
-  template,
   open,
   onOpenChange,
 }: Props) {
@@ -86,7 +68,7 @@ export function EditDocumentDialog({
   const [dueDate, setDueDate] = useState('')
   const [paidDate, setPaidDate] = useState('')
   const [items, setItems] = useState<EditableItem[]>(() =>
-    buildInitialItems(template, Number(doc.totalAmount)),
+    buildInitialItems(Number(doc.totalAmount)),
   )
 
   const total = items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)

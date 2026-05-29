@@ -20,7 +20,6 @@ import {
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { useCreatePaymentPlan, useUpdatePaymentPlan } from '../../hooks/usePaymentPlans'
-import { TemplateSelector } from '@/features/billing-documents/presentation/components/admin/TemplateSelector'
 import type { PaymentPlan } from '../../../index'
 
 interface PaymentPlanFormProps {
@@ -45,7 +44,6 @@ export function PaymentPlanForm({
   const [totalInstallments, setTotalInstallments] = useState('12')
   const [startDate, setStartDate] = useState<Date | undefined>(new Date())
   const [note, setNote] = useState('')
-  const [documentTemplateId, setDocumentTemplateId] = useState<string | null>(null)
 
   const createMutation = useCreatePaymentPlan()
   const updateMutation = useUpdatePaymentPlan()
@@ -62,10 +60,6 @@ export function PaymentPlanForm({
       setTotalInstallments(String(editPlan.totalInstallments ?? 12))
       setStartDate(new Date(editPlan.startDate))
       setNote(editPlan.note ?? '')
-      setDocumentTemplateId(
-        (editPlan as PaymentPlan & { documentTemplateId?: string | null }).documentTemplateId ??
-          null,
-      )
     } else if (!editPlan && open) {
       resetForm()
     }
@@ -79,7 +73,6 @@ export function PaymentPlanForm({
     setTotalInstallments('12')
     setStartDate(new Date())
     setNote('')
-    setDocumentTemplateId(null)
   }
 
   const handleSubmit = () => {
@@ -100,7 +93,6 @@ export function PaymentPlanForm({
             startDate,
             endDate: null,
             note: note.trim() || null,
-            documentTemplateId,
           },
         },
         { onSuccess: () => onOpenChange(false) },
@@ -117,7 +109,6 @@ export function PaymentPlanForm({
             totalInstallments: type === 'INSTALLMENT' ? parseInt(totalInstallments, 10) : null,
             startDate,
             note: note.trim() || null,
-            documentTemplateId,
           },
         },
         {
@@ -225,8 +216,6 @@ export function PaymentPlanForm({
               </PopoverContent>
             </Popover>
           </div>
-
-          <TemplateSelector value={documentTemplateId} onValueChange={setDocumentTemplateId} />
 
           <div className="space-y-2">
             <Label>หมายเหตุ (ไม่บังคับ)</Label>

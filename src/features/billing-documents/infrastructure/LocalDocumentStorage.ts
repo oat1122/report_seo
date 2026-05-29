@@ -2,6 +2,8 @@ import { existsSync } from 'fs'
 import { mkdir, unlink, writeFile } from 'fs/promises'
 import path from 'path'
 import { buildPublicUrl, getUploadDir } from '@/lib/upload-paths'
+import { validateUploadFile } from '@/infrastructure/upload/validators'
+import { BadRequestError } from '@/lib/errors'
 import { logger } from '@/lib/logger'
 import type { DocumentStorage } from '../application/ports/DocumentStorage'
 
@@ -16,6 +18,24 @@ export class LocalDocumentStorage implements DocumentStorage {
     const absolutePath = path.join(UPLOAD_DIR, filename)
     await writeFile(absolutePath, buffer)
     return buildPublicUrl(UPLOAD_CATEGORY, filename)
+  }
+
+  async saveUpload(file: File): Promise<{ url: string; fileName: string }> {
+    const result = await validateUploadFile(file, { allowedKinds: ['FILE'] })
+    if (!result.isValid || !result.validatedFile) {
+      throw new BadRequestError(result.error || 'ไฟล์ไม่ผ่านการตรวจสอบ')
+    }
+
+    if (!existsSync(UPLOAD_DIR)) {
+      await mkdir(UPLOAD_DIR, { recursive: true })
+    }
+    const absolutePath = path.join(UPLOAD_DIR, result.validatedFile.filename)
+    await writeFile(absolutePath, result.validatedFile.buffer)
+
+    return {
+      url: buildPublicUrl(UPLOAD_CATEGORY, result.validatedFile.filename),
+      fileName: file.name,
+    }
   }
 
   async deletePdf(url: string): Promise<void> {

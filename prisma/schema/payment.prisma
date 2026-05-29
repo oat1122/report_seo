@@ -33,14 +33,10 @@ model PaymentPlan {
   customerId String
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
-  documentTemplateId String?
-  documentTemplate   DocumentTemplate? @relation(fields: [documentTemplateId], references: [id], onDelete: SetNull)
-
   billingCycles BillingCycle[]
 
   @@index([customerId])
   @@index([customerId, status])
-  @@index([documentTemplateId])
   @@map("paymentplan")
 }
 

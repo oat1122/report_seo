@@ -1,4 +1,4 @@
-import type { RenderData } from '../../application/use-cases/generateDocument'
+import type { RenderData } from '../../application/use-cases/render-data'
 import {
   wrapDocument,
   formatCurrency,

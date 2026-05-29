@@ -21,35 +21,6 @@ model CompanySettings {
   @@map("companysettings")
 }
 
-model DocumentTemplate {
-  id        String                @id @default(uuid())
-  name      String
-  scope     DocumentTemplateScope @default(GENERAL)
-  isActive  Boolean               @default(true)
-  createdAt DateTime              @default(now())
-  updatedAt DateTime              @updatedAt
-
-  items        DocumentTemplateItem[]
-  paymentPlans PaymentPlan[]
-
-  @@index([scope])
-  @@map("documenttemplate")
-}
-
-model DocumentTemplateItem {
-  id          String           @id @default(uuid())
-  templateId  String
-  template    DocumentTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  description String
-  quantity    Int              @default(1)
-  unit        String           @default("รายการ")
-  unitPrice   Decimal          @db.Decimal(10, 2)
-  orderIndex  Int              @default(0)
-
-  @@index([templateId])
-  @@map("documenttemplateitem")
-}
-
 model BillingDocument {
   id             String              @id @default(uuid())
   documentNumber String              @unique

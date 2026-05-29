@@ -19,7 +19,6 @@ export interface CreatePlanData {
   startDate: Date
   endDate?: Date | null
   note?: string | null
-  documentTemplateId?: string | null
 }
 
 export interface UpdatePlanData {
@@ -30,7 +29,6 @@ export interface UpdatePlanData {
   startDate?: Date
   endDate?: Date | null | undefined
   note?: string | null | undefined
-  documentTemplateId?: string | null | undefined
 }
 
 export interface UpdateCycleData {

@@ -1,4 +1,4 @@
-import type { GenerateDocumentDeps, RenderData } from './generateDocument'
+import type { DocumentGenerationDeps, RenderData } from './render-data'
 import type { BillingDocumentType } from '../../domain/DocumentType'
 import { BadRequestError } from '@/lib/errors'
 import { sanitizeFilename } from '@/infrastructure/upload/validators'
@@ -12,7 +12,6 @@ interface StandaloneInput {
     contactName?: string | null
   }
   type: BillingDocumentType
-  templateId: string
   items: Array<{
     description: string
     quantity: number
@@ -24,7 +23,7 @@ interface StandaloneInput {
   paidDate?: string | null
 }
 
-export function generateStandaloneDocumentUseCase(deps: GenerateDocumentDeps) {
+export function generateStandaloneDocumentUseCase(deps: DocumentGenerationDeps) {
   return async (input: StandaloneInput) => {
     if (input.items.length === 0) {
       throw new BadRequestError('ต้องมีอย่างน้อย 1 รายการ')
