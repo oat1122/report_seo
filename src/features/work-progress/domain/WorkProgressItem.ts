@@ -18,6 +18,11 @@ export interface WorkProgressItem {
   updatedAt: Date
 }
 
+export interface WorkProgressAssignee {
+  id: string
+  name: string | null
+}
+
 export interface WorkProgressItemPeriodMark {
   id: string
   itemId: string

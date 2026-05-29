@@ -34,7 +34,7 @@ export function renderReceipt(data: RenderData): string {
       </div>
     </div>
     ${renderNote(data.note)}
-    ${renderSignatureFooter()}
+    ${renderSignatureFooter(data.customer.name, data.company.name, data.company.logoUrl)}
   `
 
   return wrapDocument(body, `ใบเสร็จรับเงิน ${data.documentNumber}`)

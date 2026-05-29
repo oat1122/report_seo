@@ -7,7 +7,11 @@ export const documentStyles = `
     color: #2f2f2f;
   }
   .document {
-    padding: 0;
+   padding: 0;
+    // position: relative;
+    // min-height: 95vh;
+    // box-sizing: border-box;
+    // padding-bottom: 160px;
   }
   .header {
     display: flex;
@@ -187,23 +191,24 @@ export const documentStyles = `
     background: #fff;
     color: #555;
     font-size: 11px;
-    padding-bottom: 40px;
+    padding-bottom: 160px;
     position: relative;
     min-height: 100vh;
+    box-sizing: border-box;
   }
   .new-header-section {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 40px;
+    margin-bottom: 20px;
     position: relative;
   }
   .new-header-left {
     background-color: #00b4a4;
     color: #fff;
-    padding: 30px 40px 30px 50px;
+    padding: 15px 40px 15px 50px;
     width: 55%;
-    min-height: 100px;
-    border-bottom-right-radius: 40px;
+    min-height: 80px;
+    border-bottom-right-radius: 30px;
   }
   .new-header-left h1 {
     font-size: 32px;
@@ -218,12 +223,12 @@ export const documentStyles = `
   }
   .new-header-right {
     width: 45%;
-    padding: 30px 100px 0 20px;
+    padding: 20px 50px 0 20px;
     text-align: right;
   }
   .new-logo {
     max-height: 100px;
-    max-width: 250px;
+    max-width: 280px;
     object-fit: contain;
   }
   .new-company-name {
@@ -271,6 +276,10 @@ export const documentStyles = `
   .new-info-table .value {
     color: #555;
   }
+  .new-info-table .value-small {
+    color: #777;
+    font-size: 10px;
+  }
   
   .new-payment-details .method-title {
     color: #999;
@@ -295,6 +304,7 @@ export const documentStyles = `
     padding: 12px 10px;
     font-size: 11px;
     font-weight: 700;
+    box-shadow: 1px 0 0 #00b4a4;
   }
   .new-items-table th:first-child {
     border-top-left-radius: 20px;
@@ -303,12 +313,15 @@ export const documentStyles = `
   .new-items-table th:last-child {
     border-top-right-radius: 20px;
     border-bottom-right-radius: 20px;
+    box-shadow: none;
   }
   .new-items-table td {
     padding: 12px 10px;
+    vertical-align: top;
   }
   .new-items-table tr:nth-child(even) td {
     background-color: #e0f4f2;
+    box-shadow: 1px 0 0 #e0f4f2;
   }
   .new-items-table tr:nth-child(even) td:first-child {
     border-top-left-radius: 20px;
@@ -317,20 +330,22 @@ export const documentStyles = `
   .new-items-table tr:nth-child(even) td:last-child {
     border-top-right-radius: 20px;
     border-bottom-right-radius: 20px;
+    box-shadow: none;
   }
   
   .text-center { text-align: center; }
   .text-left { text-align: left; }
   .text-right { text-align: right; }
   .item-desc-title { font-weight: 700; color: #333; }
-  .item-desc-detail { margin-top: 4px; font-size: 12px; color: #555; font-weight: 400; }
-  .detail-line { line-height: 1.5; }
-  .detail-bullet { padding-left: 12px; position: relative; }
+  .item-desc-detail { margin-top: 5px; font-size: 10px; color: #666; font-weight: 400; }
+  .detail-line { line-height: 1.3; }
+  .detail-bullet { padding-left: 10px; position: relative; }
   .detail-bullet::before { content: "•"; position: absolute; left: 0; }
 
   .new-totals-section {
     display: flex;
-    justify-content: flex-end;
+    flex-direction: column;
+    align-items: flex-end;
     margin-top: 10px;
   }
   .new-totals-box {
@@ -357,6 +372,30 @@ export const documentStyles = `
   .new-grand-total .value {
     color: #00b4a4;
     font-weight: 700;
+  }
+  .new-amount-in-words {
+    width: 240px;
+    margin-top: 8px;
+    padding: 6px 10px;
+    background-color: #f5fbfb;
+    border: 1px dashed #00b4a4;
+    border-radius: 6px;
+    text-align: right;
+  }
+  .new-amount-in-words .label {
+    display: block;
+    color: #888;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+  .new-amount-in-words .value {
+    display: block;
+    color: #008f82;
+    font-weight: 600;
+    font-size: 10.5px;
+    font-style: italic;
   }
 
   .new-footer-section {
@@ -415,5 +454,98 @@ export const documentStyles = `
     width: 160px;
     height: 30px;
     background-color: #00b4a4;
+    border-top-left-radius: 30px;
+  }
+
+  /* SIGNATURE FOOTER STYLES */
+  .signature-footer-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-top: 15px;
+  }
+  .document .signature-footer-container {
+    position: absolute;
+    bottom: 30px;
+    left: 40px;
+    width: calc(100% - 80px);
+  }
+  .new-invoice-container .signature-footer-container {
+    position: absolute;
+    bottom: 45px;
+    left: 50px;
+    width: calc(100% - 100px);
+  }
+  .signature-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 38%;
+  }
+  .signature-col-center {
+    width: 20%;
+    text-align: center;
+    justify-content: center;
+    align-self: center;
+    padding-bottom: 5px;
+  }
+  .signature-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    min-height: 16px;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .signature-space {
+    height: 30px;
+  }
+  .signature-lines {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    gap: 12px;
+  }
+  .signature-line-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .signature-line-group.line-recv,
+  .signature-line-group.line-delv {
+    width: 60%;
+  }
+  .signature-line-group.line-date {
+    width: 35%;
+  }
+  .sig-line {
+    width: 100%;
+    border-bottom: 1px solid #ccc;
+    height: 1px;
+    margin-bottom: 4px;
+  }
+  .sig-label {
+    font-size: 9px;
+    color: #888;
+    text-align: center;
+  }
+  .signature-logo {
+    max-height: 48px;
+    max-width: 120px;
+    object-fit: contain;
+    margin: 0 auto;
+    display: block;
+  }
+  .signature-logo-placeholder {
+    font-size: 12px;
+    font-weight: 700;
+    color: #999;
+    text-align: center;
+    letter-spacing: 0.5px;
   }
 `

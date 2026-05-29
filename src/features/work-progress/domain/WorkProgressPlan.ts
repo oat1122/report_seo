@@ -1,6 +1,10 @@
 import type { PeriodTypeCode } from './types'
 import type { WorkProgressPeriod } from './WorkProgressPeriod'
-import type { WorkProgressItem, WorkProgressItemPeriodMark } from './WorkProgressItem'
+import type {
+  WorkProgressAssignee,
+  WorkProgressItem,
+  WorkProgressItemPeriodMark,
+} from './WorkProgressItem'
 import type {
   WorkProgressCategory,
   WorkProgressStatus,
@@ -33,6 +37,7 @@ export interface WorkProgressPlanDetail extends WorkProgressPlan {
 export interface WorkProgressItemWithMarks extends WorkProgressItem {
   category: WorkProgressCategory
   status: WorkProgressStatus
+  assignedTo: WorkProgressAssignee | null
   periodMarks: WorkProgressPeriodMarkWithType[]
   subtasks: WorkProgressSubtask[]
   attachments: WorkProgressAttachment[]

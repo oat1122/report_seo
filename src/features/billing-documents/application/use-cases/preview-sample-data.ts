@@ -15,7 +15,7 @@ export const SAMPLE_COMPANY: CompanySettings = {
   updatedAt: new Date(0),
 }
 
-const SAMPLE_GENERATED_AT = new Date('2026-05-29T00:00:00.000Z')
+const SAMPLE_GENERATED_AT = new Date('2026-05-29T09:31:48.595Z')
 
 export function buildSampleRenderData(
   type: BillingDocumentType,
@@ -24,10 +24,10 @@ export function buildSampleRenderData(
 ): RenderData {
   return {
     type,
-    documentNumber: `${DOCUMENT_TYPE_PREFIXES[type]}-2026-0001`,
+    documentNumber: `${DOCUMENT_TYPE_PREFIXES[type]}-2026-0007`,
     company,
     customer: {
-      name: 'บริษัท ลูกค้าตัวอย่าง จำกัด',
+      name: 'Thanaplus Co., Ltd.',
       address: '99/9 ถนนสุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพมหานคร 10110',
       taxId: '0105560000001',
       contactName: 'คุณสมชาย ใจดี',
@@ -36,26 +36,15 @@ export function buildSampleRenderData(
     },
     items: [
       {
-        description: 'บริการทำ SEO รายเดือน (แพ็กเกจ Standard)',
+        description: 'ค่าบริการ',
+        detail: '- ค่า 1\n- ค่า2\n- เอาออก',
         quantity: 1,
-        unit: 'เดือน',
+        unit: 'รายการ',
         unitPrice: 15000,
       },
-      {
-        description: 'เขียนบทความ SEO ลงเว็บไซต์',
-        quantity: 4,
-        unit: 'บทความ',
-        unitPrice: 1500,
-      },
-      {
-        description: 'ออกแบบ Banner โปรโมชัน',
-        quantity: 2,
-        unit: 'ชิ้น',
-        unitPrice: 2500,
-      },
     ],
-    note: 'ขอบคุณที่ใช้บริการ กรุณาชำระเงินภายในวันที่กำหนด',
-    dueDate: '2026-06-15',
+    note: '555555555555555555',
+    dueDate: '2026-05-29',
     paidDate: type === 'RECEIPT' ? '2026-05-29' : null,
     generatedAt: SAMPLE_GENERATED_AT,
     includeVat,

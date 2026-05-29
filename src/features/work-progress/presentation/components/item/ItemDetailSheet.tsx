@@ -77,6 +77,7 @@ export function ItemDetailSheet({ userId, planId, item, onClose, readOnly }: Ite
                   planId={planId}
                   itemId={item.id}
                   currentAssigneeId={item.assignedToId}
+                  currentAssigneeName={item.assignedTo?.name ?? null}
                   readOnly={readOnly}
                 />
               </section>

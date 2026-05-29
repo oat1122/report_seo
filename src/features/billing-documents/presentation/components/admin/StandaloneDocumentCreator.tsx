@@ -114,7 +114,7 @@ export function StandaloneDocumentCreator({ lockedCustomer, onSuccess }: Props) 
         type,
         items: items.map((i) => ({
           description: i.description,
-          detail: i.detail.trim() || undefined,
+          detail: i.detail.trim(),
           quantity: i.quantity,
           unit: i.unit,
           unitPrice: i.unitPrice,

@@ -24,9 +24,11 @@ export const useGetUsers = (includeDeleted = true) =>
     },
   })
 
-export const useGetSeoDevs = () =>
+// enabled = false ใช้กับ readOnly view (เช่นลูกค้า) ที่ไม่มีสิทธิ์เรียก /users/seodevs (403)
+export const useGetSeoDevs = (enabled = true) =>
   useQuery<User[], Error>({
     queryKey: ['seoDevs'],
+    enabled,
     queryFn: async () => {
       const { data } = await axios.get<ApiData<User[]>>('/users/seodevs')
       return data.data

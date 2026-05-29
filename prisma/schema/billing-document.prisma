@@ -27,7 +27,7 @@ model BillingDocument {
   type           BillingDocumentType
   pdfUrl         String
   totalAmount    Decimal             @db.Decimal(12, 2)
-  items          Json? // [{ description, quantity, unit, unitPrice }] — null = legacy doc ก่อนมี field นี้
+  items          Json? // [{ description, detail?, quantity, unit, unitPrice }] — null = legacy doc ก่อนมี field นี้
   note           String?             @db.Text
   dueDate        DateTime? // กำหนดชำระ (INVOICE / BILLING_NOTE)
   paidDate       DateTime? // วันที่ชำระ (RECEIPT)

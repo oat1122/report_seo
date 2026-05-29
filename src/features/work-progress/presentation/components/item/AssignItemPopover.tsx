@@ -21,6 +21,8 @@ interface AssignItemPopoverProps {
   planId: string
   itemId: string
   currentAssigneeId: string | null
+  // ชื่อผู้รับผิดชอบจาก payload — ใช้แสดงตอน readOnly โดยไม่ต้อง fetch รายชื่อ staff (403 สำหรับลูกค้า)
+  currentAssigneeName?: string | null
   readOnly?: boolean
 }
 
@@ -29,9 +31,11 @@ export function AssignItemPopover({
   planId,
   itemId,
   currentAssigneeId,
+  currentAssigneeName,
   readOnly,
 }: AssignItemPopoverProps) {
-  const { data: seoDevs, isLoading } = useGetSeoDevs()
+  // ลูกค้า (readOnly) ไม่มีสิทธิ์เรียก /users/seodevs → ปิด query ไว้ ใช้ชื่อจาก payload แทน
+  const { data: seoDevs, isLoading } = useGetSeoDevs(!readOnly)
   const assignMut = useAssignItem()
   const [open, setOpen] = useState(false)
 
@@ -51,9 +55,7 @@ export function AssignItemPopover({
   }
 
   if (readOnly) {
-    return (
-      <span className="text-sm">{current ? (current.name ?? current.email) : 'ไม่ได้กำหนด'}</span>
-    )
+    return <span className="text-sm">{currentAssigneeName ?? 'ไม่ได้กำหนด'}</span>
   }
 
   return (

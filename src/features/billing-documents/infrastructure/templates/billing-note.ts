@@ -25,7 +25,7 @@ export function renderBillingNote(data: RenderData): string {
       </div>
     </div>
     ${renderNote(data.note)}
-    ${renderSignatureFooter()}
+    ${renderSignatureFooter(data.customer.name, data.company.name, data.company.logoUrl)}
   `
 
   return wrapDocument(body, `ใบวางบิล ${data.documentNumber}`)

@@ -233,14 +233,47 @@ export function renderNote(note: string | null): string {
     </div>`
 }
 
-export function renderSignatureFooter(): string {
+export function renderSignatureFooter(
+  customerName: string,
+  companyName: string,
+  logoUrl: string | null,
+): string {
+  const logoHtml = logoUrl
+    ? `<img src="${escapeHtml(resolveLogoSrc(logoUrl))}" class="signature-logo" alt="logo" />`
+    : `<div class="signature-logo-placeholder">${escapeHtml(companyName)}</div>`
+
   return `
-    <div class="footer">
-      <div class="signature-block">
-        <div class="signature-line">ผู้รับเงิน</div>
+    <div class="signature-footer-container">
+      <div class="signature-col">
+        <div class="signature-title">${escapeHtml(customerName)}</div>
+        <div class="signature-space"></div>
+        <div class="signature-lines">
+          <div class="signature-line-group line-recv">
+            <div class="sig-line"></div>
+            <div class="sig-label">Received by</div>
+          </div>
+          <div class="signature-line-group line-date">
+            <div class="sig-line"></div>
+            <div class="sig-label">Date</div>
+          </div>
+        </div>
       </div>
-      <div class="signature-block">
-        <div class="signature-line">ผู้จ่ายเงิน</div>
+      <div class="signature-col-center">
+        ${logoHtml}
+      </div>
+      <div class="signature-col">
+        <div class="signature-title">${escapeHtml(companyName)}</div>
+        <div class="signature-space"></div>
+        <div class="signature-lines">
+          <div class="signature-line-group line-delv">
+            <div class="sig-line"></div>
+            <div class="sig-label">Delivered by</div>
+          </div>
+          <div class="signature-line-group line-date">
+            <div class="sig-line"></div>
+            <div class="sig-label">Date</div>
+          </div>
+        </div>
       </div>
     </div>`
 }

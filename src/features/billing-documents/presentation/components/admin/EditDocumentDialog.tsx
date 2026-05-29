@@ -67,6 +67,7 @@ function buildInitialItems(doc: BillingDocument): EditableItem[] {
       {
         key: createItemKey(),
         description: 'ค่าบริการ',
+        detail: '',
         quantity: 1,
         unit: 'รายการ',
         unitPrice: Number(doc.totalAmount),
@@ -77,6 +78,7 @@ function buildInitialItems(doc: BillingDocument): EditableItem[] {
   return doc.items.map((item) => ({
     key: createItemKey(),
     description: item.description,
+    detail: item.detail ?? '',
     quantity: item.quantity,
     unit: item.unit,
     unitPrice: item.unitPrice,
@@ -137,6 +139,7 @@ export function EditDocumentDialog({
           customer: toCustomerInfoInput(customer),
           items: items.map((i) => ({
             description: i.description,
+            detail: i.detail.trim(),
             quantity: i.quantity,
             unit: i.unit,
             unitPrice: i.unitPrice,

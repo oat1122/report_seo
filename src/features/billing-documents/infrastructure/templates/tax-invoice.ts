@@ -35,7 +35,7 @@ export function renderTaxInvoice(data: RenderData): string {
       </div>
     </div>
     ${renderNote(data.note)}
-    ${renderSignatureFooter()}
+    ${renderSignatureFooter(data.customer.name, data.company.name, data.company.logoUrl)}
   `
 
   return wrapDocument(body, `ใบกำกับภาษี ${data.documentNumber}`)

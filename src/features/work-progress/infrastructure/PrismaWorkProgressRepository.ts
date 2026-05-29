@@ -185,6 +185,7 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
           include: {
             category: true,
             status: true,
+            assignedTo: { select: { id: true, name: true } },
             periodMarks: { include: { markType: true } },
             subtasks: { orderBy: { orderIndex: 'asc' } },
             attachments: { orderBy: { createdAt: 'desc' } },
