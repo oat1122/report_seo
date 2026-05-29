@@ -19,8 +19,8 @@ export function uploadCustomerDocumentUseCase(deps: UploadCustomerDocumentDeps) 
     if (!customer) throw new BadRequestError('ไม่พบข้อมูลลูกค้า')
 
     if (billingCycleId) {
-      const belongs = await deps.repo.cycleBelongsToCustomer(billingCycleId, customerId)
-      if (!belongs) throw new BadRequestError('งวดไม่ตรงกับลูกค้ารายนี้')
+      const cycle = await deps.repo.getCycleForCustomer(billingCycleId, customerId)
+      if (!cycle) throw new BadRequestError('งวดไม่ตรงกับลูกค้ารายนี้')
     }
 
     const saved = await deps.storage.saveUpload(file)

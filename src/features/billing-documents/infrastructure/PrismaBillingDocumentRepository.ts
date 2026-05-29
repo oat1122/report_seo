@@ -145,6 +145,7 @@ export class PrismaBillingDocumentRepository implements BillingDocumentRepositor
         ...(input.dueDate !== undefined ? { dueDate: input.dueDate } : {}),
         ...(input.paidDate !== undefined ? { paidDate: input.paidDate } : {}),
         ...(input.customerName !== undefined ? { customerName: input.customerName } : {}),
+        ...(input.billingCycleId !== undefined ? { billingCycleId: input.billingCycleId } : {}),
       },
     })
     return toBillingDocument(row)
@@ -161,12 +162,14 @@ export class PrismaBillingDocumentRepository implements BillingDocumentRepositor
     return toBillingDocument(row)
   }
 
-  async cycleBelongsToCustomer(cycleId: string, customerId: string): Promise<boolean> {
-    const row = await prisma.billingCycle.findFirst({
+  async getCycleForCustomer(
+    cycleId: string,
+    customerId: string,
+  ): Promise<{ id: string; dueDate: Date } | null> {
+    return prisma.billingCycle.findFirst({
       where: { id: cycleId, plan: { customerId } },
-      select: { id: true },
+      select: { id: true, dueDate: true },
     })
-    return !!row
   }
 
   async listAllDocuments(filters?: AllDocumentsFilter): Promise<AdminBillingDocument[]> {

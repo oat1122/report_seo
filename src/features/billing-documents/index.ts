@@ -33,7 +33,7 @@ export const listDocuments = listDocumentsUseCase(repo)
 export const getDocument = getDocumentUseCase(repo)
 export const deleteDocument = deleteDocumentUseCase(repo, storage)
 export const updateDocument = updateDocumentUseCase(commonDeps)
-export const assignDocumentToCycle = assignDocumentToCycleUseCase({ repo })
+export const assignDocumentToCycle = assignDocumentToCycleUseCase(commonDeps)
 export const listAllDocuments = listAllDocumentsUseCase(repo)
 
 export async function searchCustomers(query: string) {

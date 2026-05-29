@@ -29,6 +29,7 @@ export interface UpdateDocumentInput {
   dueDate?: Date | null
   paidDate?: Date | null
   customerName?: string | null
+  billingCycleId?: string | null
 }
 
 export interface AllDocumentsFilter {
@@ -72,7 +73,11 @@ export interface BillingDocumentRepository {
 
   setDocumentCycle(documentId: string, billingCycleId: string | null): Promise<BillingDocument>
 
-  cycleBelongsToCustomer(cycleId: string, customerId: string): Promise<boolean>
+  // คืนงวดของลูกค้าราย customerId พร้อม dueDate (ใช้ validate + sync วันครบกำหนดลงเอกสาร)
+  getCycleForCustomer(
+    cycleId: string,
+    customerId: string,
+  ): Promise<{ id: string; dueDate: Date } | null>
 
   listAllDocuments(filters?: AllDocumentsFilter): Promise<AdminBillingDocument[]>
 
