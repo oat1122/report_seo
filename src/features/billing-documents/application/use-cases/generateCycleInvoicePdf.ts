@@ -6,10 +6,7 @@ import { BadRequestError, NotFoundError } from '@/lib/errors'
 import { sanitizeFilename } from '@/infrastructure/upload/validators'
 
 interface CycleInvoiceDeps {
-  repo: Pick<
-    BillingDocumentRepository,
-    'getCycleInvoiceData' | 'getCustomerForDocument' | 'cycleHasInvoiceDocument'
-  >
+  repo: Pick<BillingDocumentRepository, 'getCycleInvoiceDocument' | 'getCustomerForDocument'>
   renderer: PdfRenderer
   getCompanySettings: () => Promise<CompanySettings | null>
   renderDocumentHtml: (data: RenderData) => string
@@ -22,6 +19,8 @@ interface GenerateCycleInvoiceInput {
 }
 
 // ออกใบแจ้งหนี้ของงวดแบบ on-the-fly เพื่อให้ลูกค้าดาวน์โหลด — ไม่บันทึกลง DB
+// re-render จากใบแจ้งหนี้ที่แอดมินผูกกับงวด (items + note จริง) เพื่อให้ตรงกับที่แอดมินเตรียมไว้
+// แต่ honor ตัวเลือก VAT ของลูกค้า (รวม/ไม่รวม) ตอน render
 export function generateCycleInvoicePdfUseCase(deps: CycleInvoiceDeps) {
   return async ({ customerId, cycleId, includeVat }: GenerateCycleInvoiceInput) => {
     const company = await deps.getCompanySettings()
@@ -29,14 +28,9 @@ export function generateCycleInvoicePdfUseCase(deps: CycleInvoiceDeps) {
       throw new BadRequestError('กรุณาตั้งค่าข้อมูลบริษัทก่อนออกใบแจ้งหนี้')
     }
 
-    const cycle = await deps.repo.getCycleInvoiceData(cycleId, customerId)
-    if (!cycle) {
-      throw new NotFoundError('ไม่พบงวดการชำระเงินนี้')
-    }
-
-    // โหลดได้เฉพาะงวดที่มีใบแจ้งหนี้ที่แอดมินเตรียมไว้แล้วเท่านั้น
-    const hasInvoice = await deps.repo.cycleHasInvoiceDocument(cycleId, customerId)
-    if (!hasInvoice) {
+    const doc = await deps.repo.getCycleInvoiceDocument(cycleId, customerId)
+    // เอกสารที่อัปโหลดเป็นไฟล์ (ไม่มีรายการ) re-render ใหม่ไม่ได้ — ถือว่ายังไม่มีใบแจ้งหนี้ให้ดาวน์โหลด
+    if (!doc || !doc.items || doc.items.length === 0) {
       throw new NotFoundError('ยังไม่มีใบแจ้งหนี้สำหรับงวดนี้')
     }
 
@@ -45,39 +39,29 @@ export function generateCycleInvoicePdfUseCase(deps: CycleInvoiceDeps) {
       throw new NotFoundError('ไม่พบข้อมูลลูกค้า')
     }
 
-    const year = cycle.dueDate.getFullYear()
-    const documentNumber = `INV-${year}-${String(cycle.cycleNumber).padStart(4, '0')}`
-
     const renderData: RenderData = {
       type: 'INVOICE',
-      documentNumber,
+      documentNumber: doc.documentNumber,
       company,
       customer: {
-        name: customer.name,
+        name: doc.customerName ?? customer.name,
         address: customer.address,
         taxId: customer.taxId,
         contactName: customer.contactName,
         phone: customer.phone,
         email: customer.email,
       },
-      items: [
-        {
-          description: `${cycle.planDescription} (งวดที่ ${cycle.cycleNumber})`,
-          quantity: 1,
-          unit: 'งวด',
-          unitPrice: cycle.amount,
-        },
-      ],
-      note: null,
-      dueDate: cycle.dueDate.toISOString(),
-      paidDate: null,
+      items: doc.items,
+      note: doc.note,
+      dueDate: doc.dueDate ? doc.dueDate.toISOString() : null,
+      paidDate: doc.paidDate ? doc.paidDate.toISOString() : null,
       includeVat,
-      generatedAt: new Date(),
+      generatedAt: doc.generatedAt,
     }
 
     const html = deps.renderDocumentHtml(renderData)
     const buffer = await deps.renderer.renderToPdf(html)
-    const filename = sanitizeFilename(`${documentNumber}.pdf`)
+    const filename = sanitizeFilename(`${doc.documentNumber}.pdf`)
 
     return { buffer, filename }
   }

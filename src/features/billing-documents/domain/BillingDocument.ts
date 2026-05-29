@@ -2,6 +2,7 @@ import type { BillingDocumentType } from './DocumentType'
 
 export interface DocumentLineItem {
   description: string
+  detail?: string
   quantity: number
   unit: string
   unitPrice: number

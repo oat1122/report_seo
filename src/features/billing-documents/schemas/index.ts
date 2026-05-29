@@ -15,6 +15,7 @@ export const standaloneCustomerSchema = z.object({
 
 export const updateDocumentItemSchema = z.object({
   description: z.string().trim().min(1, 'กรุณาระบุรายละเอียด'),
+  detail: z.string().trim().max(2000).optional(),
   quantity: z.number().int().min(1).default(1),
   unit: z.string().trim().default('รายการ'),
   unitPrice: z.number().min(0, 'ราคาต้องไม่ติดลบ'),
@@ -50,6 +51,7 @@ export const updateCustomerInfoSchema = z.object({
 
 export const standaloneItemSchema = z.object({
   description: z.string().trim().min(1, 'กรุณาระบุรายละเอียด'),
+  detail: z.string().trim().max(2000).optional(),
   quantity: z.number().int().min(1).default(1),
   unit: z.string().trim().default('รายการ'),
   unitPrice: z.number().min(0, 'ราคาต้องไม่ติดลบ'),

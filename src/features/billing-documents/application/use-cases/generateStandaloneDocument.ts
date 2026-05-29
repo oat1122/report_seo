@@ -15,6 +15,7 @@ interface StandaloneInput {
   type: BillingDocumentType
   items: Array<{
     description: string
+    detail?: string
     quantity: number
     unit: string
     unitPrice: number
@@ -60,6 +61,7 @@ export function generateStandaloneDocumentUseCase(deps: DocumentGenerationDeps) 
       },
       items: input.items.map((i) => ({
         description: i.description,
+        detail: i.detail,
         quantity: i.quantity,
         unit: i.unit,
         unitPrice: i.unitPrice,

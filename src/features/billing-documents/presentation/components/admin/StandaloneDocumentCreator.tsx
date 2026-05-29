@@ -75,6 +75,7 @@ export function StandaloneDocumentCreator({ lockedCustomer, onSuccess }: Props) 
     {
       key: createItemKey(),
       description: 'ค่าบริการ',
+      detail: '',
       quantity: 1,
       unit: 'รายการ',
       unitPrice: 0,
@@ -113,6 +114,7 @@ export function StandaloneDocumentCreator({ lockedCustomer, onSuccess }: Props) 
         type,
         items: items.map((i) => ({
           description: i.description,
+          detail: i.detail.trim() || undefined,
           quantity: i.quantity,
           unit: i.unit,
           unitPrice: i.unitPrice,

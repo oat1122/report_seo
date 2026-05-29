@@ -1,9 +1,11 @@
 'use client'
 
+import { Fragment } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Table,
   TableBody,
@@ -16,6 +18,7 @@ import {
 export interface EditableItem {
   key: string
   description: string
+  detail: string
   quantity: number
   unit: string
   unitPrice: number
@@ -52,6 +55,7 @@ export function DocumentItemsEditor({ items, onItemsChange }: Props) {
       {
         key: createItemKey(),
         description: '',
+        detail: '',
         quantity: 1,
         unit: 'รายการ',
         unitPrice: 0,
@@ -86,7 +90,8 @@ export function DocumentItemsEditor({ items, onItemsChange }: Props) {
         </TableHeader>
         <TableBody>
           {items.map((item) => (
-            <TableRow key={item.key}>
+            <Fragment key={item.key}>
+              <TableRow className="border-0">
               <TableCell className="p-1">
                 <Input
                   value={item.description}
@@ -147,7 +152,18 @@ export function DocumentItemsEditor({ items, onItemsChange }: Props) {
                   <Trash2 className="text-destructive size-4" />
                 </Button>
               </TableCell>
-            </TableRow>
+              </TableRow>
+              <TableRow>
+                <TableCell colSpan={6} className="p-1 pt-0">
+                  <Textarea
+                    value={item.detail}
+                    onChange={(e) => handleItemChange(item.key, 'detail', e.target.value)}
+                    placeholder="รายละเอียดเพิ่มเติม (ขึ้นบรรทัดใหม่ได้ · ขึ้นต้นด้วย . หรือ - = หัวข้อย่อย)"
+                    className="min-h-16 text-sm"
+                  />
+                </TableCell>
+              </TableRow>
+            </Fragment>
           ))}
         </TableBody>
       </Table>

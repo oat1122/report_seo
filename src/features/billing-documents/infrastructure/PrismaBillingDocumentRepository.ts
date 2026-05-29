@@ -15,7 +15,6 @@ import type {
   AllDocumentsFilter,
   CustomerForDocument,
   UpdateCustomerInfoInput,
-  CycleInvoiceData,
 } from '../application/ports/BillingDocumentRepository'
 
 // email มาจากบัญชี User ของลูกค้า (read-only) — ไม่มี column email บน Customer
@@ -173,37 +172,19 @@ export class PrismaBillingDocumentRepository implements BillingDocumentRepositor
     })
   }
 
-  async getCycleInvoiceData(
+  async getCycleInvoiceDocument(
     cycleId: string,
     customerId: string,
-  ): Promise<CycleInvoiceData | null> {
-    const row = await prisma.billingCycle.findFirst({
-      where: { id: cycleId, plan: { customerId } },
-      select: {
-        cycleNumber: true,
-        amount: true,
-        dueDate: true,
-        plan: { select: { description: true } },
-      },
-    })
-    if (!row) return null
-    return {
-      cycleNumber: row.cycleNumber,
-      amount: Number(row.amount),
-      dueDate: row.dueDate,
-      planDescription: row.plan.description,
-    }
-  }
-
-  async cycleHasInvoiceDocument(cycleId: string, customerId: string): Promise<boolean> {
-    const count = await prisma.billingDocument.count({
+  ): Promise<BillingDocument | null> {
+    const row = await prisma.billingDocument.findFirst({
       where: {
         billingCycleId: cycleId,
         type: 'INVOICE',
         billingCycle: { plan: { customerId } },
       },
+      orderBy: { generatedAt: 'desc' },
     })
-    return count > 0
+    return row ? toBillingDocument(row) : null
   }
 
   async listAllDocuments(filters?: AllDocumentsFilter): Promise<AdminBillingDocument[]> {

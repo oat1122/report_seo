@@ -57,14 +57,6 @@ export interface UpdateCustomerInfoInput {
   phone: string | null
 }
 
-// ข้อมูลงวดที่ใช้ออกใบแจ้งหนี้ (scoped ด้วย customerId ภายใน)
-export interface CycleInvoiceData {
-  cycleNumber: number
-  amount: number
-  dueDate: Date
-  planDescription: string
-}
-
 export interface BillingDocumentRepository {
   createDocument(input: CreateDocumentInput): Promise<BillingDocument>
   listDocuments(customerId: string, type?: BillingDocumentType): Promise<BillingDocument[]>
@@ -87,11 +79,9 @@ export interface BillingDocumentRepository {
     customerId: string,
   ): Promise<{ id: string; dueDate: Date } | null>
 
-  // คืนข้อมูลงวดสำหรับออกใบแจ้งหนี้ (scoped ด้วย customerId ภายใน)
-  getCycleInvoiceData(cycleId: string, customerId: string): Promise<CycleInvoiceData | null>
-
-  // งวดนี้มีเอกสารชนิดใบแจ้งหนี้ (INVOICE) ผูกอยู่หรือยัง (scoped ด้วย customerId ภายใน)
-  cycleHasInvoiceDocument(cycleId: string, customerId: string): Promise<boolean>
+  // คืนเอกสารใบแจ้งหนี้ (INVOICE) ที่ผูกกับงวดนี้ เพื่อให้ลูกค้าดาวน์โหลดใบเดียวกับที่แอดมินเตรียมไว้
+  // (scoped ด้วย customerId ภายใน) — null ถ้ายังไม่มีใบแจ้งหนี้ผูกกับงวด
+  getCycleInvoiceDocument(cycleId: string, customerId: string): Promise<BillingDocument | null>
 
   listAllDocuments(filters?: AllDocumentsFilter): Promise<AdminBillingDocument[]>
 

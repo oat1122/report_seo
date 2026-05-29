@@ -5,6 +5,7 @@ import {
   formatDate,
   escapeHtml,
   resolveLogoSrc,
+  renderItemDetail,
 } from './base-template'
 import { computeVatBreakdown } from '../../domain/vat'
 
@@ -47,8 +48,10 @@ export function renderInvoice(data: RenderData): string {
       <td class="text-center">${i + 1}</td>
       <td class="text-left">
         <div class="item-desc-title">${escapeHtml(item.description)}</div>
+        ${renderItemDetail(item.detail)}
       </td>
       <td class="text-center">${item.quantity}</td>
+      <td class="text-center">${escapeHtml(item.unit)}</td>
       <td class="text-right" style="padding-right: 20px;">${formatCurrency(item.unitPrice)}</td>
       <td class="text-right" style="padding-right: 20px;">${formatCurrency(item.quantity * item.unitPrice)}</td>
     </tr>
@@ -65,7 +68,7 @@ export function renderInvoice(data: RenderData): string {
           <h1>INVOICE</h1>
           <p>No. ${escapeHtml(data.documentNumber)}</p>
           <p>Date. ${formatDate(data.generatedAt)}</p>
-          ${data.dueDate ? `<p>วันครบกำหนด ${formatDate(data.dueDate)}</p>` : ''}
+          ${data.dueDate ? `<p>Due Date. ${formatDate(data.dueDate)}</p>` : ''}
         </div>
         <div class="new-header-right">
           ${logoHtml}
@@ -108,15 +111,17 @@ export function renderInvoice(data: RenderData): string {
           <h3>Company Info.</h3>
           <table class="new-info-table">
             <tr>
-              <td class="label">Name</td>
-              <td class="value">: ${escapeHtml(data.company.name)}</td>
+              
+              <td class="value">${escapeHtml(data.company.name)}</td>
+              
             </tr>
             ${
               data.company.phone
                 ? `
             <tr>
-              <td class="label">Phone</td>
-              <td class="value">: ${escapeHtml(data.company.phone)}</td>
+              
+              <td class="value">${escapeHtml(data.company.phone)}</td>
+             
             </tr>`
                 : ''
             }
@@ -124,19 +129,22 @@ export function renderInvoice(data: RenderData): string {
               data.company.email
                 ? `
             <tr>
-              <td class="label">Mail</td>
-              <td class="value">: ${escapeHtml(data.company.email)}</td>
+              
+              <td class="value">${escapeHtml(data.company.email)}</td>
+             
             </tr>`
                 : ''
             }
             <tr>
-              <td class="label" style="vertical-align: top;">Address</td>
-              <td class="value">: ${escapeHtml(data.company.address)}</td>
+              
+              <td class="value">${escapeHtml(data.company.address)}</td>
+              
             </tr>
             
             <tr>
-              <td class="label">Tax ID</td>
-              <td class="value">: ${escapeHtml(data.company.taxId)}</td>
+              
+              <td class="value">${escapeHtml(data.company.taxId)}</td>
+              
             </tr>
           </table>
         </div>
@@ -149,6 +157,7 @@ export function renderInvoice(data: RenderData): string {
               <th class="text-center" style="width: 50px;">No.</th>
               <th class="text-left">ITEM DESCRIPTION</th>
               <th class="text-center" style="width: 80px;">QTY</th>
+              <th class="text-center" style="width: 80px;">UNIT</th>
               <th class="text-right" style="width: 120px; padding-right: 20px;">PRICE</th>
               <th class="text-right" style="width: 120px; padding-right: 20px;">TOTAL</th>
             </tr>

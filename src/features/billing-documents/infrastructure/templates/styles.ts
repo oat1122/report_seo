@@ -323,6 +323,10 @@ export const documentStyles = `
   .text-left { text-align: left; }
   .text-right { text-align: right; }
   .item-desc-title { font-weight: 700; color: #333; }
+  .item-desc-detail { margin-top: 4px; font-size: 12px; color: #555; font-weight: 400; }
+  .detail-line { line-height: 1.5; }
+  .detail-bullet { padding-left: 12px; position: relative; }
+  .detail-bullet::before { content: "•"; position: absolute; left: 0; }
 
   .new-totals-section {
     display: flex;

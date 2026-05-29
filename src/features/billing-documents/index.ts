@@ -14,6 +14,7 @@ import { updateDocumentUseCase } from './application/use-cases/updateDocument'
 import { assignDocumentToCycleUseCase } from './application/use-cases/assignDocumentToCycle'
 import { listAllDocumentsUseCase } from './application/use-cases/listAllDocuments'
 import { updateCustomerInfoUseCase } from './application/use-cases/updateCustomerInfo'
+import { previewTemplateUseCase } from './application/use-cases/previewTemplate'
 
 const repo = new PrismaBillingDocumentRepository()
 const storage = new LocalDocumentStorage()
@@ -47,6 +48,14 @@ export async function getCustomerForDocument(customerId: string) {
 }
 
 export const updateCustomerInfo = updateCustomerInfoUseCase(repo)
+
+// Dev-only template preview
+export const previewTemplate = previewTemplateUseCase({
+  getCompanySettings,
+  renderDocumentHtml,
+  renderer,
+})
+export type { PreviewTemplateInput, PreviewTemplateResult } from './application/use-cases/previewTemplate'
 
 // Schemas
 export {

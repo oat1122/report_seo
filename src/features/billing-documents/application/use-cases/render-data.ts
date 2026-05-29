@@ -18,6 +18,7 @@ export interface RenderData {
   }
   items: Array<{
     description: string
+    detail?: string
     quantity: number
     unit: string
     unitPrice: number

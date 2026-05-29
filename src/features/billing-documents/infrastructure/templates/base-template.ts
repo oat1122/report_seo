@@ -79,7 +79,7 @@ export function formatCurrency(amount: number): string {
 
 export function formatDate(date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date) : date
-  return d.toLocaleDateString('th-TH', {
+  return d.toLocaleDateString('en-GB', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -106,9 +106,30 @@ export interface CustomerData {
 
 export interface ItemData {
   description: string
+  detail?: string
   quantity: number
   unit: string
   unitPrice: number
+}
+
+// detail แบบ freeform หลายบรรทัด — ขึ้นบรรทัดใหม่ตาม \n, บรรทัดที่ขึ้นต้นด้วย . / - / • เป็น bullet
+export function renderItemDetail(detail?: string): string {
+  if (!detail) return ''
+  const lines = detail
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+  if (lines.length === 0) return ''
+  const body = lines
+    .map((line) => {
+      const isBullet = /^[.\-•]\s*/.test(line)
+      const text = escapeHtml(line.replace(/^[.\-•]\s*/, ''))
+      return isBullet
+        ? `<div class="detail-line detail-bullet">${text}</div>`
+        : `<div class="detail-line">${text}</div>`
+    })
+    .join('')
+  return `<div class="item-desc-detail">${body}</div>`
 }
 
 export function resolveLogoSrc(logoUrl: string): string {
@@ -175,7 +196,7 @@ export function renderItemsTable(items: ItemData[]): string {
       (item, i) => `
       <tr>
         <td>${i + 1}</td>
-        <td style="text-align:left">${escapeHtml(item.description)}</td>
+        <td style="text-align:left">${escapeHtml(item.description)}${renderItemDetail(item.detail)}</td>
         <td>${item.quantity}</td>
         <td>${escapeHtml(item.unit)}</td>
         <td>${formatCurrency(item.unitPrice)}</td>
