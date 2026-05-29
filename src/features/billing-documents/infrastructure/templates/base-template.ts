@@ -100,6 +100,7 @@ export interface CustomerData {
   address: string | null
   taxId: string | null
   contactName: string | null
+  phone: string | null
 }
 
 export interface ItemData {
@@ -159,6 +160,7 @@ export function renderCustomerSection(customer: CustomerData): string {
       <div class="customer-info">
         <p class="name">${escapeHtml(customer.name)}</p>
         ${customer.contactName ? `<p>ผู้ติดต่อ: ${escapeHtml(customer.contactName)}</p>` : ''}
+        ${customer.phone ? `<p>เบอร์โทร: ${escapeHtml(customer.phone)}</p>` : ''}
         ${customer.address ? `<p>${escapeHtml(customer.address)}</p>` : ''}
         ${customer.taxId ? `<p>เลขผู้เสียภาษี: ${escapeHtml(customer.taxId)}</p>` : ''}
       </div>

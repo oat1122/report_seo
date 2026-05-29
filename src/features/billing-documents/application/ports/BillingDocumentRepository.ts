@@ -39,6 +39,15 @@ export interface CustomerForDocument {
   address: string | null
   taxId: string | null
   contactName: string | null
+  phone: string | null
+}
+
+export interface UpdateCustomerInfoInput {
+  name: string
+  address: string | null
+  taxId: string | null
+  contactName: string | null
+  phone: string | null
 }
 
 export interface BillingDocumentRepository {
@@ -48,6 +57,8 @@ export interface BillingDocumentRepository {
   deleteDocument(documentId: string): Promise<void>
 
   getCustomerForDocument(customerId: string): Promise<CustomerForDocument | null>
+
+  updateCustomerInfo(customerId: string, input: UpdateCustomerInfoInput): Promise<void>
 
   getNextDocumentNumber(type: BillingDocumentType, year: number): Promise<string>
 

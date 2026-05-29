@@ -13,6 +13,7 @@ export interface RenderData {
     address: string | null
     taxId: string | null
     contactName: string | null
+    phone: string | null
   }
   items: Array<{
     description: string

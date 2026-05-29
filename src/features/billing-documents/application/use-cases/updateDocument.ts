@@ -42,6 +42,7 @@ export function updateDocumentUseCase(deps: DocumentGenerationDeps) {
         address: customer.address,
         taxId: customer.taxId,
         contactName: customer.contactName,
+        phone: customer.phone,
       },
       items: input.items,
       note: input.note ?? null,

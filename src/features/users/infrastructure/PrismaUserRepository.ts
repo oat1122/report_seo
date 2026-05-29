@@ -21,6 +21,7 @@ const adminUserSelect = {
       address: true,
       taxId: true,
       contactName: true,
+      phone: true,
     },
   },
 } as const
@@ -121,6 +122,7 @@ export class PrismaUserRepository implements UserRepository {
           address: data.address || null,
           taxId: data.taxId || null,
           contactName: data.contactName || null,
+          phone: data.phone || null,
         },
       })
 
@@ -148,14 +150,16 @@ export class PrismaUserRepository implements UserRepository {
     data: UserUpdateInput,
     options: { existingCustomerProfile: boolean },
   ): Promise<User> {
-    const { name, email, role, companyName, domain, seoDevId, address, taxId, contactName } = data
+    const { name, email, role, companyName, domain, seoDevId, address, taxId, contactName, phone } =
+      data
     const isCustomerWithProfile =
       role === Role.CUSTOMER &&
       (companyName ||
         domain ||
         address !== undefined ||
         taxId !== undefined ||
-        contactName !== undefined)
+        contactName !== undefined ||
+        phone !== undefined)
 
     if (!isCustomerWithProfile) {
       return prisma.user.update({
@@ -179,6 +183,7 @@ export class PrismaUserRepository implements UserRepository {
         address?: string | null
         taxId?: string | null
         contactName?: string | null
+        phone?: string | null
       } = {}
       if (companyName) customerData.name = companyName
       if (domain) customerData.domain = domain
@@ -188,6 +193,7 @@ export class PrismaUserRepository implements UserRepository {
       if (address !== undefined) customerData.address = address || null
       if (taxId !== undefined) customerData.taxId = taxId || null
       if (contactName !== undefined) customerData.contactName = contactName || null
+      if (phone !== undefined) customerData.phone = phone || null
 
       if (options.existingCustomerProfile) {
         await tx.customer.update({
@@ -204,6 +210,7 @@ export class PrismaUserRepository implements UserRepository {
             address: address || null,
             taxId: taxId || null,
             contactName: contactName || null,
+            phone: phone || null,
           },
         })
       }

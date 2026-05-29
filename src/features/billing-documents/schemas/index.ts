@@ -32,6 +32,17 @@ export const standaloneCustomerSchema = z.object({
   address: z.string().trim().nullable().optional(),
   taxId: z.string().trim().nullable().optional(),
   contactName: z.string().trim().nullable().optional(),
+  phone: z.string().trim().nullable().optional(),
+})
+
+// --- Update Customer Info (sync DB ให้ตรงกับเอกสารที่สร้าง) ---
+
+export const updateCustomerInfoSchema = z.object({
+  name: z.string().trim().min(1, 'กรุณาระบุชื่อลูกค้า'),
+  address: z.string().trim().max(500).nullable(),
+  taxId: z.string().trim().max(13).nullable(),
+  contactName: z.string().trim().max(100).nullable(),
+  phone: z.string().trim().max(20).nullable(),
 })
 
 export const standaloneItemSchema = z.object({
@@ -67,6 +78,7 @@ export type UpdateDocumentInput = z.infer<typeof updateDocumentSchema>
 export type UpdateDocumentItemInput = z.infer<typeof updateDocumentItemSchema>
 export type ListAllDocumentsQuery = z.infer<typeof listAllDocumentsQuerySchema>
 export type StandaloneCustomerInfo = z.infer<typeof standaloneCustomerSchema>
+export type UpdateCustomerInfoInput = z.infer<typeof updateCustomerInfoSchema>
 export type GenerateStandaloneDocumentInput = z.infer<typeof generateStandaloneDocumentSchema>
 export type UploadDocumentInput = z.infer<typeof uploadDocumentSchema>
 export type SearchCustomersQuery = z.infer<typeof searchCustomersQuerySchema>

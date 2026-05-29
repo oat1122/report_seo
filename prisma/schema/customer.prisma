@@ -13,6 +13,7 @@ model Customer {
   address     String?  @db.Text
   taxId       String?
   contactName String?
+  phone       String?
 
   reports         KeywordReport[]
   metrics         OverallMetrics?

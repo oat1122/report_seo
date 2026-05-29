@@ -11,6 +11,7 @@ import { getDocumentUseCase } from './application/use-cases/getDocument'
 import { deleteDocumentUseCase } from './application/use-cases/deleteDocument'
 import { updateDocumentUseCase } from './application/use-cases/updateDocument'
 import { listAllDocumentsUseCase } from './application/use-cases/listAllDocuments'
+import { updateCustomerInfoUseCase } from './application/use-cases/updateCustomerInfo'
 
 const repo = new PrismaBillingDocumentRepository()
 const storage = new LocalDocumentStorage()
@@ -41,6 +42,8 @@ export async function getCustomerForDocument(customerId: string) {
   return repo.getCustomerForDocument(customerId)
 }
 
+export const updateCustomerInfo = updateCustomerInfoUseCase(repo)
+
 // Schemas
 export {
   updateDocumentSchema,
@@ -49,6 +52,7 @@ export {
   generateStandaloneDocumentSchema,
   uploadDocumentSchema,
   searchCustomersQuerySchema,
+  updateCustomerInfoSchema,
 } from './schemas'
 export type {
   UpdateDocumentInput,
@@ -57,6 +61,7 @@ export type {
   GenerateStandaloneDocumentInput,
   UploadDocumentInput,
   SearchCustomersQuery,
+  UpdateCustomerInfoInput,
 } from './schemas'
 
 // Domain types

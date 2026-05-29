@@ -9,6 +9,7 @@ export interface CustomerProfile {
   address?: string | null
   taxId?: string | null
   contactName?: string | null
+  phone?: string | null
 }
 
 export interface User {
@@ -33,4 +34,5 @@ export interface UserFormState extends Partial<User> {
   address?: string
   taxId?: string
   contactName?: string
+  phone?: string
 }

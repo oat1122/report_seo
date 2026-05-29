@@ -30,6 +30,7 @@ export const useUserModalLogic = () => {
           address: apiUserData.customerProfile?.address || '',
           taxId: apiUserData.customerProfile?.taxId || '',
           contactName: apiUserData.customerProfile?.contactName || '',
+          phone: apiUserData.customerProfile?.phone || '',
         }
         dispatch(openUserModal(flattenedData))
       } catch (err) {

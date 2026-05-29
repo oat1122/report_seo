@@ -205,6 +205,18 @@ export const UserModal: React.FC<UserModalProps> = ({
                 </Field>
 
                 <Field>
+                  <Label htmlFor="customer-phone">เบอร์โทร</Label>
+                  <Input
+                    id="customer-phone"
+                    name="phone"
+                    value={currentUser.phone || ''}
+                    onChange={handleInputChange}
+                    placeholder="เบอร์ติดต่อ"
+                    maxLength={20}
+                  />
+                </Field>
+
+                <Field>
                   <Label htmlFor="customer-address">ที่อยู่ (สำหรับออกเอกสาร)</Label>
                   <Textarea
                     id="customer-address"

@@ -18,9 +18,20 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { CustomerSearchCombobox } from './CustomerSearchCombobox'
 import { DocumentItemsEditor, createItemKey, type EditableItem } from './DocumentItemsEditor'
 import { useGenerateStandaloneDocument } from '../../hooks/useStandaloneDocument'
+import { useUpdateCustomerInfo } from '../../hooks/useUpdateCustomerInfo'
 import { DOCUMENT_TYPE_LABELS } from '../../../domain/DocumentType'
 import type { BillingDocumentType } from '../../../domain/DocumentType'
 import type { CustomerForDocument } from '../../../application/ports/BillingDocumentRepository'
@@ -33,6 +44,13 @@ export interface LockedCustomer {
   address: string | null
   taxId: string | null
   contactName: string | null
+  phone: string | null
+}
+
+// ค่าว่างหลัง trim ถือเป็น null เพื่อเทียบกับข้อมูลใน DB ได้ตรงกัน
+function normalize(value: string): string | null {
+  const trimmed = value.trim()
+  return trimmed.length > 0 ? trimmed : null
 }
 
 interface Props {
@@ -42,15 +60,18 @@ interface Props {
 
 export function StandaloneDocumentCreator({ lockedCustomer, onSuccess }: Props) {
   const generateMutation = useGenerateStandaloneDocument()
+  const updateCustomerMutation = useUpdateCustomerInfo()
   const isLocked = !!lockedCustomer
 
   const [mode, setMode] = useState<Mode>('manual')
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerForDocument | null>(null)
+  const [syncPromptOpen, setSyncPromptOpen] = useState(false)
 
   const [customerName, setCustomerName] = useState(lockedCustomer?.name ?? '')
   const [customerAddress, setCustomerAddress] = useState(lockedCustomer?.address ?? '')
   const [customerTaxId, setCustomerTaxId] = useState(lockedCustomer?.taxId ?? '')
   const [customerContactName, setCustomerContactName] = useState(lockedCustomer?.contactName ?? '')
+  const [customerPhone, setCustomerPhone] = useState(lockedCustomer?.phone ?? '')
 
   const [type, setType] = useState<BillingDocumentType>('INVOICE')
   const [note, setNote] = useState('')
@@ -74,6 +95,7 @@ export function StandaloneDocumentCreator({ lockedCustomer, onSuccess }: Props) 
       setCustomerAddress(customer.address ?? '')
       setCustomerTaxId(customer.taxId ?? '')
       setCustomerContactName(customer.contactName ?? '')
+      setCustomerPhone(customer.phone ?? '')
     }
   }
 
@@ -89,17 +111,31 @@ export function StandaloneDocumentCreator({ lockedCustomer, onSuccess }: Props) 
   const isValid =
     customerName.trim().length > 0 && items.length > 0 && items.every((i) => i.description.trim())
 
-  const handleGenerate = () => {
-    const customerId = lockedCustomer?.id ?? selectedCustomer?.id ?? null
+  // ลูกค้าที่มาจาก DB (import หรือ locked) — ใช้เทียบว่าข้อมูลในฟอร์มต่างจากในระบบไหม
+  const dbCustomer = lockedCustomer ?? selectedCustomer
+  const customerId = dbCustomer?.id ?? null
+
+  const editedCustomer = {
+    name: normalize(customerName) ?? '',
+    address: normalize(customerAddress),
+    taxId: normalize(customerTaxId),
+    contactName: normalize(customerContactName),
+    phone: normalize(customerPhone),
+  }
+
+  const hasCustomerDiff =
+    !!dbCustomer &&
+    (editedCustomer.name !== dbCustomer.name ||
+      editedCustomer.address !== (dbCustomer.address ?? null) ||
+      editedCustomer.taxId !== (dbCustomer.taxId ?? null) ||
+      editedCustomer.contactName !== (dbCustomer.contactName ?? null) ||
+      editedCustomer.phone !== (dbCustomer.phone ?? null))
+
+  const runGenerate = () => {
     generateMutation.mutate(
       {
         customerId,
-        customer: {
-          name: customerName.trim(),
-          address: customerAddress.trim() || null,
-          taxId: customerTaxId.trim() || null,
-          contactName: customerContactName.trim() || null,
-        },
+        customer: editedCustomer,
         type,
         items: items.map((i) => ({
           description: i.description,
@@ -119,6 +155,33 @@ export function StandaloneDocumentCreator({ lockedCustomer, onSuccess }: Props) 
         },
       },
     )
+  }
+
+  const handleGenerate = () => {
+    // ถ้าข้อมูลที่กรอกต่างจากลูกค้าในระบบ → ถามก่อนว่าจะ sync DB ไหม
+    if (customerId && hasCustomerDiff) {
+      setSyncPromptOpen(true)
+      return
+    }
+    runGenerate()
+  }
+
+  const handleUpdateAndGenerate = async () => {
+    if (!customerId) return
+    try {
+      await updateCustomerMutation.mutateAsync({ customerId, info: editedCustomer })
+      toast.success('อัปเดตข้อมูลลูกค้าในระบบเรียบร้อย')
+    } catch {
+      // error ถูก toast โดย axios interceptor แล้ว — ยังสร้างเอกสารต่อตามเดิม
+    } finally {
+      setSyncPromptOpen(false)
+      runGenerate()
+    }
+  }
+
+  const handleGenerateWithoutSync = () => {
+    setSyncPromptOpen(false)
+    runGenerate()
   }
 
   return (
@@ -205,6 +268,15 @@ export function StandaloneDocumentCreator({ lockedCustomer, onSuccess }: Props) 
                   placeholder="ชื่อผู้ติดต่อ"
                 />
               </Field>
+              <Field>
+                <Label>เบอร์โทร</Label>
+                <Input
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  placeholder="เบอร์ติดต่อ"
+                  maxLength={20}
+                />
+              </Field>
             </div>
           </FieldGroup>
         </CardContent>
@@ -276,7 +348,7 @@ export function StandaloneDocumentCreator({ lockedCustomer, onSuccess }: Props) 
       {/* Generate Button */}
       <Button
         onClick={handleGenerate}
-        disabled={generateMutation.isPending || !isValid}
+        disabled={generateMutation.isPending || updateCustomerMutation.isPending || !isValid}
         size="lg"
         className="bg-info text-info-foreground hover:bg-info/90 w-full"
       >
@@ -292,6 +364,40 @@ export function StandaloneDocumentCreator({ lockedCustomer, onSuccess }: Props) 
           </span>
         )}
       </Button>
+
+      <AlertDialog open={syncPromptOpen} onOpenChange={setSyncPromptOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>อัปเดตข้อมูลลูกค้าในระบบ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              ข้อมูลลูกค้าที่กรอกในเอกสารต่างจากที่บันทึกไว้ในระบบ
+              ต้องการอัปเดตข้อมูลลูกค้าในระบบให้ตรงกับเอกสารที่กำลังสร้างไหม?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:gap-2">
+            <AlertDialogCancel disabled={updateCustomerMutation.isPending}>
+              ยกเลิก
+            </AlertDialogCancel>
+            <Button
+              variant="outline"
+              onClick={handleGenerateWithoutSync}
+              disabled={updateCustomerMutation.isPending}
+            >
+              สร้างโดยไม่อัปเดต
+            </Button>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault()
+                handleUpdateAndGenerate()
+              }}
+              disabled={updateCustomerMutation.isPending}
+            >
+              {updateCustomerMutation.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+              อัปเดตแล้วสร้าง
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

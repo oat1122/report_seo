@@ -14,6 +14,7 @@ import type {
   UpdateDocumentInput,
   AllDocumentsFilter,
   CustomerForDocument,
+  UpdateCustomerInfoInput,
 } from '../application/ports/BillingDocumentRepository'
 
 function toBillingDocument(row: {
@@ -85,8 +86,22 @@ export class PrismaBillingDocumentRepository implements BillingDocumentRepositor
         address: true,
         taxId: true,
         contactName: true,
+        phone: true,
       },
     }) as Promise<CustomerForDocument | null>
+  }
+
+  async updateCustomerInfo(customerId: string, input: UpdateCustomerInfoInput): Promise<void> {
+    await prisma.customer.update({
+      where: { id: customerId },
+      data: {
+        name: input.name,
+        address: input.address,
+        taxId: input.taxId,
+        contactName: input.contactName,
+        phone: input.phone,
+      },
+    })
   }
 
   async getNextDocumentNumber(type: BillingDocumentType, year: number): Promise<string> {
@@ -199,6 +214,7 @@ export class PrismaBillingDocumentRepository implements BillingDocumentRepositor
         address: true,
         taxId: true,
         contactName: true,
+        phone: true,
       },
       orderBy: { name: 'asc' },
       take: 50,

@@ -9,6 +9,7 @@ export interface CustomerProfile {
   address?: string | null
   taxId?: string | null
   contactName?: string | null
+  phone?: string | null
 }
 
 export interface User {

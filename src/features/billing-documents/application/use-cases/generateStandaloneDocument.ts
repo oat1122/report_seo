@@ -10,6 +10,7 @@ interface StandaloneInput {
     address?: string | null
     taxId?: string | null
     contactName?: string | null
+    phone?: string | null
   }
   type: BillingDocumentType
   items: Array<{
@@ -49,6 +50,7 @@ export function generateStandaloneDocumentUseCase(deps: DocumentGenerationDeps) 
         address: input.customer.address ?? null,
         taxId: input.customer.taxId ?? null,
         contactName: input.customer.contactName ?? null,
+        phone: input.customer.phone ?? null,
       },
       items: input.items.map((i) => ({
         description: i.description,

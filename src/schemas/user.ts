@@ -13,6 +13,7 @@ export const userCreateSchema = z
     address: z.string().trim().max(500).optional(),
     taxId: z.string().trim().max(13).optional(),
     contactName: z.string().trim().max(100).optional(),
+    phone: z.string().trim().max(20).optional(),
   })
   .strict()
   .refine((data) => data.role !== Role.CUSTOMER || (!!data.companyName && !!data.domain), {
@@ -37,6 +38,7 @@ export const userUpdateSchema = z.object({
   address: z.string().trim().max(500).optional(),
   taxId: z.string().trim().max(13).optional(),
   contactName: z.string().trim().max(100).optional(),
+  phone: z.string().trim().max(20).optional(),
 })
 
 export type UserUpdateInput = z.infer<typeof userUpdateSchema>

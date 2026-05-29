@@ -316,6 +316,7 @@ function CreateDocumentDialog({ customerId, open, onOpenChange }: DialogProps) {
               address: info.address,
               taxId: info.taxId,
               contactName: info.contactName,
+              phone: info.phone,
             }}
             onSuccess={() => {
               qc.invalidateQueries({ queryKey: documentsQueryKey(customerId) })
