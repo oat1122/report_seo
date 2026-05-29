@@ -50,6 +50,7 @@ export function setPeriodMarkUseCase(
       markTypeId: input.markTypeId,
       progressPercent: input.progressPercent ?? null,
       note: input.note ?? null,
+      scheduledDate: input.scheduledDate ?? null,
     })
     await activityRepo.log({
       planId,

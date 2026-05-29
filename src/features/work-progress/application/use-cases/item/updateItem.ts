@@ -66,6 +66,28 @@ export function updateItemUseCase(
     if (input.startDate !== undefined) patch.startDate = input.startDate
     if (input.dueDate !== undefined) patch.dueDate = input.dueDate
 
+    // Recurrence — ปิด recurring ก็ล้างกฎทิ้งให้สอดคล้องกัน
+    if (input.isRecurring !== undefined) {
+      patch.isRecurring = input.isRecurring
+      if (input.isRecurring) {
+        if (input.recurrenceFreq !== undefined) patch.recurrenceFreq = input.recurrenceFreq
+        if (input.recurrenceInterval !== undefined)
+          patch.recurrenceInterval = input.recurrenceInterval
+        if (input.recurrenceDayOfMonth !== undefined)
+          patch.recurrenceDayOfMonth = input.recurrenceDayOfMonth
+      } else {
+        patch.recurrenceFreq = null
+        patch.recurrenceDayOfMonth = null
+      }
+    } else {
+      // ไม่แตะ isRecurring แต่ปรับรายละเอียดกฎได้ (เช่น เปลี่ยนวันที่/ความถี่)
+      if (input.recurrenceFreq !== undefined) patch.recurrenceFreq = input.recurrenceFreq
+      if (input.recurrenceInterval !== undefined)
+        patch.recurrenceInterval = input.recurrenceInterval
+      if (input.recurrenceDayOfMonth !== undefined)
+        patch.recurrenceDayOfMonth = input.recurrenceDayOfMonth
+    }
+
     const updated = await repo.updateItem(itemId, patch)
     await activityRepo.log({
       planId,

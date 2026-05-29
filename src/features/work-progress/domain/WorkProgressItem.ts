@@ -14,6 +14,11 @@ export interface WorkProgressItem {
   dueDate: Date | null
   completedAt: Date | null
   assignedToId: string | null
+  // Recurrence — เก็บเฉพาะกฎ (ไม่ materialize) แล้วคำนวณวันของแต่ละเดือนตอนแสดง
+  isRecurring: boolean
+  recurrenceFreq: string | null
+  recurrenceInterval: number
+  recurrenceDayOfMonth: number | null
   createdAt: Date
   updatedAt: Date
 }
@@ -30,5 +35,6 @@ export interface WorkProgressItemPeriodMark {
   markTypeId: string
   progressPercent: number | null
   note: string | null
+  scheduledDate: Date | null
   updatedAt: Date
 }

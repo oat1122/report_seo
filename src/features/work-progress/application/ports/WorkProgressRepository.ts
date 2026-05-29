@@ -67,6 +67,10 @@ export interface AddItemData {
   orderIndex: number | null
   startDate: Date | null
   dueDate: Date | null
+  isRecurring: boolean
+  recurrenceFreq: string | null
+  recurrenceInterval: number
+  recurrenceDayOfMonth: number | null
 }
 
 export interface UpdateItemData {
@@ -82,6 +86,10 @@ export interface UpdateItemData {
   dueDate?: Date | null
   completedAt?: Date | null // ตั้งโดย use case ตอน status terminal
   assignedToId?: string | null
+  isRecurring?: boolean
+  recurrenceFreq?: string | null
+  recurrenceInterval?: number
+  recurrenceDayOfMonth?: number | null
 }
 
 export interface SetMarkData {
@@ -90,6 +98,7 @@ export interface SetMarkData {
   markTypeId: string
   progressPercent: number | null
   note: string | null
+  scheduledDate: Date | null
 }
 
 export interface PlanSummary {
