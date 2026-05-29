@@ -1,5 +1,6 @@
 import type { DocumentGenerationDeps } from './render-data'
 import type { BillingDocumentType } from '../../domain/DocumentType'
+import { computeVatBreakdown } from '../../domain/vat'
 import { BadRequestError, NotFoundError } from '@/lib/errors'
 import { sanitizeFilename } from '@/infrastructure/upload/validators'
 
@@ -12,6 +13,7 @@ export function updateDocumentUseCase(deps: DocumentGenerationDeps) {
       note?: string | null
       dueDate?: string | null
       paidDate?: string | null
+      includeVat?: boolean
       customer?: {
         name: string
         address?: string | null
@@ -43,7 +45,10 @@ export function updateDocumentUseCase(deps: DocumentGenerationDeps) {
     // email ดึงจากบัญชี User เสมอ (read-only)
     const renderCustomer = input.customer ?? dbCustomer
 
-    const totalAmount = input.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
+    // VAT ใช้เฉพาะ INVOICE — กัน flag ค้างจากเอกสารชนิดอื่นไม่ให้ติดยอด
+    const applyVat = input.type === 'INVOICE' && !!input.includeVat
+    const subtotal = input.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
+    const totalAmount = applyVat ? computeVatBreakdown(subtotal).grandTotal : subtotal
 
     const html = deps.renderDocumentHtml({
       type: input.type,
@@ -62,6 +67,7 @@ export function updateDocumentUseCase(deps: DocumentGenerationDeps) {
       dueDate: input.dueDate ?? null,
       paidDate: input.paidDate ?? null,
       generatedAt: existingDoc.generatedAt,
+      includeVat: applyVat,
     })
 
     const pdfBuffer = await deps.renderer.renderToPdf(html)
@@ -76,6 +82,7 @@ export function updateDocumentUseCase(deps: DocumentGenerationDeps) {
       pdfUrl,
       totalAmount,
       items: input.items,
+      includeVat: applyVat,
       note: input.note ?? null,
       dueDate: input.dueDate ? new Date(input.dueDate) : null,
       paidDate: input.paidDate ? new Date(input.paidDate) : null,

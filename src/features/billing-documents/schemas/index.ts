@@ -26,6 +26,8 @@ export const updateDocumentSchema = z.object({
   note: z.string().trim().max(500).nullable().optional(),
   dueDate: z.string().nullable().optional(),
   paidDate: z.string().nullable().optional(),
+  // INVOICE: ออกแบบรวม VAT 7% หรือไม่ (เอกสารชนิดอื่น flag นี้ถูกมองข้าม)
+  includeVat: z.boolean().optional().default(false),
   // ข้อมูลลูกค้าที่แก้บนเอกสาร (optional) — ถ้าไม่ส่งจะ render จากข้อมูลใน DB
   customer: standaloneCustomerSchema.optional(),
   items: z.array(updateDocumentItemSchema).min(1, 'ต้องมีอย่างน้อย 1 รายการ'),
@@ -65,6 +67,8 @@ export const generateStandaloneDocumentSchema = z.object({
   note: z.string().trim().max(500).nullable().optional(),
   dueDate: z.string().nullable().optional(),
   paidDate: z.string().nullable().optional(),
+  // INVOICE: ออกแบบรวม VAT 7% หรือไม่ (เอกสารชนิดอื่น flag นี้ถูกมองข้าม)
+  includeVat: z.boolean().optional().default(false),
 })
 
 // --- Upload Document (file from local machine) ---

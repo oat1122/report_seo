@@ -6,6 +6,7 @@ import { toast } from 'react-toastify'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Field, FieldGroup } from '@/components/ui/field'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -34,6 +35,7 @@ import { useGenerateStandaloneDocument } from '../../hooks/useStandaloneDocument
 import { useUpdateCustomerInfo } from '../../hooks/useUpdateCustomerInfo'
 import { DOCUMENT_TYPE_LABELS } from '../../../domain/DocumentType'
 import type { BillingDocumentType } from '../../../domain/DocumentType'
+import { computeVatBreakdown } from '../../../domain/vat'
 import type { CustomerForDocument } from '../../../application/ports/BillingDocumentRepository'
 
 type Mode = 'manual' | 'autofill'
@@ -67,6 +69,7 @@ export function StandaloneDocumentCreator({ lockedCustomer, onSuccess }: Props) 
   )
 
   const [type, setType] = useState<BillingDocumentType>('INVOICE')
+  const [includeVat, setIncludeVat] = useState(false)
   const [note, setNote] = useState('')
   const [dueDate, setDueDate] = useState('')
   const [paidDate, setPaidDate] = useState('')
@@ -96,6 +99,8 @@ export function StandaloneDocumentCreator({ lockedCustomer, onSuccess }: Props) 
   }
 
   const total = items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)
+  const displayTotal =
+    type === 'INVOICE' && includeVat ? computeVatBreakdown(total).grandTotal : total
 
   const isValid =
     customer.name.trim().length > 0 && items.length > 0 && items.every((i) => i.description.trim())
@@ -112,6 +117,7 @@ export function StandaloneDocumentCreator({ lockedCustomer, onSuccess }: Props) 
         customerId,
         customer: toCustomerInfoInput(customer),
         type,
+        includeVat,
         items: items.map((i) => ({
           description: i.description,
           detail: i.detail.trim(),
@@ -236,6 +242,15 @@ export function StandaloneDocumentCreator({ lockedCustomer, onSuccess }: Props) 
               </Select>
             </Field>
 
+            {type === 'INVOICE' && (
+              <Field>
+                <div className="flex items-center gap-2">
+                  <Switch id="include-vat" checked={includeVat} onCheckedChange={setIncludeVat} />
+                  <Label htmlFor="include-vat">รวม VAT 7%</Label>
+                </div>
+              </Field>
+            )}
+
             {(type === 'INVOICE' || type === 'BILLING_NOTE') && (
               <Field>
                 <Label>กำหนดชำระ</Label>
@@ -287,9 +302,10 @@ export function StandaloneDocumentCreator({ lockedCustomer, onSuccess }: Props) 
           <FileText className="mr-2 size-4" />
         )}
         สร้าง PDF ({DOCUMENT_TYPE_LABELS[type]})
-        {total > 0 && (
+        {displayTotal > 0 && (
           <span className="ml-2">
-            · {total.toLocaleString('th-TH', { minimumFractionDigits: 2 })} บาท
+            · {displayTotal.toLocaleString('th-TH', { minimumFractionDigits: 2 })} บาท
+            {type === 'INVOICE' && includeVat && ' (รวม VAT)'}
           </span>
         )}
       </Button>

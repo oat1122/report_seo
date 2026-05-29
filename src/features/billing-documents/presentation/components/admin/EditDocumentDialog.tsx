@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Switch } from '@/components/ui/switch'
 import { Field, FieldGroup } from '@/components/ui/field'
 import { Separator } from '@/components/ui/separator'
 import {
@@ -97,6 +98,7 @@ export function EditDocumentDialog({
   const { data: info, isLoading: infoLoading } = useCustomerDocumentInfo(customerId)
 
   const [type, setType] = useState<BillingDocumentType>(doc.type)
+  const [includeVat, setIncludeVat] = useState(doc.includeVat)
   const [note, setNote] = useState(doc.note ?? '')
   const [dueDate, setDueDate] = useState(() => isoDateOnly(doc.dueDate))
   const [paidDate, setPaidDate] = useState(() => isoDateOnly(doc.paidDate))
@@ -133,6 +135,7 @@ export function EditDocumentDialog({
         documentId: doc.id,
         input: {
           type,
+          includeVat,
           note: note || null,
           dueDate: dueDate || null,
           paidDate: paidDate || null,
@@ -242,6 +245,15 @@ export function EditDocumentDialog({
               </SelectContent>
             </Select>
           </Field>
+
+          {type === 'INVOICE' && (
+            <Field>
+              <div className="flex items-center gap-2">
+                <Switch id="edit-include-vat" checked={includeVat} onCheckedChange={setIncludeVat} />
+                <Label htmlFor="edit-include-vat">รวม VAT 7%</Label>
+              </div>
+            </Field>
+          )}
 
           {(type === 'INVOICE' || type === 'BILLING_NOTE') && (
             <Field>

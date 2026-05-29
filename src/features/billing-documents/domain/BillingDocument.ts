@@ -15,6 +15,7 @@ export interface BillingDocument {
   pdfUrl: string
   totalAmount: number
   items: DocumentLineItem[] | null
+  includeVat: boolean
   note: string | null
   dueDate: Date | null
   paidDate: Date | null

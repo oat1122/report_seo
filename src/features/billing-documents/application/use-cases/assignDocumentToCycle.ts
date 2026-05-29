@@ -46,6 +46,7 @@ export function assignDocumentToCycleUseCase(deps: DocumentGenerationDeps) {
         dueDate: cycle.dueDate.toISOString(),
         paidDate: doc.paidDate ? doc.paidDate.toISOString() : null,
         generatedAt: doc.generatedAt,
+        includeVat: doc.includeVat,
       })
 
       const pdfBuffer = await deps.renderer.renderToPdf(html)
@@ -58,6 +59,7 @@ export function assignDocumentToCycleUseCase(deps: DocumentGenerationDeps) {
       pdfUrl,
       totalAmount: doc.totalAmount,
       items,
+      includeVat: doc.includeVat,
       note: doc.note,
       dueDate: cycle.dueDate,
       paidDate: doc.paidDate,

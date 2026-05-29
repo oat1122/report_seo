@@ -1,5 +1,6 @@
 import type { DocumentGenerationDeps, RenderData } from './render-data'
 import type { BillingDocumentType } from '../../domain/DocumentType'
+import { computeVatBreakdown } from '../../domain/vat'
 import { BadRequestError } from '@/lib/errors'
 import { sanitizeFilename } from '@/infrastructure/upload/validators'
 
@@ -23,6 +24,7 @@ interface StandaloneInput {
   note?: string | null
   dueDate?: string | null
   paidDate?: string | null
+  includeVat?: boolean
 }
 
 export function generateStandaloneDocumentUseCase(deps: DocumentGenerationDeps) {
@@ -39,7 +41,10 @@ export function generateStandaloneDocumentUseCase(deps: DocumentGenerationDeps) 
     const year = new Date().getFullYear()
     const documentNumber = await deps.repo.getNextDocumentNumber(input.type, year)
 
-    const totalAmount = input.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
+    // VAT ใช้เฉพาะ INVOICE — กัน flag ค้างจากเอกสารชนิดอื่นไม่ให้ติดยอด
+    const applyVat = input.type === 'INVOICE' && !!input.includeVat
+    const subtotal = input.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
+    const totalAmount = applyVat ? computeVatBreakdown(subtotal).grandTotal : subtotal
 
     // email บนเอกสารดึงจากบัญชี User ของลูกค้า (read-only) — เฉพาะกรณีเลือกลูกค้าจากระบบ
     const dbCustomer = input.customerId
@@ -70,6 +75,7 @@ export function generateStandaloneDocumentUseCase(deps: DocumentGenerationDeps) 
       dueDate: input.dueDate ?? null,
       paidDate: input.paidDate ?? null,
       generatedAt: now,
+      includeVat: applyVat,
     }
 
     const html = deps.renderDocumentHtml(renderData)
@@ -85,6 +91,7 @@ export function generateStandaloneDocumentUseCase(deps: DocumentGenerationDeps) 
       pdfUrl,
       totalAmount,
       items: input.items,
+      includeVat: applyVat,
       note: input.note ?? null,
       dueDate: input.dueDate ? new Date(input.dueDate) : null,
       paidDate: input.paidDate ? new Date(input.paidDate) : null,

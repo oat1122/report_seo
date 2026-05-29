@@ -50,6 +50,7 @@ function toBillingDocument(row: {
   pdfUrl: string
   totalAmount: unknown
   items?: unknown
+  includeVat?: boolean
   note: string | null
   dueDate?: Date | null
   paidDate?: Date | null
@@ -63,6 +64,7 @@ function toBillingDocument(row: {
     type: row.type as BillingDocumentType,
     totalAmount: Number(row.totalAmount),
     items: (row.items as DocumentLineItem[] | null) ?? null,
+    includeVat: row.includeVat ?? false,
     dueDate: row.dueDate ?? null,
     paidDate: row.paidDate ?? null,
     customerName: row.customerName ?? null,
@@ -78,6 +80,7 @@ export class PrismaBillingDocumentRepository implements BillingDocumentRepositor
         pdfUrl: input.pdfUrl,
         totalAmount: input.totalAmount,
         items: input.items as unknown as Prisma.InputJsonValue,
+        includeVat: input.includeVat,
         note: input.note,
         dueDate: input.dueDate ?? null,
         paidDate: input.paidDate ?? null,
@@ -141,6 +144,7 @@ export class PrismaBillingDocumentRepository implements BillingDocumentRepositor
         pdfUrl: input.pdfUrl,
         totalAmount: input.totalAmount,
         items: input.items as unknown as Prisma.InputJsonValue,
+        includeVat: input.includeVat,
         note: input.note,
         ...(input.dueDate !== undefined ? { dueDate: input.dueDate } : {}),
         ...(input.paidDate !== undefined ? { paidDate: input.paidDate } : {}),

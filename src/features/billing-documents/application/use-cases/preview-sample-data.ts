@@ -53,6 +53,15 @@ export function buildSampleRenderData(
         unit: 'รายการ',
         unitPrice: 15000,
       },
+      {
+        description:
+          'Business Pro price: 15,000 THB/month Focus Keywords: 15 Related Keywords: Unlimited Backlinks: Unlimited',
+        detail:
+          'Free bonuses (5 items):\n- Keyword analysis\n- Competitor analysis\n- Development consultation\n- Monthly report\n- 2 new articles per month\n Guarantee: Top 10 ranking for 2 keywords',
+        quantity: 1,
+        unit: 'รายการ',
+        unitPrice: 15000,
+      },
     ],
     note: '555555555555555555',
     dueDate: '2026-05-29',

@@ -28,6 +28,7 @@ model BillingDocument {
   pdfUrl         String
   totalAmount    Decimal             @db.Decimal(12, 2)
   items          Json? // [{ description, detail?, quantity, unit, unitPrice }] — null = legacy doc ก่อนมี field นี้
+  includeVat     Boolean             @default(false) // INVOICE: ออกแบบรวม VAT 7% หรือไม่
   note           String?             @db.Text
   dueDate        DateTime? // กำหนดชำระ (INVOICE / BILLING_NOTE)
   paidDate       DateTime? // วันที่ชำระ (RECEIPT)

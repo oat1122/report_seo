@@ -36,6 +36,7 @@ export function uploadCustomerDocumentUseCase(deps: UploadCustomerDocumentDeps) 
         pdfUrl: saved.url,
         totalAmount: 0,
         items: [],
+        includeVat: false,
         note: null,
         billingCycleId,
       })

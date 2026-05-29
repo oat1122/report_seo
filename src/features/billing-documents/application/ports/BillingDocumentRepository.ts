@@ -14,6 +14,7 @@ export interface CreateDocumentInput {
   pdfUrl: string
   totalAmount: number
   items: DocumentLineItem[]
+  includeVat: boolean
   note?: string | null
   dueDate?: Date | null
   paidDate?: Date | null
@@ -25,6 +26,7 @@ export interface UpdateDocumentInput {
   pdfUrl: string
   totalAmount: number
   items: DocumentLineItem[]
+  includeVat: boolean
   note?: string | null
   dueDate?: Date | null
   paidDate?: Date | null
