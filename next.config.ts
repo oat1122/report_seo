@@ -17,7 +17,12 @@ const nextConfig: NextConfig = {
   // pino-pretty transport ใช้ thread-stream worker ที่ dynamic-require target ตามชื่อ
   // bundler resolve string path ไม่ได้ ต้อง externalize ใส่ pino ด้วยเป็น belt-and-suspenders
   // ตามคำแนะนำของ Next docs
-  serverExternalPackages: ['pino', 'pino-pretty'],
+  //
+  // puppeteer: ถ้าถูก bundle เข้า build, logic หา Chromium executable (resolve path
+  // อิงตำแหน่ง node_modules/puppeteer ของตัวเอง) จะพังเพราะ path ชี้เข้า .next แทน →
+  // launch() throw → route สร้างเอกสาร PDF 500. ต้อง externalize ให้ require จาก
+  // node_modules ตอน runtime
+  serverExternalPackages: ['pino', 'pino-pretty', 'puppeteer'],
   images: {
     remotePatterns: [
       {

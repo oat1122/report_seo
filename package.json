@@ -20,6 +20,7 @@
     "deploy:prod": "npm install && npm run prisma:migrate:prod && npm run build",
     "prisma:generate": "npx prisma generate",
     "prisma:push": "npx prisma db push",
+    "puppeteer:install": "npx puppeteer browsers install chrome",
     "gen:secret": "node -e \"console.log(require('crypto').randomBytes(32).toString('base64'))\""
   },
   "dependencies": {
