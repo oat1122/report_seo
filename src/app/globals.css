@@ -271,4 +271,9 @@
     font-size: 0.875rem !important;
     margin-left: 0.25rem !important;
   }
+
+  /* Mobile = month view only; hide the view switcher so users can't drop to day view */
+  .calendar-wrapper .sx__view-selection {
+    display: none !important;
+  }
 }
