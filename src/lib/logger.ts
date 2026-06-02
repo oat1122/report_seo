@@ -1,3 +1,5 @@
+import { mkdirSync } from 'fs'
+import path from 'path'
 import pino, { type Logger, type LoggerOptions } from 'pino'
 
 const isProduction = process.env.NODE_ENV === 'production'
@@ -70,18 +72,44 @@ const baseOptions: LoggerOptions = {
   },
 }
 
-const transport = isProduction
-  ? undefined
-  : {
-      target: 'pino-pretty',
-      options: {
-        colorize: true,
-        translateTime: 'SYS:HH:MM:ss.l',
-        ignore: 'pid,hostname',
-      },
-    }
+// ไฟล์ log รายวัน เก็บไว้ debug บน host (เห็น stack trace จริงของ unhandled error)
+// ชื่อไฟล์ใช้วันที่ตอน process เริ่ม รูปแบบ DD-MM-YYYY
+function todayLogFile(): string {
+  const now = new Date()
+  const dd = String(now.getDate()).padStart(2, '0')
+  const mm = String(now.getMonth() + 1).padStart(2, '0')
+  const yyyy = now.getFullYear()
+  return `log-${dd}-${mm}-${yyyy}.log`
+}
 
-export const logger: Logger = pino({ ...baseOptions, transport })
+const LOG_DIR = path.resolve(process.cwd(), 'server/logs')
+mkdirSync(LOG_DIR, { recursive: true })
+
+// เขียน log ทั้ง console (เดิม) และไฟล์รายวันพร้อมกัน — multistream กับ transport ใช้ร่วมกันไม่ได้
+// pino-pretty โหลดเป็น stream เฉพาะตอน dev (เป็น devDependency ห้ามแตะตอน prod)
+const fileStream = pino.destination({
+  dest: path.join(LOG_DIR, todayLogFile()),
+  sync: true,
+  mkdir: true,
+})
+
+const streams: pino.StreamEntry[] = [{ stream: fileStream }]
+
+if (isProduction) {
+  streams.push({ stream: process.stdout })
+} else {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const pretty = require('pino-pretty')
+  streams.push({
+    stream: pretty({
+      colorize: true,
+      translateTime: 'SYS:HH:MM:ss.l',
+      ignore: 'pid,hostname',
+    }),
+  })
+}
+
+export const logger: Logger = pino(baseOptions, pino.multistream(streams))
 
 function readRequestId(req: Request): string {
   const headerId = req.headers.get('x-request-id')
