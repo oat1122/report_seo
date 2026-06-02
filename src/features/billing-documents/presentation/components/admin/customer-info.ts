@@ -1,4 +1,4 @@
-import type { StandaloneCustomerInfo } from '../../../schemas'
+import type { UpdateCustomerInfoInput } from '../../../schemas'
 
 // ค่าฟอร์มข้อมูลลูกค้าบนเอกสาร — ทุก field เป็น string เพื่อผูกกับ input โดยตรง
 export interface CustomerInfoValue {
@@ -38,7 +38,7 @@ export function customerInfoFromSnapshot(snapshot: DbCustomerSnapshot): Customer
 }
 
 // trim + แปลงค่าว่างเป็น null สำหรับส่งเข้า API / เทียบกับ DB
-export function toCustomerInfoInput(value: CustomerInfoValue): StandaloneCustomerInfo {
+export function toCustomerInfoInput(value: CustomerInfoValue): UpdateCustomerInfoInput {
   const normalize = (raw: string): string | null => {
     const trimmed = raw.trim()
     return trimmed.length > 0 ? trimmed : null
