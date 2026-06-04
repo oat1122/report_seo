@@ -1518,7 +1518,8 @@ export const computeKeywordHeatmap = (
       .sort((a, b) => new Date(a.dateRecorded).getTime() - new Date(b.dateRecorded).getTime())
 
     for (const r of records) {
-      if (r.position == null) continue
+      // position 0 / negative = "unranked" — ข้าม ไม่ให้ขึ้น cell สีเขียว #0
+      if (r.position == null || r.position <= 0) continue
       const t = new Date(r.dateRecorded).getTime()
       if (t < earliest.getTime() || t > now.getTime() + WEEK_MS) continue
       const idx = Math.floor((toWeekStart(new Date(t)).getTime() - earliest.getTime()) / WEEK_MS)
@@ -1529,7 +1530,7 @@ export const computeKeywordHeatmap = (
 
     // Fill latest week with current position if no history
     const lastIdx = cells.length - 1
-    if (cells[lastIdx].position == null && kw.position != null) {
+    if (cells[lastIdx].position == null && kw.position != null && kw.position > 0) {
       cells[lastIdx].position = kw.position
     }
 
@@ -1537,7 +1538,7 @@ export const computeKeywordHeatmap = (
       keyword: kw.keyword,
       reportId: kw.id,
       cells,
-      currentPosition: kw.position ?? null,
+      currentPosition: kw.position != null && kw.position > 0 ? kw.position : null,
     }
   })
 
@@ -1559,7 +1560,8 @@ const BRACKET_LABELS: Record<Bracket, string> = {
 }
 
 const bracketForPos = (pos: number | null | undefined): Bracket => {
-  if (pos == null) return 'missing'
+  // position 0 / negative = "unranked" sentinel — ไม่ใช่อันดับจริง (อย่า bucket เป็น Top 3)
+  if (pos == null || pos <= 0) return 'missing'
   if (pos <= 3) return 'top3'
   if (pos <= 10) return 'top10'
   if (pos <= 20) return 'top20'

@@ -15,7 +15,7 @@ interface KeywordPositionHeatmapProps {
  * Encoding via Tailwind opacity tokens that auto-flip dark mode.
  */
 const cellClass = (pos: number | null): string => {
-  if (pos == null) return 'bg-muted/30'
+  if (pos == null || pos <= 0) return 'bg-muted/30'
   if (pos <= 3) return 'bg-success'
   if (pos <= 10) return 'bg-success/70'
   if (pos <= 20) return 'bg-warning/60'
@@ -24,7 +24,7 @@ const cellClass = (pos: number | null): string => {
 }
 
 const cellLabel = (pos: number | null): string => {
-  if (pos == null) return 'ไม่มีข้อมูล'
+  if (pos == null || pos <= 0) return 'ไม่มีข้อมูล'
   return `#${pos}`
 }
 
