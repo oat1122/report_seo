@@ -13,7 +13,6 @@ interface OverviewTabProps {
   recommendationsCount: number
   topKeywords: CustomerReportData['topKeywords']
   otherKeywords: CustomerReportData['otherKeywords']
-  currentTraffic?: number | null
 }
 
 // Tab 1: Overview — "ดีขึ้นไหม? คุ้มไหม?"
@@ -21,7 +20,6 @@ export const OverviewTab = ({
   recommendationsCount,
   topKeywords,
   otherKeywords,
-  currentTraffic,
 }: OverviewTabProps) => {
   return (
     <div className="flex flex-col gap-6">
@@ -31,7 +29,7 @@ export const OverviewTab = ({
 
       <SummaryStatistics recommendationsCount={recommendationsCount} />
 
-      <TrafficForecastCone currentTraffic={currentTraffic} />
+      <TrafficForecastCone />
 
       <TopKeywordsSparklineGrid />
 

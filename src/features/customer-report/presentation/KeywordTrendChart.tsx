@@ -338,6 +338,23 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
     selectedKeywords.some((k) => row[`traffic_${k}`] != null),
   )
 
+  // shadcn ChartTooltipContent ปล่อย return ของ formatter ลงแถวตรง ๆ ไม่จัด layout ให้
+  // → ต้อง return row ที่มี dot + keyword (truncate) + value แยกกันชัด ไม่ให้เลขติดกับคำ
+  const renderTooltipRow = (keyword: string, valueNode: React.ReactNode) => {
+    const color = keywordColorMap.get(keyword) || CHART_COLORS.primary
+    return (
+      <div className="flex w-full items-center gap-2">
+        <span className="size-2.5 shrink-0 rounded-[2px]" style={{ backgroundColor: color }} />
+        <span className="text-muted-foreground min-w-0 max-w-[220px] flex-1 truncate">
+          {keyword}
+        </span>
+        <span className="text-foreground shrink-0 font-mono font-semibold tabular-nums">
+          {valueNode}
+        </span>
+      </div>
+    )
+  }
+
   const positionTooltipFormatter = (
     value: unknown,
     name: unknown,
@@ -347,12 +364,12 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
     const real = item.payload?.[`posReal_${k}`] as number | null | undefined
     const display = real ?? Number(value)
     const formatted = typeof display === 'number' && display > 0 ? `#${display}` : '-'
-    return [formatted, k]
+    return renderTooltipRow(k, formatted)
   }
 
   const trafficTooltipFormatter = (value: unknown, name: unknown) => {
     const k = String(name).replace(/^traffic_/, '')
-    return [Number(value).toLocaleString(), k]
+    return renderTooltipRow(k, Number(value).toLocaleString())
   }
 
   if (isLoading) {

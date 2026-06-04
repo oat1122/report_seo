@@ -10,7 +10,6 @@ import { computeTrafficForecast } from '../lib/historyCalculations'
 import { useHistoryContext } from '../contexts/HistoryContext'
 
 interface TrafficForecastConeProps {
-  currentTraffic?: number | null
   daysAhead?: number
 }
 
@@ -26,15 +25,12 @@ const fmtTraffic = (v: number): string => {
   return v.toFixed(0)
 }
 
-export const TrafficForecastCone = ({
-  currentTraffic,
-  daysAhead = 30,
-}: TrafficForecastConeProps) => {
+export const TrafficForecastCone = ({ daysAhead = 30 }: TrafficForecastConeProps) => {
   const { metricsHistory } = useHistoryContext()
 
   const forecast = useMemo(
-    () => computeTrafficForecast(metricsHistory, currentTraffic, daysAhead),
-    [metricsHistory, currentTraffic, daysAhead],
+    () => computeTrafficForecast(metricsHistory, daysAhead),
+    [metricsHistory, daysAhead],
   )
 
   // Recharts wants a single dataset with all fields per row; add `bandLow/bandHeight` for stacked Area trick.
@@ -195,10 +191,14 @@ export const TrafficForecastCone = ({
             <span className="bg-success/15 size-2 rounded" />
             ช่วงความเชื่อมั่น
           </span>
-          <span className="ml-auto">
-            R²:{' '}
-            <span className="text-foreground font-semibold">{forecast.rSquared.toFixed(2)}</span>
-          </span>
+          {forecast.rSquared != null ? (
+            <span className="ml-auto">
+              R²:{' '}
+              <span className="text-foreground font-semibold">{forecast.rSquared.toFixed(2)}</span>
+            </span>
+          ) : (
+            <span className="text-muted-foreground ml-auto">แนวโน้มยังไม่ชัด · ข้อมูลน้อย</span>
+          )}
         </div>
       )}
     </div>

@@ -100,7 +100,6 @@ const ReportTabs = ({
               recommendationsCount={recommendationsCount}
               topKeywords={reportData?.topKeywords ?? []}
               otherKeywords={reportData?.otherKeywords ?? []}
-              currentTraffic={reportData?.metrics?.organicTraffic ?? null}
             />
           </TabsContent>
           <TabsContent value="health" className="mt-0">
