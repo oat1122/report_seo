@@ -74,7 +74,8 @@ const fmtDateLabel = (ms: number) =>
   })
 
 const clampPosition = (position: number | null): number | null => {
-  if (position === null) return null
+  // position 0 / negative = "unranked" — เป็น gap ในเส้น ไม่ใช่อันดับ #0 (top)
+  if (position === null || position <= 0) return null
   return Math.min(position, POSITION_CLIP_THRESHOLD)
 }
 
@@ -203,7 +204,7 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
     const filtered = filterHistoryByPeriod(keywordHistory, period)
 
     selectedKeywords.forEach((keyword) => {
-      const records: KeywordRecord[] = filtered
+      const historyRecords: KeywordRecord[] = filtered
         .filter((r) => r.keyword === keyword)
         .map((r) => ({
           date: new Date(r.dateRecorded),
@@ -211,18 +212,20 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
           traffic: r.traffic,
         }))
 
+      // currentKeywords = ค่าปัจจุบัน (authoritative, ล่าสุดเสมอ) — ใช้ "now" เป็น timestamp
+      // เพราะ keyword.dateRecorded คือเวลา "สร้าง" ซึ่งเก่ากว่า history snapshot
+      // (dateRecorded = เวลาตอน update) ถ้าใช้ค่าเดิมจะเรียงผิด + ถูก dedup ทิ้งค่าจริง
       const current = currentKeywords.find((c) => c.keyword === keyword)
+      let records = historyRecords
       if (current) {
-        const latestDate = new Date(current.dateRecorded)
-        const dayKey = latestDate.toISOString().split('T')[0]
-        const dateExists = records.some((r) => r.date.toISOString().split('T')[0] === dayKey)
-        if (!dateExists) {
-          records.push({
-            date: latestDate,
-            position: current.position,
-            traffic: current.traffic,
-          })
-        }
+        const currentDate = new Date()
+        const dayKey = currentDate.toISOString().split('T')[0]
+        records = historyRecords.filter((r) => r.date.toISOString().split('T')[0] !== dayKey)
+        records.push({
+          date: currentDate,
+          position: current.position,
+          traffic: current.traffic,
+        })
       }
       records.sort((a, b) => a.date.getTime() - b.date.getTime())
       map.set(keyword, records)
@@ -318,9 +321,10 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
       const records = recordsByKeyword.get(keyword) ?? []
       const latest = records[records.length - 1]
       const color = keywordColorMap.get(keyword) || CHART_COLORS.primary
+      const pos = latest?.position ?? null
       return {
         keyword,
-        position: latest?.position ?? null,
+        position: pos != null && pos > 0 ? pos : null,
         traffic: latest?.traffic ?? 0,
         color,
       }
