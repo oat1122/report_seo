@@ -75,7 +75,8 @@ export const calculateMetricChange = (
   metricsHistory: OverallMetricsHistory[],
   metricKey: keyof Omit<OverallMetricsHistory, 'id' | 'dateRecorded' | 'customerId'>,
 ): TrafficChangeData => {
-  const sortedHistory = [...metricsHistory].sort(sortByDateDesc)
+  // synthetic current (id='current') = ค่าปัจจุบันเอง — ใช้เป็น baseline ไม่ได้ (จะได้ 0% เสมอ)
+  const sortedHistory = metricsHistory.filter((h) => h.id !== 'current').sort(sortByDateDesc)
 
   if (sortedHistory.length === 0) {
     return {

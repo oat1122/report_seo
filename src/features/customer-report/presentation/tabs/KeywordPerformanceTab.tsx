@@ -9,21 +9,17 @@ import { TopKeywordsByTrafficPie } from '../widgets/TopKeywordsByTrafficPie'
 import { KeywordVelocityScatter } from '../widgets/KeywordVelocityScatter'
 import { KeywordPositionHeatmap } from '../widgets/KeywordPositionHeatmap'
 import { BracketTransitionsSankey } from '../widgets/BracketTransitionsSankey'
-import type { CustomerReportData } from '@/hooks/api/useCustomersApi'
+import { useHistoryContext } from '../contexts/HistoryContext'
 
-interface KeywordPerformanceTabProps {
-  topKeywords: CustomerReportData['topKeywords']
-  otherKeywords: CustomerReportData['otherKeywords']
-}
+// Tab 3: Keyword Performance — "อะไรเด่น/ตก?"
+// keyword ทุกตัว source จาก currentKeywords (context) — single source ตาม rule 11
+export const KeywordPerformanceTab = () => {
+  const { currentKeywords } = useHistoryContext()
 
-// Tab 3: Keyword Performance — "อะไรเด่น/ตก?" (Phase D complete)
-export const KeywordPerformanceTab = ({
-  topKeywords,
-  otherKeywords,
-}: KeywordPerformanceTabProps) => {
-  const allKeywords = useMemo(
-    () => [...(topKeywords ?? []), ...(otherKeywords ?? [])],
-    [topKeywords, otherKeywords],
+  const topKeywords = useMemo(() => currentKeywords.filter((k) => k.isTopReport), [currentKeywords])
+  const otherKeywords = useMemo(
+    () => currentKeywords.filter((k) => !k.isTopReport),
+    [currentKeywords],
   )
 
   return (
@@ -36,9 +32,9 @@ export const KeywordPerformanceTab = ({
 
       {/* Row 3: 3-up insight grid */}
       <div className="grid gap-4 md:grid-cols-3 md:gap-5">
-        <KdDistributionDonut keywords={allKeywords} />
-        <KdSuccessRateBar keywords={allKeywords} />
-        <TopKeywordsByTrafficPie keywords={allKeywords} />
+        <KdDistributionDonut keywords={currentKeywords} />
+        <KdSuccessRateBar keywords={currentKeywords} />
+        <TopKeywordsByTrafficPie keywords={currentKeywords} />
       </div>
 
       {/* Row 4: bracket transitions sankey */}
@@ -48,8 +44,8 @@ export const KeywordPerformanceTab = ({
       <KeywordVelocityScatter />
 
       {/* Row 6-7: tables */}
-      <KeywordReportTable title="Top Keywords Report" keywords={topKeywords ?? []} />
-      <KeywordReportTable title="Other Keywords" keywords={otherKeywords ?? []} />
+      <KeywordReportTable title="Top Keywords Report" keywords={topKeywords} />
+      <KeywordReportTable title="Other Keywords" keywords={otherKeywords} />
     </div>
   )
 }

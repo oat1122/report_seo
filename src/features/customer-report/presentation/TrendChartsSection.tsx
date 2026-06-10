@@ -8,6 +8,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { useHistoryContext } from './contexts/HistoryContext'
 import { useReportFilters } from './contexts/ReportFiltersContext'
 import { ChartEmptyState } from './components/ChartEmptyState'
+import { ChartFallbackNote } from './components/ChartFallbackNote'
 import { MiniSparkline } from './components/MiniSparkline'
 import { AnomalyDot } from './components/AnomalyDot'
 import { DOMAIN_METRICS_SERIES, MetricSeriesConfig } from './lib/chartConfig'
@@ -67,16 +68,16 @@ export const TrendChartsSection: React.FC<TrendChartsSectionProps> = ({
     return defaults
   })
 
-  const filteredHistory = useMemo(() => {
+  const { filteredHistory, isAllTimeFallback } = useMemo(() => {
     const byPeriod = filterHistoryByPeriod(metricsHistory, period)
     const deduped = deduplicateByDay(byPeriod)
     if (deduped.length < 3 && metricsHistory.length >= 3) {
       const all = [...metricsHistory].sort(
         (a, b) => new Date(a.dateRecorded).getTime() - new Date(b.dateRecorded).getTime(),
       )
-      return deduplicateByDay(all)
+      return { filteredHistory: deduplicateByDay(all), isAllTimeFallback: true }
     }
-    return deduped
+    return { filteredHistory: deduped, isAllTimeFallback: false }
   }, [metricsHistory, period])
 
   const hasData = hasEnoughDataForChart(filteredHistory.length)
@@ -307,6 +308,8 @@ export const TrendChartsSection: React.FC<TrendChartsSectionProps> = ({
           </LineChart>
         </ChartContainer>
       )}
+
+      {hasData && isAllTimeFallback && <ChartFallbackNote />}
 
       {flatLineMessage && hasData && (
         <p className="text-muted-foreground mt-2 text-center text-xs italic">

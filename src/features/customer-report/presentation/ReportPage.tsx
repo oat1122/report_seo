@@ -96,11 +96,7 @@ const ReportTabs = ({
         {/* Content area */}
         <div className="min-w-0">
           <TabsContent value="overview" className="mt-0">
-            <OverviewTab
-              recommendationsCount={recommendationsCount}
-              topKeywords={reportData?.topKeywords ?? []}
-              otherKeywords={reportData?.otherKeywords ?? []}
-            />
+            <OverviewTab recommendationsCount={recommendationsCount} />
           </TabsContent>
           <TabsContent value="health" className="mt-0">
             <DomainHealthTab
@@ -110,10 +106,7 @@ const ReportTabs = ({
             />
           </TabsContent>
           <TabsContent value="keywords" className="mt-0">
-            <KeywordPerformanceTab
-              topKeywords={reportData?.topKeywords ?? []}
-              otherKeywords={reportData?.otherKeywords ?? []}
-            />
+            <KeywordPerformanceTab />
           </TabsContent>
           <TabsContent value="ai" className="mt-0">
             <AiRecommendationsTab

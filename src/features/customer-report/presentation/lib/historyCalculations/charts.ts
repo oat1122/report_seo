@@ -1,7 +1,16 @@
 import { KeywordReportHistory } from '@/types/history'
 import { CurrentKeyword } from '@/hooks/api/useCustomersApi'
-import { POSITION_CLIP_THRESHOLD } from '../chartConfig'
-import { buildWeekStarts, isRanked, sortByDateAsc, toWeekStart, WEEK_MS } from './_shared'
+import { PeriodOption } from '../chartConfig'
+import {
+  buildWeekStarts,
+  isRanked,
+  localDayKey,
+  sortByDateAsc,
+  toWeekStart,
+  WEEK_MS,
+} from './_shared'
+
+const DAY_MS = 24 * 60 * 60 * 1000
 
 // ============================================================
 // Chart data prep — period filter / dedup / downsample / anomaly
@@ -30,8 +39,7 @@ export const deduplicateByDay = <T extends { dateRecorded: Date | string }>(sort
   const result: T[] = []
   let lastKey = ''
   for (let i = sorted.length - 1; i >= 0; i--) {
-    const d = new Date(sorted[i].dateRecorded)
-    const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+    const key = localDayKey(sorted[i].dateRecorded)
     if (key !== lastKey) {
       result.push(sorted[i])
       lastKey = key
@@ -64,16 +72,21 @@ export const downsampleWide = <T extends Record<string, unknown>>(
 }
 
 /**
- * คืน array ของ boolean ที่ตำแหน่งเดียวกับ values
- * — true = z-score เกิน threshold (outlier)
+ * คืน array ของ boolean ที่ตำแหน่งเดียวกับ values — true = outlier (|z| > threshold)
+ * ใช้ leave-one-out z-score: mean/std คำนวณจากจุด "อื่น" (ไม่รวมจุดที่กำลังทดสอบ)
+ * ∵ population std ที่รวม outlier เองมี |z|_max = √(n−1) → ที่ n < 8 จะ flag z>2.5 ไม่ได้เลย
+ * std === 0 (จุดอื่นค่าเท่ากันหมด) → จุดที่ต่างออกมาคือ outlier ชัดเจน
  */
 export const computeAnomalies = (values: number[], zThreshold: number = 2.5): boolean[] => {
-  if (values.length < 3) return values.map(() => false)
-  const mean = values.reduce((s, v) => s + v, 0) / values.length
-  const variance = values.reduce((s, v) => s + (v - mean) ** 2, 0) / values.length
-  const std = Math.sqrt(variance)
-  if (std === 0) return values.map(() => false)
-  return values.map((v) => Math.abs((v - mean) / std) > zThreshold)
+  if (values.length < 4) return values.map(() => false)
+  return values.map((v, i) => {
+    const others = values.filter((_, j) => j !== i)
+    const mean = others.reduce((s, x) => s + x, 0) / others.length
+    const variance = others.reduce((s, x) => s + (x - mean) ** 2, 0) / others.length
+    const std = Math.sqrt(variance)
+    if (std === 0) return v !== mean
+    return Math.abs((v - mean) / std) > zThreshold
+  })
 }
 
 // ============================================================
@@ -132,32 +145,38 @@ export interface SparklineKeywordRow {
 export const computeSparklineTopN = (
   keywordHistory: KeywordReportHistory[],
   currentKeywords: CurrentKeyword[],
+  period: PeriodOption,
   topN: number = 8,
 ): SparklineKeywordRow[] => {
+  const cutoffMs = Date.now() - period * DAY_MS
   const sorted = [...currentKeywords]
     .filter((k) => (k.traffic ?? 0) > 0)
     .sort((a, b) => (b.traffic ?? 0) - (a.traffic ?? 0))
     .slice(0, topN)
 
   return sorted.map((kw) => {
-    const records = keywordHistory
-      .filter((h) => h.reportId === kw.id && h.position != null)
-      .sort(sortByDateAsc)
+    const recordsAsc = keywordHistory.filter((h) => h.reportId === kw.id).sort(sortByDateAsc)
 
-    const positionSpark = records.map((r) => ({
-      t: new Date(r.dateRecorded).getTime(),
-      v: Number(r.position ?? POSITION_CLIP_THRESHOLD),
-    }))
+    // sparkline: เฉพาะ ranked (pos > 0) — sentinel 0 = หลุดอันดับ ห้ามให้ MiniSparkline (invert) วาดเป็นยอด "#0"
+    const positionSpark = recordsAsc
+      .filter((r) => isRanked(r.position))
+      .map((r) => ({ t: new Date(r.dateRecorded).getTime(), v: Number(r.position) }))
 
-    const prevTraffic = records.length > 0 ? Number(records[0].traffic ?? 0) : 0
+    // baseline = record ล่าสุดที่ ≤ cutoff (ผูก period เหมือน Top Movers/Velocity/Hero)
+    const baseline = [...recordsAsc]
+      .reverse()
+      .find((r) => new Date(r.dateRecorded).getTime() <= cutoffMs)
+    const hasBaseline = baseline != null
+    const prevTraffic = hasBaseline ? Number(baseline.traffic ?? 0) : 0
     const currentTraffic = kw.traffic ?? 0
-    const deltaPct = prevTraffic > 0 ? ((currentTraffic - prevTraffic) / prevTraffic) * 100 : null
+    const deltaPct =
+      hasBaseline && prevTraffic > 0 ? ((currentTraffic - prevTraffic) / prevTraffic) * 100 : null
 
     return {
       keyword: kw.keyword,
       reportId: kw.id,
       current: currentTraffic,
-      delta: currentTraffic - prevTraffic,
+      delta: hasBaseline ? currentTraffic - prevTraffic : 0,
       deltaPct,
       positionSpark,
       currentPosition: kw.position ?? null,
@@ -199,7 +218,10 @@ export const computeKeywordHeatmap = (
   weeks: number = 12,
 ): HeatmapResult => {
   const now = new Date()
-  const weekList = buildWeekStarts(weeks, now).map((w) => ({ start: w.start.getTime(), label: w.label }))
+  const weekList = buildWeekStarts(weeks, now).map((w) => ({
+    start: w.start.getTime(),
+    label: w.label,
+  }))
   const earliestMs = weekList[0].start
 
   const sorted = [...currentKeywords]

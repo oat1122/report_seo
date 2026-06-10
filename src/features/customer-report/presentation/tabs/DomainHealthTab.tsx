@@ -21,7 +21,7 @@ export const DomainHealthTab = ({ customerId, customerName, metrics }: DomainHea
       {/* Row 1: Radar (col-5) | AuthorityCard + Lifecycle stacked (col-7) */}
       <div className="grid gap-4 md:grid-cols-12 md:gap-5">
         <div className="md:col-span-5">
-          <DomainAuthorityRadar metrics={metrics} />
+          <DomainAuthorityRadar />
         </div>
         <div className="flex flex-col gap-4 md:col-span-7">
           <OverallMetricsCard

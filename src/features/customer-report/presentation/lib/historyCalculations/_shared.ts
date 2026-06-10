@@ -26,6 +26,18 @@ export const formatThaiDate = (date: Date | string): string =>
   new Date(date).toLocaleDateString('th-TH', { day: '2-digit', month: 'short' })
 
 /**
+ * Local-day key (YYYY-MM-DD ตาม timezone ของเครื่อง = ไทย UTC+7) สำหรับ dedupe/group รายวัน
+ * ⚠️ ห้ามใช้ toISOString() (UTC) — record 00:00–06:59 น. ไทย จะตกเป็น "เมื่อวาน" ใน UTC
+ * zero-padded → เรียงด้วย localeCompare ได้ตรงลำดับเวลา
+ */
+export const localDayKey = (date: Date | string): string => {
+  const d = new Date(date)
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${month}-${day}`
+}
+
+/**
  * คืนค่า metric จาก history record ที่ใกล้เคียง daysAgo มากที่สุด (ก่อนหรือเท่ากับ)
  * @param history sorted desc (recent first) — รูปแบบของ useGetCombinedHistory
  */

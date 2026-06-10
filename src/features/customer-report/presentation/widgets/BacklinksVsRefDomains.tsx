@@ -5,6 +5,7 @@ import { Bar, CartesianGrid, ComposedChart, Line, XAxis, YAxis } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { ChartEmptyState } from '../components/ChartEmptyState'
+import { ChartFallbackNote } from '../components/ChartFallbackNote'
 import { buildChartConfig } from '../lib/buildChartConfig'
 import {
   computeBacklinkRatio,
@@ -52,28 +53,31 @@ export const BacklinksVsRefDomains = () => {
   const { metricsHistory } = useHistoryContext()
   const { period } = useReportFilters()
 
-  const { chartData, hasData, currentRatio } = useMemo(() => {
+  const { chartData, hasData, currentRatio, isAllTimeFallback } = useMemo(() => {
     let filtered = deduplicateByDay(filterHistoryByPeriod(metricsHistory, period))
-    if (filtered.length < 3 && metricsHistory.length >= 3) {
+    const isAllTimeFallback = filtered.length < 3 && metricsHistory.length >= 3
+    if (isAllTimeFallback) {
       const all = [...metricsHistory].sort(
         (a, b) => new Date(a.dateRecorded).getTime() - new Date(b.dateRecorded).getTime(),
       )
       filtered = deduplicateByDay(all)
     }
     if (!hasEnoughDataForChart(filtered.length)) {
-      return { chartData: [], hasData: false, currentRatio: null }
+      return { chartData: [], hasData: false, currentRatio: null, isAllTimeFallback }
     }
+    // ratio = null เมื่อ refDomains = 0 → เว้น gap แทนจุ่มลง 0 (ดูเหมือน diversity ดีมาก)
     const rows = filtered.map((r) => ({
       dateMs: new Date(r.dateRecorded).getTime(),
       backlinks: r.backlinks,
       refDomains: r.refDomains,
-      ratio: computeBacklinkRatio(r.backlinks, r.refDomains) ?? 0,
+      ratio: computeBacklinkRatio(r.backlinks, r.refDomains),
     }))
     const latest = rows[rows.length - 1]
     return {
       chartData: downsampleWide(rows, 60),
       hasData: true,
       currentRatio: computeBacklinkRatio(latest.backlinks, latest.refDomains),
+      isAllTimeFallback,
     }
   }, [metricsHistory, period])
 
@@ -130,6 +134,7 @@ export const BacklinksVsRefDomains = () => {
                         return typeof ms === 'number' ? fmtDateLabel(ms) : ''
                       }}
                       formatter={(v, name) => {
+                        if (v == null) return []
                         const label =
                           name === 'backlinks'
                             ? 'Backlinks'
@@ -165,6 +170,7 @@ export const BacklinksVsRefDomains = () => {
                   strokeWidth={2}
                   dot={false}
                   isAnimationActive={false}
+                  connectNulls={false}
                 />
               </ComposedChart>
             </ChartContainer>
@@ -174,6 +180,7 @@ export const BacklinksVsRefDomains = () => {
               </span>{' '}
               backlinks ต่อ 1 referring domain — {interpretRatio(currentRatio)}
             </p>
+            {isAllTimeFallback && <ChartFallbackNote />}
           </>
         )}
       </CardContent>

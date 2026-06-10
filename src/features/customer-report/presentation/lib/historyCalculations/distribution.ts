@@ -1,7 +1,7 @@
 import { KeywordReportHistory } from '@/types/history'
 import { CurrentKeyword } from '@/hooks/api/useCustomersApi'
 import { PeriodOption } from '../chartConfig'
-import { latestRecordByKeywordBeforeCutoff, sortByDateAsc } from './_shared'
+import { isRanked, latestRecordByKeywordBeforeCutoff, sortByDateAsc } from './_shared'
 
 // ============================================================
 // Position distribution
@@ -69,8 +69,10 @@ export const computeTopMovers = (
   const historicalByKw = latestRecordByKeywordBeforeCutoff(keywordHistory, cutoffMs)
 
   const movements: KeywordMovement[] = currentKeywords.map((curr) => {
-    const prevPos = historicalByKw.get(curr.keyword)?.position ?? null
-    const currPos = curr.position
+    // sentinel 0/null = unranked — ไม่ใช่อันดับจริง จึงเทียบ delta ไม่ได้ (กัน gainer/loser กลับด้าน)
+    const prevRaw = historicalByKw.get(curr.keyword)?.position ?? null
+    const prevPos = isRanked(prevRaw) ? prevRaw : null
+    const currPos = isRanked(curr.position) ? curr.position : null
     const delta = prevPos !== null && currPos !== null ? currPos - prevPos : null
     return {
       keyword: curr.keyword,

@@ -40,7 +40,12 @@ import {
   getKeywordColor,
 } from './lib/chartConfig'
 import { buildChartConfig } from './lib/buildChartConfig'
-import { computeAnomalies, downsampleWide, filterHistoryByPeriod } from './lib/historyCalculations'
+import {
+  computeAnomalies,
+  downsampleWide,
+  filterHistoryByPeriod,
+  localDayKey,
+} from './lib/historyCalculations'
 import { cn } from '@/lib/utils'
 
 interface KeywordOption {
@@ -219,8 +224,8 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
       let records = historyRecords
       if (current) {
         const currentDate = new Date()
-        const dayKey = currentDate.toISOString().split('T')[0]
-        records = historyRecords.filter((r) => r.date.toISOString().split('T')[0] !== dayKey)
+        const dayKey = localDayKey(currentDate)
+        records = historyRecords.filter((r) => localDayKey(r.date) !== dayKey)
         records.push({
           date: currentDate,
           position: current.position,
@@ -252,13 +257,15 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
 
     const rows = Array.from(dateMap.values()).sort((a, b) => a.dateMs - b.dateMs)
 
-    // Anomaly per keyword on traffic
+    // Anomaly per keyword on traffic — คิดจากเฉพาะแถวที่ keyword นี้มี record จริง
+    // (rows = union ของทุก keyword ที่เลือก — แถวที่ keyword นี้ไม่มีค่าจะเป็น undefined
+    //  ห้ามแทนด้วย 0 แล้วโยนเข้า mean/std → จะบิดสถิติ + flag แถวผีเป็น outlier)
     selectedKeywords.forEach((keyword) => {
       const trafficKey = `traffic_${keyword}`
-      const trafficVals = rows.map((r) => Number(r[trafficKey] ?? 0))
-      const flags = computeAnomalies(trafficVals)
-      rows.forEach((r, i) => {
-        r[`traffic_${keyword}__anomaly`] = flags[i]
+      const realIdx = rows.flatMap((r, i) => (r[trafficKey] != null ? [i] : []))
+      const flags = computeAnomalies(realIdx.map((i) => Number(rows[i][trafficKey])))
+      realIdx.forEach((rowIdx, j) => {
+        rows[rowIdx][`traffic_${keyword}__anomaly`] = flags[j]
       })
     })
 

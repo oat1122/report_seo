@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { AnomalyDot } from '../components/AnomalyDot'
 import { ChartEmptyState } from '../components/ChartEmptyState'
+import { ChartFallbackNote } from '../components/ChartFallbackNote'
 import { buildChartConfig } from '../lib/buildChartConfig'
 import {
   computeAnomalies,
@@ -49,16 +50,17 @@ export const SpamScoreTimeline = () => {
   const { metricsHistory } = useHistoryContext()
   const { period } = useReportFilters()
 
-  const { chartData, maxValue, hasData } = useMemo(() => {
+  const { chartData, maxValue, hasData, isAllTimeFallback } = useMemo(() => {
     let filtered = deduplicateByDay(filterHistoryByPeriod(metricsHistory, period))
-    if (filtered.length < 3 && metricsHistory.length >= 3) {
+    const isAllTimeFallback = filtered.length < 3 && metricsHistory.length >= 3
+    if (isAllTimeFallback) {
       const all = [...metricsHistory].sort(
         (a, b) => new Date(a.dateRecorded).getTime() - new Date(b.dateRecorded).getTime(),
       )
       filtered = deduplicateByDay(all)
     }
     if (!hasEnoughDataForChart(filtered.length)) {
-      return { chartData: [], maxValue: DANGER_THRESHOLD + 1, hasData: false }
+      return { chartData: [], maxValue: DANGER_THRESHOLD + 1, hasData: false, isAllTimeFallback }
     }
     const values = filtered.map((r) => r.spamScore)
     const anomalies = computeAnomalies(values)
@@ -72,6 +74,7 @@ export const SpamScoreTimeline = () => {
       chartData: downsampleWide(rows, 60),
       maxValue: max,
       hasData: true,
+      isAllTimeFallback,
     }
   }, [metricsHistory, period])
 
@@ -159,6 +162,7 @@ export const SpamScoreTimeline = () => {
             </ComposedChart>
           </ChartContainer>
         )}
+        {hasData && isAllTimeFallback && <ChartFallbackNote />}
       </CardContent>
     </Card>
   )

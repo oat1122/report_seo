@@ -13,13 +13,13 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
-import { KeywordReport } from '@/types/metrics'
+import { CurrentKeyword } from '@/hooks/api/useCustomersApi'
 import { useHistoryContext } from './contexts/HistoryContext'
 import { calculateTrafficChange } from './lib/historyCalculations'
 import { TrafficProgressBar } from './components/TrafficProgressBar'
 
 interface KeywordReportTableProps {
-  keywords: KeywordReport[]
+  keywords: CurrentKeyword[]
   title?: string
 }
 
@@ -78,7 +78,7 @@ const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
 )
 
 const KeywordCard: React.FC<{
-  kw: KeywordReport
+  kw: CurrentKeyword
   index: number
   trafficChangeData: ReturnType<typeof calculateTrafficChange>
 }> = ({ kw, index, trafficChangeData }) => {

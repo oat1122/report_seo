@@ -111,7 +111,7 @@ export const TrafficForecastCone = ({ daysAhead = 30 }: TrafficForecastConeProps
               tickFormatter={(v) => fmtTraffic(Number(v))}
             />
             <ReferenceLine
-              x={data.find((d) => d.actual == null && d.predicted != null)?.label}
+              x={[...data].reverse().find((d) => d.actual != null)?.label}
               stroke="var(--muted-foreground)"
               strokeDasharray="3 3"
               strokeOpacity={0.5}

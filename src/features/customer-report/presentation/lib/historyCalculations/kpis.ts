@@ -5,6 +5,7 @@ import {
   getValueAtOrBefore,
   isRanked,
   latestRecordByKeywordBeforeCutoff,
+  localDayKey,
 } from './_shared'
 import { computeTopMovers } from './distribution'
 
@@ -30,19 +31,27 @@ export const computeDelta = (current: number, previous: number | null): DeltaRes
   return { current, previous, delta, pct, direction }
 }
 
-/** Sparkline data — last N points of metric history (ascending) */
-export const buildSparkline = <T extends { dateRecorded: string | Date }>(
-  history: T[],
-  pick: (r: T) => number,
+/** Sparkline: จำนวน distinct keyword ที่ track ต่อวัน (เก่า → ใหม่, สูงสุด maxPoints จุดล่าสุด) */
+const buildDistinctKeywordSparkline = (
+  keywordHistory: KeywordReportHistory[],
   maxPoints: number = 14,
 ): number[] => {
-  // history desc → reverse to asc, take last maxPoints
-  return [...history].reverse().slice(-maxPoints).map(pick)
+  const byDay = new Map<string, Set<string>>()
+  for (const rec of keywordHistory) {
+    const dateKey = localDayKey(rec.dateRecorded)
+    const set = byDay.get(dateKey) ?? new Set<string>()
+    set.add(rec.keyword)
+    byDay.set(dateKey, set)
+  }
+  return Array.from(byDay.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(-maxPoints)
+    .map(([, set]) => set.size)
 }
 
-/** Count keywords ที่ position อยู่ใน top N */
+/** Count keywords ที่ position อยู่ใน top N (เฉพาะ ranked — sentinel 0/null ไม่นับ) */
 const countTopN = (keywords: Array<{ position: number | null }>, n: number): number =>
-  keywords.filter((k) => k.position !== null && k.position <= n).length
+  keywords.filter((k) => isRanked(k.position) && k.position <= n).length
 
 /** Average position (เฉพาะ ranked keywords) */
 const computeAvgPosition = (keywords: Array<{ position: number | null }>): number | null => {
@@ -59,12 +68,11 @@ export interface KpiSnapshot extends DeltaResult {
 
 /**
  * KPI deltas + sparklines (WoW default)
- * - totalKeywords: นับจาก currentKeywords vs N-day-ago snapshot
+ * - totalKeywords: จำนวน keyword ที่ track ตอนนี้ vs จำนวนที่ track ณ N วันก่อน (single source: keywordHistory)
  * - avgPosition: lower = better — direction "down" คือดีขึ้น
  * - top3Count: นับจำนวน position 1-3
  */
 export const computeKpiSnapshots = (
-  metricsHistory: OverallMetricsHistory[],
   keywordHistory: KeywordReportHistory[],
   currentKeywords: CurrentKeyword[],
   daysAgo: number = 7,
@@ -73,16 +81,20 @@ export const computeKpiSnapshots = (
   avgPosition: KpiSnapshot
   top3Count: KpiSnapshot
 } => {
-  // ---- Total Keywords ----
+  const cutoffMs = Date.now() - daysAgo * 24 * 60 * 60 * 1000
+
+  // ---- Total Keywords (single source: tracked keywords) ----
+  // current = จำนวนที่ track ตอนนี้ — baseline/sparkline ต้องนับจาก keywordHistory (tracked)
+  // ไม่ใช่ organicKeywords ทั้งโดเมน (คนละ entity คนละ scale → delta ไร้ความหมาย)
   const currentTotal = currentKeywords.length
-  const prevTotal = getValueAtOrBefore(metricsHistory, daysAgo, (r) => r.organicKeywords)
-  const totalSparkline = buildSparkline(metricsHistory, (r) => r.organicKeywords)
+  const prevTrackedCount = latestRecordByKeywordBeforeCutoff(keywordHistory, cutoffMs).size
+  const prevTotal = prevTrackedCount > 0 ? prevTrackedCount : null
+  const totalSparkline = buildDistinctKeywordSparkline(keywordHistory)
 
   // ---- Avg Position ----
   const currentKwSet = new Set(currentKeywords.map((k) => k.keyword))
   const currentAvg = computeAvgPosition(currentKeywords)
 
-  const cutoffMs = Date.now() - daysAgo * 24 * 60 * 60 * 1000
   const historicalByKeyword = latestRecordByKeywordBeforeCutoff(keywordHistory, cutoffMs, currentKwSet)
   const historicalValues = Array.from(historicalByKeyword.values())
   const prevAvg = computeAvgPosition(historicalValues)
@@ -91,7 +103,7 @@ export const computeKpiSnapshots = (
   const dayMap = new Map<string, number[]>() // dateKey → positions
   for (const rec of keywordHistory) {
     if (!isRanked(rec.position)) continue
-    const dateKey = new Date(rec.dateRecorded).toISOString().split('T')[0]
+    const dateKey = localDayKey(rec.dateRecorded)
     const arr = dayMap.get(dateKey) ?? []
     arr.push(rec.position)
     dayMap.set(dateKey, arr)
@@ -111,7 +123,14 @@ export const computeKpiSnapshots = (
 
   return {
     totalKeywords: { ...computeDelta(currentTotal, prevTotal), sparkline: totalSparkline },
-    avgPosition: { ...computeDelta(currentAvg ?? 0, prevAvg), sparkline: avgSparkline },
+    // currentAvg === null = ไม่มี keyword ติดอันดับเลย — ห้ามถือเป็น 0 (computeDelta(0, prevAvg)
+    // จะได้ direction 'down' → badge เขียว "ดีขึ้น" ทั้งที่หลุดอันดับหมด). previous:null → UI ซ่อน badge
+    avgPosition: {
+      ...(currentAvg === null
+        ? { current: 0, previous: null, delta: 0, pct: null, direction: 'neutral' as const }
+        : computeDelta(currentAvg, prevAvg)),
+      sparkline: avgSparkline,
+    },
     top3Count: { ...computeDelta(currentTop3, prevTop3), sparkline: top3Sparkline },
   }
 }
@@ -184,9 +203,14 @@ export const computeCoverageStats = (
   topKeywords: Array<unknown>,
   otherKeywords: Array<unknown>,
   metricsHistory: OverallMetricsHistory[],
-): CoverageStats => ({
-  trackedKeywords: topKeywords.length + otherKeywords.length,
-  topKeywordsCount: topKeywords.length,
-  otherKeywordsCount: otherKeywords.length,
-  lastUpdated: metricsHistory.length > 0 ? new Date(metricsHistory[0].dateRecorded) : null,
-})
+): CoverageStats => {
+  // metricsHistory[0] = synthetic current (id='current', dateRecorded = เวลา fetch) → ไม่ใช่เวลาอัปเดตจริง
+  // record จริงตัวล่าสุด (history เก็บ "ค่าก่อนแก้" ณ เวลาที่แก้) → dateRecorded = เวลาอัปเดตล่าสุดพอดี
+  const lastRealRecord = metricsHistory.find((r) => r.id !== 'current')
+  return {
+    trackedKeywords: topKeywords.length + otherKeywords.length,
+    topKeywordsCount: topKeywords.length,
+    otherKeywordsCount: otherKeywords.length,
+    lastUpdated: lastRealRecord ? new Date(lastRealRecord.dateRecorded) : null,
+  }
+}

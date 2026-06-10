@@ -142,11 +142,11 @@ const StatCard: React.FC<StatCardProps> = ({
 }
 
 export const SummaryStatistics: React.FC<SummaryStatisticsProps> = ({ recommendationsCount }) => {
-  const { metricsHistory, keywordHistory, currentKeywords } = useHistoryContext()
+  const { keywordHistory, currentKeywords } = useHistoryContext()
 
   const kpi = React.useMemo(
-    () => computeKpiSnapshots(metricsHistory, keywordHistory, currentKeywords, 7),
-    [metricsHistory, keywordHistory, currentKeywords],
+    () => computeKpiSnapshots(keywordHistory, currentKeywords, 7),
+    [keywordHistory, currentKeywords],
   )
 
   const avgPositionDisplay = kpi.avgPosition.current > 0 ? kpi.avgPosition.current.toFixed(1) : '-'

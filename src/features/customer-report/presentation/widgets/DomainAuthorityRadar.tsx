@@ -9,30 +9,27 @@ import { computeAuthorityRadar } from '../lib/historyCalculations'
 import { useHistoryContext } from '../contexts/HistoryContext'
 import { useReportFilters } from '../contexts/ReportFiltersContext'
 import { ChartEmptyState } from '../components/ChartEmptyState'
-import type { OverallMetricsForm } from '@/types/metrics'
-
-interface DomainAuthorityRadarProps {
-  metrics: OverallMetricsForm | null | undefined
-}
 
 const chartConfig = buildChartConfig([
   { key: 'current', label: 'ปัจจุบัน', color: 'var(--info)' },
   { key: 'previous', label: 'ก่อนหน้า', color: 'var(--muted-foreground)' },
 ])
 
-// Radar 5 axes — Ahrefs-style domain health snapshot
-export const DomainAuthorityRadar = ({ metrics }: DomainAuthorityRadarProps) => {
+// Radar 5 axes — Ahrefs-style domain health snapshot.
+// แกน current = synthetic current (metricsHistory[0]) จาก context — single source ตาม rule 11
+export const DomainAuthorityRadar = () => {
   const { metricsHistory } = useHistoryContext()
   const { period } = useReportFilters()
 
   const data = useMemo(() => {
-    if (!metrics) return []
-    return computeAuthorityRadar(metrics, metricsHistory, period)
-  }, [metrics, metricsHistory, period])
+    const current = metricsHistory[0]
+    if (!current) return []
+    return computeAuthorityRadar(current, metricsHistory, period)
+  }, [metricsHistory, period])
 
   const hasPrevious = data.some((d) => d.previous !== null)
 
-  if (!metrics || data.length === 0) {
+  if (data.length === 0) {
     return (
       <Card className="h-full">
         <CardHeader>

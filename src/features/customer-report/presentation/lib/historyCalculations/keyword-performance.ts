@@ -1,7 +1,7 @@
 import { KeywordReportHistory } from '@/types/history'
 import { CurrentKeyword } from '@/hooks/api/useCustomersApi'
 import { PeriodOption } from '../chartConfig'
-import { latestRecordByKeywordBeforeCutoff } from './_shared'
+import { isRanked, latestRecordByKeywordBeforeCutoff } from './_shared'
 
 // ============================================================
 // Keyword Performance — KD distribution / success rate / traffic share
@@ -20,11 +20,14 @@ export interface KdDistributionResult {
 export const groupKeywordsByKd = (
   keywords: Array<{ kd: KdLevelString | string }>,
 ): KdDistributionResult => {
-  const result: KdDistributionResult = { HARD: 0, MEDIUM: 0, EASY: 0, total: keywords.length }
+  // total นับเฉพาะ kd ที่ valid (HARD/MEDIUM/EASY) → % ของ slice รวมกัน = 100 พอดี
+  // (kd นอกเซ็ตไม่มี slice ถ้านับใน total จะทำให้ % รวม < 100)
+  const result: KdDistributionResult = { HARD: 0, MEDIUM: 0, EASY: 0, total: 0 }
   for (const kw of keywords) {
     const kd = String(kw.kd).toUpperCase()
     if (kd === 'HARD' || kd === 'MEDIUM' || kd === 'EASY') {
       result[kd] += 1
+      result.total += 1
     }
   }
   return result
@@ -137,7 +140,8 @@ export const computeKeywordVelocity = (
   for (const curr of currentKeywords) {
     const prev = historicalByKw.get(curr.keyword)
     if (!prev) continue
-    if (curr.position === null || prev.position === null) continue
+    // sentinel 0/null = unranked — เทียบ posDelta ไม่ได้ (กัน quadrant + สีสลับ)
+    if (!isRanked(curr.position) || !isRanked(prev.position)) continue
 
     const posDelta = curr.position - prev.position
     const trafficDelta = curr.traffic - prev.traffic

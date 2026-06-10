@@ -40,7 +40,7 @@ export const MetricChangeIndicator: React.FC<MetricChangeIndicatorProps> = ({
     if (trend === 'new') return 'New'
     if (!hasHistory) return 'No data'
     const abs = Math.abs(percentage).toFixed(1)
-    const sign = percentage >= 0 ? '+' : ''
+    const sign = percentage >= 0 ? '+' : '-'
     return `${sign}${abs}%`
   })()
 

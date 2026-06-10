@@ -5,11 +5,6 @@ import { Activity, Clock } from 'lucide-react'
 import { useHistoryContext } from '../contexts/HistoryContext'
 import { computeCoverageStats } from '../lib/historyCalculations'
 
-interface CoverageSnapshotCardProps {
-  topKeywords: Array<unknown>
-  otherKeywords: Array<unknown>
-}
-
 const fmtRelativeOrDate = (date: Date | null): string => {
   if (!date) return '—'
   const diffMs = Date.now() - date.getTime()
@@ -25,12 +20,13 @@ const fmtRelativeOrDate = (date: Date | null): string => {
   })
 }
 
-export const CoverageSnapshotCard = ({ topKeywords, otherKeywords }: CoverageSnapshotCardProps) => {
-  const { metricsHistory } = useHistoryContext()
-  const stats = useMemo(
-    () => computeCoverageStats(topKeywords, otherKeywords, metricsHistory),
-    [topKeywords, otherKeywords, metricsHistory],
-  )
+export const CoverageSnapshotCard = () => {
+  const { currentKeywords, metricsHistory } = useHistoryContext()
+  const stats = useMemo(() => {
+    const top = currentKeywords.filter((k) => k.isTopReport)
+    const other = currentKeywords.filter((k) => !k.isTopReport)
+    return computeCoverageStats(top, other, metricsHistory)
+  }, [currentKeywords, metricsHistory])
 
   return (
     <div className="border-border bg-card flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border px-4 py-3">

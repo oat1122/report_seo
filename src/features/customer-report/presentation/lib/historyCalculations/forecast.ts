@@ -1,5 +1,5 @@
 import { OverallMetricsHistory } from '@/types/history'
-import { formatThaiDate } from './_shared'
+import { formatThaiDate, localDayKey } from './_shared'
 
 // ============================================================================
 // Traffic Forecast Cone — linear regression + std error confidence band
@@ -53,7 +53,7 @@ export const computeTrafficForecast = (
   for (const h of metricsHistory) {
     if (h.organicTraffic == null) continue
     const t = new Date(h.dateRecorded).getTime()
-    const dayKey = new Date(h.dateRecorded).toISOString().split('T')[0]
+    const dayKey = localDayKey(h.dateRecorded)
     const existing = byDay.get(dayKey)
     if (!existing || t > existing.t) byDay.set(dayKey, { t, y: Number(h.organicTraffic) })
   }
@@ -90,7 +90,10 @@ export const computeTrafficForecast = (
     ssTot += (ys[i] - meanY) ** 2
   }
   const residualStd = Math.sqrt(ssRes / Math.max(n - 2, 1))
-  const ci = 1.96 * residualStd
+  // prediction interval ที่ถูกต้องขยายตามระยะห่างจากข้อมูล: ±1.96·s·√(1 + 1/n + (x−x̄)²/Sxx)
+  // den = Sxx = Σ(x−x̄)² (คำนวณไว้แล้ว) — CI คงที่จะ underestimate ความไม่แน่นอนที่ปลาย cone
+  const baseCi = 1.96 * residualStd
+  const sxx = Math.max(den, 1e-9)
   // R² มีความหมายเมื่อ n ≥ 3 และข้อมูลมี variance จริง:
   // n = 2 → เส้นลากผ่าน 2 จุดพอดี R²=1 เสมอ (หลอกตา); ssTot = 0 → ค่าคงที่ ไม่มีแนวโน้ม
   const rSquared = n < 3 || ssTot === 0 ? null : Math.max(0, 1 - ssRes / ssTot)
@@ -112,6 +115,7 @@ export const computeTrafficForecast = (
     const future = nowMs + d * DAY_MS
     const x = (future - t0) / DAY_MS
     const pred = Math.max(0, slope * x + intercept)
+    const ci = baseCi * Math.sqrt(1 + 1 / n + (x - meanX) ** 2 / sxx)
     points.push({
       dayOffset: d,
       time: future,

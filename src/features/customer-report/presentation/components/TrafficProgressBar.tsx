@@ -46,7 +46,7 @@ export const TrafficProgressBar: React.FC<TrafficProgressBarProps> = ({ changeDa
   const displayText = (() => {
     if (trend === 'new') return 'New'
     if (!hasHistory) return '-'
-    const sign = percentage >= 0 ? '+' : ''
+    const sign = percentage >= 0 ? '+' : '-'
     return `${sign}${absPercentage.toFixed(0)}%`
   })()
 

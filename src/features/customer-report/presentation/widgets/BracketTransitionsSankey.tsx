@@ -155,7 +155,7 @@ export const BracketTransitionsSankey = () => {
 
       {!data.hasData ? (
         <p className="text-muted-foreground py-12 text-center text-sm">
-          ยังไม่มีประวัติเพียงพอ — ต้องมี history ≥ 2 รอบ
+          ยังไม่มีข้อมูลตำแหน่ง keyword สำหรับแสดงการเปลี่ยนแปลง
         </p>
       ) : (
         <>

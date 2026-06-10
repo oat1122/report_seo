@@ -5,6 +5,7 @@ import { ArrowDown, ArrowUp, Minus } from 'lucide-react'
 import { MiniSparkline } from '../components/MiniSparkline'
 import { computeSparklineTopN } from '../lib/historyCalculations'
 import { useHistoryContext } from '../contexts/HistoryContext'
+import { useReportFilters } from '../contexts/ReportFiltersContext'
 
 interface TopKeywordsSparklineGridProps {
   topN?: number
@@ -18,10 +19,11 @@ const fmtTraffic = (v: number): string => {
 
 export const TopKeywordsSparklineGrid = ({ topN = 8 }: TopKeywordsSparklineGridProps) => {
   const { keywordHistory, currentKeywords } = useHistoryContext()
+  const { period } = useReportFilters()
 
   const rows = useMemo(
-    () => computeSparklineTopN(keywordHistory, currentKeywords, topN),
-    [keywordHistory, currentKeywords, topN],
+    () => computeSparklineTopN(keywordHistory, currentKeywords, period, topN),
+    [keywordHistory, currentKeywords, period, topN],
   )
 
   return (

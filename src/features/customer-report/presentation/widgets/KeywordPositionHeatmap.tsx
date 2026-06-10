@@ -61,8 +61,12 @@ export const KeywordPositionHeatmap = ({ topN = 10, weeks = 12 }: KeywordPositio
             Top 20
           </span>
           <span className="flex items-center gap-1">
+            <span className="bg-destructive/40 size-3 rounded-sm" />
+            21–50
+          </span>
+          <span className="flex items-center gap-1">
             <span className="bg-destructive/60 size-3 rounded-sm" />
-            21+
+            50+
           </span>
         </div>
       </div>
