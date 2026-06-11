@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { Globe, Menu } from 'lucide-react'
+import { AnimatedIcon } from '@/components/shared/AnimatedIcon'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -62,8 +63,18 @@ export const DashboardHeader = () => {
             onOpenChange={(o) => (o ? handleDrawerToggle() : handleDrawerClose())}
           >
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon-sm" aria-label="เปิดเมนู" className="md:hidden">
-                <Menu className="size-5" />
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label="เปิดเมนู"
+                className="group md:hidden"
+              >
+                <AnimatedIcon
+                  name="menu"
+                  trigger="hover"
+                  size={20}
+                  fallback={<Menu className="size-5" />}
+                />
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-72">

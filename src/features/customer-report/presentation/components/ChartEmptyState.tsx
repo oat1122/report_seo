@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { TrendingUp } from 'lucide-react'
+import { AnimatedIcon } from '@/components/shared/AnimatedIcon'
 import { cn } from '@/lib/utils'
 
 interface ChartEmptyStateProps {
@@ -44,7 +45,14 @@ export const ChartEmptyState: React.FC<ChartEmptyStateProps> = ({
         </svg>
       </div>
 
-      <TrendingUp className="text-muted-foreground mb-2 size-12" />
+      <AnimatedIcon
+        name="trending-up"
+        trigger="loop"
+        size={48}
+        color="bg-muted-foreground"
+        className="mb-2"
+        fallback={<TrendingUp className="text-muted-foreground mb-2 size-12" />}
+      />
       <p className="text-muted-foreground px-4 text-center text-sm">{message}</p>
       <p className="text-muted-foreground/80 mt-1 text-xs">ต้องมีข้อมูลอย่างน้อย 2 รายการ</p>
     </div>

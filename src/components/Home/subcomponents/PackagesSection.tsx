@@ -1,4 +1,5 @@
 import { CheckCircle2 } from 'lucide-react'
+import { AnimatedIcon } from '@/components/shared/AnimatedIcon'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -50,7 +51,18 @@ const PackageCard = ({ plan }: { plan: Plan }) => {
         <ul className="mt-5 space-y-2">
           {plan.features.map((feature) => (
             <li key={feature} className="flex items-start gap-2 text-sm">
-              <CheckCircle2 className="text-secondary mt-0.5 size-4 shrink-0" />
+              {recommended ? (
+                <AnimatedIcon
+                  name="check"
+                  trigger="loop"
+                  size={16}
+                  color="bg-secondary"
+                  className="mt-0.5"
+                  fallback={<CheckCircle2 className="text-secondary mt-0.5 size-4 shrink-0" />}
+                />
+              ) : (
+                <CheckCircle2 className="text-secondary mt-0.5 size-4 shrink-0" />
+              )}
               <span>{feature}</span>
             </li>
           ))}

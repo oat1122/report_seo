@@ -1,5 +1,7 @@
 'use client'
 
+import { Rocket } from 'lucide-react'
+import { AnimatedIcon } from '@/components/shared/AnimatedIcon'
 import { Button } from '@/components/ui/button'
 
 const scrollToPackages = () => {
@@ -16,6 +18,15 @@ export const HeroSection = () => {
       }}
     >
       <div className="mx-auto w-full max-w-3xl px-4">
+        <div className="mb-6 flex justify-center">
+          <AnimatedIcon
+            name="rocket"
+            trigger="loop"
+            size={56}
+            color="bg-info"
+            fallback={<Rocket className="text-info size-14" />}
+          />
+        </div>
         <h1 className="from-info to-secondary mb-6 bg-gradient-to-r bg-clip-text text-4xl leading-tight font-bold text-transparent md:text-5xl lg:text-6xl">
           ขับเคลื่อนธุรกิจของคุณสู่หน้าแรก ด้วยแพ็คเกจ SEO ที่คุ้มค่าที่สุด
         </h1>

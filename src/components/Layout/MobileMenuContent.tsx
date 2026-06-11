@@ -2,6 +2,7 @@
 
 import { signOut } from 'next-auth/react'
 import { Clock, LogOut, User } from 'lucide-react'
+import { AnimatedIcon } from '@/components/shared/AnimatedIcon'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
@@ -84,10 +85,16 @@ export const MobileMenuContent = ({
 
         <Button
           variant="ghost"
-          className="text-destructive hover:bg-destructive/10 hover:text-destructive justify-start"
+          className="text-destructive hover:bg-destructive/10 hover:text-destructive group justify-start"
           onClick={handleLogout}
         >
-          <LogOut className="size-4" />
+          <AnimatedIcon
+            name="log-out"
+            trigger="hover"
+            size={16}
+            color="bg-destructive"
+            fallback={<LogOut className="size-4" />}
+          />
           ออกจากระบบ
         </Button>
       </div>

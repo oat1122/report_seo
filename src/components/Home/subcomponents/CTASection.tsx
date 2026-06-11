@@ -1,3 +1,5 @@
+import { Rocket } from 'lucide-react'
+import { AnimatedIcon } from '@/components/shared/AnimatedIcon'
 import { Button } from '@/components/ui/button'
 
 export const CTASection = () => {
@@ -10,7 +12,17 @@ export const CTASection = () => {
           ด้วยการปรับปรุงเนื้อหาและโครงสร้างของเว็บไซต์ให้เหมาะสมกับการค้นหา เพิ่มการเข้าถึง
           และทำให้เว็บไซต์ของคุณทำงานได้เต็มประสิทธิภาพ
         </p>
-        <Button size="lg" className="bg-secondary text-secondary-foreground hover:bg-secondary/90">
+        <Button
+          size="lg"
+          className="group bg-secondary text-secondary-foreground hover:bg-secondary/90"
+        >
+          <AnimatedIcon
+            name="rocket"
+            trigger="hover"
+            size={18}
+            color="bg-secondary-foreground"
+            fallback={<Rocket className="text-secondary-foreground size-[18px] shrink-0" />}
+          />
           เช็คราคาแพ็คเกจ
         </Button>
       </div>

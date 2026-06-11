@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Menu } from 'lucide-react'
+import { AnimatedIcon } from '@/components/shared/AnimatedIcon'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -33,8 +34,18 @@ export const Header = () => {
             onOpenChange={(o) => (o ? handleDrawerToggle() : handleDrawerClose())}
           >
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon-sm" aria-label="open drawer" className="lg:hidden">
-                <Menu className="size-5" />
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label="open drawer"
+                className="group lg:hidden"
+              >
+                <AnimatedIcon
+                  name="menu"
+                  trigger="hover"
+                  size={20}
+                  fallback={<Menu className="size-5" />}
+                />
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-60">

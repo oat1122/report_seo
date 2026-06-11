@@ -2,6 +2,7 @@
 
 import { signOut } from 'next-auth/react'
 import { ChevronDown, LogOut, User } from 'lucide-react'
+import { AnimatedIcon } from '@/components/shared/AnimatedIcon'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,8 +25,13 @@ export const UserMenu = ({ userName, isLoading }: UserMenuProps) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="min-w-32 rounded-full">
-          <User className="size-4" />
+        <Button variant="outline" size="sm" className="group min-w-32 rounded-full">
+          <AnimatedIcon
+            name="user"
+            trigger="hover"
+            size={16}
+            fallback={<User className="size-4" />}
+          />
           {isLoading ? (
             <Skeleton className="h-4 w-16" />
           ) : (
