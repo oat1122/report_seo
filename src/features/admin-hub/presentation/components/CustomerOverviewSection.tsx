@@ -1,9 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Loader2, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useSyncAllMetrics } from '@/features/metrics/presentation/hooks/useAhrefsSync'
 import type { CustomerHubCard } from '../../domain/AdminHubSummary'
 import { CustomerSummaryCard } from './CustomerSummaryCard'
 
@@ -13,6 +14,8 @@ interface CustomerOverviewSectionProps {
 }
 
 export function CustomerOverviewSection({ customers, isLoading }: CustomerOverviewSectionProps) {
+  const syncAll = useSyncAllMetrics()
+
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -37,12 +40,28 @@ export function CustomerOverviewSection({ customers, isLoading }: CustomerOvervi
             </span>
           )}
         </h2>
-        <Button variant="ghost" size="sm" className="text-xs" asChild>
-          <Link href="/admin/users">
-            ดูทั้งหมด
-            <ArrowRight className="ml-1 size-3" />
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-xs"
+            onClick={() => syncAll.mutate()}
+            disabled={syncAll.isPending}
+          >
+            {syncAll.isPending ? (
+              <Loader2 className="mr-1 size-3 animate-spin" />
+            ) : (
+              <RefreshCw className="mr-1 size-3" />
+            )}
+            ซิงก์ Ahrefs ทั้งหมด
+          </Button>
+          <Button variant="ghost" size="sm" className="text-xs" asChild>
+            <Link href="/admin/users">
+              ดูทั้งหมด
+              <ArrowRight className="ml-1 size-3" />
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {customers && customers.length > 0 ? (

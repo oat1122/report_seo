@@ -14,6 +14,7 @@ import {
   TrendingUp,
   Globe,
   Wand2,
+  RefreshCw,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -41,6 +42,7 @@ import {
 import { KeywordReportSection } from './KeywordReportSection'
 import { RecommendKeywordSection } from './RecommendKeywordSection'
 import { useMetricsModal } from '@/hooks/ui/useMetricsModal'
+import { useSyncCustomerMetrics } from '@/features/metrics/presentation/hooks/useAhrefsSync'
 import type { AiOverviewSectionHandle } from './AiOverviewSection'
 import { ConfirmAlert } from '@/components/shared/ConfirmAlert'
 import { StepperNav } from './StepperNav'
@@ -260,6 +262,7 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
   const [showStepError, setShowStepError] = useState(false)
 
   const aiOverviewRef = useRef<AiOverviewSectionHandle>(null)
+  const syncCustomer = useSyncCustomerMetrics()
 
   const {
     metrics,
@@ -368,19 +371,39 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
                   ลูกค้า: <span className="text-foreground font-bold">{customer.name}</span>
                 </DialogDescription>
               </div>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="icon-sm"
-                    variant="ghost"
-                    aria-label="ดูประวัติการเปลี่ยนแปลง"
-                    onClick={onOpenHistory}
-                  >
-                    <Clock className="size-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>ดูประวัติการเปลี่ยนแปลง</TooltipContent>
-              </Tooltip>
+              <div className="flex items-center gap-1">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="icon-sm"
+                      variant="ghost"
+                      aria-label="ซิงก์ค่าจาก Ahrefs"
+                      onClick={() => syncCustomer.mutate({ userId: customer.id })}
+                      disabled={syncCustomer.isPending}
+                    >
+                      {syncCustomer.isPending ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <RefreshCw className="size-4" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>ซิงก์ DR / Backlinks / Ref domains จาก Ahrefs</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="icon-sm"
+                      variant="ghost"
+                      aria-label="ดูประวัติการเปลี่ยนแปลง"
+                      onClick={onOpenHistory}
+                    >
+                      <Clock className="size-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>ดูประวัติการเปลี่ยนแปลง</TooltipContent>
+                </Tooltip>
+              </div>
             </div>
 
             <div className="mt-4">
