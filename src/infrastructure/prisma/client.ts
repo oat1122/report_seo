@@ -4,9 +4,13 @@ const globalForPrisma = global as unknown as {
   prisma: PrismaClient | undefined
 }
 
-export const prismaBase = new PrismaClient({
-  log: process.env.NODE_ENV === 'production' ? ['error'] : ['query', 'info', 'warn', 'error'],
-})
+// reuse instance เดิมจาก global ใน dev — กัน HMR สร้าง PrismaClient ใหม่ทุก reload
+// จน connection pool รั่วสะสมจนชน MySQL max_connections (ERROR 1040 Too many connections)
+export const prismaBase =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    log: process.env.NODE_ENV === 'production' ? ['error'] : ['query', 'info', 'warn', 'error'],
+  })
 
 // Extend Prisma Client with soft delete and history middleware
 export const prisma = prismaBase.$extends({

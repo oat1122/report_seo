@@ -6,6 +6,7 @@ import { TopMovers } from '../TopMovers'
 import { HeroStatusCard } from '../widgets/HeroStatusCard'
 import { CoverageSnapshotCard } from '../widgets/CoverageSnapshotCard'
 import { TrafficForecastCone } from '../widgets/TrafficForecastCone'
+import { IntradayTrafficChart } from '../widgets/IntradayTrafficChart'
 import { TopKeywordsSparklineGrid } from '../widgets/TopKeywordsSparklineGrid'
 
 interface OverviewTabProps {
@@ -23,6 +24,8 @@ export const OverviewTab = ({ recommendationsCount }: OverviewTabProps) => {
       <SummaryStatistics recommendationsCount={recommendationsCount} />
 
       <TrafficForecastCone />
+
+      <IntradayTrafficChart />
 
       <TopKeywordsSparklineGrid />
 
