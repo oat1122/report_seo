@@ -1,8 +1,9 @@
 'use client'
 
 import { useMemo } from 'react'
-import { ArrowDown, ArrowUp, Minus, TrendingUp } from 'lucide-react'
+import { ArrowDown, ArrowUp, Minus } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { ReportIcon } from '../components/ReportIcon'
 import { useHistoryContext } from '../contexts/HistoryContext'
 import { useReportFilters } from '../contexts/ReportFiltersContext'
 import { computeRoiHeadline } from '../lib/historyCalculations'
@@ -30,7 +31,7 @@ export const HeroStatusCard = () => {
         aria-live="polite"
         className="border-border from-info/5 to-success/5 rounded-2xl border border-dashed bg-gradient-to-br p-6 text-center md:p-8"
       >
-        <TrendingUp className="text-muted-foreground mx-auto mb-2 size-8" />
+        <ReportIcon name="rocket" trigger="loop" color="bg-info" size={32} className="mb-2" />
         <p className="text-muted-foreground text-sm font-medium">
           ยังไม่มีข้อมูลเปรียบเทียบ — จะแสดงสรุป ROI เมื่อมี history อย่างน้อย 2 รอบ
         </p>
@@ -75,8 +76,9 @@ export const HeroStatusCard = () => {
       <div className="grid gap-6 md:grid-cols-2">
         {/* Left: Traffic growth */}
         <div>
-          <p className="text-muted-foreground mb-2 text-sm font-medium">
+          <p className="text-muted-foreground mb-2 flex items-center gap-1.5 text-sm font-medium">
             Organic Traffic vs {period} วันก่อน
+            {trafficUp && <ReportIcon name="rocket" trigger="loop" color="bg-success" size={16} />}
           </p>
           <div className={cn('flex items-baseline gap-2', trafficTone)}>
             {roi.trafficPctChange !== null ? (

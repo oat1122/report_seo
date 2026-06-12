@@ -5,6 +5,7 @@ import { Bar, BarChart, Cell, XAxis, YAxis } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { buildChartConfig } from '../lib/buildChartConfig'
+import { ReportIcon } from '../components/ReportIcon'
 import { computeKdSuccessRate, type KdLevelString } from '../lib/historyCalculations'
 
 interface KdItem {
@@ -48,7 +49,10 @@ export const KdSuccessRateBar = ({ keywords, topN = 10 }: KdSuccessRateBarProps)
   return (
     <Card className="h-full">
       <CardHeader>
-        <CardTitle className="text-base">KD Success Rate</CardTitle>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <ReportIcon name="check" trigger="hover" color="bg-success" size={18} />
+          KD Success Rate
+        </CardTitle>
         <p className="text-muted-foreground text-xs">% keyword ที่ติด Top {topN} แยกตามความยาก</p>
       </CardHeader>
       <CardContent>

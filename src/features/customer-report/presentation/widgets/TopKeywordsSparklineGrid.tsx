@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 import { ArrowDown, ArrowUp, Minus } from 'lucide-react'
 import { MiniSparkline } from '../components/MiniSparkline'
+import { ReportIcon } from '../components/ReportIcon'
 import { computeSparklineTopN } from '../lib/historyCalculations'
 import { useHistoryContext } from '../contexts/HistoryContext'
 import { useReportFilters } from '../contexts/ReportFiltersContext'
@@ -29,7 +30,10 @@ export const TopKeywordsSparklineGrid = ({ topN = 8 }: TopKeywordsSparklineGridP
   return (
     <div className="border-border rounded-2xl border p-4 md:p-6">
       <div className="mb-4">
-        <h3 className="text-xl font-bold">Top Keywords Snapshot</h3>
+        <h3 className="flex items-center gap-2 text-xl font-bold">
+          <ReportIcon name="trending-up" trigger="hover" color="bg-info" />
+          Top Keywords Snapshot
+        </h3>
         <p className="text-muted-foreground mt-1 text-xs">
           {topN} keywords อันดับ traffic สูงสุด · trend ของ position
         </p>

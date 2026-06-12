@@ -12,6 +12,7 @@ import { getRatingColor, getAgeColor, getSpamColor } from './lib/utils'
 import { useHistoryContext } from './contexts/HistoryContext'
 import { calculateMetricChange } from './lib/historyCalculations'
 import { MetricChangeIndicator } from './components/MetricChangeIndicator'
+import { ReportIcon } from './components/ReportIcon'
 import { GaugeChart } from './components/GaugeChart'
 import { CustomLinearProgress } from './components/CustomLinearProgress'
 
@@ -61,7 +62,10 @@ export const OverallMetricsCard: React.FC<OverallMetricsCardProps> = ({
     <>
       <div className="border-border bg-background rounded-2xl border p-4 md:p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-xl font-bold">Overall Domain Metrics</h3>
+          <h3 className="flex items-center gap-2 text-xl font-bold">
+            <ReportIcon name="globe" trigger="hover" color="bg-info" />
+            Overall Domain Metrics
+          </h3>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button

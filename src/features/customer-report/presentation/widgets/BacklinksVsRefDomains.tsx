@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { ChartEmptyState } from '../components/ChartEmptyState'
 import { ChartFallbackNote } from '../components/ChartFallbackNote'
+import { ReportIcon } from '../components/ReportIcon'
 import { buildChartConfig } from '../lib/buildChartConfig'
 import {
   computeBacklinkRatio,
@@ -84,7 +85,10 @@ export const BacklinksVsRefDomains = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Backlinks vs Referring Domains</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <ReportIcon name="globe" trigger="hover" color="bg-info" size={18} />
+          Backlinks vs Referring Domains
+        </CardTitle>
         <p className="text-muted-foreground text-xs">
           เปรียบเทียบจำนวน link กับจำนวนเว็บที่ link มา (link diversity)
         </p>

@@ -14,6 +14,7 @@ import {
 } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import { ReportIcon } from '../components/ReportIcon'
 import { ChartEmptyState } from '../components/ChartEmptyState'
 import { buildChartConfig } from '../lib/buildChartConfig'
 import { computeKeywordVelocity, type VelocityQuadrant } from '../lib/historyCalculations'
@@ -77,7 +78,10 @@ export const KeywordVelocityScatter = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Keyword Velocity</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <ReportIcon name="trending-up" trigger="hover" color="bg-info" size={18} />
+          Keyword Velocity
+        </CardTitle>
         <p className="text-muted-foreground text-xs">
           X = position change (← ดีขึ้น) · Y = traffic change (↑ ดีขึ้น)
         </p>

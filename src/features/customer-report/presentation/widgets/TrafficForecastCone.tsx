@@ -5,6 +5,7 @@ import { Area, CartesianGrid, ComposedChart, Line, ReferenceLine, XAxis, YAxis }
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { ChartEmptyState } from '../components/ChartEmptyState'
+import { ReportIcon } from '../components/ReportIcon'
 import { buildChartConfig } from '../lib/buildChartConfig'
 import { computeTrafficForecast } from '../lib/historyCalculations'
 import { useHistoryContext } from '../contexts/HistoryContext'
@@ -70,7 +71,10 @@ export const TrafficForecastCone = ({ daysAhead = 30 }: TrafficForecastConeProps
     <div className="border-border rounded-2xl border p-4 md:p-6">
       <div className="mb-4 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
         <div>
-          <h3 className="text-xl font-bold">Traffic Forecast</h3>
+          <h3 className="flex items-center gap-2 text-xl font-bold">
+            <ReportIcon name="trending-up" trigger="hover" color="bg-success" />
+            Traffic Forecast
+          </h3>
           <p className="text-muted-foreground mt-1 text-xs">
             พยากรณ์ traffic ของ {daysAhead} วันข้างหน้า · ช่วงความเชื่อมั่น ~95%
           </p>

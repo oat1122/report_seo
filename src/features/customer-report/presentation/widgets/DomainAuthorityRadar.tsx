@@ -9,6 +9,7 @@ import { computeAuthorityRadar } from '../lib/historyCalculations'
 import { useHistoryContext } from '../contexts/HistoryContext'
 import { useReportFilters } from '../contexts/ReportFiltersContext'
 import { ChartEmptyState } from '../components/ChartEmptyState'
+import { ReportIcon } from '../components/ReportIcon'
 
 const chartConfig = buildChartConfig([
   { key: 'current', label: 'ปัจจุบัน', color: 'var(--info)' },
@@ -33,7 +34,10 @@ export const DomainAuthorityRadar = () => {
     return (
       <Card className="h-full">
         <CardHeader>
-          <CardTitle>Domain Authority</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <ReportIcon name="globe" trigger="hover" color="bg-info" size={18} />
+            Domain Authority
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <ChartEmptyState message="ยังไม่มีข้อมูล Domain Metrics" height="280px" />
@@ -45,7 +49,10 @@ export const DomainAuthorityRadar = () => {
   return (
     <Card className="h-full">
       <CardHeader>
-        <CardTitle>Domain Authority</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <ReportIcon name="globe" trigger="hover" color="bg-info" size={18} />
+          Domain Authority
+        </CardTitle>
         <p className="text-muted-foreground text-xs">5 มิติ — ปัจจุบัน vs {period} วันก่อน</p>
       </CardHeader>
       <CardContent>
