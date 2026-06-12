@@ -1,6 +1,9 @@
 # Flaticon Animated Icons — assets
 
 `AnimatedIcon` (`src/components/shared/AnimatedIcon.tsx`) ใช้ไฟล์ในโฟลเดอร์นี้
+ไฟล์ถูก **`import` เข้า bundle** ผ่าน registry `src/components/shared/animatedIconAssets.ts`
+(ไม่ได้ serve จาก `public/` แล้ว → ได้ URL ที่ content-hash + อยู่ใน build แน่นอน)
+**การเพิ่มไฟล์ `.webp` เฉย ๆ ไม่พอ — ต้องลงทะเบียนใน registry ด้วย** (ดูขั้นตอนล่าง)
 
 ## รูปแบบไฟล์
 
@@ -28,6 +31,22 @@ ffmpeg -y -i <name>.gif -vf "$KEY" -frames:v 1 -lossless 1 <name>-still.webp
 - `colorkey=0xFFFFFF` = key พื้นหลังขาวออก (ปรับ `0.18` ขึ้นถ้ายังเหลือขอบขาว, ลงถ้ากินตัวไอคอน)
 - `lutrgb=...=0` = flatten RGB เป็นดำ (mask ใช้แค่ alpha → ไฟล์เล็กลงมาก)
 - ต้องเป็นไอคอน **พื้นหลังขาวล้วน** ถ้าเป็นสีอื่นให้แก้ค่า `colorkey`
+
+### ลงทะเบียนไอคอนใหม่ใน registry (บังคับ)
+
+หลัง generate `.webp` แล้ว เพิ่ม `import` + entry ใน `src/components/shared/animatedIconAssets.ts`:
+
+```ts
+import foo from '@/assets/icons/flaticon/foo.webp'
+import fooStill from '@/assets/icons/flaticon/foo-still.webp' // เฉพาะถ้าใช้ trigger='hover'
+
+export const ANIMATED_ICONS = {
+  // ...
+  foo: { animated: foo.src, still: fooStill.src },
+} satisfies Record<string, IconAsset>
+```
+
+`name` ของ `AnimatedIcon` เป็น union type ที่ derive จาก key ของ registry → ลืมลงทะเบียน = TS error ตอน build (ไม่หลุดไป 404 ตอน runtime อีกแล้ว)
 
 ## Mapping (slot → asset → สีจาก theme token)
 

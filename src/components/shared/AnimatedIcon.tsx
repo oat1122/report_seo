@@ -3,8 +3,7 @@
 import { type CSSProperties, type ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 import { usePrefersReducedMotion } from '@/hooks/ui/usePrefersReducedMotion'
-
-const ICON_BASE = '/icons/flaticon'
+import { ANIMATED_ICONS, type AnimatedIconName } from './animatedIconAssets'
 
 // asset เป็น webp โปร่งใส (silhouette ที่ key พื้นหลังขาวออกแล้ว) → ระบายสีด้วย CSS mask
 // + background-color จาก theme token (เช่น bg-foreground / bg-info) สีจึงมาจาก token จริง
@@ -25,8 +24,8 @@ const maskStyle = (src: string, size: number): CSSProperties => ({
 type AnimatedIconTrigger = 'hover' | 'loop'
 
 interface AnimatedIconProps {
-  /** basename ใต้ /public/icons/flaticon — resolve เป็น <name>.webp (+ <name>-still.webp สำหรับ hover) */
-  name: string
+  /** ชื่อไอคอนจาก registry ([animatedIconAssets](./animatedIconAssets.ts)) — type-safe, ผูกกับ asset ที่ bundle แล้ว */
+  name: AnimatedIconName
   /** hover = นิ่ง (still) จนกว่า element ที่ครอบ (group) จะ hover/focus; loop = เล่นวนตลอด */
   trigger: AnimatedIconTrigger
   /** ความกว้าง/สูงเป็น px */
@@ -59,11 +58,13 @@ export const AnimatedIcon = ({
     ? { role: 'img' as const, 'aria-label': label }
     : { 'aria-hidden': true as const }
 
+  const asset = ANIMATED_ICONS[name]
+
   if (trigger === 'loop') {
     return (
       <span
         className={cn('inline-block shrink-0', color, className)}
-        style={maskStyle(`${ICON_BASE}/${name}.webp`, size)}
+        style={maskStyle(asset.animated, size)}
         {...a11y}
       />
     )
@@ -78,7 +79,7 @@ export const AnimatedIcon = ({
           'group-hover:opacity-0 group-focus-within:opacity-0',
           color,
         )}
-        style={maskStyle(`${ICON_BASE}/${name}-still.webp`, size)}
+        style={maskStyle(asset.still ?? asset.animated, size)}
       />
       <span
         aria-hidden
@@ -87,7 +88,7 @@ export const AnimatedIcon = ({
           'group-hover:opacity-100 group-focus-within:opacity-100',
           color,
         )}
-        style={maskStyle(`${ICON_BASE}/${name}.webp`, size)}
+        style={maskStyle(asset.animated, size)}
       />
     </span>
   )
