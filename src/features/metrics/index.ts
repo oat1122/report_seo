@@ -34,8 +34,10 @@ export const syncCustomerMetricsByUserId = syncCustomerMetricsByUserIdUseCase(
 export {
   metricsSchema,
   historyVisibilitySchema,
+  ahrefsSyncPinSchema,
   type MetricsInput,
   type HistoryVisibilityInput,
+  type AhrefsSyncPinInput,
 } from './schemas'
 export type { OverallMetrics, MetricsHistoryEntry } from './domain/OverallMetrics'
 export type {

@@ -7,13 +7,13 @@ import type { BatchSyncSummary, CustomerSyncResult } from '@/features/metrics'
 
 type ApiData<T> = { data: T }
 
-// ซิงก์ทุกลูกค้า — ใช้ในปุ่ม global หน้า admin hub
+// ซิงก์ทุกลูกค้า — ใช้ในปุ่ม global หน้า admin hub (ต้องใส่ PIN ก่อน ตรวจฝั่ง server)
 export const useSyncAllMetrics = () => {
   const queryClient = useQueryClient()
 
-  return useMutation<BatchSyncSummary, Error, void>({
-    mutationFn: async () => {
-      const { data } = await axios.post<ApiData<BatchSyncSummary>>('/admin/metrics/sync')
+  return useMutation<BatchSyncSummary, Error, { pin: string }>({
+    mutationFn: async ({ pin }) => {
+      const { data } = await axios.post<ApiData<BatchSyncSummary>>('/admin/metrics/sync', { pin })
       return data.data
     },
     onSuccess: (summary) => {

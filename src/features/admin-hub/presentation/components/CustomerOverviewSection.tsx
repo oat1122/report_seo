@@ -5,10 +5,10 @@ import Link from 'next/link'
 import { ArrowRight, Loader2, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ConfirmAlert } from '@/components/shared/ConfirmAlert'
 import { useSyncAllMetrics } from '@/features/metrics/presentation/hooks/useAhrefsSync'
 import type { CustomerHubCard } from '../../domain/AdminHubSummary'
 import { CustomerSummaryCard } from './CustomerSummaryCard'
+import { AhrefsSyncPinDialog } from './AhrefsSyncPinDialog'
 
 interface CustomerOverviewSectionProps {
   customers: CustomerHubCard[] | undefined
@@ -17,7 +17,7 @@ interface CustomerOverviewSectionProps {
 
 export function CustomerOverviewSection({ customers, isLoading }: CustomerOverviewSectionProps) {
   const syncAll = useSyncAllMetrics()
-  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [pinOpen, setPinOpen] = useState(false)
 
   if (isLoading) {
     return (
@@ -48,7 +48,7 @@ export function CustomerOverviewSection({ customers, isLoading }: CustomerOvervi
             variant="outline"
             size="sm"
             className="text-xs"
-            onClick={() => setConfirmOpen(true)}
+            onClick={() => setPinOpen(true)}
             disabled={syncAll.isPending}
           >
             {syncAll.isPending ? (
@@ -77,15 +77,11 @@ export function CustomerOverviewSection({ customers, isLoading }: CustomerOvervi
         <p className="text-muted-foreground py-8 text-center text-sm">ยังไม่มีข้อมูลลูกค้า</p>
       )}
 
-      <ConfirmAlert
-        open={confirmOpen}
-        onClose={() => setConfirmOpen(false)}
-        onConfirm={() => {
-          syncAll.mutate()
-          setConfirmOpen(false)
-        }}
-        title="ซิงก์ Ahrefs ทั้งหมด?"
-        message="ระบบจะดึงข้อมูลล่าสุดจาก Ahrefs ให้ลูกค้าทุกราย อาจใช้เวลาสักครู่ ยืนยันหรือไม่?"
+      <AhrefsSyncPinDialog
+        open={pinOpen}
+        onOpenChange={setPinOpen}
+        isPending={syncAll.isPending}
+        onConfirm={(pin) => syncAll.mutateAsync({ pin }).then(() => setPinOpen(false))}
       />
     </div>
   )
