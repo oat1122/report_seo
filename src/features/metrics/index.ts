@@ -10,7 +10,8 @@ import {
 } from './application/use-cases/setMetricsHistoryVisibility'
 import { syncCustomerMetricsFromAhrefsUseCase } from './application/use-cases/syncCustomerMetricsFromAhrefs'
 import { syncAllCustomerMetricsFromAhrefsUseCase } from './application/use-cases/syncAllCustomerMetricsFromAhrefs'
-import { syncCustomerMetricsByUserIdUseCase } from './application/use-cases/syncCustomerMetricsByUserId'
+import { previewCustomerAhrefsMetricsUseCase } from './application/use-cases/previewCustomerAhrefsMetrics'
+import { computeAhrefsProposalsUseCase } from './application/use-cases/computeAhrefsProposals'
 
 const repo = new PrismaMetricsRepository()
 const ahrefsGateway = new AhrefsHttpMetricsGateway()
@@ -26,18 +27,27 @@ export const syncAllCustomerMetricsFromAhrefs = syncAllCustomerMetricsFromAhrefs
   customerDirectory,
   syncOneFromAhrefs,
 )
-export const syncCustomerMetricsByUserId = syncCustomerMetricsByUserIdUseCase(
+export const previewCustomerAhrefsMetrics = previewCustomerAhrefsMetricsUseCase(
   customerDirectory,
-  syncOneFromAhrefs,
+  ahrefsGateway,
+)
+export const computeAhrefsProposals = computeAhrefsProposalsUseCase(
+  customerDirectory,
+  repo,
+  ahrefsGateway,
 )
 
 export {
   metricsSchema,
   historyVisibilitySchema,
   ahrefsSyncPinSchema,
+  ahrefsFullMetricsSchema,
+  ahrefsProposalMetadataSchema,
   type MetricsInput,
   type HistoryVisibilityInput,
   type AhrefsSyncPinInput,
+  type AhrefsFullMetrics,
+  type AhrefsProposalMetadata,
 } from './schemas'
 export type { OverallMetrics, MetricsHistoryEntry } from './domain/OverallMetrics'
 export type {
@@ -45,3 +55,8 @@ export type {
   CustomerSyncStatus,
 } from './application/use-cases/syncCustomerMetricsFromAhrefs'
 export type { BatchSyncSummary } from './application/use-cases/syncAllCustomerMetricsFromAhrefs'
+export type { AhrefsPreviewResult } from './application/use-cases/previewCustomerAhrefsMetrics'
+export type {
+  AhrefsProposal,
+  AhrefsProposalCurrent,
+} from './application/use-cases/computeAhrefsProposals'

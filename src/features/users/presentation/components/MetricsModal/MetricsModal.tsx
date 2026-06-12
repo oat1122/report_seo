@@ -42,7 +42,9 @@ import {
 import { KeywordReportSection } from './KeywordReportSection'
 import { RecommendKeywordSection } from './RecommendKeywordSection'
 import { useMetricsModal } from '@/hooks/ui/useMetricsModal'
-import { useSyncCustomerMetrics } from '@/features/metrics/presentation/hooks/useAhrefsSync'
+import { usePreviewCustomerMetrics } from '@/features/metrics/presentation/hooks/useAhrefsSync'
+import { AhrefsSyncReviewDialog } from '@/features/metrics/presentation/components/AhrefsSyncReviewDialog'
+import type { AhrefsFullMetrics } from '@/features/metrics'
 import type { AiOverviewSectionHandle } from './AiOverviewSection'
 import { ConfirmAlert } from '@/components/shared/ConfirmAlert'
 import { StepperNav } from './StepperNav'
@@ -262,7 +264,22 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
   const [showStepError, setShowStepError] = useState(false)
 
   const aiOverviewRef = useRef<AiOverviewSectionHandle>(null)
-  const syncCustomer = useSyncCustomerMetrics()
+  const previewAhrefs = usePreviewCustomerMetrics()
+  const [ahrefsProposed, setAhrefsProposed] = useState<AhrefsFullMetrics | null>(null)
+  const [isReviewOpen, setIsReviewOpen] = useState(false)
+
+  const handleSyncFromAhrefs = () => {
+    if (!customer) return
+    previewAhrefs.mutate(
+      { userId: customer.id },
+      {
+        onSuccess: (result) => {
+          setAhrefsProposed(result.fetched)
+          setIsReviewOpen(true)
+        },
+      },
+    )
+  }
 
   const {
     metrics,
@@ -378,17 +395,19 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
                       size="icon-sm"
                       variant="ghost"
                       aria-label="ซิงก์ค่าจาก Ahrefs"
-                      onClick={() => syncCustomer.mutate({ userId: customer.id })}
-                      disabled={syncCustomer.isPending}
+                      onClick={handleSyncFromAhrefs}
+                      disabled={previewAhrefs.isPending}
                     >
-                      {syncCustomer.isPending ? (
+                      {previewAhrefs.isPending ? (
                         <Loader2 className="size-4 animate-spin" />
                       ) : (
                         <RefreshCw className="size-4" />
                       )}
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>ซิงก์ DR / Backlinks / Ref domains จาก Ahrefs</TooltipContent>
+                  <TooltipContent>
+                    ดึง DR / Health / Traffic / Keywords / Backlinks / Ref domains จาก Ahrefs
+                  </TooltipContent>
                 </Tooltip>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -606,6 +625,16 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
         onConfirm={handleConfirmClose}
         onClose={() => setShowCloseConfirm(false)}
       />
+
+      {ahrefsProposed && (
+        <AhrefsSyncReviewDialog
+          open={isReviewOpen}
+          onOpenChange={setIsReviewOpen}
+          userId={customer.id}
+          customerName={customer.name ?? ''}
+          proposed={ahrefsProposed}
+        />
+      )}
     </>
   )
 }

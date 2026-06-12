@@ -20,7 +20,7 @@ export const useSaveMetrics = () => {
   return useMutation<
     OverallMetricsForm,
     Error,
-    { customerId: string; metrics: OverallMetricsForm }
+    { customerId: string; metrics: Partial<OverallMetricsForm> }
   >({
     mutationFn: async ({ customerId, metrics }) => {
       const { data } = await axios.post<ApiData<OverallMetricsForm>>(
