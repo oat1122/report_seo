@@ -12,6 +12,42 @@ const dev = process.env.NODE_ENV !== 'production'
 const app = next({ dev })
 const handle = app.getRequestHandler()
 
+// Diagnostic: prod process กำลัง restart วน (~ทุก 1–2 นาที) → weekly cron ไม่เคย fire
+// log สาเหตุการตายแต่ละรอบ + memory ตอนตาย แยกให้ออกว่า PM2 kill (memory/watch)
+// หรือ app crash (uncaught/unhandled). ดูใน `pm2 logs` ว่า "kind" เป็นอะไร
+const logFatal = (kind, extra) => {
+  const mem = process.memoryUsage()
+  console.error(
+    JSON.stringify({
+      level: 'fatal',
+      service: 'report-seo-server',
+      kind,
+      rssMB: Math.round(mem.rss / 1024 / 1024),
+      heapUsedMB: Math.round(mem.heapUsed / 1024 / 1024),
+      uptimeSec: Math.round(process.uptime()),
+      ...extra,
+    }),
+  )
+}
+
+process.on('uncaughtException', (err) => {
+  logFatal('uncaughtException', { err: (err && err.stack) || String(err) })
+  process.exit(1)
+})
+process.on('unhandledRejection', (reason) => {
+  logFatal('unhandledRejection', {
+    reason: reason instanceof Error ? reason.stack : String(reason),
+  })
+  process.exit(1)
+})
+// PM2 ส่ง SIGINT/SIGTERM ก่อน kill (รวมถึงตอน max_memory_restart) — rssMB ตอนนี้บอกได้ว่าชน limit ไหม
+for (const signal of ['SIGINT', 'SIGTERM']) {
+  process.on(signal, () => {
+    logFatal('signal', { signal })
+    process.exit(0)
+  })
+}
+
 app.prepare().then(() => {
   const expressApp = express()
   const httpServer = createServer(expressApp)
