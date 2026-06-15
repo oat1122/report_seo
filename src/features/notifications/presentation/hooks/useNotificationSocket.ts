@@ -31,13 +31,14 @@ export function useNotificationSocket() {
   useEffect(() => {
     if (status !== 'authenticated') return
 
-    // polling-first: handshake ผ่าน HTTP long-polling ก่อน (ลอด reverse proxy ได้เสมอ)
-    // แล้วค่อย auto-upgrade เป็น websocket เมื่อ proxy ส่ง Upgrade header ให้ /api/socket
-    // กัน noti พังถาวรเมื่อ WS ถูกบล็อก (เดิม websocket-first + tryAllTransports=false จะไม่ fallback)
+    // polling-only: reverse proxy หน้า PM2 ไม่ forward WebSocket Upgrade ให้ /api/socket
+    // long-polling ลอด proxy ได้เสมอ และ noti ความถี่ต่ำจึง overhead น้อยมาก
+    // upgrade: false ปิด probe ไป websocket → ไม่มี WS error ค้างใน console
     const socket = io({
       path: '/api/socket',
       withCredentials: true,
-      transports: ['polling', 'websocket'],
+      transports: ['polling'],
+      upgrade: false,
     })
 
     socket.on('notification:new', handleNewNotification)
