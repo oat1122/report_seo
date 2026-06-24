@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { useHistoryContext } from '../contexts/HistoryContext'
 import { useReportFilters } from '../contexts/ReportFiltersContext'
-import { PeriodSelector } from '../components/PeriodSelector'
 import { MiniSparkline } from '../components/MiniSparkline'
 import { ChartEmptyState } from '../components/ChartEmptyState'
 import { KeywordEvidenceDialog } from '../components/KeywordEvidenceDialog'
@@ -189,7 +188,7 @@ const RankCard = ({ card }: { card: KeywordRankCard }) => {
 
 export const KeywordRankingsView = () => {
   const { keywordHistory, currentKeywords, isLoading } = useHistoryContext()
-  const { period, setPeriod } = useReportFilters()
+  const { period } = useReportFilters()
 
   const { cards, brackets, total } = useMemo(
     () => computeKeywordRankings(keywordHistory, currentKeywords, period),
@@ -199,17 +198,14 @@ export const KeywordRankingsView = () => {
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
-            Keyword Rankings
-          </p>
-          <h2 className="mt-1 text-2xl font-bold">ผลอันดับของแต่ละ Keyword</h2>
-          <p className="text-muted-foreground mt-0.5 text-sm">
-            ดูได้เลยว่าแต่ละคำติดอันดับที่เท่าไหร่ · Current ranking per keyword
-          </p>
-        </div>
-        <PeriodSelector value={period} onChange={setPeriod} />
+      <div>
+        <p className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
+          Keyword Rankings
+        </p>
+        <h2 className="mt-1 text-2xl font-bold">ผลอันดับของแต่ละ Keyword</h2>
+        <p className="text-muted-foreground mt-0.5 text-sm">
+          ดูได้เลยว่าแต่ละคำติดอันดับที่เท่าไหร่ · Current ranking per keyword
+        </p>
       </div>
 
       {isLoading ? (
@@ -298,9 +294,10 @@ export const KeywordRankingsView = () => {
                     return (
                       <tr key={card.id} className="border-border/60 border-t">
                         <td className="px-3.5 py-3">
-                          <div className="flex items-center gap-2.5">
+                          <div className="flex flex-wrap items-center gap-2.5">
                             <span className={cn('size-2 rounded-sm', c.dot)} />
                             <span className="font-semibold">{card.keyword}</span>
+                            <KeywordEvidenceDialog keyword={card.keyword} images={card.images} />
                           </div>
                         </td>
                         <td className="px-3.5 py-3 text-center">
