@@ -4,15 +4,7 @@ import React from 'react'
 import { Loader2 } from 'lucide-react'
 import { DashboardLayout } from '@/components/Layout/DashboardLayout'
 import { useGetManagedCustomers } from '@/hooks/api/useUsersApi'
-import {
-  useToggleMetricsHistoryVisibility,
-  useToggleKeywordHistoryVisibility,
-} from '@/hooks/api/useCustomersApi'
-import { MetricsModal } from './MetricsModal/MetricsModal'
-import { HistoryModal } from './MetricsModal/HistoryModal'
-import { KeywordHistoryModal } from './MetricsModal/KeywordHistoryModal'
 import { UserTable } from './UserTable'
-import { useCustomerMetricsModal } from '@/hooks/ui/useCustomerMetricsModal'
 
 const UserManagementSeoDev: React.FC = () => {
   const {
@@ -20,45 +12,6 @@ const UserManagementSeoDev: React.FC = () => {
     isLoading: loading,
     error: usersError,
   } = useGetManagedCustomers()
-
-  const {
-    metrics,
-    keywords,
-    recommendKeywords,
-    keywordHistory,
-    isMetricsModalOpen,
-    selectedCustomer,
-    isHistoryModalOpen,
-    historyData,
-    isKeywordHistoryModalOpen,
-    selectedKeyword,
-    isLoadingMetrics,
-    isLoadingKeywords,
-    isLoadingRecommend,
-    isLoadingCombinedHistory,
-    isLoadingSpecificHistory,
-    handleOpenMetrics,
-    handleCloseMetrics,
-    handleSaveMetrics,
-    handleAddKeyword,
-    handleDeleteKeyword,
-    handleUpdateKeyword,
-    handleAddRecommendKeyword,
-    handleUpdateRecommendKeyword,
-    handleDeleteRecommendKeyword,
-    aiOverviews,
-    isLoadingAiOverviews,
-    handleAddAiOverview,
-    handleUpdateAiOverview,
-    handleDeleteAiOverview,
-    handleOpenHistory,
-    handleCloseHistory,
-    handleOpenKeywordHistory,
-    handleCloseKeywordHistory,
-  } = useCustomerMetricsModal(managedCustomers)
-
-  const toggleMetricsVisibility = useToggleMetricsHistoryVisibility()
-  const toggleKeywordVisibility = useToggleKeywordHistoryVisibility()
 
   return (
     <DashboardLayout>
@@ -87,70 +40,7 @@ const UserManagementSeoDev: React.FC = () => {
             onEdit={() => {}}
             onDelete={() => {}}
             onRestore={() => {}}
-            onOpenMetrics={handleOpenMetrics}
             isSeoDevView
-          />
-        )}
-
-        {selectedCustomer && (
-          <MetricsModal
-            open={isMetricsModalOpen}
-            onClose={handleCloseMetrics}
-            customer={selectedCustomer}
-            metricsData={metrics || null}
-            keywordsData={keywords}
-            onSaveMetrics={handleSaveMetrics}
-            onAddKeyword={handleAddKeyword}
-            onDeleteKeyword={handleDeleteKeyword}
-            onUpdateKeyword={handleUpdateKeyword}
-            recommendKeywordsData={recommendKeywords}
-            onAddRecommendKeyword={handleAddRecommendKeyword}
-            onUpdateRecommendKeyword={handleUpdateRecommendKeyword}
-            onDeleteRecommendKeyword={handleDeleteRecommendKeyword}
-            onOpenHistory={handleOpenHistory}
-            onOpenKeywordHistory={handleOpenKeywordHistory}
-            isLoadingMetrics={isLoadingMetrics}
-            isLoadingKeywords={isLoadingKeywords}
-            isLoadingRecommend={isLoadingRecommend}
-            aiOverviews={aiOverviews}
-            isLoadingAiOverviews={isLoadingAiOverviews}
-            onAddAiOverview={handleAddAiOverview}
-            onUpdateAiOverview={handleUpdateAiOverview}
-            onDeleteAiOverview={handleDeleteAiOverview}
-          />
-        )}
-
-        {selectedCustomer && isHistoryModalOpen && (
-          <HistoryModal
-            open={isHistoryModalOpen}
-            onClose={handleCloseHistory}
-            history={historyData.metricsHistory}
-            keywordHistory={historyData.keywordHistory}
-            customerName={selectedCustomer.name || ''}
-            isLoading={isLoadingCombinedHistory}
-            canManage
-            onToggleMetricsVisibility={(payload) =>
-              toggleMetricsVisibility.mutate({
-                customerId: selectedCustomer.id,
-                ...payload,
-              })
-            }
-            onToggleKeywordVisibility={(payload) =>
-              toggleKeywordVisibility.mutate({
-                customerId: selectedCustomer.id,
-                ...payload,
-              })
-            }
-          />
-        )}
-
-        {selectedKeyword && isKeywordHistoryModalOpen && (
-          <KeywordHistoryModal
-            open={isKeywordHistoryModalOpen}
-            onClose={handleCloseKeywordHistory}
-            history={keywordHistory}
-            keywordName={selectedKeyword.keyword}
-            isLoading={isLoadingSpecificHistory}
           />
         )}
       </div>

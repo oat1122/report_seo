@@ -26,7 +26,6 @@ interface UserTableProps {
   onEdit: (user: User) => void
   onDelete: (id: string) => void
   onRestore: (id: string) => void
-  onOpenMetrics: (user: User) => void
   isSeoDevView?: boolean
 }
 
@@ -41,12 +40,15 @@ const ActionTooltipButton = ({
   label,
   onClick,
   href,
+  newTab = true,
   className,
   children,
 }: {
   label: string
   onClick?: () => void
   href?: string
+  /** เปิดลิงก์ในแท็บใหม่ (default) — ตั้ง false สำหรับหน้าที่มีปุ่มย้อนกลับในตัว */
+  newTab?: boolean
   className?: string
   children: React.ReactNode
 }) => {
@@ -60,7 +62,7 @@ const ActionTooltipButton = ({
       <TooltipTrigger asChild>
         {href ? (
           <Button {...buttonProps} asChild>
-            <Link href={href} target="_blank" rel="noopener noreferrer">
+            <Link href={href} {...(newTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
               {children}
             </Link>
           </Button>
@@ -80,7 +82,6 @@ export const UserTable: React.FC<UserTableProps> = ({
   onEdit,
   onDelete,
   onRestore,
-  onOpenMetrics,
   isSeoDevView = false,
 }) => {
   const { data: session } = useSession()
@@ -156,7 +157,8 @@ export const UserTable: React.FC<UserTableProps> = ({
             {user.role === Role.CUSTOMER && (
               <ActionTooltipButton
                 label="จัดการข้อมูล Domain"
-                onClick={() => onOpenMetrics(user)}
+                href={`${workProgressBase}/customers/${user.id}/domain`}
+                newTab={false}
                 className="text-info hover:bg-info/10"
               >
                 <BarChart3 className="size-4" />

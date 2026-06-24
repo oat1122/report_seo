@@ -68,7 +68,7 @@ export function AhrefsSyncReviewDialog({
   customerName,
   proposed,
 }: AhrefsSyncReviewDialogProps) {
-  // ค่าปัจจุบันจาก source เดียวกับ MetricsModal (cache key ['customerReport', userId])
+  // ค่าปัจจุบันจาก source เดียวกับหน้าจัดการ Domain (cache key ['customerReport', userId])
   const { data: report } = useGetCustomerReport(open ? userId : '')
   const current = report?.metrics ?? null
   const saveMetrics = useSaveMetrics()

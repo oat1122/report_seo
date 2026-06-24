@@ -1,12 +1,10 @@
 // src/store/store.ts
 import { configureStore } from '@reduxjs/toolkit'
 import usersReducer from './features/users/usersSlice'
-import metricsReducer from './features/metrics/metricsSlice'
 
 export const store = configureStore({
   reducer: {
     users: usersReducer,
-    metrics: metricsReducer,
   },
 })
 
