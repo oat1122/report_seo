@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { ArrowRight, Loader2, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
+import { CardGridSkeleton } from '@/components/skeletons'
 import { useSyncAllMetrics } from '@/features/metrics/presentation/hooks/useAhrefsSync'
 import type { CustomerHubCard } from '../../domain/AdminHubSummary'
 import { CustomerSummaryCard } from './CustomerSummaryCard'
@@ -23,11 +23,7 @@ export function CustomerOverviewSection({ customers, isLoading }: CustomerOvervi
     return (
       <div className="space-y-3">
         <h2 className="text-lg font-semibold">ลูกค้าทั้งหมด</h2>
-        <div className="grid gap-3 md:grid-cols-2">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-48 w-full rounded-xl" />
-          ))}
-        </div>
+        <CardGridSkeleton cols={2} count={4} />
       </div>
     )
   }

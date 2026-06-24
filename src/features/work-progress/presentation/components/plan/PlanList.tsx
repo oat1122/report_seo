@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-import { Skeleton } from '@/components/ui/skeleton'
+import { CardGridSkeleton } from '@/components/skeletons'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -60,13 +60,7 @@ export function PlanList({ userId, basePath, readOnly }: PlanListProps) {
   const deleteMut = useDeletePlan()
 
   if (isLoading) {
-    return (
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {[0, 1, 2].map((i) => (
-          <Skeleton key={i} className="h-40" />
-        ))}
-      </div>
-    )
+    return <CardGridSkeleton cols={3} count={3} />
   }
 
   const plans = data ?? []

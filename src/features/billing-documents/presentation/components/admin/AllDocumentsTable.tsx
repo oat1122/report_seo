@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useDeferredValue } from 'react'
-import { Download, Loader2, Pencil, Search, Trash2 } from 'lucide-react'
+import { Download, Pencil, Search, Trash2 } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { Button } from '@/components/ui/button'
 import { ConfirmAlert } from '@/components/shared/ConfirmAlert'
@@ -22,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { DataTableSkeleton } from '@/components/skeletons'
 import { useAllDocuments, useDeleteDocumentAdmin } from '../../hooks/useAllDocuments'
 import { EditDocumentDialog } from './EditDocumentDialog'
 import { DOCUMENT_TYPE_LABELS } from '../../../domain/DocumentType'
@@ -96,9 +97,7 @@ export function AllDocumentsTable() {
       </div>
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-10">
-          <Loader2 className="text-muted-foreground size-5 animate-spin" />
-        </div>
+        <DataTableSkeleton rows={8} cols={7} />
       ) : (
         <Table>
           <TableHeader>

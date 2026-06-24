@@ -165,7 +165,10 @@ export const KeywordReportSection: React.FC<KeywordReportSectionProps> = ({
     <div>
       <div className="mb-3 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
         <h4 className="font-bold">รายการคีย์เวิร์ดที่บันทึกแล้ว</h4>
-        <Badge variant="outline" className="border-secondary/40 text-secondary-foreground">
+        <Badge
+          variant="outline"
+          className="border-secondary/40 text-secondary-foreground dark:text-secondary"
+        >
           {keywordsData.length} รายการ
         </Badge>
       </div>

@@ -2,12 +2,13 @@
 
 import React from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Loader2, Plus } from 'lucide-react'
+import { ArrowLeft, Plus } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { useGetUsers, useGetSeoDevs } from '@/hooks/api/useUsersApi'
 import { Role } from '@/types/auth'
 import { Button } from '@/components/ui/button'
 import { DashboardLayout } from '@/components/Layout/DashboardLayout'
+import { DataTableSkeleton } from '@/components/skeletons'
 import { UserTable } from './UserTable'
 import { UserModal } from './UserModal'
 import { ConfirmAlert } from '@/components/shared/ConfirmAlert'
@@ -76,9 +77,7 @@ const UserManagement: React.FC = () => {
         )}
 
         {loading ? (
-          <div className="flex min-h-96 items-center justify-center">
-            <Loader2 className="text-secondary size-10 animate-spin" />
-          </div>
+          <DataTableSkeleton rows={8} cols={5} />
         ) : (
           <UserTable
             users={users}

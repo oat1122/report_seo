@@ -16,7 +16,7 @@ const stats = [
     key: 'SEO_DEV' as const,
     label: 'SEO Devs',
     icon: Code2,
-    color: 'text-secondary-foreground bg-secondary/10',
+    color: 'text-secondary-foreground dark:text-secondary bg-secondary/10',
   },
   {
     key: 'CUSTOMER' as const,

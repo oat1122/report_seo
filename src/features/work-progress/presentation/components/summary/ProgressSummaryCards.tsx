@@ -2,7 +2,7 @@
 
 import { CheckCircle2, Clock, ListChecks, TrendingUp } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
+import { KpiGridSkeleton } from '@/components/skeletons'
 import { useWorkProgressPlan } from '../../hooks/useWorkProgressPlan'
 import {
   calcPlanOverallPercent,
@@ -18,13 +18,7 @@ export function ProgressSummaryCards({ userId, planId }: ProgressSummaryCardsPro
   const { data, isLoading } = useWorkProgressPlan(userId, planId)
 
   if (isLoading) {
-    return (
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {[0, 1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-24" />
-        ))}
-      </div>
-    )
+    return <KpiGridSkeleton count={4} />
   }
   if (!data) return null
 
@@ -51,7 +45,7 @@ export function ProgressSummaryCards({ userId, planId }: ProgressSummaryCardsPro
       label: 'เสร็จแล้ว',
       value: `${completed}/${totalItems}`,
       icon: CheckCircle2,
-      tint: 'bg-secondary/30 text-secondary-foreground',
+      tint: 'bg-secondary/30 text-secondary-foreground dark:text-secondary',
     },
     {
       label: 'Marks · กำลังทำ',

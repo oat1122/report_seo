@@ -2,7 +2,7 @@
 
 import React, { Suspense } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
-import { Loader2, LayoutDashboard, Activity, Search, Sparkles, ClipboardList } from 'lucide-react'
+import { LayoutDashboard, Activity, Search, Sparkles, ClipboardList } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useReportPage } from '@/hooks/ui/useReportPage'
 import { HistoryProvider } from './contexts/HistoryContext'
@@ -12,6 +12,7 @@ import { DomainHealthTab } from './tabs/DomainHealthTab'
 import { KeywordPerformanceTab } from './tabs/KeywordPerformanceTab'
 import { AiRecommendationsTab } from './tabs/AiRecommendationsTab'
 import { WorkProgressTab } from './tabs/WorkProgressTab'
+import { ReportSkeleton } from '@/components/skeletons'
 import type { CustomerReportData } from '@/hooks/api/useCustomersApi'
 
 interface ReportPageProps {
@@ -128,9 +129,8 @@ const ReportPage: React.FC<ReportPageProps> = ({ customerId, initialData }) => {
 
   if (isLoading) {
     return (
-      <div className="mx-auto w-full max-w-screen-xl px-4 py-16 text-center">
-        <Loader2 className="text-info mx-auto size-12 animate-spin" />
-        <p className="text-muted-foreground mt-3 text-lg">Loading report data...</p>
+      <div className="mx-auto w-full max-w-screen-xl px-4 py-4 md:px-6 md:py-8">
+        <ReportSkeleton />
       </div>
     )
   }

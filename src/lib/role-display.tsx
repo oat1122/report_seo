@@ -34,7 +34,7 @@ export const getRoleBadgeClass = (role: Role): string => {
     case Role.CUSTOMER:
       return 'bg-info/10 text-info border-info/30'
     case Role.SEO_DEV:
-      return 'bg-secondary/20 text-secondary-foreground border-secondary/40'
+      return 'bg-secondary/20 text-secondary-foreground dark:text-secondary border-secondary/40'
     default:
       return 'bg-muted text-muted-foreground border-border'
   }
