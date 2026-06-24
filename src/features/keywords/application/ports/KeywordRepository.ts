@@ -1,4 +1,8 @@
-import type { KeywordReport, KeywordHistoryEntry } from '../../domain/KeywordReport'
+import type {
+  KeywordReport,
+  KeywordHistoryEntry,
+  KeywordReportImage,
+} from '../../domain/KeywordReport'
 import type { KeywordInput } from '../../schemas'
 
 export interface KeywordRepository {
@@ -6,6 +10,10 @@ export interface KeywordRepository {
   create(customerInternalId: string, data: KeywordInput): Promise<KeywordReport>
   update(keywordId: string, data: KeywordInput): Promise<KeywordReport>
   delete(keywordId: string): Promise<void>
+  countImages(keywordId: string): Promise<number>
+  addImages(keywordId: string, imageUrls: string[]): Promise<KeywordReportImage[]>
+  findImage(keywordId: string, imageId: string): Promise<KeywordReportImage | null>
+  deleteImage(imageId: string): Promise<void>
   findHistoryByKeywordId(
     keywordId: string,
     options: { onlyVisible: boolean },

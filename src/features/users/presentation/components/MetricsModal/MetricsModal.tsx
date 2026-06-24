@@ -524,6 +524,7 @@ export const MetricsModal: React.FC<MetricsModalProps> = ({
                 />
 
                 <KeywordReportSection
+                  customerId={customer.id}
                   newKeyword={newKeyword}
                   keywordsData={keywordsData}
                   editingKeywordId={editingKeywordId}

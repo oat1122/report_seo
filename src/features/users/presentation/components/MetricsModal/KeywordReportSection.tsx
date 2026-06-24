@@ -17,8 +17,10 @@ import {
 import { cn } from '@/lib/utils'
 import { KdLevel, KD_LEVELS } from '@/types/kd'
 import { KeywordReport, KeywordReportForm } from '@/types/metrics'
+import { KeywordEvidenceManager } from '@/features/keywords/presentation/components/KeywordEvidenceManager'
 
 interface KeywordReportSectionProps {
+  customerId: string
   newKeyword: KeywordReportForm
   keywordsData: KeywordReport[]
   editingKeywordId: string | null
@@ -32,6 +34,7 @@ interface KeywordReportSectionProps {
 }
 
 export const KeywordReportSection: React.FC<KeywordReportSectionProps> = ({
+  customerId,
   newKeyword,
   keywordsData,
   editingKeywordId,
@@ -174,65 +177,70 @@ export const KeywordReportSection: React.FC<KeywordReportSectionProps> = ({
       ) : (
         <ul className="flex flex-col gap-3">
           {keywordsData.map((kw) => (
-            <li
-              key={kw.id}
-              className="border-border flex items-start justify-between gap-3 rounded-xl border p-4"
-            >
-              <div className="min-w-0 flex-1">
-                <div className="mb-1 flex flex-wrap items-center gap-2">
-                  <span className="font-semibold">{kw.keyword}</span>
-                  {kw.isTopReport && (
-                    <Badge variant="outline" className="border-warning/40 text-warning">
-                      Top Report
-                    </Badge>
-                  )}
+            <li key={kw.id} className="border-border flex flex-col rounded-xl border p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="mb-1 flex flex-wrap items-center gap-2">
+                    <span className="font-semibold">{kw.keyword}</span>
+                    {kw.isTopReport && (
+                      <Badge variant="outline" className="border-warning/40 text-warning">
+                        Top Report
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-muted-foreground text-sm">
+                    Position: {kw.position ?? '-'} | Traffic: {kw.traffic} | KD: {kw.kd}
+                  </p>
                 </div>
-                <p className="text-muted-foreground text-sm">
-                  Position: {kw.position ?? '-'} | Traffic: {kw.traffic} | KD: {kw.kd}
-                </p>
+                <div className="flex gap-0.5">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="icon-sm"
+                        variant="ghost"
+                        aria-label="ดูประวัติ"
+                        onClick={() => onViewHistory(kw)}
+                      >
+                        <History className="size-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>ดูประวัติ</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="icon-sm"
+                        variant="ghost"
+                        aria-label="แก้ไข"
+                        onClick={() => onSetEditing(kw)}
+                      >
+                        <Pencil className="size-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>แก้ไข</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="icon-sm"
+                        variant="ghost"
+                        aria-label="ลบ"
+                        onClick={() => onDeleteKeyword(kw.id)}
+                        className="text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>ลบ</TooltipContent>
+                  </Tooltip>
+                </div>
               </div>
-              <div className="flex gap-0.5">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="icon-sm"
-                      variant="ghost"
-                      aria-label="ดูประวัติ"
-                      onClick={() => onViewHistory(kw)}
-                    >
-                      <History className="size-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>ดูประวัติ</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="icon-sm"
-                      variant="ghost"
-                      aria-label="แก้ไข"
-                      onClick={() => onSetEditing(kw)}
-                    >
-                      <Pencil className="size-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>แก้ไข</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="icon-sm"
-                      variant="ghost"
-                      aria-label="ลบ"
-                      onClick={() => onDeleteKeyword(kw.id)}
-                      className="text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>ลบ</TooltipContent>
-                </Tooltip>
-              </div>
+
+              <KeywordEvidenceManager
+                customerId={customerId}
+                keywordId={kw.id}
+                images={kw.images}
+              />
             </li>
           ))}
         </ul>

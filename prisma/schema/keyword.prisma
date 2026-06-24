@@ -13,8 +13,21 @@ model KeywordReport {
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
   history    KeywordReportHistory[]
+  images     KeywordReportImage[]
 
   @@map("keywordreport")
+}
+
+model KeywordReportImage {
+  id        String   @id @default(uuid())
+  imageUrl  String
+  createdAt DateTime @default(now())
+
+  keywordReportId String
+  keywordReport   KeywordReport @relation(fields: [keywordReportId], references: [id], onDelete: Cascade)
+
+  @@index([keywordReportId])
+  @@map("keywordreportimage")
 }
 
 model KeywordReportHistory {

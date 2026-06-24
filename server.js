@@ -32,13 +32,14 @@ const logFatal = (kind, extra) => {
 
 process.on('uncaughtException', (err) => {
   logFatal('uncaughtException', { err: (err && err.stack) || String(err) })
-  process.exit(1)
+  // ponytail: exit เฉพาะ prod (PM2 restart). dev รัน server.js เหมือนกันแล้ว — อย่าฆ่า dev server
+  if (!dev) process.exit(1)
 })
 process.on('unhandledRejection', (reason) => {
   logFatal('unhandledRejection', {
     reason: reason instanceof Error ? reason.stack : String(reason),
   })
-  process.exit(1)
+  if (!dev) process.exit(1)
 })
 // PM2 ส่ง SIGINT/SIGTERM ก่อน kill (รวมถึงตอน max_memory_restart) — rssMB ตอนนี้บอกได้ว่าชน limit ไหม
 for (const signal of ['SIGINT', 'SIGTERM']) {

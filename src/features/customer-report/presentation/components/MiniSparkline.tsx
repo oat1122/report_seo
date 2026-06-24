@@ -1,6 +1,7 @@
 'use client'
 
 import { useId, useMemo } from 'react'
+import { cn } from '@/lib/utils'
 
 interface MiniSparklineProps {
   data: number[]
@@ -11,6 +12,9 @@ interface MiniSparklineProps {
   /** lower-is-better (เช่น position) — flip path ขึ้นเมื่อค่าลด */
   invert?: boolean
   ariaLabel?: string
+  /** ยืดเต็มพื้นที่แม่ (viewBox) แทน fixed px — คุมขนาดจริงผ่าน className เช่น "h-14 w-full" */
+  responsive?: boolean
+  className?: string
 }
 
 /**
@@ -24,8 +28,15 @@ export const MiniSparkline = ({
   height = 28,
   invert = false,
   ariaLabel,
+  responsive = false,
+  className,
 }: MiniSparklineProps) => {
   const gradientId = useId()
+
+  // responsive: viewBox ยืดเต็ม, ปล่อย className คุมขนาด — fixed: คง width/height เดิม (ไม่ break caller)
+  const sizeProps = responsive
+    ? { viewBox: `0 0 ${width} ${height}`, preserveAspectRatio: 'none' as const, className }
+    : { width, height, className }
 
   const { points, areaPath } = useMemo(() => {
     if (data.length === 0) return { points: '', areaPath: '' }
@@ -60,11 +71,10 @@ export const MiniSparkline = ({
   if (data.length === 0) {
     return (
       <svg
-        width={width}
-        height={height}
+        {...sizeProps}
+        className={cn('text-muted-foreground', sizeProps.className)}
         role="img"
         aria-label={ariaLabel ?? 'Sparkline (no data)'}
-        className="text-muted-foreground"
       >
         <line
           x1={2}
@@ -81,11 +91,10 @@ export const MiniSparkline = ({
 
   return (
     <svg
-      width={width}
-      height={height}
+      {...sizeProps}
       role="img"
       aria-label={ariaLabel ?? `Sparkline ${data.length} points`}
-      style={{ overflow: 'visible' }}
+      style={responsive ? undefined : { overflow: 'visible' }}
     >
       <defs>
         <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">

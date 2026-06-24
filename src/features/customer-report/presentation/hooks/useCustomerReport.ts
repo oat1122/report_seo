@@ -5,6 +5,7 @@ import axios from '@/infrastructure/http/axios'
 import type {
   OverallMetricsForm,
   KeywordReport,
+  KeywordReportImage,
   KeywordRecommend,
   AiOverview,
 } from '@/types/metrics'
@@ -31,6 +32,7 @@ export interface CurrentKeyword {
   isTopReport: boolean
   dateRecorded: string
   customerId: string
+  images: KeywordReportImage[]
 }
 
 export interface CombinedHistoryData {

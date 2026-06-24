@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from '@/infrastructure/http/axios'
-import type { KeywordReport } from '@/types/metrics'
+import type { KeywordReport, KeywordReportImage } from '@/types/metrics'
 import type { KeywordReportHistory } from '@/types/history'
 import type { CombinedHistoryData } from '@/features/customer-report/presentation/hooks/useCustomerReport'
 
@@ -100,6 +100,45 @@ export const useDeleteKeyword = () => {
       queryClient.invalidateQueries({
         queryKey: ['customerReport', variables.customerId],
       })
+    },
+  })
+}
+
+export const useAddKeywordImages = () => {
+  const queryClient = useQueryClient()
+  return useMutation<
+    KeywordReportImage[],
+    Error,
+    { customerId: string; keywordId: string; files: File[] }
+  >({
+    mutationFn: async ({ keywordId, files }) => {
+      const formData = new FormData()
+      files.forEach((file) => formData.append('files', file))
+      const { data } = await axios.post<ApiData<KeywordReportImage[]>>(
+        `/customers/keywords/${keywordId}/images`,
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } },
+      )
+      return data.data
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['keywords', variables.customerId] })
+      queryClient.invalidateQueries({ queryKey: ['customerReport', variables.customerId] })
+      queryClient.invalidateQueries({ queryKey: ['history', variables.customerId] })
+    },
+  })
+}
+
+export const useDeleteKeywordImage = () => {
+  const queryClient = useQueryClient()
+  return useMutation<void, Error, { customerId: string; keywordId: string; imageId: string }>({
+    mutationFn: async ({ keywordId, imageId }) => {
+      await axios.delete(`/customers/keywords/${keywordId}/images/${imageId}`)
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['keywords', variables.customerId] })
+      queryClient.invalidateQueries({ queryKey: ['customerReport', variables.customerId] })
+      queryClient.invalidateQueries({ queryKey: ['history', variables.customerId] })
     },
   })
 }

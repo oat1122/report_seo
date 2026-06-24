@@ -2,7 +2,11 @@
 // เพื่อให้ middleware ใน client.ts สร้าง KeywordReportHistory snapshot อัตโนมัติ
 // ตอน update — ห้ามใช้ prismaBase ที่นี่ (จะ silently skip history)
 import { prisma } from '@/infrastructure/prisma/client'
-import type { KeywordReport, KeywordHistoryEntry } from '../domain/KeywordReport'
+import type {
+  KeywordReport,
+  KeywordHistoryEntry,
+  KeywordReportImage,
+} from '../domain/KeywordReport'
 import type { KeywordRepository } from '../application/ports/KeywordRepository'
 import type { KeywordInput } from '../schemas'
 
@@ -11,6 +15,7 @@ export class PrismaKeywordRepository implements KeywordRepository {
     return prisma.keywordReport.findMany({
       where: { customerId: customerInternalId },
       orderBy: { dateRecorded: 'desc' },
+      include: { images: true },
     })
   }
 
@@ -24,6 +29,7 @@ export class PrismaKeywordRepository implements KeywordRepository {
         isTopReport: data.isTopReport,
         customerId: customerInternalId,
       },
+      include: { images: true },
     })
   }
 
@@ -37,11 +43,36 @@ export class PrismaKeywordRepository implements KeywordRepository {
         kd: data.kd,
         isTopReport: data.isTopReport,
       },
+      include: { images: true },
     })
   }
 
   async delete(keywordId: string): Promise<void> {
     await prisma.keywordReport.delete({ where: { id: keywordId } })
+  }
+
+  async countImages(keywordId: string): Promise<number> {
+    return prisma.keywordReportImage.count({ where: { keywordReportId: keywordId } })
+  }
+
+  async addImages(keywordId: string, imageUrls: string[]): Promise<KeywordReportImage[]> {
+    await prisma.keywordReportImage.createMany({
+      data: imageUrls.map((url) => ({ keywordReportId: keywordId, imageUrl: url })),
+    })
+    return prisma.keywordReportImage.findMany({
+      where: { keywordReportId: keywordId },
+      orderBy: { createdAt: 'asc' },
+    })
+  }
+
+  async findImage(keywordId: string, imageId: string): Promise<KeywordReportImage | null> {
+    return prisma.keywordReportImage.findFirst({
+      where: { id: imageId, keywordReportId: keywordId },
+    })
+  }
+
+  async deleteImage(imageId: string): Promise<void> {
+    await prisma.keywordReportImage.delete({ where: { id: imageId } })
   }
 
   async findHistoryByKeywordId(

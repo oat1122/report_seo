@@ -17,6 +17,13 @@ export interface OverallMetrics {
 
 export type OverallMetricsForm = Omit<OverallMetrics, 'id' | 'dateRecorded' | 'customerId'>
 
+export interface KeywordReportImage {
+  id: string
+  imageUrl: string
+  createdAt: string
+  keywordReportId: string
+}
+
 export interface KeywordReport {
   id: string
   keyword: string
@@ -26,9 +33,13 @@ export interface KeywordReport {
   isTopReport: boolean
   dateRecorded: string
   customerId: string
+  images: KeywordReportImage[]
 }
 
-export type KeywordReportForm = Omit<KeywordReport, 'id' | 'dateRecorded' | 'customerId'>
+export type KeywordReportForm = Omit<
+  KeywordReport,
+  'id' | 'dateRecorded' | 'customerId' | 'images'
+>
 
 export interface KeywordRecommend {
   id: string
