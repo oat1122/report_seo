@@ -13,7 +13,7 @@ export function AdminHubClient() {
 
   return (
     <div className="space-y-6 p-4 md:p-6">
-      <h1 className="text-2xl font-bold">Admin Hub</h1>
+      <h1 className="neon-blink text-2xl font-bold">Admin Hub</h1>
 
       <HubStatsRow userCounts={data?.userCounts} unreadCount={unreadCount} isLoading={isLoading} />
 

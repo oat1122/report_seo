@@ -19,6 +19,7 @@ export const colors = {
     secondaryDark: '#1ce03b',
     secondaryHover: '#29e0a0',
     secondaryContrast: '#2f2f2f',
+    neonPink: '#ff10f0',
   },
 
   // ─── Info (brand purple) ────────────────────────────────
@@ -127,6 +128,7 @@ export const colorsDark = {
     secondaryDark: '#1ce03b',
     secondaryHover: '#29e0a0',
     secondaryContrast: '#052e0a',
+    neonPink: '#ff10f0',
   },
 
   // chart-5 ใน dark = zinc-500 (รองรับ white text บน bar)
