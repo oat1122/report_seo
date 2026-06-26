@@ -1,5 +1,5 @@
 // Next.js startup hook — รันครั้งเดียวตอน server boot (ทั้ง `next dev`, `next start`, และ
-// custom server `node server.js`). ใช้ลง node-cron สำหรับ "เสนอ" ค่า Ahrefs รายสัปดาห์
+// custom server `tsx server.ts`). ใช้ลง node-cron สำหรับ "เสนอ" ค่า Ahrefs รายสัปดาห์
 // อยู่ใน Next bundle จึง resolve alias `@/` และเรียก use case ได้ตรง ไม่ต้องผ่าน HTTP/auth
 export async function register() {
   // cron ต้องรันบน Node runtime เท่านั้น (ไม่ใช่ edge) และไม่รันซ้ำในแต่ละ request

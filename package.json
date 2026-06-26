@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node server.js",
+    "dev": "tsx server.ts",
     "build": "prisma generate && next build",
     "start": "next start",
-    "start:ws": "node server.js",
+    "start:ws": "tsx server.ts",
     "lint": "eslint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
