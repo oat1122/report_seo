@@ -97,7 +97,7 @@ const ReportTabs = ({
         {/* Content area */}
         <div className="min-w-0">
           <TabsContent value="overview" className="mt-0">
-            <OverviewTab recommendationsCount={recommendationsCount} />
+            <OverviewTab customerId={customerId} recommendationsCount={recommendationsCount} />
           </TabsContent>
           <TabsContent value="health" className="mt-0">
             <DomainHealthTab

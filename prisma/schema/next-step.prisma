@@ -1,0 +1,16 @@
+// CustomerNextStep — free-text "what to do next" แนะนำให้ลูกค้า (read-only ฝั่งลูกค้า)
+
+model CustomerNextStep {
+  id          String           @id @default(uuid())
+  title       String
+  description String?          @db.Text
+  priority    NextStepPriority @default(MEDIUM)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@map("customernextstep")
+}

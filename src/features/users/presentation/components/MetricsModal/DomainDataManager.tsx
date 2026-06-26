@@ -13,6 +13,7 @@ import {
   TrendingUp,
   Search,
   Lightbulb,
+  ListChecks,
   Globe,
   RefreshCw,
   Check,
@@ -28,6 +29,7 @@ import type { OverallMetricsForm } from '@/types'
 import type { AiOverviewSectionHandle } from './AiOverviewSection'
 import { KeywordReportSection } from './KeywordReportSection'
 import { RecommendKeywordSection } from './RecommendKeywordSection'
+import { NextStepsManager } from '@/features/next-steps/presentation/components/NextStepsManager'
 import { HistoryModal } from './HistoryModal'
 import { KeywordHistoryModal } from './KeywordHistoryModal'
 import { useMetricsModal } from '@/hooks/ui/useMetricsModal'
@@ -55,7 +57,7 @@ const AiOverviewSection = dynamic(
 )
 
 type MetricsFieldKey = keyof OverallMetricsForm
-type Section = 'overview' | 'metrics' | 'keywords' | 'recommend' | 'ai'
+type Section = 'overview' | 'metrics' | 'keywords' | 'recommend' | 'next-steps' | 'ai'
 
 interface MetricFieldConfig {
   key: MetricsFieldKey
@@ -89,9 +91,30 @@ const metricSections: MetricSectionConfig[] = [
     title: 'Authority',
     description: 'ค่าความน่าเชื่อถือและคุณภาพของโดเมน',
     fields: [
-      { key: 'domainRating', label: 'Domain Rating', placeholder: 'เช่น 42', helperText: 'ความแข็งแรงของโดเมน', min: 0 },
-      { key: 'healthScore', label: 'Health Score', placeholder: '0-100', helperText: 'คะแนนสุขภาพเว็บไซต์', min: 0, max: 100 },
-      { key: 'spamScore', label: 'Spam Score', placeholder: '0-100', helperText: 'คะแนนความเสี่ยง (ใส่ทศนิยมได้)', min: 0, max: 100, step: 0.1 },
+      {
+        key: 'domainRating',
+        label: 'Domain Rating',
+        placeholder: 'เช่น 42',
+        helperText: 'ความแข็งแรงของโดเมน',
+        min: 0,
+      },
+      {
+        key: 'healthScore',
+        label: 'Health Score',
+        placeholder: '0-100',
+        helperText: 'คะแนนสุขภาพเว็บไซต์',
+        min: 0,
+        max: 100,
+      },
+      {
+        key: 'spamScore',
+        label: 'Spam Score',
+        placeholder: '0-100',
+        helperText: 'คะแนนความเสี่ยง (ใส่ทศนิยมได้)',
+        min: 0,
+        max: 100,
+        step: 0.1,
+      },
     ],
     cols: 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3',
   },
@@ -100,10 +123,34 @@ const metricSections: MetricSectionConfig[] = [
     title: 'Visibility',
     description: 'ตัวเลขที่แสดงการมองเห็นของโดเมน',
     fields: [
-      { key: 'organicTraffic', label: 'Organic Traffic', placeholder: 'เช่น 1200', helperText: 'ทราฟฟิกจากการค้นหา', min: 0 },
-      { key: 'organicKeywords', label: 'Organic Keywords', placeholder: 'เช่น 350', helperText: 'คีย์เวิร์ดที่ติดอันดับ', min: 0 },
-      { key: 'backlinks', label: 'Backlinks', placeholder: 'เช่น 980', helperText: 'ลิงก์ย้อนกลับทั้งหมด', min: 0 },
-      { key: 'refDomains', label: 'Referring Domains', placeholder: 'เช่น 120', helperText: 'โดเมนที่ลิงก์กลับมา', min: 0 },
+      {
+        key: 'organicTraffic',
+        label: 'Organic Traffic',
+        placeholder: 'เช่น 1200',
+        helperText: 'ทราฟฟิกจากการค้นหา',
+        min: 0,
+      },
+      {
+        key: 'organicKeywords',
+        label: 'Organic Keywords',
+        placeholder: 'เช่น 350',
+        helperText: 'คีย์เวิร์ดที่ติดอันดับ',
+        min: 0,
+      },
+      {
+        key: 'backlinks',
+        label: 'Backlinks',
+        placeholder: 'เช่น 980',
+        helperText: 'ลิงก์ย้อนกลับทั้งหมด',
+        min: 0,
+      },
+      {
+        key: 'refDomains',
+        label: 'Referring Domains',
+        placeholder: 'เช่น 120',
+        helperText: 'โดเมนที่ลิงก์กลับมา',
+        min: 0,
+      },
     ],
     cols: 'grid-cols-1 sm:grid-cols-2',
   },
@@ -112,8 +159,21 @@ const metricSections: MetricSectionConfig[] = [
     title: 'Domain Age',
     description: 'อายุโดเมนเป็นปีและเดือน (เดือน 0-11)',
     fields: [
-      { key: 'ageInYears', label: 'อายุโดเมน (ปี)', placeholder: 'เช่น 2', helperText: 'จำนวนปีเต็ม', min: 0 },
-      { key: 'ageInMonths', label: 'อายุโดเมน (เดือน)', placeholder: '0-11', helperText: 'เดือนเพิ่มเติม', min: 0, max: 11 },
+      {
+        key: 'ageInYears',
+        label: 'อายุโดเมน (ปี)',
+        placeholder: 'เช่น 2',
+        helperText: 'จำนวนปีเต็ม',
+        min: 0,
+      },
+      {
+        key: 'ageInMonths',
+        label: 'อายุโดเมน (เดือน)',
+        placeholder: '0-11',
+        helperText: 'เดือนเพิ่มเติม',
+        min: 0,
+        max: 11,
+      },
     ],
     cols: 'grid-cols-1 sm:grid-cols-2',
   },
@@ -166,10 +226,7 @@ export const DomainDataManager: React.FC<DomainDataManagerProps> = ({ userId, ba
   const toggleKeywordVisibility = useToggleKeywordHistoryVisibility()
 
   const kwCount = data.keywords.length
-  const topCount = useMemo(
-    () => data.keywords.filter((k) => k.isTopReport).length,
-    [data.keywords],
-  )
+  const topCount = useMemo(() => data.keywords.filter((k) => k.isTopReport).length, [data.keywords])
   const recCount = data.recommendKeywords.length
   const aiCount = data.aiOverviews.length
 
@@ -181,12 +238,28 @@ export const DomainDataManager: React.FC<DomainDataManagerProps> = ({ userId, ba
 
   const kpis = useMemo(
     () => [
-      { label: 'Domain Rating', value: fmt(data.metrics?.domainRating), sub: 'ความแข็งแรงของโดเมน' },
+      {
+        label: 'Domain Rating',
+        value: fmt(data.metrics?.domainRating),
+        sub: 'ความแข็งแรงของโดเมน',
+      },
       { label: 'Health Score', value: fmt(data.metrics?.healthScore), sub: 'คะแนนสุขภาพเว็บไซต์' },
-      { label: 'Organic Traffic', value: fmt(data.metrics?.organicTraffic), sub: 'ทราฟฟิกจากการค้นหา' },
-      { label: 'Organic Keywords', value: fmt(data.metrics?.organicKeywords), sub: 'คีย์เวิร์ดที่ติดอันดับ' },
+      {
+        label: 'Organic Traffic',
+        value: fmt(data.metrics?.organicTraffic),
+        sub: 'ทราฟฟิกจากการค้นหา',
+      },
+      {
+        label: 'Organic Keywords',
+        value: fmt(data.metrics?.organicKeywords),
+        sub: 'คีย์เวิร์ดที่ติดอันดับ',
+      },
       { label: 'Backlinks', value: fmt(data.metrics?.backlinks), sub: 'ลิงก์ย้อนกลับทั้งหมด' },
-      { label: 'Referring Domains', value: fmt(data.metrics?.refDomains), sub: 'โดเมนที่ลิงก์กลับมา' },
+      {
+        label: 'Referring Domains',
+        value: fmt(data.metrics?.refDomains),
+        sub: 'โดเมนที่ลิงก์กลับมา',
+      },
     ],
     [data.metrics],
   )
@@ -242,6 +315,7 @@ export const DomainDataManager: React.FC<DomainDataManagerProps> = ({ userId, ba
     { key: 'metrics', label: 'ค่าโดเมน', Icon: TrendingUp },
     { key: 'keywords', label: 'Keyword Report', Icon: Search, count: kwCount },
     { key: 'recommend', label: 'Keyword แนะนำ', Icon: Lightbulb, count: recCount },
+    { key: 'next-steps', label: 'แนะนำให้ทำต่อ', Icon: ListChecks },
     { key: 'ai', label: 'AI Overview', Icon: Sparkles, count: aiCount },
   ]
 
@@ -433,7 +507,10 @@ export const DomainDataManager: React.FC<DomainDataManagerProps> = ({ userId, ba
               )}
 
               {metricSections.map((section) => (
-                <div key={section.title} className="border-border bg-card rounded-2xl border p-5 sm:p-6">
+                <div
+                  key={section.title}
+                  className="border-border bg-card rounded-2xl border p-5 sm:p-6"
+                >
                   <div className="mb-4 flex items-center gap-3">
                     <span className="bg-info/10 text-info flex size-8 items-center justify-center rounded-lg text-sm font-bold">
                       {section.num}
@@ -481,8 +558,8 @@ export const DomainDataManager: React.FC<DomainDataManagerProps> = ({ userId, ba
                 <div className="border-border bg-card sticky bottom-4 flex items-center justify-between gap-4 rounded-2xl border px-4 py-3 shadow-lg">
                   <span className="text-muted-foreground inline-flex items-center gap-2 text-sm">
                     <span className="bg-warning size-2 rounded-full" aria-hidden />
-                    มีการแก้ไข{' '}
-                    <strong className="text-foreground">{filledCount}</strong> ฟิลด์ ยังไม่ได้บันทึก
+                    มีการแก้ไข <strong className="text-foreground">{filledCount}</strong> ฟิลด์
+                    ยังไม่ได้บันทึก
                   </span>
                   <Button
                     onClick={handleSaveMetrics}
@@ -548,6 +625,19 @@ export const DomainDataManager: React.FC<DomainDataManagerProps> = ({ userId, ba
                 onClearEditingRecommend={clearRecommendEditing}
                 onDeleteRecommendKeyword={data.handleDeleteRecommendKeyword}
               />
+            </section>
+          )}
+
+          {/* NEXT STEPS */}
+          {activeSection === 'next-steps' && (
+            <section className="space-y-4">
+              <div>
+                <h2 className="text-xl font-bold">แนะนำให้ทำต่อ</h2>
+                <p className="text-muted-foreground mt-1 text-sm">
+                  รายการ action ที่อยากแนะนำให้ลูกค้าทำต่อ — โชว์เป็นการ์ดบนสุดของหน้ารายงานลูกค้า
+                </p>
+              </div>
+              <NextStepsManager customerId={userId} />
             </section>
           )}
 

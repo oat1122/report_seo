@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import { createServer, type IncomingMessage } from 'http'
 import fs from 'fs'
 import path from 'path'

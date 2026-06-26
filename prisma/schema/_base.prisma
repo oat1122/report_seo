@@ -25,6 +25,12 @@ enum KDLevel {
   EASY
 }
 
+enum NextStepPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
 enum PaymentStatus {
   PENDING
   APPROVED

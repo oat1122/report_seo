@@ -22,6 +22,7 @@ model Customer {
   paymentPlans    PaymentPlan[]
   contractFiles   ContractFile[]
   recommendations KeywordRecommend[]
+  nextSteps       CustomerNextStep[]
   aiOverviews     AiOverview[]
   workProgressPlans WorkProgressPlan[]
   billingDocuments BillingDocument[]

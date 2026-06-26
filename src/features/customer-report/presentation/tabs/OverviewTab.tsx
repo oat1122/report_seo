@@ -8,15 +8,19 @@ import { CoverageSnapshotCard } from '../widgets/CoverageSnapshotCard'
 import { TrafficForecastCone } from '../widgets/TrafficForecastCone'
 import { IntradayTrafficChart } from '../widgets/IntradayTrafficChart'
 import { TopKeywordsSparklineGrid } from '../widgets/TopKeywordsSparklineGrid'
+import { NextStepsCard } from '@/features/next-steps/presentation/components/NextStepsCard'
 
 interface OverviewTabProps {
+  customerId: string
   recommendationsCount: number
 }
 
 // Tab 1: Overview — "ดีขึ้นไหม? คุ้มไหม?"
-export const OverviewTab = ({ recommendationsCount }: OverviewTabProps) => {
+export const OverviewTab = ({ customerId, recommendationsCount }: OverviewTabProps) => {
   return (
     <div className="flex flex-col gap-6">
+      <NextStepsCard customerId={customerId} />
+
       <HeroStatusCard />
 
       <CoverageSnapshotCard />
