@@ -9,6 +9,10 @@ export const nextStepSchema = z.object({
 
 export type NextStepInput = z.infer<typeof nextStepSchema>
 
+export const imagesToDeleteSchema = z.array(z.uuid())
+
+export const MAX_NEXT_STEP_IMAGES = 5
+
 // แปลง description ที่ user ส่งมา → null (รองรับทั้ง undefined, "", "  ")
 export function normalizeDescription(description: string | null | undefined): string | null {
   if (description == null) return null

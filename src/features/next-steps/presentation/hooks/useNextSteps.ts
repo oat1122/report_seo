@@ -14,6 +14,18 @@ export interface NextStepFormData {
 
 const queryKey = (customerId: string) => ['nextSteps', customerId] as const
 
+function buildFormData(step: NextStepFormData, files: File[], imagesToDelete?: string[]): FormData {
+  const fd = new FormData()
+  fd.append('title', step.title)
+  if (step.description) fd.append('description', step.description)
+  fd.append('priority', step.priority)
+  files.forEach((file) => fd.append('files', file))
+  if (imagesToDelete) fd.append('imagesToDelete', JSON.stringify(imagesToDelete))
+  return fd
+}
+
+const multipart = { headers: { 'Content-Type': 'multipart/form-data' } }
+
 export const useGetNextSteps = (customerId: string) =>
   useQuery<NextStep[], Error>({
     queryKey: queryKey(customerId),
@@ -27,11 +39,16 @@ export const useGetNextSteps = (customerId: string) =>
 
 export const useAddNextStep = () => {
   const queryClient = useQueryClient()
-  return useMutation<NextStep, Error, { customerId: string; step: NextStepFormData }>({
-    mutationFn: async ({ customerId, step }) => {
+  return useMutation<
+    NextStep,
+    Error,
+    { customerId: string; step: NextStepFormData; files: File[] }
+  >({
+    mutationFn: async ({ customerId, step, files }) => {
       const { data } = await axios.post<ApiData<NextStep>>(
         `/customers/${customerId}/next-steps`,
-        step,
+        buildFormData(step, files),
+        multipart,
       )
       return data.data
     },
@@ -46,12 +63,19 @@ export const useUpdateNextStep = () => {
   return useMutation<
     NextStep,
     Error,
-    { customerId: string; stepId: string; step: NextStepFormData }
+    {
+      customerId: string
+      stepId: string
+      step: NextStepFormData
+      files: File[]
+      imagesToDelete: string[]
+    }
   >({
-    mutationFn: async ({ customerId, stepId, step }) => {
+    mutationFn: async ({ customerId, stepId, step, files, imagesToDelete }) => {
       const { data } = await axios.put<ApiData<NextStep>>(
         `/customers/${customerId}/next-steps/${stepId}`,
-        step,
+        buildFormData(step, files, imagesToDelete),
+        multipart,
       )
       return data.data
     },

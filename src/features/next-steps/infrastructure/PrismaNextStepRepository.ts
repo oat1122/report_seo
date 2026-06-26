@@ -11,43 +11,65 @@ export class PrismaNextStepRepository implements NextStepRepository {
     // priority asc = HIGH → MEDIUM → LOW (ตามลำดับ enum), createdAt asc = เก่าสุดก่อน
     return prisma.customerNextStep.findMany({
       where: { customerId: customerInternalId },
+      include: { images: true },
       orderBy: [{ priority: 'asc' }, { createdAt: 'asc' }],
     })
   }
 
-  async create(customerInternalId: string, data: WritePayload): Promise<NextStep> {
+  async findById(stepId: string, customerInternalId: string): Promise<NextStep | null> {
+    return prisma.customerNextStep.findFirst({
+      where: { id: stepId, customerId: customerInternalId },
+      include: { images: true },
+    })
+  }
+
+  async create(
+    customerInternalId: string,
+    data: WritePayload,
+    imageUrls: string[],
+  ): Promise<NextStep> {
     return prisma.customerNextStep.create({
       data: {
         title: data.title,
         description: data.description,
         priority: data.priority,
         customerId: customerInternalId,
+        images: { create: imageUrls.map((url) => ({ imageUrl: url })) },
       },
+      include: { images: true },
     })
   }
 
-  async update(stepId: string, customerInternalId: string, data: WritePayload): Promise<NextStep> {
-    // ตรวจ ownership ก่อน — update by id ที่ไม่ใช่ของลูกค้านี้ไม่ได้ (rule 01)
-    const existing = await prisma.customerNextStep.findFirst({
-      where: { id: stepId, customerId: customerInternalId },
-      select: { id: true },
-    })
-    if (!existing) throw new NotFoundError('Next step not found')
+  async applyUpdate(
+    stepId: string,
+    data: WritePayload,
+    options: { imageIdsToRemove: string[]; newImageUrls: string[] },
+  ): Promise<NextStep> {
+    return prisma.$transaction(async (tx) => {
+      if (options.imageIdsToRemove.length > 0) {
+        await tx.customerNextStepImage.deleteMany({
+          where: { id: { in: options.imageIdsToRemove }, nextStepId: stepId },
+        })
+      }
 
-    return prisma.customerNextStep.update({
-      where: { id: stepId },
-      data: {
-        title: data.title,
-        description: data.description,
-        priority: data.priority,
-      },
+      return tx.customerNextStep.update({
+        where: { id: stepId },
+        data: {
+          title: data.title,
+          description: data.description,
+          priority: data.priority,
+          ...(options.newImageUrls.length > 0 && {
+            images: { create: options.newImageUrls.map((url) => ({ imageUrl: url })) },
+          }),
+        },
+        include: { images: true },
+      })
     })
   }
 
-  async delete(stepId: string, customerInternalId: string): Promise<void> {
-    const res = await prisma.customerNextStep.deleteMany({
-      where: { id: stepId, customerId: customerInternalId },
-    })
+  async delete(stepId: string): Promise<void> {
+    // image rows ถูก cascade ลบโดย DB (onDelete: Cascade) — ไฟล์บนดิสก์ cleanup ใน use case
+    const res = await prisma.customerNextStep.deleteMany({ where: { id: stepId } })
     if (res.count === 0) throw new NotFoundError('Next step not found')
   }
 }

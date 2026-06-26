@@ -14,6 +14,13 @@ export const NEXT_STEP_PRIORITIES: readonly NextStepPriority[] = [
   NextStepPriority.LOW,
 ]
 
+export interface NextStepImage {
+  id: string
+  imageUrl: string
+  createdAt: Date
+  nextStepId: string
+}
+
 export interface NextStep {
   id: string
   customerId: string
@@ -22,4 +29,5 @@ export interface NextStep {
   priority: NextStepPriority
   createdAt: Date
   updatedAt: Date
+  images: NextStepImage[]
 }

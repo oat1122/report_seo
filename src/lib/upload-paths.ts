@@ -3,6 +3,7 @@ import { BadRequestError } from '@/lib/errors'
 
 export const UPLOAD_DIRS = {
   'ai-overview': 'ai-overview',
+  'next-steps': 'next-steps',
   'keyword-evidence': 'keyword-evidence',
   payments: 'payments',
   'work-progress': 'work-progress',

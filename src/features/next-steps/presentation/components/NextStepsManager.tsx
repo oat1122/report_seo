@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Plus, Trash2, Pencil, Save } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Plus, Trash2, Pencil, Save, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { NEXT_STEP_PRIORITIES, type NextStepPriority } from '../../domain/NextStep'
+import { MAX_NEXT_STEP_IMAGES } from '../../schemas'
 import {
   useGetNextSteps,
   useAddNextStep,
@@ -32,6 +33,7 @@ const priorityLabel: Record<NextStepPriority, string> = {
 }
 
 const EMPTY_FORM: NextStepFormData = { title: '', description: '', priority: 'MEDIUM' }
+const ACCEPT = 'image/png,image/jpeg'
 
 interface NextStepsManagerProps {
   customerId: string
@@ -45,13 +47,28 @@ export function NextStepsManager({ customerId }: NextStepsManagerProps) {
 
   const [form, setForm] = useState<NextStepFormData>(EMPTY_FORM)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [files, setFiles] = useState<File[]>([])
+  const [imagesToDelete, setImagesToDelete] = useState<string[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
+  const editingStep = editingId ? steps.find((s) => s.id === editingId) : undefined
+  const keptImages = (editingStep?.images ?? []).filter((img) => !imagesToDelete.includes(img.id))
+
+  // preview ของไฟล์ใหม่ที่เพิ่งเลือก — revoke เมื่อ files เปลี่ยน/unmount กัน memory leak
+  const previews = useMemo(() => files.map((f) => URL.createObjectURL(f)), [files])
+  useEffect(() => () => previews.forEach((url) => URL.revokeObjectURL(url)), [previews])
+
+  const totalImages = keptImages.length + files.length
+  const overLimit = totalImages > MAX_NEXT_STEP_IMAGES
   const isSaving = addStep.isPending || updateStep.isPending
-  const canSave = form.title.trim().length > 0 && !isSaving
+  const canSave = form.title.trim().length > 0 && !overLimit && !isSaving
 
   const resetForm = () => {
     setForm(EMPTY_FORM)
     setEditingId(null)
+    setFiles([])
+    setImagesToDelete([])
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   const handleSave = async () => {
@@ -62,21 +79,27 @@ export function NextStepsManager({ customerId }: NextStepsManagerProps) {
       priority: form.priority,
     }
     if (editingId) {
-      await updateStep.mutateAsync({ customerId, stepId: editingId, step: payload })
+      await updateStep.mutateAsync({
+        customerId,
+        stepId: editingId,
+        step: payload,
+        files,
+        imagesToDelete,
+      })
     } else {
-      await addStep.mutateAsync({ customerId, step: payload })
+      await addStep.mutateAsync({ customerId, step: payload, files })
     }
     resetForm()
   }
 
-  const handleEdit = (
-    id: string,
-    title: string,
-    description: string | null,
-    priority: NextStepPriority,
-  ) => {
+  const handleEdit = (id: string) => {
+    const step = steps.find((s) => s.id === id)
+    if (!step) return
     setEditingId(id)
-    setForm({ title, description: description ?? '', priority })
+    setForm({ title: step.title, description: step.description ?? '', priority: step.priority })
+    setFiles([])
+    setImagesToDelete([])
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   return (
@@ -141,6 +164,45 @@ export function NextStepsManager({ customerId }: NextStepsManagerProps) {
             />
           </Field>
 
+          <Field>
+            <Label htmlFor="ns-images">
+              รูปภาพประกอบ (ไม่บังคับ • สูงสุด {MAX_NEXT_STEP_IMAGES} รูป)
+            </Label>
+
+            {(keptImages.length > 0 || files.length > 0) && (
+              <div className="mb-2 flex flex-wrap gap-2">
+                {keptImages.map((img) => (
+                  <ThumbWithRemove
+                    key={img.id}
+                    src={img.imageUrl}
+                    onRemove={() => setImagesToDelete((ids) => [...ids, img.id])}
+                  />
+                ))}
+                {previews.map((url, idx) => (
+                  <ThumbWithRemove
+                    key={url}
+                    src={url}
+                    onRemove={() => setFiles((fs) => fs.filter((_, i) => i !== idx))}
+                  />
+                ))}
+              </div>
+            )}
+
+            <Input
+              id="ns-images"
+              ref={fileInputRef}
+              type="file"
+              accept={ACCEPT}
+              multiple
+              onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
+            />
+            {overLimit && (
+              <p className="text-destructive text-sm">
+                เลือกได้ไม่เกิน {MAX_NEXT_STEP_IMAGES} รูป (ตอนนี้ {totalImages})
+              </p>
+            )}
+          </Field>
+
           <div className="flex flex-col justify-end gap-2 sm:flex-row">
             {editingId && (
               <Button variant="ghost" onClick={resetForm} disabled={isSaving}>
@@ -190,13 +252,33 @@ export function NextStepsManager({ customerId }: NextStepsManagerProps) {
                       {step.description}
                     </p>
                   )}
+                  {step.images.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {step.images.map((img) => (
+                        <a
+                          key={img.id}
+                          href={img.imageUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="border-border block size-16 overflow-hidden rounded-md border"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={img.imageUrl}
+                            alt={step.title}
+                            className="size-full object-cover"
+                          />
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="flex gap-0.5">
                   <Button
                     size="icon-sm"
                     variant="ghost"
                     aria-label="แก้ไข"
-                    onClick={() => handleEdit(step.id, step.title, step.description, step.priority)}
+                    onClick={() => handleEdit(step.id)}
                   >
                     <Pencil className="size-4" />
                   </Button>
@@ -215,6 +297,23 @@ export function NextStepsManager({ customerId }: NextStepsManagerProps) {
           </ul>
         )}
       </div>
+    </div>
+  )
+}
+
+function ThumbWithRemove({ src, onRemove }: { src: string; onRemove: () => void }) {
+  return (
+    <div className="border-border relative size-16 overflow-hidden rounded-md border">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt="" className="size-full object-cover" />
+      <button
+        type="button"
+        aria-label="ลบรูป"
+        onClick={onRemove}
+        className="bg-foreground/60 text-background hover:bg-destructive absolute top-0.5 right-0.5 flex size-5 items-center justify-center rounded-full"
+      >
+        <X className="size-3" />
+      </button>
     </div>
   )
 }

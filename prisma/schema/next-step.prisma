@@ -11,6 +11,20 @@ model CustomerNextStep {
   customerId String
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
+  images CustomerNextStepImage[]
+
   @@index([customerId])
   @@map("customernextstep")
+}
+
+model CustomerNextStepImage {
+  id        String   @id @default(uuid())
+  imageUrl  String
+  createdAt DateTime @default(now())
+
+  nextStepId String
+  nextStep   CustomerNextStep @relation(fields: [nextStepId], references: [id], onDelete: Cascade)
+
+  @@index([nextStepId])
+  @@map("customernextstepimage")
 }
