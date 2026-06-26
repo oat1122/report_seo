@@ -76,6 +76,7 @@ export function CustomerCalendar({ userId }: CustomerCalendarProps) {
 
   const calendarApp = useCalendarApp({
     views: [monthView, monthAgendaView, weekView, dayView],
+    defaultView: monthView.name,
     events: [],
     calendars: calendarTypes,
     locale: 'th-TH',

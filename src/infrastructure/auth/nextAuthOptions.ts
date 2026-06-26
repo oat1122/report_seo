@@ -97,10 +97,11 @@ export const authOptions: NextAuthOptions = {
   ],
   session: {
     strategy: 'jwt',
-    // 8 ชม. — สั้นพอที่ token รั่วจะหมดอายุก่อน attacker reuse นาน
-    // NextAuth v4 ไม่ rolling refresh อัตโนมัติ — ผู้ใช้จะต้อง re-login ทุก 8 ชม.
-    // ถ้าต้องการ activity-based refresh ต้องเพิ่ม session.updateAge + ฝั่ง client
-    maxAge: 60 * 60 * 8,
+    // 7 วัน rolling — active ภายใน 7 วันจะถูกต่ออายุ token ใหม่อัตโนมัติ (= อยู่ต่อเรื่อย ๆ)
+    // หายไปเกิน 7 วันค่อย re-login — เพดานความเสี่ยงกรณี token รั่ว (JWT revoke ฝั่ง server ไม่ได้)
+    // updateAge: NextAuth จะ re-issue token (exp = now + maxAge) เมื่อ user active เกินช่วงนี้
+    maxAge: 60 * 60 * 24 * 7,
+    updateAge: 60 * 60 * 24,
   },
   callbacks: {
     async jwt({ token, user }) {

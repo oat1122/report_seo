@@ -181,6 +181,13 @@
 }
 
 /* Schedule-X Customizations */
+/* ponytail: isolate calendar's stacking context — schedule-x sets z-index 100–102 on
+   .sx__week-header/.sx__event-modal/popups, which leak over shadcn Dialog (z-50).
+   isolation confines them inside the wrapper (page-level z-0) so dialogs always win. */
+.calendar-wrapper {
+  isolation: isolate;
+}
+
 .calendar-wrapper .sx__month-grid-day__header {
   display: flex;
   justify-content: center;
