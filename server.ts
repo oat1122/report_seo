@@ -58,7 +58,9 @@ for (const signal of ['SIGINT', 'SIGTERM'] as const) {
 // Access log: ใคร / ทำอะไร / เมื่อไหร่ / หน้าไหน / IP — แบบอ่านง่าย เก็บแยกรายวันใน
 // server/logs/access-DD-MM-YYYY.log แยกจาก pino JSON (log-*.log) เพราะ requirement = "อ่านง่าย"
 // identity ใช้ userId+role ตามกฏ 01-security (ห้าม log email/PII เต็ม)
-const ACCESS_LOG_DIR = path.join(__dirname, 'server', 'logs')
+// ponytail: process.cwd() แทน __dirname — server.ts อยู่ที่ root + ทุก launcher (tsx/PM2/Passenger)
+// chdir เข้า app root ก่อนรัน → ค่าเท่ากัน แต่ใช้ได้ทั้ง CJS/ESM (Passenger รันไฟล์เป็น ESM, __dirname พัง)
+const ACCESS_LOG_DIR = path.join(process.cwd(), 'server', 'logs')
 fs.mkdirSync(ACCESS_LOG_DIR, { recursive: true })
 
 // log เฉพาะหน้าเพจ + API ที่ผู้ใช้เรียกจริง — ข้าม asset/_next/favicon และ /api/socket (long-poll noise)
