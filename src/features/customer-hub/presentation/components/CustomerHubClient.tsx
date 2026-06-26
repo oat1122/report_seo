@@ -1,18 +1,13 @@
 'use client'
 
-import dynamic from 'next/dynamic'
 import { useCustomerHub } from '../hooks/useCustomerHub'
-import { CustomerDashboardWidget } from '@/features/work-progress/presentation/components/summary/CustomerDashboardWidget'
+import { useHubSchedule } from '../hooks/useHubSchedule'
+import { ReportRoiHighlight } from '@/features/customer-report/presentation/embeds/ReportRoiHighlight'
 import { CustomerHubHero } from './CustomerHubHero'
 import { CustomerStatsRow } from './CustomerStatsRow'
+import { CustomerAgendaPanel } from './CustomerAgendaPanel'
 import { CustomerNotificationsPanel } from './CustomerNotificationsPanel'
 import { CustomerQuickNav } from './CustomerQuickNav'
-import { Skeleton } from '@/components/ui/skeleton'
-
-const CustomerCalendar = dynamic(
-  () => import('./calendar/CustomerCalendar').then((m) => m.CustomerCalendar),
-  { ssr: false, loading: () => <Skeleton className="h-[550px] w-full rounded-xl" /> },
-)
 
 interface CustomerHubClientProps {
   userId: string
@@ -21,21 +16,27 @@ interface CustomerHubClientProps {
 
 export function CustomerHubClient({ userId, userName }: CustomerHubClientProps) {
   const { data, isLoading } = useCustomerHub()
+  const schedule = useHubSchedule(userId)
+  const name = userName || data?.customerName || ''
 
   return (
     <div className="space-y-6">
-      <CustomerHubHero userName={userName} />
+      <CustomerHubHero userName={name} domain={data?.domain} />
 
       <CustomerStatsRow metrics={data?.metrics} isLoading={isLoading} />
 
-      <CustomerCalendar userId={userId} />
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <CustomerDashboardWidget userId={userId} />
+      <div className="grid gap-[18px] lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:items-start">
+        <div className="flex flex-col gap-[18px]">
+          <ReportRoiHighlight customerId={userId} />
+          <CustomerAgendaPanel
+            userId={userId}
+            events={schedule.events}
+            itemLookup={schedule.itemLookup}
+            isLoading={schedule.isLoading}
+          />
         </div>
 
-        <div className="space-y-4">
+        <div className="flex flex-col gap-[18px]">
           <CustomerNotificationsPanel />
           <CustomerQuickNav userId={userId} />
         </div>

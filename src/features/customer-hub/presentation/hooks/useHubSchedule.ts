@@ -10,11 +10,15 @@ import {
   workProgressPlanToEvents,
   billingCyclesToEvents,
   type CalendarItemLookup,
-} from './calendar-event-transforms'
+} from '../components/calendar/calendar-event-transforms'
 
 type ApiData<T> = { data: T }
 
-export function useCalendarEvents(userId: string) {
+/**
+ * แหล่งข้อมูลเดียวของ work-progress + billing ฝั่ง hub สำหรับ agenda (events/itemLookup)
+ * โหลด plan detail ครั้งเดียว (query key เดิม → React Query dedup)
+ */
+export function useHubSchedule(userId: string) {
   const { data: plans, isLoading: plansLoading } = useQuery<WorkProgressPlan[], Error>({
     queryKey: ['workProgress', 'plans', userId, { includeArchived: false }],
     queryFn: async () => {
@@ -57,15 +61,17 @@ export function useCalendarEvents(userId: string) {
   })
 
   const detailsLoading = planDetailResults.some((r) => r.isLoading)
-
   const detailsKey = planDetailResults.map((r) => r.dataUpdatedAt).join(',')
 
   const { events, itemLookup } = useMemo(() => {
     const lookup: CalendarItemLookup = new Map()
-    const wpEvents = planDetailResults.flatMap((r) =>
-      r.data ? workProgressPlanToEvents(r.data, lookup) : [],
-    )
+    const details = planDetailResults
+      .map((r) => r.data)
+      .filter((d): d is WorkProgressPlanDetail => !!d)
+
+    const wpEvents = details.flatMap((d) => workProgressPlanToEvents(d, lookup))
     const payEvents = cycles ? billingCyclesToEvents(cycles) : []
+
     return {
       events: [...wpEvents, ...payEvents] as CalendarEvent[],
       itemLookup: lookup,

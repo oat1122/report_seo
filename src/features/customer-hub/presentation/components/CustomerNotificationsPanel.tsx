@@ -26,7 +26,7 @@ export function CustomerNotificationsPanel() {
 
   return (
     <>
-      <Card className="flex flex-col overflow-hidden">
+      <Card className="flex flex-col overflow-hidden rounded-2xl">
         <CardHeader className="border-b">
           <CardTitle className="flex items-center gap-2 text-base">
             <Bell className="size-4" />

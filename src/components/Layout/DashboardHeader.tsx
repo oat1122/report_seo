@@ -17,7 +17,6 @@ import {
 import { Role } from '@/types'
 import { useMobileDrawer } from '@/hooks/ui/useMobileDrawer'
 import { UserMenu } from './UserMenu'
-import { HistoryButton } from './HistoryButton'
 import { MobileMenuContent } from './MobileMenuContent'
 import { ThemeToggle } from './ThemeToggle'
 import { NotificationBell } from '@/features/notifications/presentation/components/NotificationBell'
@@ -29,7 +28,6 @@ export const DashboardHeader = () => {
   const isLoading = status === 'loading'
   const userName = session?.user?.name || 'Guest'
   const userRole = session?.user?.role
-  const customerUserId = userRole === Role.CUSTOMER ? (session?.user?.id ?? null) : null
 
   return (
     <header className="bg-background shadow-sm">
@@ -49,11 +47,6 @@ export const DashboardHeader = () => {
           <div className="hidden items-center gap-2 md:flex">
             <ThemeToggle />
             <NotificationBell />
-            <HistoryButton
-              role={userRole}
-              customerUserId={customerUserId}
-              customerName={userName}
-            />
             <UserMenu userName={userName} isLoading={isLoading} />
           </div>
 
@@ -85,7 +78,6 @@ export const DashboardHeader = () => {
               <MobileMenuContent
                 userName={userName}
                 userRole={userRole}
-                customerUserId={customerUserId}
                 isLoading={isLoading}
                 onAction={handleDrawerClose}
               />

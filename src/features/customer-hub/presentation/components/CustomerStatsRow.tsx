@@ -1,8 +1,10 @@
 'use client'
 
-import { Globe, HeartPulse, TrendingUp, KeyRound } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { Globe, HeartPulse, KeyRound, TrendingUp } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { cn } from '@/lib/utils'
 import type { CustomerHubSummary } from '../../domain/CustomerHubSummary'
 
 interface CustomerStatsRowProps {
@@ -10,65 +12,83 @@ interface CustomerStatsRowProps {
   isLoading: boolean
 }
 
-function formatNumber(value: number): string {
+type MetricKey = keyof NonNullable<CustomerHubSummary['metrics']>
+
+function compact(value: number): string {
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`
   if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`
   return String(value)
 }
 
-const stats = [
+interface StatConfig {
+  key: MetricKey
+  label: string
+  icon: typeof Globe
+  tile: string
+  render: (value: number) => ReactNode
+}
+
+const stats: StatConfig[] = [
   {
-    key: 'domainRating' as const,
+    key: 'domainRating',
     label: 'Domain Rating',
     icon: Globe,
-    color: 'text-info bg-info/10',
-    format: false,
+    tile: 'bg-info/10 text-info',
+    render: (v) => v,
   },
   {
-    key: 'healthScore' as const,
+    key: 'healthScore',
     label: 'Health Score',
     icon: HeartPulse,
-    color: 'text-success bg-success/10',
-    format: false,
+    tile: 'bg-success/10 text-success',
+    render: (v) => (
+      <>
+        {v}
+        <span className="text-muted-foreground ml-0.5 text-base font-medium">/100</span>
+      </>
+    ),
   },
   {
-    key: 'organicTraffic' as const,
+    key: 'organicTraffic',
     label: 'Organic Traffic',
     icon: TrendingUp,
-    color: 'text-primary bg-primary/10',
-    format: true,
+    tile: 'bg-info/10 text-info',
+    render: (v) => compact(v),
   },
   {
-    key: 'organicKeywords' as const,
+    key: 'organicKeywords',
     label: 'Organic Keywords',
     icon: KeyRound,
-    color: 'text-info bg-info/10',
-    format: true,
+    tile: 'bg-info/10 text-info',
+    render: (v) => v.toLocaleString('en-US'),
   },
-] as const
+]
 
 export function CustomerStatsRow({ metrics, isLoading }: CustomerStatsRowProps) {
   return (
-    <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
-      {stats.map(({ key, label, icon: Icon, color, format }) => (
-        <Card key={key} size="sm">
-          <CardContent className="flex items-center gap-3">
-            <div className={`flex size-10 items-center justify-center rounded-lg ${color}`}>
-              <Icon className="size-5" />
-            </div>
-            <div>
-              {isLoading ? (
-                <Skeleton className="mb-1 h-6 w-12" />
-              ) : (
-                <p className="text-2xl font-bold">
-                  {metrics ? (format ? formatNumber(metrics[key]) : metrics[key]) : '—'}
-                </p>
-              )}
-              <p className="text-muted-foreground text-xs">{label}</p>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+    <section>
+      <h2 className="text-foreground/80 mb-3 text-sm font-semibold">ภาพรวมผลลัพธ์ SEO</h2>
+      <div className="grid grid-cols-2 gap-3.5 md:grid-cols-4">
+        {stats.map(({ key, label, icon: Icon, tile, render }) => (
+          <Card key={key} className="rounded-2xl">
+            <CardContent className="flex flex-col gap-3 p-4">
+              <div className={cn('flex size-10 items-center justify-center rounded-[10px]', tile)}>
+                <Icon className="size-5" />
+              </div>
+              <div>
+                {isLoading ? (
+                  <Skeleton className="h-8 w-16" />
+                ) : (
+                  <p className="text-3xl leading-none font-bold tabular-nums">
+                    {metrics ? render(metrics[key]) : '—'}
+                  </p>
+                )}
+                <p className="text-muted-foreground mt-1.5 text-xs">{label}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </section>
   )
 }
