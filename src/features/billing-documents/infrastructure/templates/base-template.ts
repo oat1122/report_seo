@@ -1,56 +1,18 @@
 import { readFileSync } from 'fs'
 import path from 'path'
+import { sarabunFontFaces, escapeHtml } from '@/infrastructure/pdf/html'
 import { documentStyles } from './styles'
 
-let fontRegularBase64: string | null = null
-let fontBoldBase64: string | null = null
-
-const FONTS_DIR = path.resolve(
-  process.cwd(),
-  'src/features/billing-documents/infrastructure/templates/fonts',
-)
-
-function loadFontBase64(filename: string): string {
-  const fontPath = path.join(FONTS_DIR, filename)
-  return readFileSync(fontPath).toString('base64')
-}
-
-function getFontRegular(): string {
-  if (!fontRegularBase64) {
-    fontRegularBase64 = loadFontBase64('Sarabun-Regular.ttf')
-  }
-  return fontRegularBase64
-}
-
-function getFontBold(): string {
-  if (!fontBoldBase64) {
-    fontBoldBase64 = loadFontBase64('Sarabun-Bold.ttf')
-  }
-  return fontBoldBase64
-}
+export { escapeHtml }
 
 export function wrapDocument(body: string, title: string): string {
-  const fontRegular = getFontRegular()
-  const fontBold = getFontBold()
-
   return `<!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="utf-8">
   <title>${escapeHtml(title)}</title>
   <style>
-    @font-face {
-      font-family: 'Sarabun';
-      src: url(data:font/truetype;base64,${fontRegular}) format('truetype');
-      font-weight: 400;
-      font-style: normal;
-    }
-    @font-face {
-      font-family: 'Sarabun';
-      src: url(data:font/truetype;base64,${fontBold}) format('truetype');
-      font-weight: 700;
-      font-style: normal;
-    }
+    ${sarabunFontFaces()}
     ${documentStyles}
   </style>
 </head>
@@ -60,14 +22,6 @@ export function wrapDocument(body: string, title: string): string {
   </div>
 </body>
 </html>`
-}
-
-export function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
 }
 
 export function formatCurrency(amount: number): string {

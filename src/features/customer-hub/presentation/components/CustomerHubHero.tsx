@@ -1,16 +1,25 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, Download, Globe } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { ArrowRight, Download, FileSpreadsheet, FileText, Globe, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { useDownloadReport } from '../hooks/useDownloadReport'
 
 interface CustomerHubHeroProps {
+  userId: string
   userName: string
   domain: string | null | undefined
 }
 
-export function CustomerHubHero({ userName, domain }: CustomerHubHeroProps) {
+export function CustomerHubHero({ userId, userName, domain }: CustomerHubHeroProps) {
+  const downloadReport = useDownloadReport(userId)
+
   return (
     <section className="flex flex-wrap items-center justify-between gap-4 py-1">
       <div className="flex flex-col gap-1.5">
@@ -26,13 +35,33 @@ export function CustomerHubHero({ userName, domain }: CustomerHubHeroProps) {
       </div>
 
       <div className="flex flex-wrap items-center gap-2.5">
-        <Button variant="outline" size="lg" disabled className="gap-2">
-          <Download className="size-4" />
-          ดาวน์โหลดรายงาน
-          <Badge className="bg-info/15 text-info hover:bg-info/15 ml-0.5 px-2 py-0.5 text-[10px] font-semibold">
-            เร็วๆ นี้
-          </Badge>
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              size="lg"
+              className="gap-2"
+              disabled={downloadReport.isPending}
+            >
+              {downloadReport.isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Download className="size-4" />
+              )}
+              ดาวน์โหลดรายงาน
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onSelect={() => downloadReport.mutate('pdf')}>
+              <FileText className="size-4" />
+              PDF (.pdf)
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => downloadReport.mutate('xlsx')}>
+              <FileSpreadsheet className="size-4" />
+              Excel (.xlsx)
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Button size="lg" className="gap-2" asChild>
           <Link href="/customer/report">
             ดูรายงาน SEO ฉบับเต็ม

@@ -22,7 +22,7 @@ export function CustomerHubClient({ userId, userName }: CustomerHubClientProps) 
 
   return (
     <div className="space-y-6">
-      <CustomerHubHero userName={name} domain={data?.domain} />
+      <CustomerHubHero userId={userId} userName={name} domain={data?.domain} />
 
       <CustomerStatsRow metrics={data?.metrics} isLoading={isLoading} />
 

@@ -1,6 +1,6 @@
 import { PrismaBillingDocumentRepository } from './infrastructure/PrismaBillingDocumentRepository'
 import { LocalDocumentStorage } from './infrastructure/LocalDocumentStorage'
-import { PuppeteerPdfRenderer } from './infrastructure/PuppeteerPdfRenderer'
+import { PuppeteerPdfRenderer } from '@/infrastructure/pdf/PuppeteerPdfRenderer'
 import { renderDocumentHtml } from './infrastructure/templates/render-document'
 import { getCompanySettings } from '@/features/company-settings'
 
@@ -55,7 +55,10 @@ export const previewTemplate = previewTemplateUseCase({
   renderDocumentHtml,
   renderer,
 })
-export type { PreviewTemplateInput, PreviewTemplateResult } from './application/use-cases/previewTemplate'
+export type {
+  PreviewTemplateInput,
+  PreviewTemplateResult,
+} from './application/use-cases/previewTemplate'
 
 // Schemas
 export {

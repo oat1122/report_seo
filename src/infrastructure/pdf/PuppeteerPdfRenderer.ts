@@ -1,6 +1,6 @@
-import type { PdfRenderer } from '../application/ports/PdfRenderer'
-
-export class PuppeteerPdfRenderer implements PdfRenderer {
+// Shared adapter — satisfy PdfRenderer port ของแต่ละ feature ผ่าน structural typing
+// (shared infra ห้าม import port จาก feature ตาม dependency rule ข้อ 9)
+export class PuppeteerPdfRenderer {
   async renderToPdf(html: string): Promise<Buffer> {
     const puppeteer = await import('puppeteer')
     const browser = await puppeteer.default.launch({
