@@ -10,8 +10,7 @@ export interface ExportedReportFile {
 
 interface ExportCustomerReportDeps {
   getReport: (customerUserId: string) => Promise<CustomerReportSnapshot>
-  renderReportHtml: (snapshot: CustomerReportSnapshot, generatedAt: Date) => string
-  renderToPdf: (html: string) => Promise<Buffer>
+  buildPdf: (snapshot: CustomerReportSnapshot, generatedAt: Date) => Promise<Buffer>
   buildXlsx: (snapshot: CustomerReportSnapshot, generatedAt: Date) => Buffer
 }
 
@@ -29,9 +28,8 @@ export function exportCustomerReportUseCase(deps: ExportCustomerReportDeps) {
     const filename = `seo-report-${domainPart}-${datePart}.${format}`
 
     if (format === 'pdf') {
-      const html = deps.renderReportHtml(snapshot, generatedAt)
       return {
-        buffer: await deps.renderToPdf(html),
+        buffer: await deps.buildPdf(snapshot, generatedAt),
         filename,
         contentType: 'application/pdf',
       }

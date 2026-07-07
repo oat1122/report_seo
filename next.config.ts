@@ -22,7 +22,8 @@ const nextConfig: NextConfig = {
   // อิงตำแหน่ง node_modules/puppeteer ของตัวเอง) จะพังเพราะ path ชี้เข้า .next แทน →
   // launch() throw → route สร้างเอกสาร PDF 500. ต้อง externalize ให้ require จาก
   // node_modules ตอน runtime
-  serverExternalPackages: ['pino', 'pino-pretty', 'puppeteer'],
+  // pdfmake: pdfkit/fontkit ข้างในอ่าน data file ของตัวเองแบบ dynamic — bundle แล้วพัง
+  serverExternalPackages: ['pino', 'pino-pretty', 'puppeteer', 'pdfmake'],
   images: {
     remotePatterns: [
       {

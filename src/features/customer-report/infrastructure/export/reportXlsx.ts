@@ -5,10 +5,9 @@ import { kdLabel, formatThaiDate } from './shared'
 
 type SheetRow = Array<string | number>
 
-function keywordRows(keywords: KeywordReport[], group: string): SheetRow[] {
+function keywordRows(keywords: KeywordReport[]): SheetRow[] {
   return keywords.map((kw) => [
     kw.keyword,
-    group,
     kw.position ?? '-',
     kw.traffic,
     kdLabel(kw.kd),
@@ -48,11 +47,11 @@ export function buildReportXlsx(snapshot: CustomerReportSnapshot, generatedAt: D
   appendSheet(wb, 'Overall Metrics', metricsRows, [24, 32])
 
   const keywordSheetRows: SheetRow[] = [
-    ['Keyword', 'กลุ่ม', 'อันดับ', 'Traffic', 'ความยาก (KD)', 'วันที่บันทึก'],
-    ...keywordRows(snapshot.topKeywords, 'Top Report'),
-    ...keywordRows(snapshot.otherKeywords, 'อื่น ๆ'),
+    ['Keyword', 'อันดับ', 'Traffic', 'ความยาก (KD)', 'วันที่บันทึก'],
+    ...keywordRows(snapshot.topKeywords),
+    ...keywordRows(snapshot.otherKeywords),
   ]
-  appendSheet(wb, 'Keywords', keywordSheetRows, [36, 12, 8, 10, 14, 14])
+  appendSheet(wb, 'Keywords', keywordSheetRows, [36, 8, 10, 14, 14])
 
   const recommendationRows: SheetRow[] = [
     ['Keyword', 'ความยาก (KD)', 'หมายเหตุ', 'วันที่แนะนำ'],

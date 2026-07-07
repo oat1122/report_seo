@@ -1,33 +1,74 @@
-import { sarabunFontFaces, escapeHtml } from '@/infrastructure/pdf/html'
+import { readFileSync } from 'fs'
+import path from 'path'
+import PdfPrinter from 'pdfmake'
+import type {
+  Content,
+  CustomTableLayout,
+  TableCell,
+  TDocumentDefinitions,
+} from 'pdfmake/interfaces'
 import type { CustomerReportSnapshot } from '../../domain/CustomerReportSnapshot'
 import type { KeywordReport } from '@/features/keywords'
 import type { KeywordRecommend } from '@/features/recommendations'
 import { kdLabel, formatThaiDate, formatNumber } from './shared'
 
-// สีอ้างอิงจาก src/theme/theme.ts (rule 08) — PDF ฝัง CSS ตรงจึงใช้ค่า hex ของ token
-const reportStyles = `
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { color-scheme: only light; }
-  body { font-family: 'Sarabun', sans-serif; font-size: 12px; color: #2f2f2f; background: #FFFFFF; }
-  .header { border-bottom: 2px solid #2f2f2f; padding-bottom: 12px; margin-bottom: 16px; }
-  .header h1 { font-size: 20px; }
-  .header .meta { color: #64748B; margin-top: 4px; }
-  .section { margin-bottom: 18px; }
-  .section-title { font-size: 13px; font-weight: 700; border-bottom: 1px solid #E2E8F0;
-    padding-bottom: 4px; margin-bottom: 8px; }
-  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-  .kpi { background: #F8F9FA; border: 1px solid #E2E8F0; border-radius: 6px; padding: 8px 10px; }
-  .kpi .label { color: #64748B; font-size: 10px; }
-  .kpi .value { font-size: 16px; font-weight: 700; margin-top: 2px; }
-  table { width: 100%; border-collapse: collapse; }
-  th, td { border: 1px solid #E2E8F0; padding: 5px 8px; text-align: center; }
-  th { background: #F8F9FA; font-weight: 700; }
-  td.left { text-align: left; }
-  .empty { color: #64748B; padding: 8px 0; }
-  .footer { margin-top: 24px; color: #64748B; font-size: 10px; text-align: right; }
-`
+// pure-JS PDF (pdfmake/pdfkit) — prod เป็น shared host ที่รัน Chromium/puppeteer ไม่ได้
+// สีอ้างอิงจาก src/theme/theme.ts (rule 08)
+const TEXT = '#2f2f2f'
+const MUTED = '#64748B'
+const BORDER = '#E2E8F0'
+const PANEL = '#F8F9FA'
 
-function renderKpiGrid(metrics: NonNullable<CustomerReportSnapshot['metrics']>): string {
+const FONTS_DIR = path.resolve(process.cwd(), 'src/infrastructure/pdf/fonts')
+const LOGO_PATH = path.resolve(process.cwd(), 'public/img/LOGO_SEO_PRIME4_0-removebg.png')
+
+// logo หายไม่ควรทำให้ export ทั้งใบพัง — แค่ตัด logo ออก
+function loadLogoDataUrl(): string | null {
+  try {
+    return `data:image/png;base64,${readFileSync(LOGO_PATH).toString('base64')}`
+  } catch {
+    return null
+  }
+}
+
+const printer = new PdfPrinter({
+  Sarabun: {
+    normal: path.join(FONTS_DIR, 'Sarabun-Regular.ttf'),
+    bold: path.join(FONTS_DIR, 'Sarabun-Bold.ttf'),
+    italics: path.join(FONTS_DIR, 'Sarabun-Regular.ttf'),
+    bolditalics: path.join(FONTS_DIR, 'Sarabun-Bold.ttf'),
+  },
+})
+
+const lightBorders: CustomTableLayout = {
+  hLineColor: () => BORDER,
+  vLineColor: () => BORDER,
+  hLineWidth: () => 0.75,
+  vLineWidth: () => 0.75,
+  paddingTop: () => 4,
+  paddingBottom: () => 4,
+  paddingLeft: () => 6,
+  paddingRight: () => 6,
+}
+
+const sectionTitle = (text: string): Content => ({
+  text,
+  bold: true,
+  fontSize: 11,
+  margin: [0, 12, 0, 6],
+})
+
+// pdfmake mutate content object ตอน layout — ห้าม reuse instance เดียวข้ามหลาย section
+const emptyNote = (): Content => ({ text: 'ยังไม่มีข้อมูล', color: MUTED })
+
+const headerCell = (text: string, alignment: 'left' | 'center' = 'center'): TableCell => ({
+  text,
+  bold: true,
+  fillColor: PANEL,
+  alignment,
+})
+
+function kpiGrid(metrics: NonNullable<CustomerReportSnapshot['metrics']>): Content {
   const items: Array<[string, string]> = [
     ['Domain Rating', formatNumber(metrics.domainRating)],
     ['Health Score', formatNumber(metrics.healthScore)],
@@ -39,117 +80,134 @@ function renderKpiGrid(metrics: NonNullable<CustomerReportSnapshot['metrics']>):
     ['Ref. Domains', formatNumber(metrics.refDomains)],
   ]
 
-  const cells = items
-    .map(
-      ([label, value]) => `
-      <div class="kpi">
-        <div class="label">${escapeHtml(label)}</div>
-        <div class="value">${escapeHtml(value)}</div>
-      </div>`,
-    )
-    .join('')
+  const cells: TableCell[] = items.map(([label, value]) => ({
+    stack: [
+      { text: label, fontSize: 8, color: MUTED },
+      { text: value, fontSize: 12, bold: true, margin: [0, 2, 0, 0] },
+    ],
+    fillColor: PANEL,
+  }))
 
-  return `<div class="kpi-grid">${cells}</div>`
+  return {
+    table: {
+      widths: ['*', '*', '*', '*'],
+      body: [cells.slice(0, 4), cells.slice(4)],
+    },
+    layout: lightBorders,
+  }
 }
 
-function renderKeywordTable(keywords: KeywordReport[]): string {
-  if (keywords.length === 0) return '<p class="empty">ยังไม่มีข้อมูล</p>'
+function keywordTable(keywords: KeywordReport[]): Content {
+  if (keywords.length === 0) return emptyNote()
 
-  const rows = keywords
-    .map(
-      (kw) => `
-      <tr>
-        <td class="left">${escapeHtml(kw.keyword)}</td>
-        <td>${kw.position ?? '-'}</td>
-        <td>${formatNumber(kw.traffic)}</td>
-        <td>${escapeHtml(kdLabel(kw.kd))}</td>
-      </tr>`,
-    )
-    .join('')
+  const rows: TableCell[][] = keywords.map((kw) => [
+    { text: kw.keyword },
+    { text: kw.position ?? '-', alignment: 'center' },
+    { text: formatNumber(kw.traffic), alignment: 'center' },
+    { text: kdLabel(kw.kd), alignment: 'center' },
+  ])
 
-  return `
-    <table>
-      <thead>
-        <tr>
-          <th style="text-align:left">Keyword</th>
-          <th style="width:70px">อันดับ</th>
-          <th style="width:80px">Traffic</th>
-          <th style="width:90px">ความยาก (KD)</th>
-        </tr>
-      </thead>
-      <tbody>${rows}</tbody>
-    </table>`
+  return {
+    table: {
+      headerRows: 1,
+      widths: ['*', 55, 70, 85],
+      body: [
+        [
+          headerCell('Keyword', 'left'),
+          headerCell('อันดับ'),
+          headerCell('Traffic'),
+          headerCell('ความยาก (KD)'),
+        ],
+        ...rows,
+      ],
+    },
+    layout: lightBorders,
+  }
 }
 
-function renderRecommendationTable(recommendations: KeywordRecommend[]): string {
-  if (recommendations.length === 0) return '<p class="empty">ยังไม่มีข้อมูล</p>'
+function recommendationTable(recommendations: KeywordRecommend[]): Content {
+  if (recommendations.length === 0) return emptyNote()
 
-  const rows = recommendations
-    .map(
-      (rec) => `
-      <tr>
-        <td class="left">${escapeHtml(rec.keyword)}</td>
-        <td>${escapeHtml(kdLabel(rec.kd))}</td>
-        <td class="left">${escapeHtml(rec.note ?? '-')}</td>
-      </tr>`,
-    )
-    .join('')
+  const rows: TableCell[][] = recommendations.map((rec) => [
+    { text: rec.keyword },
+    { text: kdLabel(rec.kd), alignment: 'center' },
+    { text: rec.note ?? '-' },
+  ])
 
-  return `
-    <table>
-      <thead>
-        <tr>
-          <th style="text-align:left">Keyword</th>
-          <th style="width:90px">ความยาก (KD)</th>
-          <th style="text-align:left">หมายเหตุ</th>
-        </tr>
-      </thead>
-      <tbody>${rows}</tbody>
-    </table>`
+  return {
+    table: {
+      headerRows: 1,
+      widths: ['*', 85, '*'],
+      body: [
+        [headerCell('Keyword', 'left'), headerCell('ความยาก (KD)'), headerCell('หมายเหตุ', 'left')],
+        ...rows,
+      ],
+    },
+    layout: lightBorders,
+  }
 }
 
-export function renderReportHtml(snapshot: CustomerReportSnapshot, generatedAt: Date): string {
-  const title = snapshot.domain ? `รายงาน SEO — ${snapshot.domain}` : 'รายงาน SEO'
+function buildDocDefinition(
+  snapshot: CustomerReportSnapshot,
+  generatedAt: Date,
+): TDocumentDefinitions {
   const metaLine = [snapshot.customerName, snapshot.domain].filter(Boolean).join(' • ')
+  const logo = loadLogoDataUrl()
 
-  return `<!DOCTYPE html>
-<html lang="th">
-<head>
-  <meta charset="utf-8">
-  <title>${escapeHtml(title)}</title>
-  <style>
-    ${sarabunFontFaces()}
-    ${reportStyles}
-  </style>
-</head>
-<body>
-  <div class="header">
-    <h1>รายงาน SEO</h1>
-    <p class="meta">${escapeHtml(metaLine || '-')}</p>
-    <p class="meta">วันที่ออกรายงาน: ${formatThaiDate(generatedAt)}</p>
-  </div>
+  return {
+    pageSize: 'A4',
+    pageMargins: [40, 42, 40, 46],
+    defaultStyle: { font: 'Sarabun', fontSize: 9, color: TEXT },
+    content: [
+      {
+        columns: [
+          {
+            width: '*',
+            stack: [
+              { text: 'รายงาน SEO', fontSize: 18, bold: true },
+              { text: metaLine || '-', color: MUTED, margin: [0, 2, 0, 0] },
+              {
+                text: `วันที่ออกรายงาน: ${formatThaiDate(generatedAt)}`,
+                color: MUTED,
+                margin: [0, 2, 0, 0],
+              },
+            ],
+          },
+          ...(logo ? [{ image: logo, fit: [64, 64] as [number, number], width: 70 }] : []),
+        ],
+      },
+      {
+        canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1.2, lineColor: TEXT }],
+        margin: [0, 8, 0, 2],
+      },
+      sectionTitle('ภาพรวมโดเมน'),
+      snapshot.metrics ? kpiGrid(snapshot.metrics) : emptyNote(),
+      sectionTitle('Keyword'),
+      keywordTable([...snapshot.topKeywords, ...snapshot.otherKeywords]),
+      sectionTitle('Keyword ที่แนะนำ'),
+      recommendationTable(snapshot.recommendations),
+      {
+        text: 'สร้างอัตโนมัติจากระบบรายงาน SEO',
+        color: MUTED,
+        fontSize: 8,
+        alignment: 'right',
+        margin: [0, 18, 0, 0],
+      },
+    ],
+  }
+}
 
-  <div class="section">
-    <div class="section-title">ภาพรวมโดเมน</div>
-    ${snapshot.metrics ? renderKpiGrid(snapshot.metrics) : '<p class="empty">ยังไม่มีข้อมูล</p>'}
-  </div>
+export function buildReportPdf(
+  snapshot: CustomerReportSnapshot,
+  generatedAt: Date,
+): Promise<Buffer> {
+  const doc = printer.createPdfKitDocument(buildDocDefinition(snapshot, generatedAt))
 
-  <div class="section">
-    <div class="section-title">Keyword หลัก (Top Report)</div>
-    ${renderKeywordTable(snapshot.topKeywords)}
-  </div>
-
-  <div class="section">
-    <div class="section-title">Keyword อื่น ๆ</div>
-    ${renderKeywordTable(snapshot.otherKeywords)}
-  </div>
-
-  <div class="section">
-    <div class="section-title">Keyword ที่แนะนำ</div>
-    ${renderRecommendationTable(snapshot.recommendations)}
-  </div>
-
-  <div class="footer">สร้างอัตโนมัติจากระบบรายงาน SEO</div>
-</body>
-</html>`
+  return new Promise<Buffer>((resolve, reject) => {
+    const chunks: Buffer[] = []
+    doc.on('data', (chunk: Buffer) => chunks.push(chunk))
+    doc.on('end', () => resolve(Buffer.concat(chunks)))
+    doc.on('error', reject)
+    doc.end()
+  })
 }
