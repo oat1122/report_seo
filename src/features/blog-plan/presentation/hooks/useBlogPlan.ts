@@ -4,12 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from '@/lib/axios'
 import type { ApiSuccess } from '@/infrastructure/http'
 import type { BlogSettings } from '../../application/ports/BlogSettingsRepository'
-import type {
-  BlogArticle,
-  BlogFileKind,
-  BlogStageCode,
-  CustomerKeywordOption,
-} from '../../domain/BlogArticle'
+import type { BlogArticle, BlogStageCode, CustomerKeywordOption } from '../../domain/BlogArticle'
 import type {
   CreateArticleInput,
   SubmitFeedbackInput,
@@ -155,22 +150,29 @@ export function useSubmitFeedback(customerId: string) {
   })
 }
 
-export function useUploadArticleFile(customerId: string) {
+export interface SubmitStageWorkVariables {
+  articleId: string
+  stageCode: BlogStageCode
+  message: string
+  linkUrl: string
+  file: File | null
+}
+
+export function useSubmitStageWork(customerId: string) {
   const invalidate = useInvalidateBlogPlan(customerId)
   return useMutation({
     mutationFn: async ({
       articleId,
+      stageCode,
+      message,
+      linkUrl,
       file,
-      kind,
-    }: {
-      articleId: string
-      file: File
-      kind: BlogFileKind
-    }) => {
+    }: SubmitStageWorkVariables) => {
       const form = new FormData()
-      form.append('file', file)
-      form.append('kind', kind)
-      await axios.post(`${base(customerId)}/${articleId}/files`, form)
+      if (message) form.append('message', message)
+      if (linkUrl) form.append('linkUrl', linkUrl)
+      if (file) form.append('file', file)
+      await axios.post(`${base(customerId)}/${articleId}/stages/${stageCode}/submissions`, form)
     },
     onSuccess: invalidate,
   })

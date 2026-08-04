@@ -52,6 +52,18 @@ export interface BlogArticleFile {
   uploadedByName: string | null
 }
 
+/** งานที่ทีมเขียนส่งให้ลูกค้า 1 รอบ — round เริ่มที่ 1 และ +1 ทุกครั้งที่ส่งซ้ำใน stage เดิม */
+export interface BlogArticleSubmission {
+  id: string
+  stageCode: BlogStageCode
+  round: number
+  message: string | null
+  linkUrl: string | null
+  createdAt: Date
+  authorName: string | null
+  files: BlogArticleFile[]
+}
+
 export interface BlogArticleFeedback {
   id: string
   stageCode: BlogStageCode
@@ -78,7 +90,9 @@ export interface BlogArticle {
   createdByName: string | null
   keywords: BlogArticleKeyword[]
   stages: BlogArticleStage[]
-  files: BlogArticleFile[]
+  /** ไฟล์ที่ยังไม่ผูก submission (อัปก่อนมีระบบส่งเป็นรอบ) */
+  legacyFiles: BlogArticleFile[]
+  submissions: BlogArticleSubmission[]
   feedbacks: BlogArticleFeedback[]
 }
 

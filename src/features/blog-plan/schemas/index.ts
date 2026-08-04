@@ -57,13 +57,20 @@ export const updateStageSchema = z
   })
   .partial()
 
+/**
+ * เนื้อหาที่ส่งให้ลูกค้า 1 รอบ — ไฟล์มาทาง multipart จึงไม่อยู่ใน schema
+ * use case เป็นคนบังคับว่าต้องมีอย่างน้อย 1 อย่าง (ข้อความ / ลิงก์ / ไฟล์)
+ */
+export const submitStageWorkSchema = z.object({
+  message: z.string().trim().max(5000).nullable().default(null),
+  linkUrl: z.url().max(2000).nullable().default(null),
+})
+
 export const submitFeedbackSchema = z.object({
   stageCode: stageCodeSchema,
   decision: z.enum(['APPROVED', 'CHANGES_REQUESTED']),
   comment: z.string().trim().max(5000).nullable().default(null),
 })
-
-export const uploadFileKindSchema = z.enum(['COVER_IMAGE', 'ARTICLE_DOC'])
 
 export const updateBlogSettingsSchema = z
   .object({
@@ -76,6 +83,7 @@ export type ListArticlesQuery = z.infer<typeof listArticlesQuerySchema>
 export type CreateArticleInput = z.infer<typeof createArticleSchema>
 export type UpdateArticleInput = z.infer<typeof updateArticleSchema>
 export type UpdateStageInput = z.infer<typeof updateStageSchema>
+export type SubmitStageWorkInput = z.infer<typeof submitStageWorkSchema>
 export type SubmitFeedbackInput = z.infer<typeof submitFeedbackSchema>
 export type ArticleKeywordInput = z.infer<typeof articleKeywordInputSchema>
 export type UpdateBlogSettingsInput = z.infer<typeof updateBlogSettingsSchema>

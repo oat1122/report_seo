@@ -1,4 +1,4 @@
-import type { BlogStageCode } from '../BlogArticle'
+import type { BlogFileKind, BlogStageCode } from '../BlogArticle'
 
 export type StageActor = 'WRITER' | 'CLIENT'
 
@@ -9,35 +9,74 @@ export interface BlogStageDefinition {
   label: string
   /** จำนวนวันที่ให้ทำ stage นี้ — ตัวเลขในวงเล็บบนหัวคอลัมน์ของฟอร์ม SEO Prime */
   days: number
+  /** ชนิดไฟล์ที่แนบได้ตอนส่งงาน stage นี้ — null = แนบไฟล์ไม่ได้ (ข้อความ/ลิงก์เท่านั้น) */
+  fileKind: BlogFileKind | null
 }
 
 export const BLOG_STAGES: readonly BlogStageDefinition[] = [
-  { code: 'SUBMIT_TOPIC', seq: 1, actor: 'WRITER', label: 'ส่งหัวข้อ / Main Idea', days: 5 },
+  {
+    code: 'SUBMIT_TOPIC',
+    seq: 1,
+    actor: 'WRITER',
+    label: 'ส่งหัวข้อ / Main Idea',
+    days: 5,
+    fileKind: 'ARTICLE_DOC',
+  },
   {
     code: 'CLIENT_FEEDBACK_TOPIC',
     seq: 2,
     actor: 'CLIENT',
     label: 'ลูกค้าให้ความเห็นหัวข้อ',
     days: 4,
+    fileKind: null,
   },
-  { code: 'SUBMIT_ARTICLE', seq: 3, actor: 'WRITER', label: 'ส่งบทความฉบับเต็ม', days: 5 },
+  {
+    code: 'SUBMIT_ARTICLE',
+    seq: 3,
+    actor: 'WRITER',
+    label: 'ส่งบทความฉบับเต็ม',
+    days: 5,
+    fileKind: 'ARTICLE_DOC',
+  },
   {
     code: 'CLIENT_FEEDBACK_ARTICLE',
     seq: 4,
     actor: 'CLIENT',
     label: 'ลูกค้าให้ความเห็นบทความ',
     days: 5,
+    fileKind: null,
   },
-  { code: 'SUBMIT_ARTWORK', seq: 5, actor: 'WRITER', label: 'ส่งภาพประกอบ / ภาพปก', days: 4 },
+  {
+    code: 'SUBMIT_ARTWORK',
+    seq: 5,
+    actor: 'WRITER',
+    label: 'ส่งภาพประกอบ / ภาพปก',
+    days: 4,
+    fileKind: 'COVER_IMAGE',
+  },
   {
     code: 'CLIENT_FINAL_APPROVAL',
     seq: 6,
     actor: 'CLIENT',
     label: 'ลูกค้าอนุมัติขั้นสุดท้าย',
     days: 5,
+    fileKind: null,
   },
-  { code: 'UPLOAD_ON_WEBSITE', seq: 7, actor: 'WRITER', label: 'อัปโหลดขึ้นเว็บไซต์', days: 0 },
+  {
+    code: 'UPLOAD_ON_WEBSITE',
+    seq: 7,
+    actor: 'WRITER',
+    label: 'อัปโหลดขึ้นเว็บไซต์',
+    days: 0,
+    fileKind: null,
+  },
 ] as const
+
+/** ไฟล์เก่าที่ไม่มี submission ให้ไปแสดงใต้ stage นี้ตามชนิดไฟล์ */
+export const LEGACY_FILE_STAGE: Record<BlogFileKind, BlogStageCode> = {
+  ARTICLE_DOC: 'SUBMIT_ARTICLE',
+  COVER_IMAGE: 'SUBMIT_ARTWORK',
+}
 
 export function getStageDefinition(code: BlogStageCode): BlogStageDefinition {
   const found = BLOG_STAGES.find((stage) => stage.code === code)

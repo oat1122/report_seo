@@ -45,6 +45,14 @@ export interface NewArticleFile {
   mimeType: string
   sizeBytes: number
   uploadedById: string | null
+  submissionId: string | null
+}
+
+export interface NewSubmission {
+  stageCode: BlogStageCode
+  message: string | null
+  linkUrl: string | null
+  authorId: string | null
 }
 
 export interface NewFeedback {
@@ -79,6 +87,13 @@ export interface BlogArticleRepository {
 
   patchStage(articleId: string, stageCode: BlogStageCode, patch: StagePatch): Promise<void>
   setStatus(articleId: string, status: BlogArticleStatus): Promise<void>
+
+  /** สร้างการส่งงานรอบใหม่ — repo เป็นคนคำนวณ round ต่อจากรอบล่าสุดของ stage นั้น */
+  addSubmission(
+    articleId: string,
+    submission: NewSubmission,
+  ): Promise<{ id: string; round: number }>
+  deleteSubmission(submissionId: string): Promise<void>
 
   /** คืน version ที่ถูกบันทึก — นับต่อจากไฟล์เดิมของ kind เดียวกัน (ไม่ทับของเก่า) */
   addFile(articleId: string, file: NewArticleFile): Promise<number>

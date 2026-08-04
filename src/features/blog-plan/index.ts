@@ -13,7 +13,7 @@ import { updateArticleUseCase } from './application/use-cases/updateArticle'
 import { deleteArticleUseCase } from './application/use-cases/deleteArticle'
 import { updateStageUseCase } from './application/use-cases/updateStage'
 import { submitClientFeedbackUseCase } from './application/use-cases/submitClientFeedback'
-import { uploadArticleFileUseCase } from './application/use-cases/uploadArticleFile'
+import { submitStageWorkUseCase } from './application/use-cases/submitStageWork'
 import { deleteArticleFileUseCase } from './application/use-cases/deleteArticleFile'
 import { listCustomerKeywordsUseCase } from './application/use-cases/listCustomerKeywords'
 import {
@@ -32,7 +32,7 @@ export const updateArticle = updateArticleUseCase(articleRepository)
 export const deleteArticle = deleteArticleUseCase(articleRepository, fileStorage)
 export const updateStage = updateStageUseCase(articleRepository)
 export const submitClientFeedback = submitClientFeedbackUseCase(articleRepository)
-export const uploadArticleFile = uploadArticleFileUseCase(articleRepository, fileStorage)
+export const submitStageWork = submitStageWorkUseCase(articleRepository, fileStorage)
 export const deleteArticleFile = deleteArticleFileUseCase(articleRepository, fileStorage)
 export const listCustomerKeywords = listCustomerKeywordsUseCase(keywordReader, articleRepository)
 export const getBlogSettings = getBlogSettingsUseCase(settingsRepository)
@@ -44,8 +44,8 @@ export {
   createArticleSchema,
   updateArticleSchema,
   updateStageSchema,
+  submitStageWorkSchema,
   submitFeedbackSchema,
-  uploadFileKindSchema,
   updateBlogSettingsSchema,
 } from './schemas'
 

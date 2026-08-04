@@ -16,11 +16,11 @@ import {
   useDeleteArticle,
   useDeleteArticleFile,
   useSubmitFeedback,
+  useSubmitStageWork,
   useUpdateArticle,
   useUpdateStage,
-  useUploadArticleFile,
 } from '../hooks/useBlogPlan'
-import type { BlogArticle } from '../../domain/BlogArticle'
+import type { BlogArticle, BlogArticleStatus } from '../../domain/BlogArticle'
 
 const MONTH_LABELS = [
   'มกราคม',
@@ -36,6 +36,12 @@ const MONTH_LABELS = [
   'พฤศจิกายน',
   'ธันวาคม',
 ]
+
+/** สถานะที่ถือว่า "ถึงคิวเรา" — การ์ดใบนั้นจะกางไว้ให้ตั้งแต่เปิดหน้า */
+const ACTIONABLE_STATUS: Record<'manage' | 'respond', BlogArticleStatus[]> = {
+  manage: ['DRAFT', 'IN_PROGRESS', 'CHANGES_REQUESTED'],
+  respond: ['WAITING_CLIENT'],
+}
 
 interface BlogPlanBoardProps {
   customerId: string
@@ -57,7 +63,7 @@ export function BlogPlanBoard({ customerId, canManage, canRespond }: BlogPlanBoa
   const deleteArticle = useDeleteArticle(customerId)
   const updateStage = useUpdateStage(customerId)
   const submitFeedback = useSubmitFeedback(customerId)
-  const uploadFile = useUploadArticleFile(customerId)
+  const submitStageWork = useSubmitStageWork(customerId)
   const deleteFile = useDeleteArticleFile(customerId)
 
   const isPending =
@@ -66,7 +72,7 @@ export function BlogPlanBoard({ customerId, canManage, canRespond }: BlogPlanBoa
     deleteArticle.isPending ||
     updateStage.isPending ||
     submitFeedback.isPending ||
-    uploadFile.isPending ||
+    submitStageWork.isPending ||
     deleteFile.isPending
 
   const shiftMonth = (delta: number) => {
@@ -97,6 +103,7 @@ export function BlogPlanBoard({ customerId, canManage, canRespond }: BlogPlanBoa
   }
 
   const articles = data?.articles ?? []
+  const actionableStatus = canManage ? ACTIONABLE_STATUS.manage : ACTIONABLE_STATUS.respond
   const quota = settings?.articlesPerMonth ?? 0
   const used = data?.monthlyCount ?? articles.length
   const isOverQuota = quota > 0 && used > quota
@@ -169,14 +176,18 @@ export function BlogPlanBoard({ customerId, canManage, canRespond }: BlogPlanBoa
             article={article}
             canManage={canManage}
             canRespond={canRespond}
+            defaultOpen={actionableStatus.includes(article.status)}
             isPending={isPending}
             onEdit={(target) => {
               setEditing(target)
               setFormOpen(true)
             }}
             onDelete={(articleId) => deleteArticle.mutate(articleId)}
-            onToggleStage={(articleId, stageCode, submitted) =>
-              updateStage.mutate({ articleId, stageCode, input: { submitted } })
+            onSubmitWork={(articleId, stageCode, payload) =>
+              submitStageWork.mutate({ articleId, stageCode, ...payload })
+            }
+            onUnsubmit={(articleId, stageCode) =>
+              updateStage.mutate({ articleId, stageCode, input: { submitted: false } })
             }
             onRespond={(articleId, stageCode, decision, comment) =>
               submitFeedback.mutate({
@@ -184,7 +195,6 @@ export function BlogPlanBoard({ customerId, canManage, canRespond }: BlogPlanBoa
                 input: { stageCode, decision, comment: comment.trim() || null },
               })
             }
-            onUploadFile={(articleId, file, kind) => uploadFile.mutate({ articleId, file, kind })}
             onDeleteFile={(articleId, fileId) => deleteFile.mutate({ articleId, fileId })}
           />
         ))

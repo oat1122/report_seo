@@ -26,10 +26,11 @@ model BlogArticle {
   createdById String?
   createdBy   User?   @relation("BlogArticleCreator", fields: [createdById], references: [id], onDelete: SetNull)
 
-  keywords  BlogArticleKeyword[]
-  stages    BlogArticleStage[]
-  files     BlogArticleFile[]
-  feedbacks BlogArticleFeedback[]
+  keywords    BlogArticleKeyword[]
+  stages      BlogArticleStage[]
+  files       BlogArticleFile[]
+  feedbacks   BlogArticleFeedback[]
+  submissions BlogArticleSubmission[]
 
   @@index([customerId])
   @@index([customerId, targetYear, targetMonth])
@@ -69,6 +70,29 @@ model BlogArticleStage {
   @@map("blogarticlestage")
 }
 
+// 1 รอบการส่งงานของ writer ใน 1 stage — ลูกค้าขอแก้แล้วส่งใหม่ = เพิ่มอีก row (round +1)
+// เก็บทุกรอบเพื่อให้ย้อนดูได้ว่าขอแก้อะไรแล้วแก้เป็นอะไร
+model BlogArticleSubmission {
+  id        String        @id @default(uuid())
+  stageCode BlogStageCode
+  round     Int
+  message   String?       @db.Text
+  linkUrl   String?       @db.Text
+  createdAt DateTime      @default(now())
+
+  articleId String
+  article   BlogArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  authorId String?
+  author   User?   @relation("BlogArticleSubmissionAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+
+  files BlogArticleFile[]
+
+  @@unique([articleId, stageCode, round])
+  @@index([articleId])
+  @@map("blogarticlesubmission")
+}
+
 model BlogArticleFile {
   id        String       @id @default(uuid())
   kind      BlogFileKind
@@ -82,6 +106,10 @@ model BlogArticleFile {
 
   articleId String
   article   BlogArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  // null = ไฟล์ที่อัปก่อนมีระบบส่งงานเป็นรอบ — UI แสดงเป็น "ไฟล์เดิม" ใต้ stage ที่ตรง kind
+  submissionId String?
+  submission   BlogArticleSubmission? @relation(fields: [submissionId], references: [id], onDelete: Cascade)
 
   uploadedById String?
   uploadedBy   User?   @relation("BlogArticleFileUploader", fields: [uploadedById], references: [id], onDelete: SetNull)

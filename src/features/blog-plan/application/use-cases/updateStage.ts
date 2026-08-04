@@ -8,12 +8,12 @@ import { recalculateStatus } from './recalculateStatus'
 export interface UpdateStageResult {
   status: BlogArticleStatus
   stageCode: BlogStageCode
-  submitted: boolean
 }
 
 /**
- * ใช้โดย writer/admin เท่านั้น — stage ของลูกค้าต้องผ่าน submitClientFeedback
- * เพื่อให้ทุกครั้งที่ลูกค้าตอบมีเหตุผล (decision + comment) บันทึกไว้
+ * ใช้โดย writer/admin แก้ dueDate/note และ "ยกเลิกการส่ง" เท่านั้น
+ * - การส่งงานต้องผ่าน submitStageWork เพื่อให้มีเนื้อหาส่งถึงลูกค้าเสมอ
+ * - stage ของลูกค้าต้องผ่าน submitClientFeedback เพื่อให้มีเหตุผล (decision + comment) บันทึกไว้
  */
 export function updateStageUseCase(articles: BlogArticleRepository) {
   return async (
@@ -28,15 +28,18 @@ export function updateStageUseCase(articles: BlogArticleRepository) {
     if (isClientStage(stageCode) && input.submitted !== undefined) {
       throw new BadRequestError('ขั้นตอนนี้ต้องให้ลูกค้าเป็นผู้ตอบ')
     }
+    if (input.submitted === true) {
+      throw new BadRequestError('ต้องส่งงานพร้อมเนื้อหาให้ลูกค้าผ่านหน้าส่งงาน')
+    }
 
     const patch: StagePatch = {}
     if (input.dueDate !== undefined) patch.dueDate = input.dueDate
     if (input.note !== undefined) patch.note = input.note
-    if (input.submitted !== undefined) patch.submittedAt = input.submitted ? new Date() : null
+    if (input.submitted === false) patch.submittedAt = null
 
     await articles.patchStage(articleId, stageCode, patch)
 
     const status = await recalculateStatus(articles, articleId, customerId)
-    return { status, stageCode, submitted: input.submitted ?? false }
+    return { status, stageCode }
   }
 }

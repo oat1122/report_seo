@@ -17,6 +17,7 @@ model User {
   blogArticlesCreated  BlogArticle[]         @relation("BlogArticleCreator")
   blogFilesUploaded    BlogArticleFile[]     @relation("BlogArticleFileUploader")
   blogFeedbacksAuthored BlogArticleFeedback[] @relation("BlogArticleFeedbackAuthor")
+  blogSubmissions       BlogArticleSubmission[] @relation("BlogArticleSubmissionAuthor")
 
   workProgressTemplatesCreated WorkProgressTemplate[] @relation("WorkProgressTemplateCreator")
   workProgressPlansCreated     WorkProgressPlan[]     @relation("WorkProgressPlanCreator")

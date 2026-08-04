@@ -8,7 +8,11 @@ export function deleteArticleUseCase(articles: BlogArticleRepository, storage: B
     if (!existing) throw new NotFoundError('ไม่พบบทความ')
 
     // ลบไฟล์บนดิสก์ก่อน — cascade ของ Prisma ลบแค่แถวใน DB
-    await Promise.all(existing.files.map((file) => storage.removeByPublicUrl(file.url)))
+    const urls = [
+      ...existing.legacyFiles,
+      ...existing.submissions.flatMap((submission) => submission.files),
+    ].map((file) => file.url)
+    await Promise.all(urls.map((url) => storage.removeByPublicUrl(url)))
     await articles.delete(articleId)
   }
 }

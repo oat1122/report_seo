@@ -6,18 +6,31 @@ import type {
   CreateArticleData,
   NewArticleFile,
   NewFeedback,
+  NewSubmission,
   StagePatch,
   UpdateArticleData,
 } from '../application/ports/BlogArticleRepository'
 import type { BlogArticleStatus, BlogKeywordSource, BlogStageCode } from '../domain/BlogArticle'
+
+const fileInclude = {
+  uploadedBy: { select: { name: true } },
+} satisfies Prisma.BlogArticleFileInclude
 
 const articleInclude = {
   createdBy: { select: { name: true } },
   keywords: { orderBy: { keyword: 'asc' } },
   stages: { orderBy: { seq: 'asc' } },
   files: {
+    where: { submissionId: null },
     orderBy: [{ kind: 'asc' }, { version: 'desc' }],
-    include: { uploadedBy: { select: { name: true } } },
+    include: fileInclude,
+  },
+  submissions: {
+    orderBy: { createdAt: 'asc' },
+    include: {
+      author: { select: { name: true } },
+      files: { orderBy: { createdAt: 'asc' }, include: fileInclude },
+    },
   },
   feedbacks: {
     orderBy: { createdAt: 'desc' },
@@ -26,6 +39,21 @@ const articleInclude = {
 } satisfies Prisma.BlogArticleInclude
 
 type PrismaArticle = Prisma.BlogArticleGetPayload<{ include: typeof articleInclude }>
+type PrismaFile = Prisma.BlogArticleFileGetPayload<{ include: typeof fileInclude }>
+
+function toFile(row: PrismaFile) {
+  return {
+    id: row.id,
+    kind: row.kind as BlogFileKind,
+    url: row.url,
+    filename: row.filename,
+    mimeType: row.mimeType,
+    sizeBytes: row.sizeBytes,
+    version: row.version,
+    createdAt: row.createdAt,
+    uploadedByName: row.uploadedBy?.name ?? null,
+  }
+}
 
 function toDomain(row: PrismaArticle): BlogArticle {
   return {
@@ -57,16 +85,16 @@ function toDomain(row: PrismaArticle): BlogArticle {
       submittedAt: s.submittedAt,
       note: s.note,
     })),
-    files: row.files.map((f) => ({
-      id: f.id,
-      kind: f.kind as BlogFileKind,
-      url: f.url,
-      filename: f.filename,
-      mimeType: f.mimeType,
-      sizeBytes: f.sizeBytes,
-      version: f.version,
-      createdAt: f.createdAt,
-      uploadedByName: f.uploadedBy?.name ?? null,
+    legacyFiles: row.files.map(toFile),
+    submissions: row.submissions.map((s) => ({
+      id: s.id,
+      stageCode: s.stageCode as BlogStageCode,
+      round: s.round,
+      message: s.message,
+      linkUrl: s.linkUrl,
+      createdAt: s.createdAt,
+      authorName: s.author?.name ?? null,
+      files: s.files.map(toFile),
     })),
     feedbacks: row.feedbacks.map((fb) => ({
       id: fb.id,
@@ -186,6 +214,25 @@ export class PrismaBlogArticleRepository implements BlogArticleRepository {
 
   async setStatus(articleId: string, status: BlogArticleStatus): Promise<void> {
     await prisma.blogArticle.update({ where: { id: articleId }, data: { status } })
+  }
+
+  async addSubmission(
+    articleId: string,
+    submission: NewSubmission,
+  ): Promise<{ id: string; round: number }> {
+    const round =
+      (await prisma.blogArticleSubmission.count({
+        where: { articleId, stageCode: submission.stageCode },
+      })) + 1
+    const row = await prisma.blogArticleSubmission.create({
+      data: { ...submission, articleId, round },
+      select: { id: true },
+    })
+    return { id: row.id, round }
+  }
+
+  async deleteSubmission(submissionId: string): Promise<void> {
+    await prisma.blogArticleSubmission.delete({ where: { id: submissionId } })
   }
 
   async addFile(articleId: string, file: NewArticleFile): Promise<number> {
