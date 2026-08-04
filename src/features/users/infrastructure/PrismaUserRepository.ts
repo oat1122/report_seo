@@ -65,11 +65,22 @@ export class PrismaUserRepository implements UserRepository {
     return users.map((u) => u.id)
   }
 
-  async findSeoDevs(): Promise<User[]> {
+  async findStaffByRole(role: Role): Promise<User[]> {
     return prisma.user.findMany({
-      where: { role: Role.SEO_DEV },
+      where: { role },
       select: adminUserSelect,
       orderBy: { name: 'asc' },
+    }) as Promise<User[]>
+  }
+
+  async findBlogAssignedCustomers(blogWriterId: string): Promise<User[]> {
+    return prisma.user.findMany({
+      where: {
+        role: Role.CUSTOMER,
+        customerProfile: { is: { blogWriterId } },
+      },
+      select: adminUserSelect,
+      orderBy: { createdAt: 'desc' },
     }) as Promise<User[]>
   }
 

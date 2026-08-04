@@ -1,3 +1,4 @@
+import type { Role } from '@/types/auth'
 import type { User } from '../../domain/User'
 import type { UserCreateInput, UserUpdateInput } from '../../schemas'
 
@@ -8,9 +9,11 @@ export interface UserRepository {
 
   findUserIdsByRole(role: string): Promise<string[]>
 
-  findSeoDevs(): Promise<User[]>
+  findStaffByRole(role: Role): Promise<User[]>
 
   findManagedCustomers(seoDevId: string): Promise<User[]>
+
+  findBlogAssignedCustomers(blogWriterId: string): Promise<User[]>
 
   findCustomerByDomain(
     domain: string,

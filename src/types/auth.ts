@@ -7,6 +7,7 @@ export enum Role {
   ADMIN = 'ADMIN', // Super administrator
   SEO_DEV = 'SEO_DEV', // SEO specialist
   CUSTOMER = 'CUSTOMER', // Client or regular user
+  BLOG_WRITER = 'BLOG_WRITER', // Content writer — เข้าได้เฉพาะ /blog ของลูกค้าที่ถูก assign
 }
 
 /**

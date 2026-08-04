@@ -10,6 +10,7 @@ export const UPLOAD_DIRS = {
   contracts: 'contracts',
   documents: 'documents',
   'company-logo': 'company-logo',
+  'blog-plan': 'blog-plan',
 } as const
 
 export type UploadCategory = keyof typeof UPLOAD_DIRS

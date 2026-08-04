@@ -1,0 +1,93 @@
+// Pure domain types — literal union ต้องตรงกับ enum ใน prisma/schema/_base.prisma
+// (domain ห้าม import Prisma ตาม rule 09)
+
+export type BlogStageCode =
+  | 'SUBMIT_TOPIC'
+  | 'CLIENT_FEEDBACK_TOPIC'
+  | 'SUBMIT_ARTICLE'
+  | 'CLIENT_FEEDBACK_ARTICLE'
+  | 'SUBMIT_ARTWORK'
+  | 'CLIENT_FINAL_APPROVAL'
+  | 'UPLOAD_ON_WEBSITE'
+
+export type BlogArticleStatus =
+  | 'DRAFT'
+  | 'IN_PROGRESS'
+  | 'WAITING_CLIENT'
+  | 'CHANGES_REQUESTED'
+  | 'APPROVED'
+  | 'PUBLISHED'
+
+export type BlogFileKind = 'COVER_IMAGE' | 'ARTICLE_DOC'
+
+export type BlogFeedbackDecision = 'APPROVED' | 'CHANGES_REQUESTED'
+
+export type BlogKeywordSource = 'REPORT' | 'RECOMMEND' | 'MANUAL'
+
+export interface BlogArticleKeyword {
+  id: string
+  keyword: string
+  source: BlogKeywordSource
+  sourceId: string | null
+}
+
+export interface BlogArticleStage {
+  id: string
+  stageCode: BlogStageCode
+  seq: number
+  dueDate: Date | null
+  submittedAt: Date | null
+  note: string | null
+}
+
+export interface BlogArticleFile {
+  id: string
+  kind: BlogFileKind
+  url: string
+  filename: string
+  mimeType: string
+  sizeBytes: number
+  version: number
+  createdAt: Date
+  uploadedByName: string | null
+}
+
+export interface BlogArticleFeedback {
+  id: string
+  stageCode: BlogStageCode
+  decision: BlogFeedbackDecision
+  comment: string | null
+  createdAt: Date
+  authorName: string | null
+}
+
+export interface BlogArticle {
+  id: string
+  customerId: string
+  title: string
+  keyFocus: string | null
+  targetYear: number
+  targetMonth: number
+  status: BlogArticleStatus
+  orderIndex: number
+  startDate: Date | null
+  publishedUrl: string | null
+  note: string | null
+  createdAt: Date
+  updatedAt: Date
+  createdByName: string | null
+  keywords: BlogArticleKeyword[]
+  stages: BlogArticleStage[]
+  files: BlogArticleFile[]
+  feedbacks: BlogArticleFeedback[]
+}
+
+/** keyword ของลูกค้า 1 ตัว พร้อมจำนวนบทความที่ใช้ไปแล้ว */
+export interface CustomerKeywordOption {
+  keyword: string
+  source: Exclude<BlogKeywordSource, 'MANUAL'>
+  sourceId: string
+  position: number | null
+  kd: string | null
+  usedCount: number
+}

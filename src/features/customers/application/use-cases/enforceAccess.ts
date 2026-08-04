@@ -12,3 +12,21 @@ export function enforceManageAccess(context: CustomerAccessContext): void {
     throw new ForbiddenError()
   }
 }
+
+export function enforceBlogPlanReadAccess(context: CustomerAccessContext): void {
+  if (!context.canReadBlogPlan) {
+    throw new ForbiddenError()
+  }
+}
+
+export function enforceBlogPlanManageAccess(context: CustomerAccessContext): void {
+  if (!context.canManageBlogPlan) {
+    throw new ForbiddenError()
+  }
+}
+
+export function enforceBlogPlanRespondAccess(context: CustomerAccessContext): void {
+  if (!context.canRespondToBlogPlan) {
+    throw new ForbiddenError()
+  }
+}

@@ -62,14 +62,34 @@ async function main() {
     },
   })
 
-  // 4⃣ สร้าง Customer Profile และเชื่อมโยงกับ SEO_DEV + CUSTOMER
+  // 3.5️ สร้าง BLOG_WRITER User
+  const blogWriterUser = await prisma.user.upsert({
+    where: { email: 'blog.writer@report.com' },
+    update: {
+      password: hashedPassword, // Force update password
+      name: 'Blog Writer',
+      role: 'BLOG_WRITER',
+    },
+    create: {
+      id: randomUUID(),
+      name: 'Blog Writer',
+      email: 'blog.writer@report.com',
+      password: hashedPassword,
+      role: 'BLOG_WRITER',
+    },
+  })
+
+  // 4⃣ สร้าง Customer Profile และเชื่อมโยงกับ SEO_DEV + CUSTOMER + BLOG_WRITER
   const customerProfile = await prisma.customer.upsert({
     where: { domain: 'www.my-domain-report.com' },
-    update: {},
+    update: {
+      blogWriter: { connect: { id: blogWriterUser.id } },
+    },
     create: {
       id: randomUUID(),
       name: 'Thanaplus Co., Ltd.',
       domain: 'www.my-domain-report.com',
+      articlesPerMonth: 4,
       // เชื่อมกับ user/customer
       user: {
         connect: { id: customerUser.id },
@@ -77,6 +97,10 @@ async function main() {
       // เชื่อมกับ seoDev (ผู้ดูแล)
       seoDev: {
         connect: { id: seoDevUser.id },
+      },
+      // เชื่อมกับ blogWriter (ผู้เขียนบทความ)
+      blogWriter: {
+        connect: { id: blogWriterUser.id },
       },
     },
   })

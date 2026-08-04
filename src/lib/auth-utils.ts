@@ -63,3 +63,10 @@ export async function requireStaff() {
 export async function requireCustomer() {
   return await requireRole([Role.CUSTOMER])
 }
+
+/**
+ * Check if user can open the blog writing workspace
+ */
+export async function requireBlogWriter() {
+  return await requireRole([Role.ADMIN, Role.BLOG_WRITER])
+}

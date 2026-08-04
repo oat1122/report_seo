@@ -27,8 +27,8 @@ export default withAuth(
 
     // --- ตรวจสอบสิทธิ์ Staff (SEO_DEV) ---
     if (userRole === Role.SEO_DEV) {
-      // SEO Dev ห้ามเข้าหน้า /admin
-      if (isPath('/admin')) {
+      // SEO Dev ห้ามเข้าหน้า /admin และ /blog (workspace ของ Blog Writer)
+      if (isPath('/admin') || isPath('/blog')) {
         return NextResponse.redirect(new URL('/unauthorized', request.url))
       }
       // SEO_DEV เปิดรายงานของลูกค้าที่ตัวเองดูแลได้
@@ -37,6 +37,14 @@ export default withAuth(
       }
       // เข้าหน้าอื่น ๆ ที่ไม่ใช่ของ Customer ได้ (เช่น /seo)
       if (!isPath('/customer')) {
+        return NextResponse.next()
+      }
+    }
+
+    // --- ตรวจสอบสิทธิ์ Blog Writer ---
+    if (userRole === Role.BLOG_WRITER) {
+      // Blog Writer เข้าได้เฉพาะหน้า /blog เท่านั้น
+      if (isPath('/blog')) {
         return NextResponse.next()
       }
     }
@@ -65,5 +73,5 @@ export default withAuth(
 // --- Matcher Configuration ---
 // ระบุ path ทั้งหมดที่ต้องการให้ proxy นี้ทำงาน
 export const config = {
-  matcher: ['/admin/:path*', '/seo/:path*', '/customer/:path*'],
+  matcher: ['/admin/:path*', '/seo/:path*', '/customer/:path*', '/blog/:path*'],
 }

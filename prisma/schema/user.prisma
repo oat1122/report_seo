@@ -12,6 +12,11 @@ model User {
 
   customerProfile   Customer? @relation("CustomerUser")
   assignedCustomers Customer[] @relation("SeoDevCustomers")
+  blogWriterCustomers Customer[] @relation("BlogWriterCustomers")
+
+  blogArticlesCreated  BlogArticle[]         @relation("BlogArticleCreator")
+  blogFilesUploaded    BlogArticleFile[]     @relation("BlogArticleFileUploader")
+  blogFeedbacksAuthored BlogArticleFeedback[] @relation("BlogArticleFeedbackAuthor")
 
   workProgressTemplatesCreated WorkProgressTemplate[] @relation("WorkProgressTemplateCreator")
   workProgressPlansCreated     WorkProgressPlan[]     @relation("WorkProgressPlanCreator")

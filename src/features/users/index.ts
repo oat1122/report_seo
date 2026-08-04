@@ -2,8 +2,11 @@ import { PrismaUserRepository } from './infrastructure/PrismaUserRepository'
 import { BcryptPasswordHasher } from './infrastructure/BcryptPasswordHasher'
 import { listUsersUseCase } from './application/use-cases/listUsers'
 import { getUserByIdUseCase } from './application/use-cases/getUserById'
-import { listSeoDevsUseCase } from './application/use-cases/listSeoDevs'
-import { listManagedCustomersUseCase } from './application/use-cases/listManagedCustomers'
+import { listBlogWritersUseCase, listSeoDevsUseCase } from './application/use-cases/listSeoDevs'
+import {
+  listBlogAssignedCustomersUseCase,
+  listManagedCustomersUseCase,
+} from './application/use-cases/listManagedCustomers'
 import { createUserUseCase } from './application/use-cases/createUser'
 import { updateUserUseCase } from './application/use-cases/updateUser'
 import { softDeleteUserUseCase } from './application/use-cases/softDeleteUser'
@@ -18,6 +21,8 @@ export const getUserById = getUserByIdUseCase(repo)
 export const listSeoDevs = listSeoDevsUseCase(repo)
 export const listUserIdsByRole = (role: string) => repo.findUserIdsByRole(role)
 export const listManagedCustomers = listManagedCustomersUseCase(repo)
+export const listBlogWriters = listBlogWritersUseCase(repo)
+export const listBlogAssignedCustomers = listBlogAssignedCustomersUseCase(repo)
 export const createUser = createUserUseCase(repo, hasher)
 export const updateUser = updateUserUseCase(repo)
 export const softDeleteUser = softDeleteUserUseCase(repo)

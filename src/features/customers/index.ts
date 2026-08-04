@@ -13,7 +13,13 @@ export const resolveCustomerAccess = resolveCustomerAccessUseCase(
   sessionGateway,
 )
 
-export { enforceReadAccess, enforceManageAccess } from './application/use-cases/enforceAccess'
+export {
+  enforceReadAccess,
+  enforceManageAccess,
+  enforceBlogPlanReadAccess,
+  enforceBlogPlanManageAccess,
+  enforceBlogPlanRespondAccess,
+} from './application/use-cases/enforceAccess'
 
 export type { CustomerAccessQuery } from './application/use-cases/resolveCustomerAccess'
 export { CustomerAccessContext } from './domain/AccessContext'

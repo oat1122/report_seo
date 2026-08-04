@@ -9,11 +9,16 @@ model Customer {
   user     User   @relation("CustomerUser", fields: [userId], references: [id])
   seoDevId String?
   seoDev   User?     @relation("SeoDevCustomers", fields: [seoDevId], references: [id])
+  blogWriterId String?
+  blogWriter   User?  @relation("BlogWriterCustomers", fields: [blogWriterId], references: [id], onDelete: SetNull)
 
   address     String?  @db.Text
   taxId       String?
   contactName String?
   phone       String?
+
+  // โควตาบทความต่อเดือนที่ admin ตกลงกับลูกค้า (0 = ยังไม่ได้ตั้ง)
+  articlesPerMonth Int @default(0)
 
   reports         KeywordReport[]
   metrics         OverallMetrics?
@@ -26,6 +31,7 @@ model Customer {
   aiOverviews     AiOverview[]
   workProgressPlans WorkProgressPlan[]
   billingDocuments BillingDocument[]
+  blogArticles     BlogArticle[]
 
   @@map("customer")
 }

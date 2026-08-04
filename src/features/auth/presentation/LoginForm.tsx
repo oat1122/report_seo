@@ -47,6 +47,9 @@ export default function LoginForm({ className }: LoginFormProps) {
           case Role.SEO_DEV:
             router.push('/seo')
             break
+          case Role.BLOG_WRITER:
+            router.push('/blog')
+            break
           case Role.CUSTOMER:
             router.push('/customer')
             break

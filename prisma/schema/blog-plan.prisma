@@ -1,0 +1,108 @@
+// Blog Plan — BlogArticle, BlogArticleKeyword, BlogArticleStage,
+//             BlogArticleFile, BlogArticleFeedback
+// โครงสร้างล้อฟอร์ม "SEO - SEO Prime": 1 เดือน = หลายบทความ, 1 บทความ = 7 stage
+
+model BlogArticle {
+  id       String  @id @default(uuid())
+  title    String  @db.Text
+  keyFocus String?
+  // เดือน/ปีเป้าหมายที่บทความนี้นับเข้าโควตา (targetMonth 1-12)
+  targetYear  Int
+  targetMonth Int
+
+  status     BlogArticleStatus @default(DRAFT)
+  orderIndex Int               @default(0)
+  // จุดตั้งต้นของ pipeline — ใช้คำนวณ dueDate ของทั้ง 7 stage
+  startDate    DateTime?
+  publishedUrl String?   @db.Text
+  note         String?   @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  createdById String?
+  createdBy   User?   @relation("BlogArticleCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  keywords  BlogArticleKeyword[]
+  stages    BlogArticleStage[]
+  files     BlogArticleFile[]
+  feedbacks BlogArticleFeedback[]
+
+  @@index([customerId])
+  @@index([customerId, targetYear, targetMonth])
+  @@map("blogarticle")
+}
+
+// เก็บเป็น "ข้อความ keyword" ไม่ใช่ FK เพราะ keyword มาได้ทั้งจาก KeywordReport,
+// KeywordRecommend หรือพิมพ์เอง — sourceId ไว้ย้อนกลับไปหาแถวต้นทางเท่านั้น
+model BlogArticleKeyword {
+  id       String            @id @default(uuid())
+  keyword  String
+  source   BlogKeywordSource @default(MANUAL)
+  sourceId String?
+
+  articleId String
+  article   BlogArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, keyword])
+  @@index([articleId])
+  @@index([keyword])
+  @@map("blogarticlekeyword")
+}
+
+model BlogArticleStage {
+  id          String        @id @default(uuid())
+  stageCode   BlogStageCode
+  seq         Int
+  dueDate     DateTime?
+  submittedAt DateTime?
+  note        String?       @db.Text
+
+  articleId String
+  article   BlogArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, stageCode])
+  @@index([articleId])
+  @@map("blogarticlestage")
+}
+
+model BlogArticleFile {
+  id        String       @id @default(uuid())
+  kind      BlogFileKind
+  url       String       @db.Text
+  filename  String
+  mimeType  String
+  sizeBytes Int
+  // นับแยกตาม kind — อัปทับไม่ลบของเดิม เพื่อดูย้อนหลังตอนลูกค้าขอแก้
+  version   Int
+  createdAt DateTime     @default(now())
+
+  articleId String
+  article   BlogArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  uploadedById String?
+  uploadedBy   User?   @relation("BlogArticleFileUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  @@index([articleId, kind])
+  @@map("blogarticlefile")
+}
+
+model BlogArticleFeedback {
+  id        String               @id @default(uuid())
+  stageCode BlogStageCode
+  decision  BlogFeedbackDecision
+  comment   String?              @db.Text
+  createdAt DateTime             @default(now())
+
+  articleId String
+  article   BlogArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  authorId String?
+  author   User?   @relation("BlogArticleFeedbackAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([articleId])
+  @@map("blogarticlefeedback")
+}

@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Globe, UserCheck, BarChart3, Briefcase, CreditCard } from 'lucide-react'
+import { Globe, UserCheck, BarChart3, Briefcase, CreditCard, PenLine } from 'lucide-react'
 import {
   Card,
   CardHeader,
@@ -94,6 +94,12 @@ export function CustomerSummaryCard({ customer }: CustomerSummaryCardProps) {
           <Link href={`/admin/customers/${customer.userId}/work-progress`}>
             <Briefcase className="mr-1 size-3" />
             Work
+          </Link>
+        </Button>
+        <Button variant="ghost" size="sm" className="h-7 text-xs" asChild>
+          <Link href={`/admin/customers/${customer.userId}/blog-plan`}>
+            <PenLine className="mr-1 size-3" />
+            Blog
           </Link>
         </Button>
         <Button variant="ghost" size="sm" className="h-7 text-xs" asChild>

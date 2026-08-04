@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { BarChart3, ChevronRight, ClipboardList, CreditCard } from 'lucide-react'
+import { BarChart3, ChevronRight, ClipboardList, CreditCard, PenLine } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
@@ -24,6 +24,13 @@ export function CustomerQuickNav({ userId }: CustomerQuickNavProps) {
       href: `/customer/${userId}/work-progress`,
       icon: ClipboardList,
       tile: 'bg-success/10 text-success',
+    },
+    {
+      label: 'แผนบทความ',
+      desc: 'ตรวจ · ให้ความเห็น · โหลดไฟล์',
+      href: `/customer/${userId}/blog-plan`,
+      icon: PenLine,
+      tile: 'bg-secondary/20 text-secondary-foreground',
     },
     {
       label: 'การชำระเงิน',

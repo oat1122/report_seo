@@ -17,6 +17,7 @@ enum Role {
   ADMIN
   SEO_DEV
   CUSTOMER
+  BLOG_WRITER
 }
 
 enum KDLevel {
@@ -66,4 +67,40 @@ enum WorkProgressPeriodType {
 enum DocumentTemplateScope {
   GENERAL
   PLAN
+}
+
+// Blog Plan — 7 stage ตามฟอร์ม "SEO - SEO Prime" (agency ส่ง 4 ครั้ง / ลูกค้าตอบ 3 ครั้ง)
+enum BlogStageCode {
+  SUBMIT_TOPIC
+  CLIENT_FEEDBACK_TOPIC
+  SUBMIT_ARTICLE
+  CLIENT_FEEDBACK_ARTICLE
+  SUBMIT_ARTWORK
+  CLIENT_FINAL_APPROVAL
+  UPLOAD_ON_WEBSITE
+}
+
+enum BlogArticleStatus {
+  DRAFT
+  IN_PROGRESS
+  WAITING_CLIENT
+  CHANGES_REQUESTED
+  APPROVED
+  PUBLISHED
+}
+
+enum BlogFileKind {
+  COVER_IMAGE
+  ARTICLE_DOC
+}
+
+enum BlogFeedbackDecision {
+  APPROVED
+  CHANGES_REQUESTED
+}
+
+enum BlogKeywordSource {
+  REPORT
+  RECOMMEND
+  MANUAL
 }

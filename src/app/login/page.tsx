@@ -8,6 +8,7 @@ export default async function LoginPage() {
 
   if (role === Role.ADMIN) redirect('/admin')
   if (role === Role.SEO_DEV) redirect('/seo')
+  if (role === Role.BLOG_WRITER) redirect('/blog')
   if (role === Role.CUSTOMER) redirect('/customer')
 
   return <LoginForm />

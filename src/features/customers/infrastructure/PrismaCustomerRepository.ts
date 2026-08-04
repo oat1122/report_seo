@@ -6,6 +6,7 @@ const customerSelect = {
   id: true,
   userId: true,
   seoDevId: true,
+  blogWriterId: true,
 } as const
 
 export class PrismaCustomerRepository implements CustomerRepository {
