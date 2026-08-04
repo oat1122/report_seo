@@ -23,7 +23,7 @@ const articleInclude = {
     orderBy: { createdAt: 'desc' },
     include: { author: { select: { name: true } } },
   },
-} as const
+} satisfies Prisma.BlogArticleInclude
 
 type PrismaArticle = Prisma.BlogArticleGetPayload<{ include: typeof articleInclude }>
 
