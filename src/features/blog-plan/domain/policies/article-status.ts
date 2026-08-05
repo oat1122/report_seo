@@ -1,7 +1,9 @@
 import type { BlogArticleStatus, BlogFeedbackDecision, BlogStageCode } from '../BlogArticle'
-import { BLOG_STAGES, getStageDefinition } from './stage-schedule'
+import { getStageDefinition, type BlogStageDefinition } from './stage-schedule'
 
 export interface StatusInput {
+  /** ขั้นตอนของบทความชิ้นนี้ตามลำดับ — ต่างกันได้ระหว่างลูกค้าที่ตรวจงานกับที่ไม่ตรวจ */
+  flow: readonly BlogStageDefinition[]
   submittedStageCodes: readonly BlogStageCode[]
   latestFeedback: { stageCode: BlogStageCode; decision: BlogFeedbackDecision } | null
 }
@@ -11,32 +13,32 @@ export interface StatusInput {
  * ที่ stage หรือ feedback เปลี่ยน (ห้ามให้ client ส่ง status มาเอง)
  */
 export function deriveArticleStatus({
+  flow,
   submittedStageCodes,
   latestFeedback,
 }: StatusInput): BlogArticleStatus {
   const submitted = new Set(submittedStageCodes)
 
   if (submitted.size === 0) return 'DRAFT'
-  if (submitted.has('UPLOAD_ON_WEBSITE')) return 'PUBLISHED'
 
-  const nextStage = BLOG_STAGES.find((stage) => !submitted.has(stage.code))
+  const nextStage = flow.find((stage) => !submitted.has(stage.code))
   if (!nextStage) return 'PUBLISHED'
 
   if (latestFeedback?.decision === 'CHANGES_REQUESTED' && nextStage.actor === 'WRITER') {
     return 'CHANGES_REQUESTED'
   }
   if (nextStage.actor === 'CLIENT') return 'WAITING_CLIENT'
-  if (submitted.has('CLIENT_FINAL_APPROVAL')) return 'APPROVED'
 
   return 'IN_PROGRESS'
 }
 
-/** stage ถัดไปที่รอดำเนินการ — null เมื่อจบครบทุก stage */
+/** stage ถัดไปที่รอดำเนินการ — null เมื่อจบครบทุก stage ของ flow */
 export function getNextPendingStage(
+  flow: readonly BlogStageDefinition[],
   submittedStageCodes: readonly BlogStageCode[],
 ): BlogStageCode | null {
   const submitted = new Set(submittedStageCodes)
-  return BLOG_STAGES.find((stage) => !submitted.has(stage.code))?.code ?? null
+  return flow.find((stage) => !submitted.has(stage.code))?.code ?? null
 }
 
 export const BLOG_ARTICLE_STATUS_LABELS: Record<BlogArticleStatus, string> = {
@@ -44,8 +46,7 @@ export const BLOG_ARTICLE_STATUS_LABELS: Record<BlogArticleStatus, string> = {
   IN_PROGRESS: 'กำลังดำเนินการ',
   WAITING_CLIENT: 'รอลูกค้าตอบ',
   CHANGES_REQUESTED: 'ลูกค้าขอแก้ไข',
-  APPROVED: 'อนุมัติแล้ว',
-  PUBLISHED: 'เผยแพร่แล้ว',
+  PUBLISHED: 'เสร็จสิ้น',
 }
 
 export function getStageLabel(code: BlogStageCode): string {

@@ -1,6 +1,7 @@
 import { NotFoundError } from '@/lib/errors'
 import type { BlogArticleStatus } from '../../domain/BlogArticle'
 import { deriveArticleStatus } from '../../domain/policies/article-status'
+import { getArticleFlow } from '../../domain/policies/stage-schedule'
 import type { BlogArticleRepository } from '../ports/BlogArticleRepository'
 
 /** อ่านสถานะ stage/feedback ล่าสุดแล้วเขียน status ที่ derive ได้กลับลง DB */
@@ -13,6 +14,7 @@ export async function recalculateStatus(
   if (!article) throw new NotFoundError('ไม่พบบทความ')
 
   const status = deriveArticleStatus({
+    flow: getArticleFlow(article.stages),
     submittedStageCodes: article.stages.filter((s) => s.submittedAt).map((s) => s.stageCode),
     latestFeedback: article.feedbacks[0]
       ? { stageCode: article.feedbacks[0].stageCode, decision: article.feedbacks[0].decision }

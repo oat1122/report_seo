@@ -1,31 +1,38 @@
 // e2e ระดับ use case — wire use case จริงเข้ากับ fake ที่ implement port ครบ
-// ไล่ pipeline ทั้ง 7 ขั้นรวมรอบ "ลูกค้าขอแก้แล้วทีมส่งใหม่" เพื่อกันสถานะเพี้ยนระหว่างขั้น
+// ไล่ pipeline ทั้ง 5 ขั้นรวมรอบ "ลูกค้าขอแก้แล้วทีมส่งใหม่" เพื่อกันสถานะเพี้ยนระหว่างขั้น
 
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createArticleUseCase } from '../createArticle'
 import { submitClientFeedbackUseCase } from '../submitClientFeedback'
-import { submitStageWorkUseCase } from '../submitStageWork'
+import { submitStageWorkUseCase, type StageWorkFile } from '../submitStageWork'
 import type { BlogArticleStatus, BlogStageCode } from '../../../domain/BlogArticle'
 import {
   AUTHOR_ID,
   CUSTOMER_ID,
   FakeBlogFileStorage,
   InMemoryBlogArticleRepository,
+  InMemoryBlogSettingsRepository,
   fakeFile,
 } from './fakes'
+
+const finalFiles = (): StageWorkFile[] => [
+  { kind: 'ARTICLE_DOC', file: fakeFile('final.docx') },
+  { kind: 'COVER_IMAGE', file: fakeFile('cover.png') },
+]
 
 describe('blog-plan pipeline (e2e)', () => {
   let articles: InMemoryBlogArticleRepository
   let storage: FakeBlogFileStorage
+  let settings: InMemoryBlogSettingsRepository
   let articleId: string
 
-  const submitWork = (stageCode: BlogStageCode, message: string, file: File | null = null) =>
+  const submitWork = (stageCode: BlogStageCode, message: string, files: StageWorkFile[] = []) =>
     submitStageWorkUseCase(articles, storage)(
       articleId,
       CUSTOMER_ID,
       stageCode,
       { message, linkUrl: null },
-      file,
+      files,
       AUTHOR_ID,
     )
 
@@ -47,11 +54,8 @@ describe('blog-plan pipeline (e2e)', () => {
     return article.status
   }
 
-  beforeEach(async () => {
-    articles = new InMemoryBlogArticleRepository()
-    storage = new FakeBlogFileStorage()
-
-    const article = await createArticleUseCase(articles)(
+  const createArticle = async () => {
+    const article = await createArticleUseCase(articles, settings)(
       CUSTOMER_ID,
       {
         title: 'วิธีเลือกบริษัทรับทำ SEO',
@@ -65,15 +69,27 @@ describe('blog-plan pipeline (e2e)', () => {
       AUTHOR_ID,
     )
     articleId = article.id
+  }
+
+  beforeEach(async () => {
+    articles = new InMemoryBlogArticleRepository()
+    storage = new FakeBlogFileStorage()
+    settings = new InMemoryBlogSettingsRepository()
+    settings.seed(CUSTOMER_ID)
+    await createArticle()
   })
 
-  it('เดินครบตั้งแต่ร่างจนขึ้นเว็บ และสถานะตรงทุกขั้น', async () => {
+  it('เดินครบตั้งแต่ร่างจนส่งไฟล์ final และสถานะตรงทุกขั้น', async () => {
     expect(currentStatus()).toBe('DRAFT')
 
     // ทีมเขียนเสนอหัวข้อรอบแรก
-    expect((await submitWork('SUBMIT_TOPIC', 'เสนอ 3 หัวข้อ', fakeFile())).status).toBe(
-      'WAITING_CLIENT',
-    )
+    expect(
+      (
+        await submitWork('SUBMIT_TOPIC', 'เสนอ 3 หัวข้อ', [
+          { kind: 'ARTICLE_DOC', file: fakeFile() },
+        ])
+      ).status,
+    ).toBe('WAITING_CLIENT')
 
     // ลูกค้าขอแก้ → ย้อนกลับไปที่ทีมเขียน ยังไม่มีอะไรค้างส่ง จึงกลับเป็นร่าง
     expect(
@@ -89,28 +105,44 @@ describe('blog-plan pipeline (e2e)', () => {
       'IN_PROGRESS',
     )
 
-    expect((await submitWork('SUBMIT_ARTICLE', 'บทความฉบับเต็ม', fakeFile())).status).toBe(
-      'WAITING_CLIENT',
+    expect(
+      (
+        await submitWork('SUBMIT_ARTICLE', 'บทความฉบับเต็ม', [
+          { kind: 'ARTICLE_DOC', file: fakeFile() },
+        ])
+      ).status,
+    ).toBe('WAITING_CLIENT')
+
+    // ลูกค้าขอแก้บทความ → ย้อนกลับไปให้ทีมส่งบทความใหม่
+    expect((await respond('CLIENT_FEEDBACK_ARTICLE', 'CHANGES_REQUESTED', 'ขอปรับ')).status).toBe(
+      'CHANGES_REQUESTED',
     )
+    await submitWork('SUBMIT_ARTICLE', 'บทความรอบสอง')
     expect((await respond('CLIENT_FEEDBACK_ARTICLE', 'APPROVED', 'อ่านแล้วโอเค')).status).toBe(
       'IN_PROGRESS',
     )
 
-    expect((await submitWork('SUBMIT_ARTWORK', 'ภาพปก', fakeFile('cover.png'))).status).toBe(
-      'WAITING_CLIENT',
+    expect((await submitWork('SUBMIT_FINAL', 'ไฟล์ final + ภาพปก', finalFiles())).status).toBe(
+      'PUBLISHED',
     )
-
-    // อนุมัติขั้นสุดท้ายแล้วแต่ยังไม่ขึ้นเว็บ = APPROVED ไม่ใช่ PUBLISHED
-    expect((await respond('CLIENT_FINAL_APPROVAL', 'APPROVED', 'อนุมัติ')).status).toBe('APPROVED')
-
-    expect((await submitWork('UPLOAD_ON_WEBSITE', 'ขึ้นเว็บแล้ว')).status).toBe('PUBLISHED')
     expect(currentStatus()).toBe('PUBLISHED')
   })
 
+  it('ลูกค้าที่ไม่ต้องตรวจงาน = ส่งไฟล์ final ครั้งเดียวจบ', async () => {
+    settings.seed(CUSTOMER_ID, { blogRequiresApproval: false })
+    await createArticle()
+
+    expect((await submitWork('SUBMIT_FINAL', 'ไฟล์ final + ภาพปก', finalFiles())).status).toBe(
+      'PUBLISHED',
+    )
+  })
+
   it('เก็บประวัติครบทุกรอบ — ส่งซ้ำไม่ทับของเดิม', async () => {
-    await submitWork('SUBMIT_TOPIC', 'รอบแรก', fakeFile())
+    const doc = (): StageWorkFile[] => [{ kind: 'ARTICLE_DOC', file: fakeFile() }]
+
+    await submitWork('SUBMIT_TOPIC', 'รอบแรก', doc())
     await respond('CLIENT_FEEDBACK_TOPIC', 'CHANGES_REQUESTED', 'ขอแก้')
-    await submitWork('SUBMIT_TOPIC', 'รอบสอง', fakeFile())
+    await submitWork('SUBMIT_TOPIC', 'รอบสอง', doc())
     await respond('CLIENT_FEEDBACK_TOPIC', 'APPROVED', 'ผ่าน')
 
     const article = articles.articles.find((row) => row.id === articleId)

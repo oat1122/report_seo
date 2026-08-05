@@ -1,10 +1,15 @@
 import { BadRequestError, NotFoundError } from '@/lib/errors'
-import type { BlogArticleStatus, BlogStageCode } from '../../domain/BlogArticle'
-import { getStageDefinition } from '../../domain/policies/stage-schedule'
+import type { BlogArticleStatus, BlogFileKind, BlogStageCode } from '../../domain/BlogArticle'
+import { BLOG_FILE_KIND_LABELS, getStageDefinition } from '../../domain/policies/stage-schedule'
 import type { BlogArticleRepository } from '../ports/BlogArticleRepository'
-import type { BlogFileStorage } from '../ports/BlogFileStorage'
+import type { BlogFileStorage, SavedBlogFile } from '../ports/BlogFileStorage'
 import type { SubmitStageWorkInput } from '../../schemas'
 import { recalculateStatus } from './recalculateStatus'
+
+export interface StageWorkFile {
+  kind: BlogFileKind
+  file: File
+}
 
 export interface SubmitStageWorkResult {
   status: BlogArticleStatus
@@ -22,7 +27,7 @@ export function submitStageWorkUseCase(articles: BlogArticleRepository, storage:
     customerId: string,
     stageCode: BlogStageCode,
     input: SubmitStageWorkInput,
-    file: File | null,
+    files: StageWorkFile[],
     authorId: string | null,
   ): Promise<SubmitStageWorkResult> => {
     const article = await articles.findByIdForCustomer(articleId, customerId)
@@ -32,15 +37,37 @@ export function submitStageWorkUseCase(articles: BlogArticleRepository, storage:
     if (definition.actor !== 'WRITER') {
       throw new BadRequestError('ขั้นตอนนี้ต้องให้ลูกค้าเป็นผู้ตอบ')
     }
-    if (file && !definition.fileKind) {
-      throw new BadRequestError('ขั้นตอนนี้แนบไฟล์ไม่ได้ — ส่งเป็นข้อความหรือลิงก์แทน')
+    if (!article.stages.some((stage) => stage.stageCode === stageCode)) {
+      throw new BadRequestError('ขั้นตอนนี้ไม่อยู่ในแผนของบทความนี้')
     }
-    if (!input.message && !input.linkUrl && !file) {
+
+    const unexpected = files.find((item) => !definition.fileKinds.includes(item.kind))
+    if (unexpected) {
+      throw new BadRequestError(
+        `ขั้นตอนนี้แนบ${BLOG_FILE_KIND_LABELS[unexpected.kind]}ไม่ได้ — ส่งเป็นข้อความหรือลิงก์แทน`,
+      )
+    }
+
+    const missing = definition.requiredFileKinds.filter(
+      (kind) => !files.some((item) => item.kind === kind),
+    )
+    if (missing.length > 0) {
+      const wanted = missing.map((kind) => BLOG_FILE_KIND_LABELS[kind]).join(' และ ')
+      throw new BadRequestError(`ต้องแนบ${wanted}ให้ครบก่อนส่ง`)
+    }
+    if (!input.message && !input.linkUrl && files.length === 0) {
       throw new BadRequestError('กรุณาใส่ข้อความ ลิงก์ หรือแนบไฟล์อย่างน้อย 1 อย่าง')
     }
 
-    const saved =
-      file && definition.fileKind ? await storage.validateAndWrite(file, definition.fileKind) : null
+    const saved: SavedBlogFile[] = []
+    try {
+      for (const item of files) {
+        saved.push(await storage.validateAndWrite(item.file, item.kind))
+      }
+    } catch (error) {
+      await removeSaved(storage, saved)
+      throw error
+    }
 
     const submission = await articles.addSubmission(articleId, {
       stageCode,
@@ -50,20 +77,20 @@ export function submitStageWorkUseCase(articles: BlogArticleRepository, storage:
     })
 
     try {
-      if (saved && definition.fileKind) {
+      for (const [index, item] of files.entries()) {
         await articles.addFile(articleId, {
-          kind: definition.fileKind,
-          url: saved.url,
-          filename: saved.filename,
-          mimeType: saved.mimeType,
-          sizeBytes: saved.sizeBytes,
+          kind: item.kind,
+          url: saved[index].url,
+          filename: saved[index].filename,
+          mimeType: saved[index].mimeType,
+          sizeBytes: saved[index].sizeBytes,
           uploadedById: authorId,
           submissionId: submission.id,
         })
       }
       await articles.patchStage(articleId, stageCode, { submittedAt: new Date() })
     } catch (error) {
-      if (saved) await storage.removeByAbsolutePath(saved.absolutePath)
+      await removeSaved(storage, saved)
       await articles.deleteSubmission(submission.id)
       throw error
     }
@@ -71,4 +98,8 @@ export function submitStageWorkUseCase(articles: BlogArticleRepository, storage:
     const status = await recalculateStatus(articles, articleId, customerId)
     return { status, stageCode, round: submission.round }
   }
+}
+
+async function removeSaved(storage: BlogFileStorage, saved: SavedBlogFile[]): Promise<void> {
+  await Promise.all(saved.map((file) => storage.removeByAbsolutePath(file.absolutePath)))
 }

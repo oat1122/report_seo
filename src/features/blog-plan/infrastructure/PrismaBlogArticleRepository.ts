@@ -11,6 +11,7 @@ import type {
   UpdateArticleData,
 } from '../application/ports/BlogArticleRepository'
 import type { BlogArticleStatus, BlogKeywordSource, BlogStageCode } from '../domain/BlogArticle'
+import type { ScheduledStage } from '../domain/policies/stage-schedule'
 
 const fileInclude = {
   uploadedBy: { select: { name: true } },
@@ -209,6 +210,18 @@ export class PrismaBlogArticleRepository implements BlogArticleRepository {
     await prisma.blogArticleStage.update({
       where: { articleId_stageCode: { articleId, stageCode } },
       data: patch,
+    })
+  }
+
+  async addStages(articleId: string, stages: ScheduledStage[]): Promise<void> {
+    await prisma.blogArticleStage.createMany({
+      data: stages.map((stage) => ({ ...stage, articleId })),
+    })
+  }
+
+  async deleteStages(articleId: string, stageCodes: BlogStageCode[]): Promise<void> {
+    await prisma.blogArticleStage.deleteMany({
+      where: { articleId, stageCode: { in: stageCodes } },
     })
   }
 

@@ -49,7 +49,7 @@ function buildSections(canManage: boolean): SectionMeta[] {
       title: canManage ? 'รอลูกค้าตอบ' : 'ทีมกำลังทำอยู่',
       hint: canManage ? 'ส่งไปแล้ว รอฝั่งลูกค้าพิจารณา' : 'ยังไม่ต้องทำอะไร รอทีมส่งงานมาให้ดู',
     },
-    { id: 'done', title: 'เสร็จแล้ว', hint: 'ขึ้นเว็บไซต์เรียบร้อย ไฟล์ยังเก็บไว้ให้' },
+    { id: 'done', title: 'เสร็จแล้ว', hint: 'ส่งไฟล์ final ครบแล้ว ไฟล์ยังเก็บไว้ให้' },
   ]
 }
 

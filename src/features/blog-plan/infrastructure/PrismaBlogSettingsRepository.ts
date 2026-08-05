@@ -9,18 +9,21 @@ import type {
 const settingsSelect = {
   articlesPerMonth: true,
   blogWriterId: true,
+  blogRequiresApproval: true,
   blogWriter: { select: { name: true } },
 } as const
 
 function toSettings(row: {
   articlesPerMonth: number
   blogWriterId: string | null
+  blogRequiresApproval: boolean
   blogWriter: { name: string | null } | null
 }): BlogSettings {
   return {
     articlesPerMonth: row.articlesPerMonth,
     blogWriterId: row.blogWriterId,
     blogWriterName: row.blogWriter?.name ?? null,
+    blogRequiresApproval: row.blogRequiresApproval,
   }
 }
 

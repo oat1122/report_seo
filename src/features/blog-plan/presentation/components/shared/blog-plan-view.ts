@@ -1,6 +1,6 @@
 // helper ระดับ view ที่ใช้ร่วมกันหลายการ์ดในหน้าแผนบทความ — pure ทั้งหมด ไม่แตะ React/network
 
-import { BLOG_STAGES, LEGACY_FILE_STAGE } from '../../../domain/policies/stage-schedule'
+import { getArticleFlow, LEGACY_FILE_STAGE } from '../../../domain/policies/stage-schedule'
 import { getNextPendingStage } from '../../../domain/policies/article-status'
 import type {
   BlogArticle,
@@ -45,23 +45,32 @@ export function daysUntil(date: Date | string): number {
 
 export interface CurrentStage {
   definition: BlogStageDefinition
-  /** ลำดับเริ่มที่ 1 — ใช้แสดง "ขั้นที่ N จาก 7" */
+  /** ลำดับเริ่มที่ 1 — ใช้แสดง "ขั้นที่ N จาก M" */
   step: number
+  /** จำนวนขั้นทั้งหมดของบทความนี้ (5 หรือ 1 แล้วแต่โหมดตรวจงานของลูกค้า) */
+  total: number
   dueDate: Date | null
 }
 
 /** stage ที่ยังไม่ส่ง = ขั้นที่กำลังรออยู่ · null = จบครบทุกขั้นแล้ว */
 export function getCurrentStage(article: BlogArticle): CurrentStage | null {
+  const flow = getArticleFlow(article.stages)
   const code = getNextPendingStage(
+    flow,
     article.stages.filter((stage) => stage.submittedAt).map((stage) => stage.stageCode),
   )
   if (!code) return null
 
-  const definition = BLOG_STAGES.find((stage) => stage.code === code)
-  if (!definition) return null
+  const step = flow.findIndex((stage) => stage.code === code)
+  if (step < 0) return null
 
   const dueDate = article.stages.find((stage) => stage.stageCode === code)?.dueDate ?? null
-  return { definition, step: definition.seq, dueDate: dueDate ? new Date(dueDate) : null }
+  return {
+    definition: flow[step],
+    step: step + 1,
+    total: flow.length,
+    dueDate: dueDate ? new Date(dueDate) : null,
+  }
 }
 
 export type ArticleGroup = 'mine' | 'waiting' | 'done'

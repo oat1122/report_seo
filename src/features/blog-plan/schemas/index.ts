@@ -5,10 +5,14 @@ export const BLOG_STAGE_CODES = [
   'CLIENT_FEEDBACK_TOPIC',
   'SUBMIT_ARTICLE',
   'CLIENT_FEEDBACK_ARTICLE',
-  'SUBMIT_ARTWORK',
-  'CLIENT_FINAL_APPROVAL',
-  'UPLOAD_ON_WEBSITE',
+  'SUBMIT_FINAL',
 ] as const
+
+/** ชื่อ field ของไฟล์ใน multipart ตอนส่งงาน — ฝั่ง hook กับ route handler ต้องใช้ตัวเดียวกัน */
+export const BLOG_FILE_FIELDS = {
+  ARTICLE_DOC: 'articleDoc',
+  COVER_IMAGE: 'coverImage',
+} as const
 
 const stageCodeSchema = z.enum(BLOG_STAGE_CODES)
 const keywordSourceSchema = z.enum(['REPORT', 'RECOMMEND', 'MANUAL'])
@@ -60,6 +64,7 @@ export const updateStageSchema = z
 /**
  * เนื้อหาที่ส่งให้ลูกค้า 1 รอบ — ไฟล์มาทาง multipart จึงไม่อยู่ใน schema
  * use case เป็นคนบังคับว่าต้องมีอย่างน้อย 1 อย่าง (ข้อความ / ลิงก์ / ไฟล์)
+ * และต้องแนบไฟล์ครบตาม requiredFileKinds ของ stage นั้น
  */
 export const submitStageWorkSchema = z.object({
   message: z.string().trim().max(5000).nullable().default(null),
@@ -81,6 +86,7 @@ export const updateBlogSettingsSchema = z
   .object({
     articlesPerMonth: z.coerce.number().int().min(0).max(100),
     blogWriterId: z.uuid().nullable(),
+    blogRequiresApproval: z.boolean(),
   })
   .partial()
 

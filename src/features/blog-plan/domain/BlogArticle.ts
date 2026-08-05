@@ -6,16 +6,13 @@ export type BlogStageCode =
   | 'CLIENT_FEEDBACK_TOPIC'
   | 'SUBMIT_ARTICLE'
   | 'CLIENT_FEEDBACK_ARTICLE'
-  | 'SUBMIT_ARTWORK'
-  | 'CLIENT_FINAL_APPROVAL'
-  | 'UPLOAD_ON_WEBSITE'
+  | 'SUBMIT_FINAL'
 
 export type BlogArticleStatus =
   | 'DRAFT'
   | 'IN_PROGRESS'
   | 'WAITING_CLIENT'
   | 'CHANGES_REQUESTED'
-  | 'APPROVED'
   | 'PUBLISHED'
 
 export type BlogFileKind = 'COVER_IMAGE' | 'ARTICLE_DOC'

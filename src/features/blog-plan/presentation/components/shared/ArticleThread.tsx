@@ -24,7 +24,7 @@ import { cn } from '@/lib/utils'
 import { formatShortDate } from '@/lib/date'
 import { FileAttachment } from './FileAttachment'
 import { getCurrentStage } from './blog-plan-view'
-import { BLOG_STAGES } from '../../../domain/policies/stage-schedule'
+import { getArticleFlow } from '../../../domain/policies/stage-schedule'
 import { getClientStageLabel, getStageLabel } from '../../../domain/policies/article-status'
 import type {
   BlogArticle,
@@ -77,7 +77,7 @@ export function ArticleThread({
   const latestSubmissionId = new Map(
     article.submissions.map((submission) => [submission.stageCode, submission.id]),
   )
-  const pendingWriterStages = BLOG_STAGES.filter(
+  const pendingWriterStages = getArticleFlow(article.stages).filter(
     (stage) => stage.actor === 'WRITER' && !submittedCodes.has(stage.code),
   )
   const current = getCurrentStage(article)
@@ -187,10 +187,10 @@ export function ArticleThread({
                   <ChevronDown className="ml-1.5 size-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="w-auto min-w-56">
                 {pendingWriterStages.slice(1).map((stage) => (
                   <DropdownMenuItem key={stage.code} onClick={() => onSubmitWork(stage.code)}>
-                    {stage.seq}. {stage.label}
+                    {stage.label}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -222,9 +222,7 @@ export function ArticleThread({
             <Check className="size-4" />
           </span>
           <div className="flex flex-col gap-0.5">
-            <strong className="text-success text-sm font-semibold">
-              ผ่านครบทั้ง 7 ขั้นตอนแล้ว
-            </strong>
+            <strong className="text-success text-sm font-semibold">ส่งงานครบทุกขั้นแล้ว</strong>
             <span className="text-muted-foreground text-sm">
               ไฟล์ทุกเวอร์ชันยังเก็บไว้ให้ในแท็บ “ไฟล์ทั้งหมด”
             </span>

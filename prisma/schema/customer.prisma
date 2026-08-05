@@ -19,6 +19,8 @@ model Customer {
 
   // โควตาบทความต่อเดือนที่ admin ตกลงกับลูกค้า (0 = ยังไม่ได้ตั้ง)
   articlesPerMonth Int @default(0)
+  // true = ลูกค้าตรวจหัวข้อ/บทความก่อนทุกครั้ง (5 ขั้น) · false = writer อัปไฟล์ final ครั้งเดียวจบ
+  blogRequiresApproval Boolean @default(true)
 
   reports         KeywordReport[]
   metrics         OverallMetrics?

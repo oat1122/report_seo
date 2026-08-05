@@ -8,7 +8,6 @@ const STATUS_CLASS: Record<BlogArticleStatus, string> = {
   IN_PROGRESS: 'bg-info/10 text-info border-info/30',
   WAITING_CLIENT: 'bg-warning/10 text-warning border-warning/30',
   CHANGES_REQUESTED: 'bg-destructive/10 text-destructive border-destructive/30',
-  APPROVED: 'bg-success/10 text-success border-success/30',
   PUBLISHED: 'bg-secondary/20 text-secondary-foreground dark:text-secondary border-secondary/40',
 }
 

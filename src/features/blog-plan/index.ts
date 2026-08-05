@@ -28,7 +28,7 @@ const settingsRepository = new PrismaBlogSettingsRepository()
 const fileStorage = new LocalBlogFileStorage()
 
 export const listArticles = listArticlesUseCase(articleRepository)
-export const createArticle = createArticleUseCase(articleRepository)
+export const createArticle = createArticleUseCase(articleRepository, settingsRepository)
 export const updateArticle = updateArticleUseCase(articleRepository)
 export const deleteArticle = deleteArticleUseCase(articleRepository, fileStorage)
 export const updateStage = updateStageUseCase(articleRepository)
@@ -37,11 +37,12 @@ export const submitStageWork = submitStageWorkUseCase(articleRepository, fileSto
 export const deleteArticleFile = deleteArticleFileUseCase(articleRepository, fileStorage)
 export const listCustomerKeywords = listCustomerKeywordsUseCase(keywordReader, articleRepository)
 export const getBlogSettings = getBlogSettingsUseCase(settingsRepository)
-export const updateBlogSettings = updateBlogSettingsUseCase(settingsRepository)
+export const updateBlogSettings = updateBlogSettingsUseCase(settingsRepository, articleRepository)
 export const messageBlogWriter = messageBlogWriterUseCase(settingsRepository)
 
 export {
   BLOG_STAGE_CODES,
+  BLOG_FILE_FIELDS,
   listArticlesQuerySchema,
   createArticleSchema,
   updateArticleSchema,

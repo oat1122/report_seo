@@ -6,7 +6,7 @@ import {
   getCurrentStage,
   groupArticle,
 } from '../blog-plan-view'
-import { buildArticle } from '../../../../application/use-cases/__tests__/fakes'
+import { buildArticle, buildStages } from '../../../../application/use-cases/__tests__/fakes'
 import type { BlogArticle, BlogArticleFile } from '../../../../domain/BlogArticle'
 
 function file(overrides: Partial<BlogArticleFile> = {}): BlogArticleFile {
@@ -63,10 +63,18 @@ describe('getCurrentStage', () => {
 
     expect(current?.definition.code).toBe('CLIENT_FEEDBACK_TOPIC')
     expect(current?.step).toBe(2)
+    expect(current?.total).toBe(5)
+  })
+
+  it('บทความ fast track นับจำนวนขั้นจาก stage ที่มีจริง', () => {
+    const current = getCurrentStage(buildArticle({ stages: buildStages(false) }))
+
+    expect(current).toMatchObject({ step: 1, total: 1 })
+    expect(current?.definition.code).toBe('SUBMIT_FINAL')
   })
 
   it('ส่งครบทุกขั้นแล้ว = null', () => {
-    expect(getCurrentStage(submittedThrough(buildArticle(), 7))).toBeNull()
+    expect(getCurrentStage(submittedThrough(buildArticle(), 5))).toBeNull()
   })
 })
 
@@ -117,6 +125,6 @@ describe('collectArticleFiles', () => {
     expect(entries.map((entry) => entry.id)).toEqual(['new', 'old'])
     expect(entries[0]).toMatchObject({ stageCode: 'SUBMIT_ARTICLE', round: 1 })
     // ไฟล์เก่าไม่มี submission → ผูก stage ตามชนิดไฟล์ และไม่มีเลขรอบ
-    expect(entries[1]).toMatchObject({ stageCode: 'SUBMIT_ARTWORK', round: null })
+    expect(entries[1]).toMatchObject({ stageCode: 'SUBMIT_FINAL', round: null })
   })
 })

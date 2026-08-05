@@ -24,7 +24,7 @@ export default async function AdminBlogPlanPage({ params }: PageProps) {
           <header className="flex flex-col gap-1">
             <h1 className="text-2xl font-semibold tracking-tight">แผนบทความ</h1>
             <p className="text-muted-foreground text-sm">
-              ตั้งโควตาต่อเดือน · มอบหมายผู้เขียน · ติดตามทั้ง 7 ขั้นตอนของแต่ละบทความ
+              ตั้งโควตาต่อเดือน · มอบหมายผู้เขียน · ติดตามทุกขั้นตอนของแต่ละบทความ
             </p>
           </header>
         </div>

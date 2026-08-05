@@ -27,13 +27,33 @@ describe('StageSubmitDialog', () => {
     renderDialog({ stageCode: 'SUBMIT_TOPIC' })
     expect(screen.getByRole('button', { name: /เลือกไฟล์/ })).toBeTruthy()
     expect(screen.getByText('Word/PDF ไม่เกิน 20MB')).toBeTruthy()
+  })
 
-    renderDialog({ stageCode: 'SUBMIT_ARTWORK' })
+  it('ขั้นไฟล์ final = ขอทั้งไฟล์บทความและภาพปก และส่งไม่ได้จนกว่าจะแนบครบ', async () => {
+    const user = userEvent.setup()
+    renderDialog({ stageCode: 'SUBMIT_FINAL' })
+
+    expect(screen.getByText('Word/PDF ไม่เกิน 20MB')).toBeTruthy()
     expect(screen.getByText('JPG/PNG ไม่เกิน 5MB')).toBeTruthy()
+
+    await user.type(screen.getByLabelText('ข้อความถึงลูกค้า'), 'ไฟล์ final ครับ')
+    expect(submitButton().disabled).toBe(true)
+
+    await user.upload(
+      screen.getByLabelText<HTMLInputElement>('ไฟล์บทความ'),
+      new File(['doc'], 'final.docx', { type: 'application/msword' }),
+    )
+    expect(submitButton().disabled).toBe(true)
+
+    await user.upload(
+      screen.getByLabelText<HTMLInputElement>('ภาพปก'),
+      new File(['img'], 'cover.png', { type: 'image/png' }),
+    )
+    expect(submitButton().disabled).toBe(false)
   })
 
   it('stage ที่แนบไฟล์ไม่ได้ = ไม่โชว์ปุ่มแนบไฟล์เลย', () => {
-    renderDialog({ stageCode: 'UPLOAD_ON_WEBSITE' })
+    renderDialog({ stageCode: 'CLIENT_FEEDBACK_TOPIC' })
     expect(screen.queryByRole('button', { name: /เลือกไฟล์/ })).toBeNull()
   })
 
@@ -66,7 +86,7 @@ describe('StageSubmitDialog', () => {
     expect(onSubmit).toHaveBeenCalledWith({
       message: 'เสนอหัวข้อ',
       linkUrl: 'https://docs.google.com/x',
-      file: null,
+      files: {},
     })
   })
 

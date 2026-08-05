@@ -4,7 +4,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from '@/lib/axios'
 import type { ApiSuccess } from '@/infrastructure/http'
 import type { BlogSettings } from '../../application/ports/BlogSettingsRepository'
-import type { BlogArticle, BlogStageCode, CustomerKeywordOption } from '../../domain/BlogArticle'
+import type {
+  BlogArticle,
+  BlogFileKind,
+  BlogStageCode,
+  CustomerKeywordOption,
+} from '../../domain/BlogArticle'
+import { BLOG_FILE_FIELDS } from '../../schemas'
 import type {
   CreateArticleInput,
   MessageWriterInput,
@@ -157,7 +163,7 @@ export interface SubmitStageWorkVariables {
   stageCode: BlogStageCode
   message: string
   linkUrl: string
-  file: File | null
+  files: Partial<Record<BlogFileKind, File>>
 }
 
 export function useSubmitStageWork(customerId: string) {
@@ -168,12 +174,15 @@ export function useSubmitStageWork(customerId: string) {
       stageCode,
       message,
       linkUrl,
-      file,
+      files,
     }: SubmitStageWorkVariables) => {
       const form = new FormData()
       if (message) form.append('message', message)
       if (linkUrl) form.append('linkUrl', linkUrl)
-      if (file) form.append('file', file)
+      for (const [kind, field] of Object.entries(BLOG_FILE_FIELDS)) {
+        const file = files[kind as BlogFileKind]
+        if (file) form.append(field, file)
+      }
       await axios.post(`${base(customerId)}/${articleId}/stages/${stageCode}/submissions`, form)
     },
     onSuccess: invalidate,

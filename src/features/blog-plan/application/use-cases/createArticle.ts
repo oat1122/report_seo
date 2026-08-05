@@ -1,14 +1,22 @@
+import { NotFoundError } from '@/lib/errors'
 import type { BlogArticle } from '../../domain/BlogArticle'
-import { buildStageSchedule } from '../../domain/policies/stage-schedule'
+import { buildStageSchedule, getFlowStages } from '../../domain/policies/stage-schedule'
 import type { BlogArticleRepository } from '../ports/BlogArticleRepository'
+import type { BlogSettingsRepository } from '../ports/BlogSettingsRepository'
 import type { CreateArticleInput } from '../../schemas'
 
-export function createArticleUseCase(articles: BlogArticleRepository) {
+export function createArticleUseCase(
+  articles: BlogArticleRepository,
+  settings: BlogSettingsRepository,
+) {
   return async (
     customerId: string,
     input: CreateArticleInput,
     createdById: string | null,
   ): Promise<BlogArticle> => {
+    const config = await settings.get(customerId)
+    if (!config) throw new NotFoundError('ไม่พบลูกค้า')
+
     return articles.create({
       customerId,
       title: input.title,
@@ -18,7 +26,7 @@ export function createArticleUseCase(articles: BlogArticleRepository) {
       startDate: input.startDate,
       note: input.note,
       createdById,
-      stages: buildStageSchedule(input.startDate),
+      stages: buildStageSchedule(input.startDate, getFlowStages(config.blogRequiresApproval)),
       keywords: dedupeKeywords(input.keywords),
     })
   }

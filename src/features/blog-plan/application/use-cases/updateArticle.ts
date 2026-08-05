@@ -1,5 +1,5 @@
 import { NotFoundError } from '@/lib/errors'
-import { buildStageSchedule } from '../../domain/policies/stage-schedule'
+import { buildStageSchedule, getArticleFlow } from '../../domain/policies/stage-schedule'
 import type { BlogArticleRepository } from '../ports/BlogArticleRepository'
 import type { UpdateArticleInput } from '../../schemas'
 import { dedupeKeywords } from './createArticle'
@@ -22,7 +22,7 @@ export function updateArticleUseCase(articles: BlogArticleRepository) {
 
     // เลื่อน startDate = เลื่อน due date ทั้ง pipeline แต่ไม่แตะ submittedAt ที่เกิดขึ้นจริงแล้ว
     if (input.startDate !== undefined) {
-      for (const stage of buildStageSchedule(input.startDate)) {
+      for (const stage of buildStageSchedule(input.startDate, getArticleFlow(existing.stages))) {
         await articles.patchStage(articleId, stage.stageCode, { dueDate: stage.dueDate })
       }
     }

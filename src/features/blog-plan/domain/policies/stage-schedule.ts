@@ -9,10 +9,12 @@ export interface BlogStageDefinition {
   label: string
   /** ชื่อสั้นภาษาชาวบ้านสำหรับหน้าลูกค้า — "คุณ" = ลูกค้า, "ทีม" = ทีมเขียน */
   clientLabel: string
-  /** จำนวนวันที่ให้ทำ stage นี้ — ตัวเลขในวงเล็บบนหัวคอลัมน์ของฟอร์ม SEO Prime */
+  /** จำนวนวันที่ให้ทำ stage นี้ */
   days: number
-  /** ชนิดไฟล์ที่แนบได้ตอนส่งงาน stage นี้ — null = แนบไฟล์ไม่ได้ (ข้อความ/ลิงก์เท่านั้น) */
-  fileKind: BlogFileKind | null
+  /** ชนิดไฟล์ที่แนบได้ตอนส่งงาน stage นี้ — ว่าง = แนบไฟล์ไม่ได้ (ข้อความ/ลิงก์เท่านั้น) */
+  fileKinds: readonly BlogFileKind[]
+  /** ชนิดไฟล์ที่ต้องแนบให้ครบถึงจะส่งได้ */
+  requiredFileKinds: readonly BlogFileKind[]
 }
 
 export const BLOG_STAGES: readonly BlogStageDefinition[] = [
@@ -23,16 +25,18 @@ export const BLOG_STAGES: readonly BlogStageDefinition[] = [
     label: 'ส่งหัวข้อ / Main Idea',
     clientLabel: 'ทีมส่งหัวข้อ',
     days: 5,
-    fileKind: 'ARTICLE_DOC',
+    fileKinds: ['ARTICLE_DOC'],
+    requiredFileKinds: [],
   },
   {
     code: 'CLIENT_FEEDBACK_TOPIC',
     seq: 2,
     actor: 'CLIENT',
-    label: 'ลูกค้าให้ความเห็นหัวข้อ',
+    label: 'ลูกค้าตรวจหัวข้อ',
     clientLabel: 'คุณเลือกหัวข้อ',
     days: 4,
-    fileKind: null,
+    fileKinds: [],
+    requiredFileKinds: [],
   },
   {
     code: 'SUBMIT_ARTICLE',
@@ -41,50 +45,62 @@ export const BLOG_STAGES: readonly BlogStageDefinition[] = [
     label: 'ส่งบทความฉบับเต็ม',
     clientLabel: 'ทีมส่งบทความ',
     days: 5,
-    fileKind: 'ARTICLE_DOC',
+    fileKinds: ['ARTICLE_DOC'],
+    requiredFileKinds: [],
   },
   {
     code: 'CLIENT_FEEDBACK_ARTICLE',
     seq: 4,
     actor: 'CLIENT',
-    label: 'ลูกค้าให้ความเห็นบทความ',
+    label: 'ลูกค้าตรวจบทความ',
     clientLabel: 'คุณอ่านบทความ',
     days: 5,
-    fileKind: null,
+    fileKinds: [],
+    requiredFileKinds: [],
   },
   {
-    code: 'SUBMIT_ARTWORK',
+    code: 'SUBMIT_FINAL',
     seq: 5,
     actor: 'WRITER',
-    label: 'ส่งภาพประกอบ / ภาพปก',
-    clientLabel: 'ทีมส่งภาพ',
+    label: 'ส่งไฟล์ final + ภาพปก',
+    clientLabel: 'ทีมส่งไฟล์ final',
     days: 4,
-    fileKind: 'COVER_IMAGE',
-  },
-  {
-    code: 'CLIENT_FINAL_APPROVAL',
-    seq: 6,
-    actor: 'CLIENT',
-    label: 'ลูกค้าอนุมัติขั้นสุดท้าย',
-    clientLabel: 'คุณอนุมัติ',
-    days: 5,
-    fileKind: null,
-  },
-  {
-    code: 'UPLOAD_ON_WEBSITE',
-    seq: 7,
-    actor: 'WRITER',
-    label: 'อัปโหลดขึ้นเว็บไซต์',
-    clientLabel: 'ทีมลงเว็บ',
-    days: 0,
-    fileKind: null,
+    fileKinds: ['ARTICLE_DOC', 'COVER_IMAGE'],
+    requiredFileKinds: ['ARTICLE_DOC', 'COVER_IMAGE'],
   },
 ] as const
+
+export const BLOG_FILE_KIND_LABELS: Record<BlogFileKind, string> = {
+  ARTICLE_DOC: 'ไฟล์บทความ',
+  COVER_IMAGE: 'ภาพปก',
+}
+
+/** ลูกค้าที่ไม่ต้องตรวจงาน — writer อัปไฟล์ final + ภาพปกครั้งเดียวจบ */
+const FAST_TRACK_STAGES: readonly BlogStageDefinition[] = BLOG_STAGES.filter(
+  (stage) => stage.code === 'SUBMIT_FINAL',
+)
+
+/** flow ที่จะใช้กับบทความใหม่ของลูกค้ารายนี้ */
+export function getFlowStages(requiresApproval: boolean): readonly BlogStageDefinition[] {
+  return requiresApproval ? BLOG_STAGES : FAST_TRACK_STAGES
+}
+
+/**
+ * flow จริงของบทความ 1 ชิ้น = stage row ที่มีอยู่ (ตั้งตอนสร้าง และ sync ใหม่เมื่อ admin สลับโหมด)
+ * — บทความที่ยังไม่มี row เลยให้ถอยไปใช้ flow เต็ม
+ */
+export function getArticleFlow(
+  stages: readonly { stageCode: BlogStageCode }[],
+): readonly BlogStageDefinition[] {
+  const present = new Set(stages.map((stage) => stage.stageCode))
+  const flow = BLOG_STAGES.filter((stage) => present.has(stage.code))
+  return flow.length > 0 ? flow : BLOG_STAGES
+}
 
 /** ไฟล์เก่าที่ไม่มี submission ให้ไปแสดงใต้ stage นี้ตามชนิดไฟล์ */
 export const LEGACY_FILE_STAGE: Record<BlogFileKind, BlogStageCode> = {
   ARTICLE_DOC: 'SUBMIT_ARTICLE',
-  COVER_IMAGE: 'SUBMIT_ARTWORK',
+  COVER_IMAGE: 'SUBMIT_FINAL',
 }
 
 export function getStageDefinition(code: BlogStageCode): BlogStageDefinition {
@@ -99,11 +115,14 @@ export function isClientStage(code: BlogStageCode): boolean {
   return getStageDefinition(code).actor === 'CLIENT'
 }
 
-/** stage ของ writer ที่อยู่ก่อน stage ของลูกค้า — ใช้ย้อนกลับเมื่อลูกค้าขอแก้ */
-export function getPrecedingWriterStage(code: BlogStageCode): BlogStageCode | null {
-  const { seq } = getStageDefinition(code)
-  for (let i = seq - 2; i >= 0; i -= 1) {
-    if (BLOG_STAGES[i].actor === 'WRITER') return BLOG_STAGES[i].code
+/** stage ของ writer ที่อยู่ก่อน stage ของลูกค้าใน flow เดียวกัน — ใช้ย้อนกลับเมื่อลูกค้าขอแก้ */
+export function getPrecedingWriterStage(
+  code: BlogStageCode,
+  flow: readonly BlogStageDefinition[] = BLOG_STAGES,
+): BlogStageCode | null {
+  const index = flow.findIndex((stage) => stage.code === code)
+  for (let i = index - 1; i >= 0; i -= 1) {
+    if (flow[i].actor === 'WRITER') return flow[i].code
   }
   return null
 }
@@ -128,7 +147,7 @@ export function buildStageWindows(
   const dueByCode = new Map(stages.map((stage) => [stage.stageCode, stage.dueDate]))
   let cursor = startDate ? new Date(startDate) : null
 
-  return BLOG_STAGES.flatMap((definition) => {
+  return getArticleFlow(stages).flatMap((definition) => {
     const rawDue = dueByCode.get(definition.code)
     if (!rawDue) return []
 
@@ -148,19 +167,22 @@ export interface ScheduledStage {
 }
 
 /**
- * ไล่ dueDate ต่อเนื่องจาก startDate ตามจำนวนวันของแต่ละ stage
+ * ไล่ dueDate ต่อเนื่องจาก startDate ตามจำนวนวันของแต่ละ stage ใน flow
  * startDate = null → ยังไม่กำหนดวัน ให้ผู้ใช้กรอกเองทีหลัง
  */
-export function buildStageSchedule(startDate: Date | null): ScheduledStage[] {
+export function buildStageSchedule(
+  startDate: Date | null,
+  flow: readonly BlogStageDefinition[],
+): ScheduledStage[] {
   let cursor = startDate ? new Date(startDate) : null
 
-  return BLOG_STAGES.map((stage) => {
+  return flow.map((stage, index) => {
     if (!cursor) {
-      return { stageCode: stage.code, seq: stage.seq, dueDate: null }
+      return { stageCode: stage.code, seq: index + 1, dueDate: null }
     }
     const dueDate = new Date(cursor)
     dueDate.setDate(dueDate.getDate() + stage.days)
     cursor = dueDate
-    return { stageCode: stage.code, seq: stage.seq, dueDate }
+    return { stageCode: stage.code, seq: index + 1, dueDate }
   })
 }

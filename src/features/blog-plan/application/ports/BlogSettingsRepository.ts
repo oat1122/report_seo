@@ -2,11 +2,14 @@ export interface BlogSettings {
   articlesPerMonth: number
   blogWriterId: string | null
   blogWriterName: string | null
+  /** true = ลูกค้าตรวจหัวข้อ/บทความก่อนทุกครั้ง · false = writer อัปไฟล์ final ครั้งเดียวจบ */
+  blogRequiresApproval: boolean
 }
 
 export interface BlogSettingsPatch {
   articlesPerMonth?: number
   blogWriterId?: string | null
+  blogRequiresApproval?: boolean
 }
 
 export interface BlogSettingsRepository {

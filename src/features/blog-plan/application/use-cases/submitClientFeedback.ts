@@ -1,6 +1,10 @@
 import { BadRequestError, NotFoundError } from '@/lib/errors'
 import type { BlogArticleStatus } from '../../domain/BlogArticle'
-import { getPrecedingWriterStage, isClientStage } from '../../domain/policies/stage-schedule'
+import {
+  getArticleFlow,
+  getPrecedingWriterStage,
+  isClientStage,
+} from '../../domain/policies/stage-schedule'
 import type { BlogArticleRepository } from '../ports/BlogArticleRepository'
 import type { SubmitFeedbackInput } from '../../schemas'
 import { recalculateStatus } from './recalculateStatus'
@@ -24,7 +28,12 @@ export function submitClientFeedbackUseCase(articles: BlogArticleRepository) {
       throw new BadRequestError('ขั้นตอนนี้ไม่ใช่ขั้นตอนที่ลูกค้าให้ความเห็น')
     }
 
-    const previousWriterStage = getPrecedingWriterStage(input.stageCode)
+    const flow = getArticleFlow(article.stages)
+    if (!flow.some((stage) => stage.code === input.stageCode)) {
+      throw new BadRequestError('บทความนี้ไม่มีขั้นตอนให้ลูกค้าตรวจ')
+    }
+
+    const previousWriterStage = getPrecedingWriterStage(input.stageCode, flow)
     const isWriterStageReady =
       !previousWriterStage ||
       article.stages.some((s) => s.stageCode === previousWriterStage && s.submittedAt)

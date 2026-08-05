@@ -3,11 +3,14 @@ import { withApiHandler, customerAccessGuard, created } from '@/infrastructure/h
 import { BadRequestError } from '@/lib/errors'
 import { createNotification, NOTIFICATION_TYPES } from '@/features/notifications'
 import {
+  BLOG_FILE_FIELDS,
   BLOG_STAGE_CODES,
   getStageLabel,
   submitStageWork,
   submitStageWorkSchema,
 } from '@/features/blog-plan'
+import type { BlogFileKind } from '@/features/blog-plan/domain/BlogArticle'
+import type { StageWorkFile } from '@/features/blog-plan/application/use-cases/submitStageWork'
 
 const paramsSchema = z.object({
   customerId: z.uuid(),
@@ -28,15 +31,18 @@ export const POST = withApiHandler({ params: paramsSchema }, async ({ req, param
     throw new BadRequestError('ข้อความหรือลิงก์ไม่ถูกต้อง')
   }
 
-  const rawFile = form.get('file')
-  const file = rawFile instanceof File && rawFile.size > 0 ? rawFile : null
+  const files = Object.entries(BLOG_FILE_FIELDS).flatMap<StageWorkFile>(([kind, field]) => {
+    const value = form.get(field)
+    if (!(value instanceof File) || value.size === 0) return []
+    return [{ kind: kind as BlogFileKind, file: value }]
+  })
 
   const result = await submitStageWork(
     params.articleId,
     ctx.customer.id,
     params.stageCode,
     parsed.data,
-    file,
+    files,
     session.user.id,
   )
 

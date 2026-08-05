@@ -2,7 +2,8 @@
 // จำลอง behavior ที่ use case พึ่งพาจริง: round ต่อ stage, version ต่อ kind,
 // feedback เรียงใหม่→เก่า (recalculateStatus อ่าน feedbacks[0] เป็นรายการล่าสุด)
 
-import { buildStageSchedule } from '../../../domain/policies/stage-schedule'
+import { buildStageSchedule, getFlowStages } from '../../../domain/policies/stage-schedule'
+import type { ScheduledStage } from '../../../domain/policies/stage-schedule'
 import type {
   BlogArticle,
   BlogArticleStatus,
@@ -146,6 +147,26 @@ export class InMemoryBlogArticleRepository implements BlogArticleRepository {
     Object.assign(stage, patch)
   }
 
+  async addStages(articleId: string, stages: ScheduledStage[]): Promise<void> {
+    const article = this.require(articleId)
+    article.stages = [
+      ...article.stages,
+      ...stages.map((stage) => ({
+        id: this.nextId('stage'),
+        stageCode: stage.stageCode,
+        seq: stage.seq,
+        dueDate: stage.dueDate,
+        submittedAt: null,
+        note: null,
+      })),
+    ].sort((a, b) => a.seq - b.seq)
+  }
+
+  async deleteStages(articleId: string, stageCodes: BlogStageCode[]): Promise<void> {
+    const article = this.require(articleId)
+    article.stages = article.stages.filter((stage) => !stageCodes.includes(stage.stageCode))
+  }
+
   async setStatus(articleId: string, status: BlogArticleStatus): Promise<void> {
     this.require(articleId).status = status
   }
@@ -287,6 +308,7 @@ export class InMemoryBlogSettingsRepository implements BlogSettingsRepository {
       articlesPerMonth: 4,
       blogWriterId: null,
       blogWriterName: null,
+      blogRequiresApproval: true,
       ...settings,
     })
   }
@@ -312,7 +334,19 @@ export class InMemoryBlogSettingsRepository implements BlogSettingsRepository {
   }
 }
 
-/** บทความเปล่าที่มี stage ครบ 7 ขั้น — override เฉพาะ field ที่เทสต์สนใจ */
+/** stage row เปล่า ๆ ของ flow ที่ต้องการ — ใช้ seed บทความ fast track ในเทสต์ */
+export function buildStages(requiresApproval: boolean): BlogArticle['stages'] {
+  return buildStageSchedule(null, getFlowStages(requiresApproval)).map((stage, index) => ({
+    id: `stage-${index + 1}`,
+    stageCode: stage.stageCode,
+    seq: stage.seq,
+    dueDate: stage.dueDate,
+    submittedAt: null,
+    note: null,
+  }))
+}
+
+/** บทความเปล่าที่มี stage ครบทั้ง 5 ขั้น — override เฉพาะ field ที่เทสต์สนใจ */
 export function buildArticle(overrides: Partial<BlogArticle> = {}): BlogArticle {
   const now = new Date('2026-08-01T00:00:00.000Z')
   return {
@@ -331,14 +365,7 @@ export function buildArticle(overrides: Partial<BlogArticle> = {}): BlogArticle 
     updatedAt: now,
     createdByName: null,
     keywords: [],
-    stages: buildStageSchedule(null).map((stage, index) => ({
-      id: `stage-${index + 1}`,
-      stageCode: stage.stageCode,
-      seq: stage.seq,
-      dueDate: stage.dueDate,
-      submittedAt: null,
-      note: null,
-    })),
+    stages: buildStages(true),
     legacyFiles: [],
     submissions: [],
     feedbacks: [],

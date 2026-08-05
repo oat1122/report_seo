@@ -20,42 +20,62 @@ import {
   InMemoryBlogArticleRepository,
   InMemoryBlogSettingsRepository,
   OTHER_CUSTOMER_ID,
+  buildStages,
   fakeFile,
 } from './fakes'
 
 function setup() {
   const articles = new InMemoryBlogArticleRepository()
   const storage = new FakeBlogFileStorage()
-  return { articles, storage }
+  const settings = new InMemoryBlogSettingsRepository()
+  settings.seed(CUSTOMER_ID)
+  return { articles, storage, settings }
 }
 
+const articleDoc = () => [{ kind: 'ARTICLE_DOC' as const, file: fakeFile() }]
+
 describe('createArticle', () => {
-  it('กาง stage ครบ 7 ขั้นจาก startDate ที่ส่งมา', async () => {
-    const { articles } = setup()
-    const create = createArticleUseCase(articles)
+  const draft = {
+    title: 'บทความใหม่',
+    keyFocus: null,
+    targetYear: 2026,
+    targetMonth: 8,
+    startDate: new Date('2026-08-01T00:00:00.000Z'),
+    note: null,
+    keywords: [],
+  }
 
-    const article = await create(
-      CUSTOMER_ID,
-      {
-        title: 'บทความใหม่',
-        keyFocus: null,
-        targetYear: 2026,
-        targetMonth: 8,
-        startDate: new Date('2026-08-01T00:00:00.000Z'),
-        note: null,
-        keywords: [],
-      },
-      AUTHOR_ID,
-    )
+  it('ลูกค้าที่ต้องตรวจงาน = กาง stage ครบ 5 ขั้นจาก startDate ที่ส่งมา', async () => {
+    const { articles, settings } = setup()
 
-    expect(article.stages).toHaveLength(7)
+    const article = await createArticleUseCase(articles, settings)(CUSTOMER_ID, draft, AUTHOR_ID)
+
+    expect(article.stages).toHaveLength(5)
     expect(article.stages[0].dueDate?.toISOString().slice(0, 10)).toBe('2026-08-06')
     expect(article.stages.every((stage) => stage.submittedAt === null)).toBe(true)
   })
 
-  it('ตัด keyword ซ้ำแบบไม่สนตัวพิมพ์ — กัน unique([articleId, keyword]) ชน', async () => {
+  it('ลูกค้าที่ไม่ต้องตรวจงาน = มีแค่ขั้นส่งไฟล์ final', async () => {
+    const { articles, settings } = setup()
+    settings.seed(CUSTOMER_ID, { blogRequiresApproval: false })
+
+    const article = await createArticleUseCase(articles, settings)(CUSTOMER_ID, draft, AUTHOR_ID)
+
+    expect(article.stages.map((stage) => stage.stageCode)).toEqual(['SUBMIT_FINAL'])
+  })
+
+  it('ไม่พบลูกค้า = NotFoundError', async () => {
     const { articles } = setup()
-    const create = createArticleUseCase(articles)
+    const empty = new InMemoryBlogSettingsRepository()
+
+    await expect(
+      createArticleUseCase(articles, empty)(CUSTOMER_ID, draft, AUTHOR_ID),
+    ).rejects.toThrow(NotFoundError)
+  })
+
+  it('ตัด keyword ซ้ำแบบไม่สนตัวพิมพ์ — กัน unique([articleId, keyword]) ชน', async () => {
+    const { articles, settings } = setup()
+    const create = createArticleUseCase(articles, settings)
 
     const article = await create(
       CUSTOMER_ID,
@@ -339,13 +359,13 @@ describe('submitStageWork', () => {
         CUSTOMER_ID,
         'CLIENT_FEEDBACK_TOPIC',
         { message: 'ส่งแทนลูกค้า', linkUrl: null },
-        null,
+        [],
         AUTHOR_ID,
       ),
     ).rejects.toThrow(BadRequestError)
   })
 
-  it('stage ที่ไม่รับไฟล์ = แนบไฟล์ไม่ได้', async () => {
+  it('stage ที่ไม่รับไฟล์ชนิดนั้น = แนบไม่ได้', async () => {
     const { articles, storage } = setup()
     const article = articles.seed()
 
@@ -353,13 +373,76 @@ describe('submitStageWork', () => {
       submitStageWorkUseCase(articles, storage)(
         article.id,
         CUSTOMER_ID,
-        'UPLOAD_ON_WEBSITE',
+        'SUBMIT_TOPIC',
         emptyInput,
-        fakeFile(),
+        [{ kind: 'COVER_IMAGE', file: fakeFile('cover.png') }],
         AUTHOR_ID,
       ),
     ).rejects.toThrow(BadRequestError)
     expect(storage.written).toHaveLength(0)
+  })
+
+  it('ขั้นไฟล์ final = ต้องแนบทั้งไฟล์บทความและภาพปก', async () => {
+    const { articles, storage } = setup()
+    const article = articles.seed()
+    const submit = submitStageWorkUseCase(articles, storage)
+
+    await expect(
+      submit(article.id, CUSTOMER_ID, 'SUBMIT_FINAL', emptyInput, articleDoc(), AUTHOR_ID),
+    ).rejects.toThrow(BadRequestError)
+    expect(storage.written).toHaveLength(0)
+
+    await submit(
+      article.id,
+      CUSTOMER_ID,
+      'SUBMIT_FINAL',
+      emptyInput,
+      [
+        { kind: 'ARTICLE_DOC', file: fakeFile('final.docx') },
+        { kind: 'COVER_IMAGE', file: fakeFile('cover.png') },
+      ],
+      AUTHOR_ID,
+    )
+
+    expect(article.submissions[0].files.map((file) => file.kind)).toEqual([
+      'ARTICLE_DOC',
+      'COVER_IMAGE',
+    ])
+  })
+
+  it('fast track: ส่งไฟล์ final ขั้นเดียวแล้วบทความเสร็จเลย', async () => {
+    const { articles, storage } = setup()
+    const article = articles.seed({ stages: buildStages(false) })
+
+    const result = await submitStageWorkUseCase(articles, storage)(
+      article.id,
+      CUSTOMER_ID,
+      'SUBMIT_FINAL',
+      emptyInput,
+      [
+        { kind: 'ARTICLE_DOC', file: fakeFile('final.docx') },
+        { kind: 'COVER_IMAGE', file: fakeFile('cover.png') },
+      ],
+      AUTHOR_ID,
+    )
+
+    expect(result.status).toBe('PUBLISHED')
+  })
+
+  it('stage ที่ไม่อยู่ใน flow ของบทความ = ส่งไม่ได้', async () => {
+    const { articles, storage } = setup()
+    const article = articles.seed({ stages: buildStages(false) })
+
+    await expect(
+      submitStageWorkUseCase(articles, storage)(
+        article.id,
+        CUSTOMER_ID,
+        'SUBMIT_TOPIC',
+        { message: 'เสนอหัวข้อ', linkUrl: null },
+        [],
+        AUTHOR_ID,
+      ),
+    ).rejects.toThrow(BadRequestError)
   })
 
   it('ต้องมีข้อความ ลิงก์ หรือไฟล์อย่างน้อย 1 อย่าง', async () => {
@@ -372,7 +455,7 @@ describe('submitStageWork', () => {
         CUSTOMER_ID,
         'SUBMIT_TOPIC',
         emptyInput,
-        null,
+        [],
         AUTHOR_ID,
       ),
     ).rejects.toThrow(BadRequestError)
@@ -387,7 +470,7 @@ describe('submitStageWork', () => {
       CUSTOMER_ID,
       'SUBMIT_TOPIC',
       { message: 'เสนอ 3 หัวข้อ', linkUrl: null },
-      fakeFile(),
+      articleDoc(),
       AUTHOR_ID,
     )
 
@@ -402,13 +485,13 @@ describe('submitStageWork', () => {
     const submit = submitStageWorkUseCase(articles, storage)
     const input = { message: 'รอบแรก', linkUrl: null }
 
-    await submit(article.id, CUSTOMER_ID, 'SUBMIT_TOPIC', input, null, AUTHOR_ID)
+    await submit(article.id, CUSTOMER_ID, 'SUBMIT_TOPIC', input, [], AUTHOR_ID)
     const second = await submit(
       article.id,
       CUSTOMER_ID,
       'SUBMIT_TOPIC',
       { message: 'แก้ตามที่ขอ', linkUrl: null },
-      null,
+      [],
       AUTHOR_ID,
     )
 
@@ -426,7 +509,7 @@ describe('submitStageWork', () => {
         CUSTOMER_ID,
         'SUBMIT_TOPIC',
         { message: 'เสนอหัวข้อ', linkUrl: null },
-        fakeFile(),
+        articleDoc(),
         AUTHOR_ID,
       ),
     ).rejects.toThrow('fake: addFile failed')
@@ -446,7 +529,7 @@ describe('submitStageWork', () => {
         OTHER_CUSTOMER_ID,
         'SUBMIT_TOPIC',
         { message: 'x', linkUrl: null },
-        null,
+        [],
         AUTHOR_ID,
       ),
     ).rejects.toThrow(NotFoundError)
@@ -564,20 +647,20 @@ describe('manageBlogSettings', () => {
   })
 
   it('assign คนที่ไม่ใช่ BLOG_WRITER ไม่ได้', async () => {
-    const settings = new InMemoryBlogSettingsRepository()
-    settings.seed(CUSTOMER_ID)
+    const { articles, settings } = setup()
 
     await expect(
-      updateBlogSettingsUseCase(settings)(CUSTOMER_ID, { blogWriterId: 'user-ที่ไม่ใช่นักเขียน' }),
+      updateBlogSettingsUseCase(settings, articles)(CUSTOMER_ID, {
+        blogWriterId: 'user-ที่ไม่ใช่นักเขียน',
+      }),
     ).rejects.toThrow(BadRequestError)
   })
 
   it('assign BLOG_WRITER จริงได้', async () => {
-    const settings = new InMemoryBlogSettingsRepository()
-    settings.seed(CUSTOMER_ID)
+    const { articles, settings } = setup()
     settings.seedWriter('writer-1')
 
-    const result = await updateBlogSettingsUseCase(settings)(CUSTOMER_ID, {
+    const result = await updateBlogSettingsUseCase(settings, articles)(CUSTOMER_ID, {
       blogWriterId: 'writer-1',
       articlesPerMonth: 8,
     })
@@ -586,14 +669,58 @@ describe('manageBlogSettings', () => {
   })
 
   it('ไม่ได้ส่ง blogWriterId มา = ข้ามการตรวจ role', async () => {
-    const settings = new InMemoryBlogSettingsRepository()
-    settings.seed(CUSTOMER_ID)
+    const { articles, settings } = setup()
     const isBlogWriter = vi.spyOn(settings, 'isBlogWriter')
 
-    const result = await updateBlogSettingsUseCase(settings)(CUSTOMER_ID, { articlesPerMonth: 2 })
+    const result = await updateBlogSettingsUseCase(settings, articles)(CUSTOMER_ID, {
+      articlesPerMonth: 2,
+    })
 
     expect(isBlogWriter).not.toHaveBeenCalled()
     expect(result.articlesPerMonth).toBe(2)
+  })
+
+  it('ปิดโหมดตรวจงาน = บทความที่ยังไม่จบเหลือแค่ขั้นส่งไฟล์ final', async () => {
+    const { articles, settings } = setup()
+    const article = articles.seed()
+    article.stages[0].submittedAt = new Date()
+
+    await updateBlogSettingsUseCase(settings, articles)(CUSTOMER_ID, {
+      blogRequiresApproval: false,
+    })
+
+    // ขั้นที่ส่งไปแล้วคงไว้เป็นประวัติ ที่เหลือถูกตัดออกจากแผน
+    expect(article.stages.map((stage) => stage.stageCode)).toEqual(['SUBMIT_TOPIC', 'SUBMIT_FINAL'])
+    expect(article.status).toBe('IN_PROGRESS')
+  })
+
+  it('เปิดโหมดตรวจงานกลับ = เติมขั้นที่ขาดให้บทความที่ยังไม่จบ', async () => {
+    const { articles, settings } = setup()
+    settings.seed(CUSTOMER_ID, { blogRequiresApproval: false })
+    const article = articles.seed({ stages: buildStages(false) })
+
+    await updateBlogSettingsUseCase(settings, articles)(CUSTOMER_ID, { blogRequiresApproval: true })
+
+    expect([...article.stages].map((stage) => stage.stageCode).sort()).toEqual(
+      [
+        'SUBMIT_TOPIC',
+        'CLIENT_FEEDBACK_TOPIC',
+        'SUBMIT_ARTICLE',
+        'CLIENT_FEEDBACK_ARTICLE',
+        'SUBMIT_FINAL',
+      ].sort(),
+    )
+  })
+
+  it('บทความที่เสร็จแล้วไม่ถูกแตะ', async () => {
+    const { articles, settings } = setup()
+    const article = articles.seed({ status: 'PUBLISHED' })
+
+    await updateBlogSettingsUseCase(settings, articles)(CUSTOMER_ID, {
+      blogRequiresApproval: false,
+    })
+
+    expect(article.stages).toHaveLength(5)
   })
 })
 

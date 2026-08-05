@@ -77,7 +77,7 @@ export function ArticleFormDialog({
         <DialogHeader>
           <DialogTitle>{article ? 'แก้ไขบทความ' : 'เพิ่มบทความ'}</DialogTitle>
           <DialogDescription>
-            กำหนดหัวข้อและวันเริ่ม — ระบบจะไล่กำหนดส่งทั้ง 7 ขั้นตอนให้อัตโนมัติ
+            กำหนดหัวข้อและวันเริ่ม — ระบบจะไล่กำหนดส่งทุกขั้นตอนให้อัตโนมัติ
           </DialogDescription>
         </DialogHeader>
 

@@ -86,6 +86,10 @@ export interface BlogArticleRepository {
   ): Promise<void>
 
   patchStage(articleId: string, stageCode: BlogStageCode, patch: StagePatch): Promise<void>
+  /** เพิ่ม stage ที่ยังไม่มี — ใช้ตอน admin สลับโหมดตรวจงานของลูกค้า */
+  addStages(articleId: string, stages: ScheduledStage[]): Promise<void>
+  /** ลบ stage ที่ยังไม่ได้ส่ง — ขั้นที่ส่งไปแล้วต้องคงไว้เป็นประวัติ */
+  deleteStages(articleId: string, stageCodes: BlogStageCode[]): Promise<void>
   setStatus(articleId: string, status: BlogArticleStatus): Promise<void>
 
   /** สร้างการส่งงานรอบใหม่ — repo เป็นคนคำนวณ round ต่อจากรอบล่าสุดของ stage นั้น */

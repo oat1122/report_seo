@@ -129,9 +129,7 @@ function TimelineRow({
     return [{ ...window, left, width: Math.max(right - left, 1.5) }]
   })
 
-  const publishedAt = article.stages.find(
-    (stage) => stage.stageCode === 'UPLOAD_ON_WEBSITE',
-  )?.submittedAt
+  const finishedAt = article.stages.find((stage) => stage.stageCode === 'SUBMIT_FINAL')?.submittedAt
 
   return (
     <div className="flex items-center gap-3">
@@ -158,7 +156,7 @@ function TimelineRow({
         {article.status === 'PUBLISHED' ? (
           <span className="text-success absolute inset-y-0 left-2 flex items-center gap-1.5 text-[11.5px] font-medium">
             <Check className="size-3.5" />
-            ขึ้นเว็บแล้ว {formatShortDate(publishedAt)}
+            ส่งครบแล้ว {formatShortDate(finishedAt)}
           </span>
         ) : windows.length === 0 ? (
           <span className="text-muted-foreground absolute inset-y-0 left-2 flex items-center text-[11.5px]">

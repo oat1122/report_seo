@@ -14,13 +14,15 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { getStageDefinition } from '../../../domain/policies/stage-schedule'
-import type { BlogStageCode } from '../../../domain/BlogArticle'
+import { BLOG_FILE_KIND_LABELS, getStageDefinition } from '../../../domain/policies/stage-schedule'
+import type { BlogFileKind, BlogStageCode } from '../../../domain/BlogArticle'
 
-const FILE_KIND_META = {
+const FILE_KIND_META: Record<BlogFileKind, { accept: string; hint: string }> = {
   COVER_IMAGE: { accept: '.jpg,.jpeg,.png', hint: 'JPG/PNG ไม่เกิน 5MB' },
   ARTICLE_DOC: { accept: '.doc,.docx,.pdf', hint: 'Word/PDF ไม่เกิน 20MB' },
 }
+
+export type StageWorkFiles = Partial<Record<BlogFileKind, File>>
 
 interface StageSubmitDialogProps {
   stageCode: BlogStageCode | null
@@ -28,7 +30,7 @@ interface StageSubmitDialogProps {
   previousRounds: number
   isPending?: boolean
   onOpenChange: (open: boolean) => void
-  onSubmit: (payload: { message: string; linkUrl: string; file: File | null }) => void
+  onSubmit: (payload: { message: string; linkUrl: string; files: StageWorkFiles }) => void
 }
 
 export function StageSubmitDialog({
@@ -40,20 +42,19 @@ export function StageSubmitDialog({
 }: StageSubmitDialogProps) {
   const [message, setMessage] = useState('')
   const [linkUrl, setLinkUrl] = useState('')
-  const [file, setFile] = useState<File | null>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const [files, setFiles] = useState<StageWorkFiles>({})
 
   useEffect(() => {
     if (stageCode) {
       setMessage('')
       setLinkUrl('')
-      setFile(null)
+      setFiles({})
     }
   }, [stageCode])
 
   const definition = stageCode ? getStageDefinition(stageCode) : null
-  const fileMeta = definition?.fileKind ? FILE_KIND_META[definition.fileKind] : null
-  const isEmpty = !message.trim() && !linkUrl.trim() && !file
+  const missingRequired = (definition?.requiredFileKinds ?? []).filter((kind) => !files[kind])
+  const isEmpty = !message.trim() && !linkUrl.trim() && Object.keys(files).length === 0
 
   return (
     <Dialog open={Boolean(stageCode)} onOpenChange={onOpenChange}>
@@ -90,62 +91,104 @@ export function StageSubmitDialog({
             />
           </div>
 
-          {fileMeta && (
-            <div className="flex flex-col gap-1.5">
-              <Label>แนบไฟล์ (ถ้ามี)</Label>
-              <input
-                ref={inputRef}
-                type="file"
-                accept={fileMeta.accept}
-                className="hidden"
-                onChange={(event) => {
-                  setFile(event.target.files?.[0] ?? null)
-                  event.target.value = ''
-                }}
-              />
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => inputRef.current?.click()}
-                >
-                  <Paperclip className="mr-1 size-3.5" />
-                  เลือกไฟล์
-                </Button>
-                {file ? (
-                  <span className="flex min-w-0 items-center gap-1 text-xs">
-                    <span className="truncate font-medium">{file.name}</span>
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      className="size-6 shrink-0"
-                      onClick={() => setFile(null)}
-                    >
-                      <X className="size-3.5" />
-                    </Button>
-                  </span>
-                ) : (
-                  <span className="text-muted-foreground text-xs">{fileMeta.hint}</span>
-                )}
-              </div>
-            </div>
-          )}
+          {definition?.fileKinds.map((kind) => (
+            <FilePicker
+              key={kind}
+              kind={kind}
+              file={files[kind] ?? null}
+              isRequired={definition.requiredFileKinds.includes(kind)}
+              onChange={(file) =>
+                setFiles((current) => ({ ...current, [kind]: file ?? undefined }))
+              }
+            />
+          ))}
         </div>
 
-        <DialogFooter className="gap-2">
+        <DialogFooter className="flex-col gap-2 sm:flex-row">
+          {missingRequired.length > 0 && (
+            <span className="text-muted-foreground mr-auto text-xs">
+              ต้องแนบ
+              {missingRequired.map((kind) => BLOG_FILE_KIND_LABELS[kind]).join(' และ ')}
+              ให้ครบก่อนส่ง
+            </span>
+          )}
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             ยกเลิก
           </Button>
           <Button
-            disabled={isPending || isEmpty}
-            onClick={() => onSubmit({ message: message.trim(), linkUrl: linkUrl.trim(), file })}
+            disabled={isPending || isEmpty || missingRequired.length > 0}
+            onClick={() => onSubmit({ message: message.trim(), linkUrl: linkUrl.trim(), files })}
           >
             ส่งให้ลูกค้า
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  )
+}
+
+function FilePicker({
+  kind,
+  file,
+  isRequired,
+  onChange,
+}: {
+  kind: BlogFileKind
+  file: File | null
+  isRequired: boolean
+  onChange: (file: File | null) => void
+}) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const meta = FILE_KIND_META[kind]
+  const label = BLOG_FILE_KIND_LABELS[kind]
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Label>
+        {label}
+        <span className="text-muted-foreground font-normal">
+          {isRequired ? ' (ต้องแนบ)' : ' (ถ้ามี)'}
+        </span>
+      </Label>
+      <input
+        ref={inputRef}
+        type="file"
+        accept={meta.accept}
+        className="hidden"
+        aria-label={label}
+        onChange={(event) => {
+          onChange(event.target.files?.[0] ?? null)
+          event.target.value = ''
+        }}
+      />
+      <div className="flex items-center gap-2">
+        <Button
+          type="button"
+          size="sm"
+          variant="secondary"
+          onClick={() => inputRef.current?.click()}
+        >
+          <Paperclip className="mr-1 size-3.5" />
+          เลือกไฟล์
+        </Button>
+        {file ? (
+          <span className="flex min-w-0 items-center gap-1 text-xs">
+            <span className="truncate font-medium">{file.name}</span>
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              className="size-6 shrink-0"
+              aria-label={`ลบ${label}`}
+              onClick={() => onChange(null)}
+            >
+              <X className="size-3.5" />
+            </Button>
+          </span>
+        ) : (
+          <span className="text-muted-foreground text-xs">{meta.hint}</span>
+        )}
+      </div>
+    </div>
   )
 }

@@ -1,6 +1,6 @@
 // Blog Plan — BlogArticle, BlogArticleKeyword, BlogArticleStage,
 //             BlogArticleFile, BlogArticleFeedback
-// โครงสร้างล้อฟอร์ม "SEO - SEO Prime": 1 เดือน = หลายบทความ, 1 บทความ = 7 stage
+// 1 เดือน = หลายบทความ · 1 บทความ = 5 stage (หรือ 1 stage เมื่อลูกค้าไม่ต้องตรวจงาน)
 
 model BlogArticle {
   id       String  @id @default(uuid())
@@ -12,7 +12,7 @@ model BlogArticle {
 
   status     BlogArticleStatus @default(DRAFT)
   orderIndex Int               @default(0)
-  // จุดตั้งต้นของ pipeline — ใช้คำนวณ dueDate ของทั้ง 7 stage
+  // จุดตั้งต้นของ pipeline — ใช้คำนวณ dueDate ของทุก stage ใน flow
   startDate    DateTime?
   publishedUrl String?   @db.Text
   note         String?   @db.Text

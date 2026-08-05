@@ -69,15 +69,14 @@ enum DocumentTemplateScope {
   PLAN
 }
 
-// Blog Plan — 7 stage ตามฟอร์ม "SEO - SEO Prime" (agency ส่ง 4 ครั้ง / ลูกค้าตอบ 3 ครั้ง)
+// Blog Plan — 5 stage เมื่อลูกค้าต้องตรวจงาน (Customer.blogRequiresApproval)
+// ลูกค้าที่ไม่ต้องตรวจใช้แค่ SUBMIT_FINAL ขั้นเดียว
 enum BlogStageCode {
   SUBMIT_TOPIC
   CLIENT_FEEDBACK_TOPIC
   SUBMIT_ARTICLE
   CLIENT_FEEDBACK_ARTICLE
-  SUBMIT_ARTWORK
-  CLIENT_FINAL_APPROVAL
-  UPLOAD_ON_WEBSITE
+  SUBMIT_FINAL
 }
 
 enum BlogArticleStatus {
@@ -85,7 +84,6 @@ enum BlogArticleStatus {
   IN_PROGRESS
   WAITING_CLIENT
   CHANGES_REQUESTED
-  APPROVED
   PUBLISHED
 }
 

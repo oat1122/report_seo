@@ -27,11 +27,11 @@ import { formatShortDate } from '@/lib/date'
 import { ArticleStatusBadge } from './ArticleStatusBadge'
 import { ArticleThread } from './ArticleThread'
 import { ArticleFilesTab } from './ArticleFilesTab'
-import { StageSubmitDialog } from './StageSubmitDialog'
+import { StageSubmitDialog, type StageWorkFiles } from './StageSubmitDialog'
 import { FeedbackDialog } from './FeedbackDialog'
 import { FilePreviewDialog } from './FilePreviewDialog'
 import { collectArticleFiles, daysUntil, getCurrentStage } from './blog-plan-view'
-import { BLOG_STAGES } from '../../../domain/policies/stage-schedule'
+import { getArticleFlow } from '../../../domain/policies/stage-schedule'
 import type { BlogArticle, BlogArticleFile, BlogStageCode } from '../../../domain/BlogArticle'
 
 interface ArticleCardProps {
@@ -46,7 +46,7 @@ interface ArticleCardProps {
   onSubmitWork: (
     articleId: string,
     stageCode: BlogStageCode,
-    payload: { message: string; linkUrl: string; file: File | null },
+    payload: { message: string; linkUrl: string; files: StageWorkFiles },
   ) => void
   onUnsubmit: (articleId: string, stageCode: BlogStageCode) => void
   onApprove: (articleId: string, stageCode: BlogStageCode) => void
@@ -260,18 +260,19 @@ export function ArticleCard({
   )
 }
 
-/** แถบ 7 ขั้นตอน — ผ่านแล้ว = เข้ม, ขั้นปัจจุบัน = เขียวมีวงแหวน, ที่เหลือ = จาง */
+/** แถบขั้นตอนของบทความ — ผ่านแล้ว = เข้ม, ขั้นปัจจุบัน = เขียวมีวงแหวน, ที่เหลือ = จาง */
 function StageProgress({ article, canManage }: { article: BlogArticle; canManage: boolean }) {
   const submitted = new Set(
     article.stages.filter((stage) => stage.submittedAt).map((stage) => stage.stageCode),
   )
   const current = getCurrentStage(article)
+  const flow = getArticleFlow(article.stages)
 
   return (
     <div className="flex flex-col gap-2">
       <div className="text-muted-foreground flex items-center gap-2 text-xs">
         <strong className="text-foreground font-semibold">
-          {current ? `ขั้นที่ ${current.step} จาก ${BLOG_STAGES.length}` : 'ครบทั้ง 7 ขั้นตอน'}
+          {current ? `ขั้นที่ ${current.step} จาก ${current.total}` : 'ส่งงานครบทุกขั้นแล้ว'}
         </strong>
         {current && (
           <>
@@ -282,7 +283,7 @@ function StageProgress({ article, canManage }: { article: BlogArticle; canManage
       </div>
 
       <ol className="flex gap-1.5">
-        {BLOG_STAGES.map((stage) => {
+        {flow.map((stage) => {
           const isDone = submitted.has(stage.code)
           const isCurrent = current?.definition.code === stage.code
 
