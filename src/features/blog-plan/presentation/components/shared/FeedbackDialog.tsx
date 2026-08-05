@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { ArrowRight, Info, Pencil } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -12,20 +13,23 @@ import {
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { getStageLabel } from '../../../domain/policies/article-status'
-import type { BlogFeedbackDecision, BlogStageCode } from '../../../domain/BlogArticle'
+import { getClientStageLabel } from '../../../domain/policies/article-status'
+import type { BlogStageCode } from '../../../domain/BlogArticle'
 
 interface FeedbackDialogProps {
+  /** stage ที่ลูกค้ากำลังขอแก้ — null = ปิด (การอนุมัติทำจากปุ่มใน thread ไม่ผ่าน dialog) */
   stageCode: BlogStageCode | null
-  onOpenChange: (open: boolean) => void
+  articleTitle: string
   isPending?: boolean
-  onSubmit: (decision: BlogFeedbackDecision, comment: string) => void
+  onOpenChange: (open: boolean) => void
+  onSubmit: (comment: string) => void
 }
 
 export function FeedbackDialog({
   stageCode,
-  onOpenChange,
+  articleTitle,
   isPending,
+  onOpenChange,
   onSubmit,
 }: FeedbackDialogProps) {
   const [comment, setComment] = useState('')
@@ -38,38 +42,49 @@ export function FeedbackDialog({
     <Dialog open={Boolean(stageCode)} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>ให้ความเห็น</DialogTitle>
+          <DialogTitle className="flex items-center gap-2.5">
+            <span className="bg-warning/12 text-warning flex size-9 shrink-0 items-center justify-center rounded-xl">
+              <Pencil className="size-4.5" />
+            </span>
+            บอกทีมว่าอยากให้แก้ตรงไหน
+          </DialogTitle>
           <DialogDescription>
-            {stageCode ? getStageLabel(stageCode) : ''} — กดอนุมัติเพื่อไปขั้นตอนถัดไป
-            หรือขอแก้ไขเพื่อส่งกลับให้ทีมเขียน
+            เรื่อง “{articleTitle}” · ขั้นตอน “{stageCode ? getClientStageLabel(stageCode) : ''}”
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="feedback-comment">ข้อเสนอแนะ</Label>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="feedback-comment">อยากให้แก้อะไรบ้าง</Label>
           <Textarea
             id="feedback-comment"
             rows={4}
             value={comment}
             onChange={(event) => setComment(event.target.value)}
-            placeholder="ระบุสิ่งที่อยากให้ปรับ หรือเว้นว่างถ้าอนุมัติเลย"
+            placeholder="เช่น หัวข้อที่ 1 ยาวไป ช่วยตัดให้สั้นลง / อยากได้หัวข้อที่พูดถึงราคาด้วย"
           />
+          <span className="text-muted-foreground text-xs">
+            พิมพ์ภาษาบ้าน ๆ ได้เลย ไม่ต้องใช้ศัพท์เทคนิค ทีมอ่านเข้าใจแน่นอน
+          </span>
+        </div>
+
+        <div className="bg-muted border-border text-muted-foreground flex gap-2.5 rounded-xl border p-3 text-sm">
+          <Info className="mt-0.5 size-4 shrink-0" />
+          <p>
+            กดส่งแล้วงานจะกลับไปที่ทีมเขียน ทีมจะแก้แล้วส่งกลับมาให้คุณดูใหม่ ไม่ได้ยกเลิกบทความนี้
+          </p>
         </div>
 
         <DialogFooter className="gap-2">
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            ยกเลิก
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            ยังไม่ส่ง
           </Button>
           <Button
-            variant="outline"
-            className="border-destructive/30 text-destructive"
+            className="bg-warning text-warning-foreground hover:bg-warning/90"
             disabled={isPending || comment.trim().length === 0}
-            onClick={() => onSubmit('CHANGES_REQUESTED', comment)}
+            onClick={() => onSubmit(comment)}
           >
-            ขอแก้ไข
-          </Button>
-          <Button disabled={isPending} onClick={() => onSubmit('APPROVED', comment)}>
-            อนุมัติ
+            ส่งให้ทีมแก้
+            <ArrowRight className="ml-1.5 size-4" />
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,46 +1,56 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import { ArticleCard } from './shared/ArticleCard'
 import { ArticleFormDialog, type ArticleFormValues } from './shared/ArticleFormDialog'
+import { ActionSummaryCard } from './shared/ActionSummaryCard'
+import { BlogPlanEmptyState } from './shared/BlogPlanEmptyState'
+import { MonthTimelineCard } from './shared/MonthTimelineCard'
+import { WriterMessageDialog } from './shared/WriterMessageDialog'
+import { formatMonthLabel, groupArticle, type ArticleGroup } from './shared/blog-plan-view'
 import {
   useBlogArticles,
   useBlogSettings,
   useCreateArticle,
   useDeleteArticle,
   useDeleteArticleFile,
+  useMessageBlogWriter,
   useSubmitFeedback,
   useSubmitStageWork,
   useUpdateArticle,
   useUpdateStage,
 } from '../hooks/useBlogPlan'
-import type { BlogArticle, BlogArticleStatus } from '../../domain/BlogArticle'
+import type { BlogArticle } from '../../domain/BlogArticle'
 
-const MONTH_LABELS = [
-  'มกราคม',
-  'กุมภาพันธ์',
-  'มีนาคม',
-  'เมษายน',
-  'พฤษภาคม',
-  'มิถุนายน',
-  'กรกฎาคม',
-  'สิงหาคม',
-  'กันยายน',
-  'ตุลาคม',
-  'พฤศจิกายน',
-  'ธันวาคม',
-]
+const ACTIONABLE_SECTION_ID = 'blog-plan-actionable'
 
-/** สถานะที่ถือว่า "ถึงคิวเรา" — การ์ดใบนั้นจะกางไว้ให้ตั้งแต่เปิดหน้า */
-const ACTIONABLE_STATUS: Record<'manage' | 'respond', BlogArticleStatus[]> = {
-  manage: ['DRAFT', 'IN_PROGRESS', 'CHANGES_REQUESTED'],
-  respond: ['WAITING_CLIENT'],
+interface SectionMeta {
+  id: ArticleGroup
+  title: string
+  hint: string
+}
+
+function buildSections(canManage: boolean): SectionMeta[] {
+  return [
+    {
+      id: 'mine',
+      title: 'ถึงคิวคุณแล้ว',
+      hint: canManage
+        ? 'ยังไม่ได้ส่งให้ลูกค้า หรือลูกค้าขอแก้ไขกลับมา'
+        : 'ทีมส่งงานมาแล้ว รออยู่ว่าคุณจะว่ายังไง',
+    },
+    {
+      id: 'waiting',
+      title: canManage ? 'รอลูกค้าตอบ' : 'ทีมกำลังทำอยู่',
+      hint: canManage ? 'ส่งไปแล้ว รอฝั่งลูกค้าพิจารณา' : 'ยังไม่ต้องทำอะไร รอทีมส่งงานมาให้ดู',
+    },
+    { id: 'done', title: 'เสร็จแล้ว', hint: 'ขึ้นเว็บไซต์เรียบร้อย ไฟล์ยังเก็บไว้ให้' },
+  ]
 }
 
 interface BlogPlanBoardProps {
@@ -54,6 +64,7 @@ export function BlogPlanBoard({ customerId, canManage, canRespond }: BlogPlanBoa
   const [filter, setFilter] = useState({ year: now.getFullYear(), month: now.getMonth() + 1 })
   const [editing, setEditing] = useState<BlogArticle | null>(null)
   const [isFormOpen, setFormOpen] = useState(false)
+  const [isMessageOpen, setMessageOpen] = useState(false)
 
   const { data, isLoading } = useBlogArticles(customerId, filter)
   const { data: settings } = useBlogSettings(customerId)
@@ -65,6 +76,7 @@ export function BlogPlanBoard({ customerId, canManage, canRespond }: BlogPlanBoa
   const submitFeedback = useSubmitFeedback(customerId)
   const submitStageWork = useSubmitStageWork(customerId)
   const deleteFile = useDeleteArticleFile(customerId)
+  const messageWriter = useMessageBlogWriter(customerId)
 
   const isPending =
     createArticle.isPending ||
@@ -74,6 +86,25 @@ export function BlogPlanBoard({ customerId, canManage, canRespond }: BlogPlanBoa
     submitFeedback.isPending ||
     submitStageWork.isPending ||
     deleteFile.isPending
+
+  const articles = useMemo(() => data?.articles ?? [], [data])
+  const isEmpty = !isLoading && articles.length === 0
+
+  // โหลดเดือนก่อนหน้าเฉพาะตอนเดือนนี้ว่าง — ใช้บอกจำนวนบนปุ่มของ empty state
+  const previousMonthDate = new Date(filter.year, filter.month - 2, 1)
+  const previousFilter = {
+    year: previousMonthDate.getFullYear(),
+    month: previousMonthDate.getMonth() + 1,
+  }
+  const { data: previousData } = useBlogArticles(customerId, previousFilter, isEmpty)
+
+  const grouped = useMemo(() => {
+    const buckets: Record<ArticleGroup, BlogArticle[]> = { mine: [], waiting: [], done: [] }
+    articles.forEach((article) => {
+      buckets[groupArticle(article.status, canManage, canRespond)].push(article)
+    })
+    return buckets
+  }, [articles, canManage, canRespond])
 
   const shiftMonth = (delta: number) => {
     const next = new Date(filter.year, filter.month - 1 + delta, 1)
@@ -102,102 +133,169 @@ export function BlogPlanBoard({ customerId, canManage, canRespond }: BlogPlanBoa
     )
   }
 
-  const articles = data?.articles ?? []
-  const actionableStatus = canManage ? ACTIONABLE_STATUS.manage : ACTIONABLE_STATUS.respond
+  const openCreateForm = () => {
+    setEditing(null)
+    setFormOpen(true)
+  }
+
   const quota = settings?.articlesPerMonth ?? 0
   const used = data?.monthlyCount ?? articles.length
   const isOverQuota = quota > 0 && used > quota
 
   return (
-    <div className="flex flex-col gap-4">
-      <Card>
-        <CardContent className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-1">
-            <Button size="icon" variant="ghost" className="size-8" onClick={() => shiftMonth(-1)}>
-              <ChevronLeft className="size-4" />
-            </Button>
-            <span className="min-w-40 text-center font-medium">
-              {MONTH_LABELS[filter.month - 1]} {filter.year}
-            </span>
-            <Button size="icon" variant="ghost" className="size-8" onClick={() => shiftMonth(1)}>
-              <ChevronRight className="size-4" />
-            </Button>
-          </div>
-
-          <Badge
-            variant="outline"
-            className={cn(
-              'tabular-nums',
-              isOverQuota
-                ? 'bg-destructive/10 text-destructive border-destructive/30'
-                : 'bg-muted text-muted-foreground border-border',
-            )}
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="border-border bg-muted flex items-center gap-1 rounded-xl border p-1">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="size-8"
+            aria-label="เดือนก่อนหน้า"
+            onClick={() => shiftMonth(-1)}
           >
-            ใช้ไป {used} / โควตา {quota > 0 ? quota : '—'} บทความ
+            <ChevronLeft className="size-4" />
+          </Button>
+          <span className="min-w-33 text-center font-semibold">
+            {formatMonthLabel(filter.year, filter.month)}
+          </span>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="size-8"
+            aria-label="เดือนถัดไป"
+            onClick={() => shiftMonth(1)}
+          >
+            <ChevronRight className="size-4" />
+          </Button>
+        </div>
+
+        <Badge
+          variant="outline"
+          className={cn(
+            'tabular-nums',
+            isOverQuota
+              ? 'bg-destructive/10 text-destructive border-destructive/30'
+              : 'bg-muted text-muted-foreground border-border',
+          )}
+        >
+          ใช้ไป {used} / โควตา {quota > 0 ? quota : '—'} บทความ
+        </Badge>
+
+        {settings?.blogWriterName && (
+          <Badge variant="outline" className="bg-info/10 text-info border-info/30">
+            ผู้เขียน: {settings.blogWriterName}
           </Badge>
+        )}
 
-          {settings?.blogWriterName && (
-            <Badge variant="outline" className="bg-info/10 text-info border-info/30">
-              ผู้เขียน: {settings.blogWriterName}
-            </Badge>
-          )}
-
-          {canManage && (
-            <Button
-              className="ml-auto"
-              disabled={isPending}
-              onClick={() => {
-                setEditing(null)
-                setFormOpen(true)
-              }}
-            >
-              <Plus className="mr-1 size-4" />
-              เพิ่มบทความ
-            </Button>
-          )}
-        </CardContent>
-      </Card>
+        {canManage && (
+          <Button className="ml-auto" disabled={isPending} onClick={openCreateForm}>
+            <Plus className="mr-1 size-4" />
+            เพิ่มบทความ
+          </Button>
+        )}
+      </div>
 
       {isLoading ? (
-        <div className="flex flex-col gap-3">
-          <Skeleton className="h-48 w-full" />
-          <Skeleton className="h-48 w-full" />
-        </div>
-      ) : articles.length === 0 ? (
-        <Card>
-          <CardContent className="text-muted-foreground py-10 text-center text-sm">
-            ยังไม่มีบทความในเดือนนี้
-          </CardContent>
-        </Card>
+        <BoardSkeleton />
+      ) : isEmpty ? (
+        <BlogPlanEmptyState
+          year={filter.year}
+          month={filter.month}
+          canManage={canManage}
+          previousMonthCount={previousData?.articles.length ?? null}
+          writerName={settings?.blogWriterName ?? null}
+          quota={quota}
+          onGoPreviousMonth={() => shiftMonth(-1)}
+          onMessageWriter={() => setMessageOpen(true)}
+          onCreateArticle={openCreateForm}
+        />
       ) : (
-        articles.map((article) => (
-          <ArticleCard
-            key={article.id}
-            article={article}
-            canManage={canManage}
-            canRespond={canRespond}
-            defaultOpen={actionableStatus.includes(article.status)}
-            isPending={isPending}
-            onEdit={(target) => {
-              setEditing(target)
-              setFormOpen(true)
-            }}
-            onDelete={(articleId) => deleteArticle.mutate(articleId)}
-            onSubmitWork={(articleId, stageCode, payload) =>
-              submitStageWork.mutate({ articleId, stageCode, ...payload })
-            }
-            onUnsubmit={(articleId, stageCode) =>
-              updateStage.mutate({ articleId, stageCode, input: { submitted: false } })
-            }
-            onRespond={(articleId, stageCode, decision, comment) =>
-              submitFeedback.mutate({
-                articleId,
-                input: { stageCode, decision, comment: comment.trim() || null },
-              })
-            }
-            onDeleteFile={(articleId, fileId) => deleteFile.mutate({ articleId, fileId })}
-          />
-        ))
+        <>
+          <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
+            <MonthTimelineCard
+              articles={articles}
+              year={filter.year}
+              month={filter.month}
+              canManage={canManage}
+              canRespond={canRespond}
+            />
+            <ActionSummaryCard
+              articles={grouped.mine}
+              targetId={ACTIONABLE_SECTION_ID}
+              canManage={canManage}
+              quota={quota}
+              used={used}
+              writerName={settings?.blogWriterName ?? null}
+            />
+          </div>
+
+          {buildSections(canManage).map((section) => {
+            const items = grouped[section.id]
+            if (items.length === 0) return null
+
+            return (
+              <section
+                key={section.id}
+                id={section.id === 'mine' ? ACTIONABLE_SECTION_ID : undefined}
+                className="flex scroll-mt-6 flex-col gap-3.5"
+              >
+                <div className="flex flex-wrap items-baseline gap-2.5">
+                  <span
+                    className={cn(
+                      'flex size-6.5 items-center justify-center rounded-full text-sm font-bold tabular-nums',
+                      section.id === 'mine' && 'bg-secondary text-secondary-foreground',
+                      section.id === 'waiting' && 'bg-muted text-muted-foreground',
+                      section.id === 'done' && 'bg-success/12 text-success',
+                    )}
+                  >
+                    {items.length}
+                  </span>
+                  <h2 className="text-lg font-semibold">{section.title}</h2>
+                  <span className="text-muted-foreground text-sm">{section.hint}</span>
+                </div>
+
+                {items.map((article) => (
+                  <ArticleCard
+                    key={article.id}
+                    article={article}
+                    canManage={canManage}
+                    canRespond={canRespond}
+                    isActionable={section.id === 'mine'}
+                    isPending={isPending}
+                    onEdit={(target) => {
+                      setEditing(target)
+                      setFormOpen(true)
+                    }}
+                    onDelete={(articleId) => deleteArticle.mutate(articleId)}
+                    onSubmitWork={(articleId, stageCode, payload) =>
+                      submitStageWork.mutate({ articleId, stageCode, ...payload })
+                    }
+                    onUnsubmit={(articleId, stageCode) =>
+                      updateStage.mutate({ articleId, stageCode, input: { submitted: false } })
+                    }
+                    onApprove={(articleId, stageCode) =>
+                      submitFeedback.mutate({
+                        articleId,
+                        input: { stageCode, decision: 'APPROVED', comment: null },
+                      })
+                    }
+                    onRequestChanges={(articleId, stageCode, comment) =>
+                      submitFeedback.mutate({
+                        articleId,
+                        input: {
+                          stageCode,
+                          decision: 'CHANGES_REQUESTED',
+                          comment: comment.trim(),
+                        },
+                      })
+                    }
+                    onDeleteFile={(articleId, fileId) => deleteFile.mutate({ articleId, fileId })}
+                  />
+                ))}
+              </section>
+            )
+          })}
+        </>
       )}
 
       {canManage && (
@@ -210,6 +308,31 @@ export function BlogPlanBoard({ customerId, canManage, canRespond }: BlogPlanBoa
           onSubmit={handleSubmit}
         />
       )}
+
+      {canRespond && (
+        <WriterMessageDialog
+          open={isMessageOpen}
+          writerName={settings?.blogWriterName ?? null}
+          isPending={messageWriter.isPending}
+          onOpenChange={setMessageOpen}
+          onSubmit={(message) =>
+            messageWriter.mutate({ message }, { onSuccess: () => setMessageOpen(false) })
+          }
+        />
+      )}
+    </div>
+  )
+}
+
+function BoardSkeleton() {
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
+        <Skeleton className="h-45 w-full rounded-xl" />
+        <Skeleton className="h-45 w-full rounded-xl" />
+      </div>
+      <Skeleton className="h-40 w-full rounded-xl" />
+      <Skeleton className="h-28 w-full rounded-xl" />
     </div>
   )
 }

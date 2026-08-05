@@ -31,7 +31,7 @@ export default async function CustomerBlogPlanPage({ params }: PageProps) {
         <header className="flex flex-col gap-1">
           <h1 className="text-2xl font-semibold tracking-tight">แผนบทความ</h1>
           <p className="text-muted-foreground text-sm">
-            ตรวจหัวข้อและบทความ · กดอนุมัติหรือขอแก้ไข · ดาวน์โหลดไฟล์ทุกเวอร์ชัน
+            ทีมเขียนส่งงานมาที่นี่ · คุณอ่านแล้วกดอนุมัติหรือขอแก้ไข · ไฟล์ทุกเวอร์ชันเก็บไว้ให้ครบ
           </p>
         </header>
         <BlogPlanBoard customerId={userId} canManage={false} canRespond />

@@ -51,3 +51,8 @@ export const BLOG_ARTICLE_STATUS_LABELS: Record<BlogArticleStatus, string> = {
 export function getStageLabel(code: BlogStageCode): string {
   return getStageDefinition(code).label
 }
+
+/** ชื่อขั้นตอนแบบสั้นสำหรับหน้าลูกค้า — ห้ามใช้ใน notification/หน้า manage (ใช้ getStageLabel) */
+export function getClientStageLabel(code: BlogStageCode): string {
+  return getStageDefinition(code).clientLabel
+}

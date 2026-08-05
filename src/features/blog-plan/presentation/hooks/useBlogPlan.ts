@@ -7,6 +7,7 @@ import type { BlogSettings } from '../../application/ports/BlogSettingsRepositor
 import type { BlogArticle, BlogStageCode, CustomerKeywordOption } from '../../domain/BlogArticle'
 import type {
   CreateArticleInput,
+  MessageWriterInput,
   SubmitFeedbackInput,
   UpdateArticleInput,
   UpdateBlogSettingsInput,
@@ -32,7 +33,7 @@ export const blogPlanKeys = {
   settings: (customerId: string) => ['blog-plan', customerId, 'settings'] as const,
 }
 
-export function useBlogArticles(customerId: string, filter: MonthFilter) {
+export function useBlogArticles(customerId: string, filter: MonthFilter, enabled = true) {
   return useQuery({
     queryKey: blogPlanKeys.articles(customerId, filter),
     queryFn: async () => {
@@ -42,6 +43,7 @@ export function useBlogArticles(customerId: string, filter: MonthFilter) {
       return data.data
     },
     staleTime: 30_000,
+    enabled,
   })
 }
 
@@ -175,6 +177,15 @@ export function useSubmitStageWork(customerId: string) {
       await axios.post(`${base(customerId)}/${articleId}/stages/${stageCode}/submissions`, form)
     },
     onSuccess: invalidate,
+  })
+}
+
+/** ทักทีมเขียนจากหน้าแผนบทความ — ปลายทางเป็น notification ไม่ต้อง invalidate อะไร */
+export function useMessageBlogWriter(customerId: string) {
+  return useMutation({
+    mutationFn: async (input: MessageWriterInput) => {
+      await axios.post(`/customers/${customerId}/blog-writer-message`, input)
+    },
   })
 }
 

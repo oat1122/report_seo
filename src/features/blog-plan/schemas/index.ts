@@ -72,6 +72,11 @@ export const submitFeedbackSchema = z.object({
   comment: z.string().trim().max(5000).nullable().default(null),
 })
 
+/** ข้อความที่ลูกค้าทักไปหาทีมเขียน — ส่งเป็น notification ไม่ได้เก็บเป็น thread */
+export const messageWriterSchema = z.object({
+  message: z.string().trim().min(1).max(1000),
+})
+
 export const updateBlogSettingsSchema = z
   .object({
     articlesPerMonth: z.coerce.number().int().min(0).max(100),
@@ -85,5 +90,6 @@ export type UpdateArticleInput = z.infer<typeof updateArticleSchema>
 export type UpdateStageInput = z.infer<typeof updateStageSchema>
 export type SubmitStageWorkInput = z.infer<typeof submitStageWorkSchema>
 export type SubmitFeedbackInput = z.infer<typeof submitFeedbackSchema>
+export type MessageWriterInput = z.infer<typeof messageWriterSchema>
 export type ArticleKeywordInput = z.infer<typeof articleKeywordInputSchema>
 export type UpdateBlogSettingsInput = z.infer<typeof updateBlogSettingsSchema>

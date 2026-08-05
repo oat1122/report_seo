@@ -7,6 +7,8 @@ export interface BlogStageDefinition {
   seq: number
   actor: StageActor
   label: string
+  /** ชื่อสั้นภาษาชาวบ้านสำหรับหน้าลูกค้า — "คุณ" = ลูกค้า, "ทีม" = ทีมเขียน */
+  clientLabel: string
   /** จำนวนวันที่ให้ทำ stage นี้ — ตัวเลขในวงเล็บบนหัวคอลัมน์ของฟอร์ม SEO Prime */
   days: number
   /** ชนิดไฟล์ที่แนบได้ตอนส่งงาน stage นี้ — null = แนบไฟล์ไม่ได้ (ข้อความ/ลิงก์เท่านั้น) */
@@ -19,6 +21,7 @@ export const BLOG_STAGES: readonly BlogStageDefinition[] = [
     seq: 1,
     actor: 'WRITER',
     label: 'ส่งหัวข้อ / Main Idea',
+    clientLabel: 'ทีมส่งหัวข้อ',
     days: 5,
     fileKind: 'ARTICLE_DOC',
   },
@@ -27,6 +30,7 @@ export const BLOG_STAGES: readonly BlogStageDefinition[] = [
     seq: 2,
     actor: 'CLIENT',
     label: 'ลูกค้าให้ความเห็นหัวข้อ',
+    clientLabel: 'คุณเลือกหัวข้อ',
     days: 4,
     fileKind: null,
   },
@@ -35,6 +39,7 @@ export const BLOG_STAGES: readonly BlogStageDefinition[] = [
     seq: 3,
     actor: 'WRITER',
     label: 'ส่งบทความฉบับเต็ม',
+    clientLabel: 'ทีมส่งบทความ',
     days: 5,
     fileKind: 'ARTICLE_DOC',
   },
@@ -43,6 +48,7 @@ export const BLOG_STAGES: readonly BlogStageDefinition[] = [
     seq: 4,
     actor: 'CLIENT',
     label: 'ลูกค้าให้ความเห็นบทความ',
+    clientLabel: 'คุณอ่านบทความ',
     days: 5,
     fileKind: null,
   },
@@ -51,6 +57,7 @@ export const BLOG_STAGES: readonly BlogStageDefinition[] = [
     seq: 5,
     actor: 'WRITER',
     label: 'ส่งภาพประกอบ / ภาพปก',
+    clientLabel: 'ทีมส่งภาพ',
     days: 4,
     fileKind: 'COVER_IMAGE',
   },
@@ -59,6 +66,7 @@ export const BLOG_STAGES: readonly BlogStageDefinition[] = [
     seq: 6,
     actor: 'CLIENT',
     label: 'ลูกค้าอนุมัติขั้นสุดท้าย',
+    clientLabel: 'คุณอนุมัติ',
     days: 5,
     fileKind: null,
   },
@@ -67,6 +75,7 @@ export const BLOG_STAGES: readonly BlogStageDefinition[] = [
     seq: 7,
     actor: 'WRITER',
     label: 'อัปโหลดขึ้นเว็บไซต์',
+    clientLabel: 'ทีมลงเว็บ',
     days: 0,
     fileKind: null,
   },
@@ -97,6 +106,39 @@ export function getPrecedingWriterStage(code: BlogStageCode): BlogStageCode | nu
     if (BLOG_STAGES[i].actor === 'WRITER') return BLOG_STAGES[i].code
   }
   return null
+}
+
+export interface StageWindow {
+  stageCode: BlogStageCode
+  seq: number
+  actor: StageActor
+  start: Date
+  end: Date
+}
+
+/**
+ * ช่วงเวลาของแต่ละ stage สำหรับวาดไทม์ไลน์รายเดือน
+ * ต้นทางของ stage N = dueDate ของ stage ก่อนหน้า (stage แรกใช้ startDate ของบทความ)
+ * stage ที่ยังไม่มี dueDate จะถูกข้าม และไม่ถูกใช้เป็นต้นทางของ stage ถัดไป
+ */
+export function buildStageWindows(
+  startDate: Date | null,
+  stages: readonly { stageCode: BlogStageCode; dueDate: Date | null }[],
+): StageWindow[] {
+  const dueByCode = new Map(stages.map((stage) => [stage.stageCode, stage.dueDate]))
+  let cursor = startDate ? new Date(startDate) : null
+
+  return BLOG_STAGES.flatMap((definition) => {
+    const rawDue = dueByCode.get(definition.code)
+    if (!rawDue) return []
+
+    const end = new Date(rawDue)
+    const start = cursor ?? end
+    cursor = end
+    return [
+      { stageCode: definition.code, seq: definition.seq, actor: definition.actor, start, end },
+    ]
+  })
 }
 
 export interface ScheduledStage {

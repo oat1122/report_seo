@@ -20,6 +20,7 @@ import {
   getBlogSettingsUseCase,
   updateBlogSettingsUseCase,
 } from './application/use-cases/manageBlogSettings'
+import { messageBlogWriterUseCase } from './application/use-cases/messageBlogWriter'
 
 const articleRepository = new PrismaBlogArticleRepository()
 const keywordReader = new PrismaBlogKeywordReader()
@@ -37,6 +38,7 @@ export const deleteArticleFile = deleteArticleFileUseCase(articleRepository, fil
 export const listCustomerKeywords = listCustomerKeywordsUseCase(keywordReader, articleRepository)
 export const getBlogSettings = getBlogSettingsUseCase(settingsRepository)
 export const updateBlogSettings = updateBlogSettingsUseCase(settingsRepository)
+export const messageBlogWriter = messageBlogWriterUseCase(settingsRepository)
 
 export {
   BLOG_STAGE_CODES,
@@ -46,6 +48,7 @@ export {
   updateStageSchema,
   submitStageWorkSchema,
   submitFeedbackSchema,
+  messageWriterSchema,
   updateBlogSettingsSchema,
 } from './schemas'
 
