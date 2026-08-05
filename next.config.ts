@@ -14,6 +14,12 @@ const contentSecurityPolicy = [
 ].join('; ')
 
 const nextConfig: NextConfig = {
+  // tsconfig.json include `**/*.ts` → `next build` จะ type-check e2e/ + playwright.config.ts ด้วย
+  // ซึ่ง import devDependency (@playwright/test, vitest) ที่ prod shared hosting ไม่มี → build พัง
+  // แยก config ของ build ออกมาเพื่อ exclude ไฟล์เทสต์ โดยยังคง tsconfig.json เดิมไว้ให้ editor/vitest
+  typescript: {
+    tsconfigPath: 'tsconfig.build.json',
+  },
   // pino-pretty transport ใช้ thread-stream worker ที่ dynamic-require target ตามชื่อ
   // bundler resolve string path ไม่ได้ ต้อง externalize ใส่ pino ด้วยเป็น belt-and-suspenders
   // ตามคำแนะนำของ Next docs
