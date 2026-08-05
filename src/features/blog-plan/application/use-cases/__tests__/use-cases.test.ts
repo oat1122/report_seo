@@ -1,0 +1,623 @@
+import { describe, expect, it, vi } from 'vitest'
+import { BadRequestError, NotFoundError } from '@/lib/errors'
+import { createArticleUseCase, dedupeKeywords } from '../createArticle'
+import { deleteArticleUseCase } from '../deleteArticle'
+import { deleteArticleFileUseCase } from '../deleteArticleFile'
+import { listArticlesUseCase } from '../listArticles'
+import { listCustomerKeywordsUseCase } from '../listCustomerKeywords'
+import { getBlogSettingsUseCase, updateBlogSettingsUseCase } from '../manageBlogSettings'
+import { messageBlogWriterUseCase } from '../messageBlogWriter'
+import { recalculateStatus } from '../recalculateStatus'
+import { submitClientFeedbackUseCase } from '../submitClientFeedback'
+import { submitStageWorkUseCase } from '../submitStageWork'
+import { updateArticleUseCase } from '../updateArticle'
+import { updateStageUseCase } from '../updateStage'
+import {
+  AUTHOR_ID,
+  CUSTOMER_ID,
+  FakeBlogFileStorage,
+  FakeBlogKeywordReader,
+  InMemoryBlogArticleRepository,
+  InMemoryBlogSettingsRepository,
+  OTHER_CUSTOMER_ID,
+  fakeFile,
+} from './fakes'
+
+function setup() {
+  const articles = new InMemoryBlogArticleRepository()
+  const storage = new FakeBlogFileStorage()
+  return { articles, storage }
+}
+
+describe('createArticle', () => {
+  it('กาง stage ครบ 7 ขั้นจาก startDate ที่ส่งมา', async () => {
+    const { articles } = setup()
+    const create = createArticleUseCase(articles)
+
+    const article = await create(
+      CUSTOMER_ID,
+      {
+        title: 'บทความใหม่',
+        keyFocus: null,
+        targetYear: 2026,
+        targetMonth: 8,
+        startDate: new Date('2026-08-01T00:00:00.000Z'),
+        note: null,
+        keywords: [],
+      },
+      AUTHOR_ID,
+    )
+
+    expect(article.stages).toHaveLength(7)
+    expect(article.stages[0].dueDate?.toISOString().slice(0, 10)).toBe('2026-08-06')
+    expect(article.stages.every((stage) => stage.submittedAt === null)).toBe(true)
+  })
+
+  it('ตัด keyword ซ้ำแบบไม่สนตัวพิมพ์ — กัน unique([articleId, keyword]) ชน', async () => {
+    const { articles } = setup()
+    const create = createArticleUseCase(articles)
+
+    const article = await create(
+      CUSTOMER_ID,
+      {
+        title: 'บทความใหม่',
+        keyFocus: null,
+        targetYear: 2026,
+        targetMonth: 8,
+        startDate: null,
+        note: null,
+        keywords: [
+          { keyword: 'SEO', source: 'REPORT', sourceId: null },
+          { keyword: 'seo', source: 'MANUAL', sourceId: null },
+          { keyword: 'content', source: 'MANUAL', sourceId: null },
+        ],
+      },
+      null,
+    )
+
+    expect(article.keywords.map((k) => k.keyword)).toEqual(['SEO', 'content'])
+  })
+})
+
+describe('dedupeKeywords', () => {
+  it('เก็บตัวแรกที่เจอและคง order เดิม', () => {
+    expect(
+      dedupeKeywords([{ keyword: 'A' }, { keyword: 'b' }, { keyword: 'a' }, { keyword: 'B' }]),
+    ).toEqual([{ keyword: 'A' }, { keyword: 'b' }])
+  })
+})
+
+describe('updateArticle', () => {
+  it('เลื่อน startDate = เลื่อน dueDate ทั้ง pipeline แต่ไม่แตะ submittedAt ที่เกิดขึ้นจริงแล้ว', async () => {
+    const { articles } = setup()
+    const submittedAt = new Date('2026-07-20T00:00:00.000Z')
+    const article = articles.seed()
+    article.stages[0].submittedAt = submittedAt
+
+    await updateArticleUseCase(articles)(article.id, CUSTOMER_ID, {
+      startDate: new Date('2026-09-01T00:00:00.000Z'),
+    })
+
+    expect(article.stages.every((stage) => stage.dueDate !== null)).toBe(true)
+    expect(article.stages[0].dueDate?.toISOString().slice(0, 10)).toBe('2026-09-06')
+    expect(article.stages[0].submittedAt).toBe(submittedAt)
+  })
+
+  it('ส่ง keywords มา = แทนที่ชุดเดิมโดย dedupe แล้ว', async () => {
+    const { articles } = setup()
+    const article = articles.seed({
+      keywords: [{ id: 'kw-old', keyword: 'เดิม', source: 'MANUAL', sourceId: null }],
+    })
+
+    await updateArticleUseCase(articles)(article.id, CUSTOMER_ID, {
+      keywords: [
+        { keyword: 'ใหม่', source: 'MANUAL', sourceId: null },
+        { keyword: 'ใหม่', source: 'REPORT', sourceId: null },
+      ],
+    })
+
+    expect(article.keywords.map((k) => k.keyword)).toEqual(['ใหม่'])
+  })
+
+  it('บทความของลูกค้าคนอื่น = NotFoundError (กัน IDOR)', async () => {
+    const { articles } = setup()
+    const article = articles.seed()
+
+    await expect(
+      updateArticleUseCase(articles)(article.id, OTHER_CUSTOMER_ID, { title: 'แก้' }),
+    ).rejects.toThrow(NotFoundError)
+  })
+})
+
+describe('deleteArticle', () => {
+  it('ลบไฟล์บนดิสก์ทั้ง submission และ legacy ก่อนลบแถว', async () => {
+    const { articles, storage } = setup()
+    const article = articles.seed()
+    await articles.addSubmission(article.id, {
+      stageCode: 'SUBMIT_TOPIC',
+      message: null,
+      linkUrl: null,
+      authorId: null,
+    })
+    await articles.addFile(article.id, {
+      kind: 'ARTICLE_DOC',
+      url: '/uploads/blog/doc.docx',
+      filename: 'doc.docx',
+      mimeType: 'application/msword',
+      sizeBytes: 10,
+      uploadedById: null,
+      submissionId: article.submissions[0].id,
+    })
+    await articles.addFile(article.id, {
+      kind: 'COVER_IMAGE',
+      url: '/uploads/blog/cover.png',
+      filename: 'cover.png',
+      mimeType: 'image/png',
+      sizeBytes: 10,
+      uploadedById: null,
+      submissionId: null,
+    })
+
+    await deleteArticleUseCase(articles, storage)(article.id, CUSTOMER_ID)
+
+    expect(storage.removedUrls).toHaveLength(2)
+    expect(storage.removedUrls).toContain('/uploads/blog/doc.docx')
+    expect(storage.removedUrls).toContain('/uploads/blog/cover.png')
+    expect(articles.articles).toHaveLength(0)
+  })
+
+  it('บทความของลูกค้าคนอื่น = NotFoundError (กัน IDOR)', async () => {
+    const { articles, storage } = setup()
+    const article = articles.seed()
+
+    await expect(
+      deleteArticleUseCase(articles, storage)(article.id, OTHER_CUSTOMER_ID),
+    ).rejects.toThrow(NotFoundError)
+    expect(articles.articles).toHaveLength(1)
+  })
+})
+
+describe('deleteArticleFile', () => {
+  it('ลบแถวใน DB แล้วค่อยลบไฟล์บนดิสก์', async () => {
+    const { articles, storage } = setup()
+    const article = articles.seed()
+    await articles.addFile(article.id, {
+      kind: 'COVER_IMAGE',
+      url: '/uploads/blog/cover.png',
+      filename: 'cover.png',
+      mimeType: 'image/png',
+      sizeBytes: 10,
+      uploadedById: null,
+      submissionId: null,
+    })
+    const fileId = article.legacyFiles[0].id
+
+    await deleteArticleFileUseCase(articles, storage)(article.id, CUSTOMER_ID, fileId)
+
+    expect(article.legacyFiles).toHaveLength(0)
+    expect(storage.removedUrls).toEqual(['/uploads/blog/cover.png'])
+  })
+
+  it('ไม่พบไฟล์ = NotFoundError และไม่แตะดิสก์', async () => {
+    const { articles, storage } = setup()
+    const article = articles.seed()
+
+    await expect(
+      deleteArticleFileUseCase(articles, storage)(article.id, CUSTOMER_ID, 'file-ไม่มีจริง'),
+    ).rejects.toThrow(NotFoundError)
+    expect(storage.removedUrls).toHaveLength(0)
+  })
+
+  it('บทความของลูกค้าคนอื่น = NotFoundError (กัน IDOR)', async () => {
+    const { articles, storage } = setup()
+    const article = articles.seed()
+
+    await expect(
+      deleteArticleFileUseCase(articles, storage)(article.id, OTHER_CUSTOMER_ID, 'file-1'),
+    ).rejects.toThrow(NotFoundError)
+  })
+})
+
+describe('listArticles', () => {
+  it('filter ครบปี+เดือน = คืน monthlyCount ไว้เทียบโควตา', async () => {
+    const { articles } = setup()
+    articles.seed({ targetYear: 2026, targetMonth: 8 })
+    articles.seed({ targetYear: 2026, targetMonth: 8 })
+    articles.seed({ targetYear: 2026, targetMonth: 9 })
+
+    const result = await listArticlesUseCase(articles)(CUSTOMER_ID, { year: 2026, month: 8 })
+
+    expect(result.articles).toHaveLength(2)
+    expect(result.monthlyCount).toBe(2)
+  })
+
+  it('ไม่ได้ filter เดือน = ไม่นับโควตา', async () => {
+    const { articles } = setup()
+    articles.seed()
+
+    const result = await listArticlesUseCase(articles)(CUSTOMER_ID, { year: 2026 })
+
+    expect(result.monthlyCount).toBeNull()
+  })
+
+  it('ไม่คืนบทความของลูกค้าคนอื่น', async () => {
+    const { articles } = setup()
+    articles.seed({ customerId: OTHER_CUSTOMER_ID })
+
+    const result = await listArticlesUseCase(articles)(CUSTOMER_ID, {})
+
+    expect(result.articles).toHaveLength(0)
+  })
+})
+
+describe('listCustomerKeywords', () => {
+  it('ติด usedCount โดยจับคู่ข้อความตัวพิมพ์เล็ก ไม่ใช่ FK', async () => {
+    const { articles } = setup()
+    articles.seed({
+      keywords: [{ id: 'kw-1', keyword: 'SEO Agency', source: 'REPORT', sourceId: 'r-1' }],
+    })
+    const keywords = new FakeBlogKeywordReader([
+      { keyword: 'seo agency', source: 'REPORT', sourceId: 'r-1', position: 3, kd: 'ง่าย' },
+      { keyword: 'ยังไม่ใช้', source: 'RECOMMEND', sourceId: 'r-2', position: null, kd: null },
+    ])
+
+    const result = await listCustomerKeywordsUseCase(keywords, articles)(CUSTOMER_ID)
+
+    expect(result.map((option) => option.usedCount)).toEqual([1, 0])
+  })
+})
+
+describe('updateStage', () => {
+  it('stage ของลูกค้าจะ toggle submitted ไม่ได้ — ต้องผ่าน submitClientFeedback', async () => {
+    const { articles } = setup()
+    const article = articles.seed()
+
+    await expect(
+      updateStageUseCase(articles)(article.id, CUSTOMER_ID, 'CLIENT_FEEDBACK_TOPIC', {
+        submitted: false,
+      }),
+    ).rejects.toThrow(BadRequestError)
+  })
+
+  it('ติ๊กว่าส่งแล้วเฉย ๆ ไม่ได้ — ต้องส่งพร้อมเนื้อหาผ่าน submitStageWork', async () => {
+    const { articles } = setup()
+    const article = articles.seed()
+
+    await expect(
+      updateStageUseCase(articles)(article.id, CUSTOMER_ID, 'SUBMIT_TOPIC', { submitted: true }),
+    ).rejects.toThrow(BadRequestError)
+  })
+
+  it('ยกเลิกการส่ง = เคลียร์ submittedAt แล้ว derive status ใหม่', async () => {
+    const { articles } = setup()
+    const article = articles.seed({ status: 'WAITING_CLIENT' })
+    article.stages[0].submittedAt = new Date()
+
+    const result = await updateStageUseCase(articles)(article.id, CUSTOMER_ID, 'SUBMIT_TOPIC', {
+      submitted: false,
+    })
+
+    expect(article.stages[0].submittedAt).toBeNull()
+    expect(result.status).toBe('DRAFT')
+  })
+
+  it('แก้ dueDate/note ได้โดยไม่แตะ submittedAt', async () => {
+    const { articles } = setup()
+    const article = articles.seed()
+    const dueDate = new Date('2026-09-15T00:00:00.000Z')
+
+    await updateStageUseCase(articles)(article.id, CUSTOMER_ID, 'SUBMIT_TOPIC', {
+      dueDate,
+      note: 'เลื่อนตามที่คุยกับลูกค้า',
+    })
+
+    expect(article.stages[0].dueDate).toBe(dueDate)
+    expect(article.stages[0].note).toBe('เลื่อนตามที่คุยกับลูกค้า')
+    expect(article.stages[0].submittedAt).toBeNull()
+  })
+
+  it('บทความของลูกค้าคนอื่น = NotFoundError (กัน IDOR)', async () => {
+    const { articles } = setup()
+    const article = articles.seed()
+
+    await expect(
+      updateStageUseCase(articles)(article.id, OTHER_CUSTOMER_ID, 'SUBMIT_TOPIC', { note: 'x' }),
+    ).rejects.toThrow(NotFoundError)
+  })
+})
+
+describe('submitStageWork', () => {
+  const emptyInput = { message: null, linkUrl: null }
+
+  it('stage ของลูกค้าให้ทีมเขียนส่งแทนไม่ได้', async () => {
+    const { articles, storage } = setup()
+    const article = articles.seed()
+
+    await expect(
+      submitStageWorkUseCase(articles, storage)(
+        article.id,
+        CUSTOMER_ID,
+        'CLIENT_FEEDBACK_TOPIC',
+        { message: 'ส่งแทนลูกค้า', linkUrl: null },
+        null,
+        AUTHOR_ID,
+      ),
+    ).rejects.toThrow(BadRequestError)
+  })
+
+  it('stage ที่ไม่รับไฟล์ = แนบไฟล์ไม่ได้', async () => {
+    const { articles, storage } = setup()
+    const article = articles.seed()
+
+    await expect(
+      submitStageWorkUseCase(articles, storage)(
+        article.id,
+        CUSTOMER_ID,
+        'UPLOAD_ON_WEBSITE',
+        emptyInput,
+        fakeFile(),
+        AUTHOR_ID,
+      ),
+    ).rejects.toThrow(BadRequestError)
+    expect(storage.written).toHaveLength(0)
+  })
+
+  it('ต้องมีข้อความ ลิงก์ หรือไฟล์อย่างน้อย 1 อย่าง', async () => {
+    const { articles, storage } = setup()
+    const article = articles.seed()
+
+    await expect(
+      submitStageWorkUseCase(articles, storage)(
+        article.id,
+        CUSTOMER_ID,
+        'SUBMIT_TOPIC',
+        emptyInput,
+        null,
+        AUTHOR_ID,
+      ),
+    ).rejects.toThrow(BadRequestError)
+  })
+
+  it('ส่งสำเร็จ = บันทึกไฟล์ ปิด stage แล้วสถานะเป็นรอลูกค้า', async () => {
+    const { articles, storage } = setup()
+    const article = articles.seed()
+
+    const result = await submitStageWorkUseCase(articles, storage)(
+      article.id,
+      CUSTOMER_ID,
+      'SUBMIT_TOPIC',
+      { message: 'เสนอ 3 หัวข้อ', linkUrl: null },
+      fakeFile(),
+      AUTHOR_ID,
+    )
+
+    expect(result).toMatchObject({ status: 'WAITING_CLIENT', stageCode: 'SUBMIT_TOPIC', round: 1 })
+    expect(article.submissions[0].files).toHaveLength(1)
+    expect(article.stages[0].submittedAt).not.toBeNull()
+  })
+
+  it('ส่งซ้ำใน stage เดิม = round เดินหน้า', async () => {
+    const { articles, storage } = setup()
+    const article = articles.seed()
+    const submit = submitStageWorkUseCase(articles, storage)
+    const input = { message: 'รอบแรก', linkUrl: null }
+
+    await submit(article.id, CUSTOMER_ID, 'SUBMIT_TOPIC', input, null, AUTHOR_ID)
+    const second = await submit(
+      article.id,
+      CUSTOMER_ID,
+      'SUBMIT_TOPIC',
+      { message: 'แก้ตามที่ขอ', linkUrl: null },
+      null,
+      AUTHOR_ID,
+    )
+
+    expect(second.round).toBe(2)
+  })
+
+  it('บันทึกไฟล์ล้มเหลว = rollback ทั้งไฟล์บนดิสก์และ submission', async () => {
+    const { articles, storage } = setup()
+    const article = articles.seed()
+    articles.failNextAddFile = true
+
+    await expect(
+      submitStageWorkUseCase(articles, storage)(
+        article.id,
+        CUSTOMER_ID,
+        'SUBMIT_TOPIC',
+        { message: 'เสนอหัวข้อ', linkUrl: null },
+        fakeFile(),
+        AUTHOR_ID,
+      ),
+    ).rejects.toThrow('fake: addFile failed')
+
+    expect(storage.removedPaths).toEqual([storage.written[0].absolutePath])
+    expect(article.submissions).toHaveLength(0)
+    expect(article.stages[0].submittedAt).toBeNull()
+  })
+
+  it('บทความของลูกค้าคนอื่น = NotFoundError (กัน IDOR)', async () => {
+    const { articles, storage } = setup()
+    const article = articles.seed()
+
+    await expect(
+      submitStageWorkUseCase(articles, storage)(
+        article.id,
+        OTHER_CUSTOMER_ID,
+        'SUBMIT_TOPIC',
+        { message: 'x', linkUrl: null },
+        null,
+        AUTHOR_ID,
+      ),
+    ).rejects.toThrow(NotFoundError)
+  })
+})
+
+describe('submitClientFeedback', () => {
+  it('stage ที่ไม่ใช่ของลูกค้า = ให้ความเห็นไม่ได้', async () => {
+    const { articles } = setup()
+    const article = articles.seed()
+
+    await expect(
+      submitClientFeedbackUseCase(articles)(
+        article.id,
+        CUSTOMER_ID,
+        { stageCode: 'SUBMIT_TOPIC', decision: 'APPROVED', comment: null },
+        AUTHOR_ID,
+      ),
+    ).rejects.toThrow(BadRequestError)
+  })
+
+  it('ทีมยังไม่ส่งงานมา = ตอบไม่ได้', async () => {
+    const { articles } = setup()
+    const article = articles.seed()
+
+    await expect(
+      submitClientFeedbackUseCase(articles)(
+        article.id,
+        CUSTOMER_ID,
+        { stageCode: 'CLIENT_FEEDBACK_TOPIC', decision: 'APPROVED', comment: null },
+        AUTHOR_ID,
+      ),
+    ).rejects.toThrow(BadRequestError)
+  })
+
+  it('อนุมัติ = ปิด stage ของลูกค้าแล้วคิวกลับไปที่ทีมเขียน', async () => {
+    const { articles } = setup()
+    const article = articles.seed()
+    article.stages[0].submittedAt = new Date()
+
+    const result = await submitClientFeedbackUseCase(articles)(
+      article.id,
+      CUSTOMER_ID,
+      { stageCode: 'CLIENT_FEEDBACK_TOPIC', decision: 'APPROVED', comment: 'เอาหัวข้อที่ 2' },
+      AUTHOR_ID,
+    )
+
+    expect(article.stages[1].submittedAt).not.toBeNull()
+    expect(result.status).toBe('IN_PROGRESS')
+    expect(result.articleTitle).toBe(article.title)
+  })
+
+  it('ขอแก้ = ย้อน pipeline กลับไปให้ทีมเขียนส่ง stage ก่อนหน้าใหม่', async () => {
+    const { articles } = setup()
+    const article = articles.seed()
+    article.stages[0].submittedAt = new Date()
+
+    const result = await submitClientFeedbackUseCase(articles)(
+      article.id,
+      CUSTOMER_ID,
+      { stageCode: 'CLIENT_FEEDBACK_TOPIC', decision: 'CHANGES_REQUESTED', comment: 'ขอใหม่' },
+      AUTHOR_ID,
+    )
+
+    expect(article.stages[0].submittedAt).toBeNull()
+    expect(article.stages[1].submittedAt).toBeNull()
+    expect(result.status).toBe('DRAFT')
+    expect(article.feedbacks[0].decision).toBe('CHANGES_REQUESTED')
+  })
+
+  it('บทความของลูกค้าคนอื่น = NotFoundError (กัน IDOR)', async () => {
+    const { articles } = setup()
+    const article = articles.seed()
+
+    await expect(
+      submitClientFeedbackUseCase(articles)(
+        article.id,
+        OTHER_CUSTOMER_ID,
+        { stageCode: 'CLIENT_FEEDBACK_TOPIC', decision: 'APPROVED', comment: null },
+        AUTHOR_ID,
+      ),
+    ).rejects.toThrow(NotFoundError)
+  })
+})
+
+describe('recalculateStatus', () => {
+  it('เขียน status กลับก็ต่อเมื่อค่าที่ derive ได้ต่างจากเดิม', async () => {
+    const { articles } = setup()
+    const article = articles.seed({ status: 'DRAFT' })
+    const setStatus = vi.spyOn(articles, 'setStatus')
+
+    expect(await recalculateStatus(articles, article.id, CUSTOMER_ID)).toBe('DRAFT')
+    expect(setStatus).not.toHaveBeenCalled()
+
+    article.stages[0].submittedAt = new Date()
+    expect(await recalculateStatus(articles, article.id, CUSTOMER_ID)).toBe('WAITING_CLIENT')
+    expect(setStatus).toHaveBeenCalledWith(article.id, 'WAITING_CLIENT')
+  })
+
+  it('บทความของลูกค้าคนอื่น = NotFoundError (กัน IDOR)', async () => {
+    const { articles } = setup()
+    const article = articles.seed()
+
+    await expect(recalculateStatus(articles, article.id, OTHER_CUSTOMER_ID)).rejects.toThrow(
+      NotFoundError,
+    )
+  })
+})
+
+describe('manageBlogSettings', () => {
+  it('ไม่พบลูกค้า = NotFoundError', async () => {
+    const settings = new InMemoryBlogSettingsRepository()
+
+    await expect(getBlogSettingsUseCase(settings)(CUSTOMER_ID)).rejects.toThrow(NotFoundError)
+  })
+
+  it('assign คนที่ไม่ใช่ BLOG_WRITER ไม่ได้', async () => {
+    const settings = new InMemoryBlogSettingsRepository()
+    settings.seed(CUSTOMER_ID)
+
+    await expect(
+      updateBlogSettingsUseCase(settings)(CUSTOMER_ID, { blogWriterId: 'user-ที่ไม่ใช่นักเขียน' }),
+    ).rejects.toThrow(BadRequestError)
+  })
+
+  it('assign BLOG_WRITER จริงได้', async () => {
+    const settings = new InMemoryBlogSettingsRepository()
+    settings.seed(CUSTOMER_ID)
+    settings.seedWriter('writer-1')
+
+    const result = await updateBlogSettingsUseCase(settings)(CUSTOMER_ID, {
+      blogWriterId: 'writer-1',
+      articlesPerMonth: 8,
+    })
+
+    expect(result).toMatchObject({ blogWriterId: 'writer-1', articlesPerMonth: 8 })
+  })
+
+  it('ไม่ได้ส่ง blogWriterId มา = ข้ามการตรวจ role', async () => {
+    const settings = new InMemoryBlogSettingsRepository()
+    settings.seed(CUSTOMER_ID)
+    const isBlogWriter = vi.spyOn(settings, 'isBlogWriter')
+
+    const result = await updateBlogSettingsUseCase(settings)(CUSTOMER_ID, { articlesPerMonth: 2 })
+
+    expect(isBlogWriter).not.toHaveBeenCalled()
+    expect(result.articlesPerMonth).toBe(2)
+  })
+})
+
+describe('messageBlogWriter', () => {
+  it('ไม่พบลูกค้า = NotFoundError', async () => {
+    const settings = new InMemoryBlogSettingsRepository()
+
+    await expect(messageBlogWriterUseCase(settings)(CUSTOMER_ID)).rejects.toThrow(NotFoundError)
+  })
+
+  it('ยังไม่มีทีมเขียนที่ดูแล = ทักไม่ได้', async () => {
+    const settings = new InMemoryBlogSettingsRepository()
+    settings.seed(CUSTOMER_ID, { blogWriterId: null })
+
+    await expect(messageBlogWriterUseCase(settings)(CUSTOMER_ID)).rejects.toThrow(BadRequestError)
+  })
+
+  it('มีทีมเขียน = คืนปลายทางของ notification', async () => {
+    const settings = new InMemoryBlogSettingsRepository()
+    settings.seed(CUSTOMER_ID, { blogWriterId: 'writer-1', blogWriterName: 'นักเขียน 1' })
+
+    await expect(messageBlogWriterUseCase(settings)(CUSTOMER_ID)).resolves.toEqual({
+      blogWriterId: 'writer-1',
+      blogWriterName: 'นักเขียน 1',
+    })
+  })
+})
