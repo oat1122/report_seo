@@ -11,7 +11,12 @@ export function parseFieldErrors(error: ZodError): FieldErrors {
   return result
 }
 
-export function FieldError({ error }: { error?: string }) {
+// ข้อความ error ใต้ช่องกรอก — ส่ง id ให้ช่องอ้างถึงด้วย aria-describedby
+export function FieldError({ error, id }: { error?: string; id?: string }) {
   if (!error) return null
-  return <p className="text-destructive text-xs">{error}</p>
+  return (
+    <p id={id} role="alert" className="text-danger-strong text-xs">
+      {error}
+    </p>
+  )
 }

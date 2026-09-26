@@ -20,7 +20,7 @@ export const ChartEmptyState: React.FC<ChartEmptyStateProps> = ({
   return (
     <div
       className={cn(
-        'border-border bg-card relative flex w-full flex-col items-center justify-center overflow-hidden rounded-lg border border-dashed',
+        'border-border bg-glass-tile relative flex w-full flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed',
         className,
       )}
       style={{ height }}
@@ -53,8 +53,8 @@ export const ChartEmptyState: React.FC<ChartEmptyStateProps> = ({
         className="mb-2"
         fallback={<TrendingUp className="text-muted-foreground mb-2 size-12" />}
       />
-      <p className="text-muted-foreground px-4 text-center text-sm">{message}</p>
-      <p className="text-muted-foreground/80 mt-1 text-xs">ต้องมีข้อมูลอย่างน้อย 2 รายการ</p>
+      <p className="text-text-secondary px-4 text-center text-sm">{message}</p>
+      <p className="text-text-secondary mt-1 text-xs">กราฟจะแสดงเมื่อมีข้อมูลอย่างน้อย 2 รอบ</p>
     </div>
   )
 }

@@ -1,193 +1,271 @@
 'use client'
 
-import React from 'react'
-import { ArrowDown, ArrowUp, KeyRound, Lightbulb, Minus, TrendingUp, Trophy } from 'lucide-react'
+import React, { useMemo, type ReactNode } from 'react'
+import { ArrowDown, ArrowUp } from 'lucide-react'
+import { AnimatedNumber, Stagger, StaggerItem } from '@/components/motion'
+import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import { MiniSparkline } from './components/MiniSparkline'
 import { useHistoryContext } from './contexts/HistoryContext'
-import { computeKpiSnapshots, type KpiSnapshot } from './lib/historyCalculations'
+import { useReportFilters } from './contexts/ReportFiltersContext'
+import { DeltaChip, deltaMeta } from './components/DeltaChip'
+import { MiniBarChart } from './components/MiniBarChart'
+import { MiniLineChart } from './components/MiniLineChart'
+import { MiniRingChart } from './components/MiniRingChart'
+import { SemiGauge } from './components/SemiGauge'
+import {
+  computeKpiSnapshots,
+  computePositionDistribution,
+  computePreviousPositionDistribution,
+  computeRoiHeadline,
+  deduplicateByDay,
+  getValueAtOrBefore,
+} from './lib/historyCalculations'
+import { formatSignedPct } from './lib/formatters'
 
 interface SummaryStatisticsProps {
-  /** Recommendations count — ไม่มี delta (static counter, ส่งจาก parent) */
-  recommendationsCount: number
+  className?: string
 }
 
-interface DeltaInfo {
-  /** isImproved = ดีขึ้นในเชิง user (lower-is-better ต้อง flip ก่อนส่งเข้ามา) */
-  isImproved: boolean | null
-  isFlat: boolean
-  text: string
-  ariaLabel: string
+interface KpiCardProps {
+  title: string
+  hint: string
+  value: ReactNode
+  delta?: ReactNode
+  caption?: string
+  chart?: ReactNode
 }
 
-interface StatCardProps {
-  icon: React.ReactNode
-  label: string
-  value: string | number
-  colorClass: string
-  snapshot?: KpiSnapshot
-  /** ตีความ delta ทิศไหนคือ "ดีขึ้น" — true = lower-better (เช่น position) */
-  lowerIsBetter?: boolean
-  /** เปรียบเทียบกับช่วงไหน (label) */
-  vsLabel?: string
-  /** color จาก theme (CSS var) สำหรับ sparkline + delta */
-  sparklineColor: string
-}
-
-const formatDeltaNumber = (n: number) => {
-  const abs = Math.abs(n)
-  if (Number.isInteger(n)) return abs.toLocaleString()
-  return abs.toFixed(1)
-}
-
-const buildDeltaInfo = (
-  snapshot: KpiSnapshot | undefined,
-  lowerIsBetter: boolean,
-  vsLabel: string,
-  label: string,
-): DeltaInfo | null => {
-  if (!snapshot || snapshot.previous === null) return null
-  const { delta, direction } = snapshot
-  if (direction === 'neutral') {
-    return {
-      isImproved: null,
-      isFlat: true,
-      text: `ไม่เปลี่ยนแปลง ${vsLabel}`,
-      ariaLabel: `${label} ไม่เปลี่ยนแปลง ${vsLabel}`,
-    }
-  }
-  const goingUp = direction === 'up'
-  const isImproved = lowerIsBetter ? !goingUp : goingUp
-  const sign = goingUp ? '+' : '-'
-  const text = `${sign}${formatDeltaNumber(delta)} ${vsLabel}`
-  const ariaLabel = isImproved
-    ? `${label} ดีขึ้น ${formatDeltaNumber(delta)} ${vsLabel}`
-    : `${label} แย่ลง ${formatDeltaNumber(delta)} ${vsLabel}`
-  return { isImproved, isFlat: false, text, ariaLabel }
-}
-
-const DeltaBadge = ({ info }: { info: DeltaInfo }) => {
-  if (info.isFlat) {
-    return (
-      <span
-        className="text-muted-foreground flex items-center gap-1 text-xs font-medium"
-        aria-label={info.ariaLabel}
-      >
-        <Minus className="size-3" aria-hidden="true" />
-        {info.text}
-      </span>
-    )
-  }
-  const tone = info.isImproved ? 'text-success' : 'text-destructive'
-  const Arrow = info.isImproved ? ArrowUp : ArrowDown
-  return (
-    <span
-      className={cn('flex items-center gap-1 text-xs font-semibold', tone)}
-      aria-label={info.ariaLabel}
-    >
-      <Arrow className="size-3" aria-hidden="true" />
-      {info.text}
-    </span>
-  )
-}
-
-const StatCard: React.FC<StatCardProps> = ({
-  icon,
-  label,
-  value,
-  colorClass,
-  snapshot,
-  lowerIsBetter = false,
-  vsLabel = 'vs สัปดาห์ก่อน',
-  sparklineColor,
-}) => {
-  const deltaInfo = buildDeltaInfo(snapshot, lowerIsBetter, vsLabel, label)
-  return (
-    <div
-      className={cn(
-        'group border-border bg-card relative overflow-hidden rounded-2xl border p-4 transition-all hover:-translate-y-1 hover:shadow-lg md:p-6',
-        colorClass,
-      )}
-    >
-      <div className="absolute -top-5 -right-5 hidden size-20 rounded-full bg-current opacity-10 sm:block" />
-      <div className="relative">
-        <div className={cn('mb-3 inline-flex rounded-lg p-2 md:p-3', 'bg-current/10')}>
-          <span className="flex">{icon}</span>
+const KpiCard = ({ title, hint, value, delta, caption, chart }: KpiCardProps) => (
+  <Card className="h-full py-3.5 md:py-[18px]">
+    <CardContent className="flex h-full flex-col gap-2.5 px-3.5 md:gap-3 md:px-5">
+      <div className="flex flex-col gap-px md:flex-row md:items-center md:justify-between md:gap-2">
+        <p className="text-[13px] font-medium md:text-sm">{title}</p>
+        <p className="text-text-secondary text-[11px] md:text-xs">{hint}</p>
+      </div>
+      <div className="mt-auto flex items-end justify-between gap-2">
+        <div className="flex min-w-0 flex-col gap-2">
+          <span className="text-[28px] leading-none font-semibold tabular-nums md:text-[32px]">
+            {value}
+          </span>
+          {delta && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              {delta}
+              {caption && (
+                <span className="text-text-secondary hidden text-xs sm:inline">{caption}</span>
+              )}
+            </div>
+          )}
         </div>
-        <p className="text-foreground mb-1 text-2xl font-bold md:text-3xl">{value}</p>
-        <p className="text-muted-foreground text-sm font-medium">{label}</p>
-
-        {(deltaInfo || snapshot) && (
-          <div className="mt-2 flex items-center justify-between gap-2">
-            {deltaInfo ? (
-              <DeltaBadge info={deltaInfo} />
-            ) : (
-              <span className="text-muted-foreground text-xs">ข้อมูลยังไม่พอเทียบ</span>
-            )}
-            {snapshot && (
-              <MiniSparkline
-                data={snapshot.sparkline}
-                color={sparklineColor}
-                invert={lowerIsBetter}
-                width={72}
-                height={24}
-                ariaLabel={`แนวโน้ม ${label} ${snapshot.sparkline.length} จุดล่าสุด`}
-              />
-            )}
-          </div>
-        )}
+        {chart && <div className="shrink-0">{chart}</div>}
       </div>
-    </div>
+    </CardContent>
+  </Card>
+)
+
+const NoCompare = () => <span className="text-text-secondary text-xs">ยังไม่มีข้อมูลให้เทียบ</span>
+
+const oneDecimal = (n: number) => n.toFixed(1)
+const absValue = (n: number) => (Number.isInteger(n) ? `${Math.abs(n)}` : oneDecimal(Math.abs(n)))
+
+/** KPI 4 ใบบนสุดของ Overview (Main.dc.html) — ค่าทั้งหมดมาจาก history context ตามช่วงเวลาที่เลือก */
+export const SummaryStatistics: React.FC<SummaryStatisticsProps> = ({ className }) => {
+  const { metricsHistory, keywordHistory, currentKeywords } = useHistoryContext()
+  const { period } = useReportFilters()
+
+  const kpi = useMemo(
+    () => computeKpiSnapshots(keywordHistory, currentKeywords, period),
+    [keywordHistory, currentKeywords, period],
+  )
+  const roi = useMemo(
+    () => computeRoiHeadline(metricsHistory, keywordHistory, currentKeywords, period),
+    [metricsHistory, keywordHistory, currentKeywords, period],
+  )
+  const dist = useMemo(() => computePositionDistribution(currentKeywords), [currentKeywords])
+  const prevDist = useMemo(
+    () => computePreviousPositionDistribution(keywordHistory, currentKeywords, period),
+    [keywordHistory, currentKeywords, period],
+  )
+  const trafficBars = useMemo(() => {
+    const asc = [...metricsHistory].sort(
+      (a, b) => new Date(a.dateRecorded).getTime() - new Date(b.dateRecorded).getTime(),
+    )
+    return deduplicateByDay(asc)
+      .slice(-12)
+      .map((r) => r.organicTraffic)
+  }, [metricsHistory])
+
+  const vsLabel = `vs ${period} วันก่อน`
+  const current = metricsHistory[0] ?? null
+
+  // ---- Organic Traffic ----
+  const trafficDelta =
+    roi.trafficPctChange !== null ? (
+      <DeltaChip {...deltaMeta(roi.trafficDirection === 'neutral' ? 0 : roi.trafficPctChange)}>
+        {formatSignedPct(roi.trafficPctChange)}
+      </DeltaChip>
+    ) : (
+      <NoCompare />
+    )
+
+  // ---- อันดับเฉลี่ย (ยิ่งน้อยยิ่งดี) ----
+  const avg = kpi.avgPosition
+  const hasAvg = avg.current > 0
+  const avgDelta =
+    hasAvg && avg.previous !== null ? (
+      <DeltaChip {...deltaMeta(avg.delta, true)}>
+        {avg.delta === 0
+          ? 'เท่าเดิม'
+          : `${avg.delta < 0 ? 'ดีขึ้น' : 'แย่ลง'} ${oneDecimal(Math.abs(avg.delta))}`}
+      </DeltaChip>
+    ) : (
+      <NoCompare />
+    )
+
+  // ---- ติดหน้าแรก (Top 10) ----
+  const top10 = dist.top3 + dist.top10
+  const top10Pct = dist.total > 0 ? Math.round((top10 / dist.total) * 100) : null
+  const prevTop10 = prevDist ? prevDist.top3 + prevDist.top10 : null
+  const top10Delta =
+    prevTop10 !== null ? (
+      <DeltaChip {...deltaMeta(top10 - prevTop10)}>{Math.abs(top10 - prevTop10)} คำ</DeltaChip>
+    ) : (
+      <NoCompare />
+    )
+
+  // ---- Domain Rating ----
+  const prevDr = getValueAtOrBefore(metricsHistory, period, (r) => r.domainRating)
+  const drDelta =
+    current && prevDr !== null ? (
+      <DeltaChip {...deltaMeta(current.domainRating - prevDr)}>
+        {absValue(current.domainRating - prevDr)}
+      </DeltaChip>
+    ) : (
+      <NoCompare />
+    )
+
+  return (
+    <section aria-label="ตัวเลขสำคัญ" className={className}>
+      <Stagger className="grid grid-cols-2 gap-3 md:gap-[18px] xl:grid-cols-4">
+        <StaggerItem className="hidden md:block">
+          <KpiCard
+            title="Organic Traffic"
+            hint="คน / เดือน"
+            value={current ? <AnimatedNumber value={current.organicTraffic} /> : '—'}
+            delta={trafficDelta}
+            caption={roi.trafficPctChange !== null ? vsLabel : undefined}
+            chart={<MiniBarChart values={trafficBars} />}
+          />
+        </StaggerItem>
+
+        <StaggerItem>
+          <KpiCard
+            title="อันดับเฉลี่ย"
+            hint="ยิ่งน้อยยิ่งดี"
+            value={hasAvg ? <AnimatedNumber value={avg.current} format={oneDecimal} /> : '—'}
+            delta={avgDelta}
+            caption={
+              hasAvg && avg.previous !== null ? `จาก ${oneDecimal(avg.previous)}` : undefined
+            }
+            chart={
+              <MiniLineChart
+                values={avg.sparkline}
+                invert
+                className="h-[30px] w-16 md:h-10 md:w-24"
+              />
+            }
+          />
+        </StaggerItem>
+
+        <StaggerItem>
+          <KpiCard
+            title="ติดหน้าแรก (Top 10)"
+            hint={`${top10} / ${dist.total} คำ`}
+            value={
+              top10Pct !== null ? (
+                <AnimatedNumber value={top10Pct} format={(n) => `${Math.round(n)}%`} />
+              ) : (
+                '—'
+              )
+            }
+            delta={top10Delta}
+            caption={prevTop10 !== null ? vsLabel : undefined}
+            chart={
+              dist.total > 0 ? (
+                <MiniRingChart
+                  className="size-11 md:size-[60px]"
+                  segments={[
+                    { value: dist.top3 / dist.total, color: 'var(--chart-4)' },
+                    { value: dist.top10 / dist.total, color: 'var(--chart-3)' },
+                  ]}
+                />
+              ) : null
+            }
+          />
+        </StaggerItem>
+
+        <StaggerItem>
+          <KpiCard
+            title="Domain Rating"
+            hint="เต็ม 100"
+            value={current ? <AnimatedNumber value={current.domainRating} /> : '—'}
+            delta={drDelta}
+            caption={current && prevDr !== null ? vsLabel : undefined}
+            chart={
+              current ? (
+                <SemiGauge value={current.domainRating} className="w-[62px] md:w-[84px]" />
+              ) : null
+            }
+          />
+        </StaggerItem>
+
+        {/* มือถือ: traffic อยู่การ์ดใหญ่ด้านบนแล้ว → ช่องที่ 4 เป็นจำนวน keyword ที่ขยับ */}
+        <StaggerItem className="md:hidden">
+          <Card className="h-full py-3.5">
+            <CardContent className="flex h-full flex-col gap-2.5 px-3.5">
+              <div className="flex flex-col gap-px">
+                <p className="text-[13px] font-medium">Keyword ขยับ</p>
+                <p className="text-text-secondary text-[11px]">เทียบ {period} วันก่อน</p>
+              </div>
+              <div className="mt-auto flex flex-col gap-1.5">
+                <MoveRow tone="good" count={roi.improvedKeywordCount} label="ขึ้น" />
+                <MoveRow tone="bad" count={roi.declinedKeywordCount} label="ลง" />
+              </div>
+            </CardContent>
+          </Card>
+        </StaggerItem>
+      </Stagger>
+    </section>
   )
 }
 
-export const SummaryStatistics: React.FC<SummaryStatisticsProps> = ({ recommendationsCount }) => {
-  const { keywordHistory, currentKeywords } = useHistoryContext()
-
-  const kpi = React.useMemo(
-    () => computeKpiSnapshots(keywordHistory, currentKeywords, 7),
-    [keywordHistory, currentKeywords],
-  )
-
-  const avgPositionDisplay = kpi.avgPosition.current > 0 ? kpi.avgPosition.current.toFixed(1) : '-'
-
+const MoveRow = ({
+  tone,
+  count,
+  label,
+}: {
+  tone: 'good' | 'bad'
+  count: number
+  label: string
+}) => {
+  const Icon = tone === 'good' ? ArrowUp : ArrowDown
   return (
-    <div className="mb-6 md:mb-8">
-      <h2 className="mb-4 text-lg font-bold md:mb-6 md:text-2xl">Quick Overview</h2>
-      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 md:gap-5">
-        <StatCard
-          icon={<KeyRound className="size-7" />}
-          label="Total Keywords"
-          value={kpi.totalKeywords.current}
-          colorClass="text-info hover:border-info/40"
-          snapshot={kpi.totalKeywords}
-          sparklineColor="var(--info)"
-        />
-        <StatCard
-          icon={<TrendingUp className="size-7" />}
-          label="Avg Position"
-          value={avgPositionDisplay}
-          colorClass="text-success hover:border-success/40"
-          snapshot={kpi.avgPosition}
-          lowerIsBetter
-          sparklineColor="var(--success)"
-        />
-        <StatCard
-          icon={<Trophy className="size-7" />}
-          label="Top 3 Rankings"
-          value={kpi.top3Count.current}
-          colorClass="text-warning hover:border-warning/40"
-          snapshot={kpi.top3Count}
-          sparklineColor="var(--warning)"
-        />
-        <StatCard
-          icon={<Lightbulb className="size-7" />}
-          label="Recommendations"
-          value={recommendationsCount}
-          colorClass="text-info hover:border-info/40"
-          sparklineColor="var(--info)"
-        />
-      </div>
+    <div className="flex items-center gap-2">
+      <span
+        aria-hidden
+        className={cn(
+          'flex size-6 items-center justify-center rounded-lg',
+          tone === 'good'
+            ? 'bg-success-subtle text-success'
+            : 'bg-danger-subtle text-danger-strong',
+        )}
+      >
+        <Icon className="size-3.5" strokeWidth={2.5} />
+      </span>
+      <AnimatedNumber
+        value={count}
+        className="text-[22px] leading-none font-semibold tabular-nums"
+      />
+      <span className="text-text-secondary text-xs">{label}</span>
     </div>
   )
 }

@@ -23,8 +23,15 @@ export function BackButton({ fallbackHref = '/admin' }: Props) {
   }
 
   return (
-    <Button variant="ghost" size="icon" onClick={handleBack}>
-      <ArrowLeft className="size-4" />
+    <Button
+      variant="outline"
+      size="icon"
+      onClick={handleBack}
+      aria-label="ย้อนกลับ"
+      title="ย้อนกลับ"
+      className="border-glass-border shrink-0 rounded-[14px] bg-white/60 backdrop-blur-md hover:bg-white/85 dark:bg-white/5 dark:hover:bg-white/10"
+    >
+      <ArrowLeft aria-hidden className="size-[18px]" />
     </Button>
   )
 }

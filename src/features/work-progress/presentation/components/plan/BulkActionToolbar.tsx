@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { Trash2, X } from 'lucide-react'
+import { ChevronDown, Trash2, X } from 'lucide-react'
+import { motion } from '@/components/motion'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   Select,
@@ -32,6 +32,10 @@ interface BulkActionToolbarProps {
   selectedIds: string[]
   onClear: () => void
 }
+
+// ปุ่มบนแถบมืด — พื้นขาวโปร่ง ตัวอักษรขาว
+const DARK_BTN =
+  'h-9 rounded-[10px] bg-white/12 px-3 text-[13px] text-white hover:bg-white/20 hover:text-white aria-expanded:bg-white/20 aria-expanded:text-white focus-visible:ring-white/60 focus-visible:ring-offset-0'
 
 export function BulkActionToolbar({
   userId,
@@ -97,24 +101,38 @@ export function BulkActionToolbar({
   }
 
   return (
-    <div className="pointer-events-none sticky bottom-4 z-20 flex justify-center">
-      <Card className="border-primary/60 pointer-events-auto rounded-full border-2 shadow-lg">
-        <CardContent className="flex items-center gap-2 py-2 pr-2 pl-3">
-          <Badge variant="secondary" className="rounded-full">
-            เลือก {selectedIds.length}
-          </Badge>
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 16 }}
+      transition={{ duration: 0.22, ease: [0.2, 0.8, 0.2, 1] }}
+      className="pointer-events-none sticky bottom-4 z-30 flex justify-center"
+    >
+      <div
+        role="toolbar"
+        aria-label="จัดการรายการที่เลือก"
+        className="bg-toast shadow-toast pointer-events-auto flex max-w-full flex-wrap items-center gap-2 rounded-[16px] py-2 pr-2 pl-4 text-white"
+      >
+        <span className="text-sm font-medium tabular-nums" aria-live="polite">
+          เลือก {selectedIds.length} รายการ
+        </span>
+        <span aria-hidden className="h-5 w-px bg-white/25" />
 
-          <Popover open={statusOpen} onOpenChange={setStatusOpen}>
-            <PopoverTrigger asChild>
-              <Button size="sm" variant="outline">
-                เปลี่ยนสถานะ
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-72">
-              <div className="flex flex-col gap-2">
-                <span className="text-muted-foreground text-xs">เลือกสถานะใหม่</span>
+        <Popover open={statusOpen} onOpenChange={setStatusOpen}>
+          <PopoverTrigger asChild>
+            <Button size="sm" variant="ghost" className={DARK_BTN}>
+              เปลี่ยนสถานะ
+              <ChevronDown className="size-3.5" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-72 rounded-[16px]">
+            <div className="flex flex-col gap-3">
+              <div className="grid gap-1.5">
+                <Label htmlFor="bulk-status" className="text-[13px]">
+                  สถานะใหม่ของ {selectedIds.length} รายการ
+                </Label>
                 <Select value={statusId} onValueChange={setStatusId}>
-                  <SelectTrigger>
+                  <SelectTrigger id="bulk-status" className="w-full">
                     <SelectValue placeholder="เลือกสถานะ" />
                   </SelectTrigger>
                   <SelectContent>
@@ -122,33 +140,48 @@ export function BulkActionToolbar({
                       .filter((s) => s.isActive)
                       .map((s) => (
                         <SelectItem key={s.id} value={s.id}>
+                          <span
+                            aria-hidden
+                            className="inline-block size-2 shrink-0 rounded-full"
+                            style={{ backgroundColor: s.color ?? 'var(--muted-foreground)' }}
+                          />
                           {s.name}
                         </SelectItem>
                       ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button size="sm" variant="outline" onClick={() => setStatusOpen(false)}>
+                  ยกเลิก
+                </Button>
                 <Button
                   size="sm"
                   onClick={applyStatus}
                   disabled={!statusId || bulkStatus.isPending}
                 >
-                  ยืนยัน
+                  {bulkStatus.isPending ? 'กำลังบันทึก...' : 'ยืนยัน'}
                 </Button>
               </div>
-            </PopoverContent>
-          </Popover>
+            </div>
+          </PopoverContent>
+        </Popover>
 
-          <Popover open={periodOpen} onOpenChange={setPeriodOpen}>
-            <PopoverTrigger asChild>
-              <Button size="sm" variant="outline">
-                Mark period
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-72">
-              <div className="flex flex-col gap-2">
-                <span className="text-muted-foreground text-xs">ตั้ง mark ของ period นี้</span>
+        <Popover open={periodOpen} onOpenChange={setPeriodOpen}>
+          <PopoverTrigger asChild>
+            <Button size="sm" variant="ghost" className={DARK_BTN}>
+              Mark period
+              <ChevronDown className="size-3.5" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-72 rounded-[16px]">
+            <div className="flex flex-col gap-3">
+              <div className="grid gap-1.5">
+                <Label htmlFor="bulk-period" className="text-[13px]">
+                  รอบที่ต้องการ
+                </Label>
                 <Select value={periodId} onValueChange={setPeriodId}>
-                  <SelectTrigger>
+                  <SelectTrigger id="bulk-period" className="w-full">
                     <SelectValue placeholder="เลือก period" />
                   </SelectTrigger>
                   <SelectContent>
@@ -159,8 +192,13 @@ export function BulkActionToolbar({
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="bulk-mark-mode" className="text-[13px]">
+                  การกระทำ
+                </Label>
                 <Select value={markMode} onValueChange={(v) => setMarkMode(v as BulkMarkMode)}>
-                  <SelectTrigger>
+                  <SelectTrigger id="bulk-mark-mode" className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -168,6 +206,16 @@ export function BulkActionToolbar({
                     <SelectItem value="clear">ล้าง mark</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              {markMode === 'set' && !defaultMarkTypeId && (
+                <p className="text-warning-text text-xs">
+                  ยังไม่มีประเภท mark ที่เปิดใช้ — เปิดได้ที่หน้าตั้งค่า Work Progress
+                </p>
+              )}
+              <div className="flex justify-end gap-2">
+                <Button size="sm" variant="outline" onClick={() => setPeriodOpen(false)}>
+                  ยกเลิก
+                </Button>
                 <Button
                   size="sm"
                   onClick={applyPeriod}
@@ -175,35 +223,41 @@ export function BulkActionToolbar({
                     !periodId || bulkPeriod.isPending || (markMode === 'set' && !defaultMarkTypeId)
                   }
                 >
-                  ยืนยัน
+                  {bulkPeriod.isPending ? 'กำลังบันทึก...' : 'ยืนยัน'}
                 </Button>
               </div>
-            </PopoverContent>
-          </Popover>
+            </div>
+          </PopoverContent>
+        </Popover>
 
-          <Button
-            size="sm"
-            variant="ghost"
-            className="text-destructive hover:text-destructive"
-            onClick={() => setConfirmDelete(true)}
-          >
-            <Trash2 className="size-4" />
-            ลบ
-          </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="bg-destructive/30 hover:bg-destructive/45 h-9 rounded-[10px] px-3 text-[13px] text-white hover:text-white focus-visible:ring-white/60 focus-visible:ring-offset-0"
+          onClick={() => setConfirmDelete(true)}
+        >
+          <Trash2 className="size-4" />
+          ลบ
+        </Button>
 
-          <Button size="icon" variant="ghost" aria-label="ยกเลิกการเลือก" onClick={onClear}>
-            <X className="size-4" />
-          </Button>
-        </CardContent>
-      </Card>
+        <Button
+          size="icon-sm"
+          variant="ghost"
+          aria-label="ยกเลิกการเลือก"
+          className="text-white hover:bg-white/15 hover:text-white focus-visible:ring-white/60 focus-visible:ring-offset-0"
+          onClick={onClear}
+        >
+          <X className="size-4" />
+        </Button>
+      </div>
 
       <ConfirmAlert
         open={confirmDelete}
         onClose={() => setConfirmDelete(false)}
         onConfirm={applyDelete}
         title={`ลบ ${selectedIds.length} รายการ`}
-        message="ลบรายการที่เลือกพร้อม marks / subtasks / attachments — ย้อนกลับไม่ได้"
+        message="ลบรายการที่เลือกพร้อม marks / subtasks / attachments ทั้งหมด — การกระทำนี้ย้อนกลับไม่ได้"
       />
-    </div>
+    </motion.div>
   )
 }

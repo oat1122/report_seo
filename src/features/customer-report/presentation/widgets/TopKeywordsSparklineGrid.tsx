@@ -1,24 +1,26 @@
 'use client'
 
 import { useMemo } from 'react'
-import { ArrowDown, ArrowUp, Minus } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
+import { DeltaChip, deltaMeta } from '../components/DeltaChip'
 import { MiniSparkline } from '../components/MiniSparkline'
-import { ReportIcon } from '../components/ReportIcon'
+import { ReportCardHeader } from '../components/ReportCardHeader'
 import { computeSparklineTopN } from '../lib/historyCalculations'
+import { formatCompact } from '../lib/formatters'
 import { useHistoryContext } from '../contexts/HistoryContext'
 import { useReportFilters } from '../contexts/ReportFiltersContext'
 
 interface TopKeywordsSparklineGridProps {
   topN?: number
+  className?: string
 }
 
-const fmtTraffic = (v: number): string => {
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`
-  if (v >= 1_000) return `${(v / 1_000).toFixed(1)}K`
-  return v.toFixed(0)
-}
-
-export const TopKeywordsSparklineGrid = ({ topN = 8 }: TopKeywordsSparklineGridProps) => {
+/** Keyword ที่นำ traffic มากสุด + เส้นแนวโน้มอันดับ (ขึ้น = ดีขึ้น) */
+export const TopKeywordsSparklineGrid = ({
+  topN = 8,
+  className,
+}: TopKeywordsSparklineGridProps) => {
   const { keywordHistory, currentKeywords } = useHistoryContext()
   const { period } = useReportFilters()
 
@@ -28,66 +30,57 @@ export const TopKeywordsSparklineGrid = ({ topN = 8 }: TopKeywordsSparklineGridP
   )
 
   return (
-    <div className="border-border rounded-2xl border p-4 md:p-6">
-      <div className="mb-4">
-        <h3 className="flex items-center gap-2 text-xl font-bold">
-          <ReportIcon name="trending-up" trigger="hover" color="bg-info" />
-          Top Keywords Snapshot
-        </h3>
-        <p className="text-muted-foreground mt-1 text-xs">
-          {topN} keywords อันดับ traffic สูงสุด · trend ของ position
-        </p>
-      </div>
-
-      {rows.length === 0 ? (
-        <p className="text-muted-foreground py-12 text-center text-sm">
-          ยังไม่มี keyword ที่มี traffic
-        </p>
-      ) : (
-        <div className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
-          {rows.map((row) => {
-            const positions = row.positionSpark.map((p) => p.v)
-            const DeltaIcon = row.delta > 0 ? ArrowUp : row.delta < 0 ? ArrowDown : Minus
-            const deltaClass =
-              row.delta > 0
-                ? 'text-success'
-                : row.delta < 0
-                  ? 'text-destructive'
-                  : 'text-muted-foreground'
-            return (
-              <div
-                key={row.reportId}
-                className="border-border bg-card hover:bg-muted flex items-center gap-3 rounded-lg border p-2.5 transition-colors"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold" title={row.keyword}>
-                    {row.keyword}
-                  </p>
-                  <div className="text-muted-foreground flex items-center gap-2 text-xs">
-                    <span>
-                      #{row.currentPosition ?? '—'} · {fmtTraffic(row.current)}
-                    </span>
-                  </div>
-                </div>
-                <MiniSparkline
-                  data={positions}
-                  color="var(--info)"
-                  invert
-                  width={72}
-                  height={28}
-                  ariaLabel={`${row.keyword} position trend`}
-                />
-                <div
-                  className={`flex w-14 items-center justify-end gap-0.5 text-xs font-semibold tabular-nums ${deltaClass}`}
+    <Card className={cn('min-w-0', className)}>
+      <ReportCardHeader
+        title="Keyword ที่นำ traffic มากสุด"
+        description={`${topN} คำที่ traffic สูงสุด · เส้นคือแนวโน้มอันดับ (ขึ้น = ดีขึ้น) · % เทียบ ${period} วันก่อน`}
+      />
+      <CardContent>
+        {rows.length === 0 ? (
+          <p className="bg-glass-tile text-text-secondary rounded-[14px] px-4 py-10 text-center text-sm">
+            ยังไม่มี Keyword ที่มี traffic — จะแสดงเมื่อ Keyword เริ่มมีคนเข้าจาก Google
+          </p>
+        ) : (
+          <ul className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+            {rows.map((row) => {
+              const positions = row.positionSpark.map((p) => p.v)
+              const meta = deltaMeta(row.delta)
+              return (
+                <li
+                  key={row.reportId}
+                  className="bg-glass-tile flex min-h-14 items-center gap-3 rounded-[14px] px-3 py-2"
                 >
-                  <DeltaIcon className="size-3" />
-                  {row.deltaPct != null ? `${Math.abs(row.deltaPct).toFixed(0)}%` : '—'}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
-    </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium" title={row.keyword}>
+                      {row.keyword}
+                    </p>
+                    <p className="text-text-secondary text-xs tabular-nums">
+                      อันดับ {row.currentPosition ?? '—'} · {formatCompact(row.current)} คน
+                    </p>
+                  </div>
+                  <MiniSparkline
+                    data={positions}
+                    color="var(--chart-1)"
+                    invert
+                    width={64}
+                    height={28}
+                    ariaLabel={`แนวโน้มอันดับของ ${row.keyword}`}
+                  />
+                  <span className="flex w-16 justify-end">
+                    {row.deltaPct != null ? (
+                      <DeltaChip direction={meta.direction} tone={meta.tone}>
+                        {Math.abs(row.deltaPct).toFixed(0)}%
+                      </DeltaChip>
+                    ) : (
+                      <span className="text-text-secondary text-xs">—</span>
+                    )}
+                  </span>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
   )
 }

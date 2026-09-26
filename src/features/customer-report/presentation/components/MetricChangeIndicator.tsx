@@ -1,10 +1,11 @@
 'use client'
 
 import React from 'react'
-import { TrendingUp, TrendingDown, Minus, Sparkles } from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { TrafficChangeData } from '../lib/historyCalculations'
+import { DeltaChip } from './DeltaChip'
 
 interface MetricChangeIndicatorProps {
   icon: React.ReactNode
@@ -16,15 +17,7 @@ interface MetricChangeIndicatorProps {
   iconClassName?: string
 }
 
-type Trend = TrafficChangeData['trend']
-
-const trendConfig: Record<Trend, { Icon: typeof TrendingUp; className: string }> = {
-  up: { Icon: TrendingUp, className: 'bg-success/10 text-success' },
-  down: { Icon: TrendingDown, className: 'bg-destructive/10 text-destructive' },
-  new: { Icon: Sparkles, className: 'bg-info/10 text-info' },
-  neutral: { Icon: Minus, className: 'bg-muted text-muted-foreground' },
-}
-
+// Tile ตัวเลข domain (Traffic / Keywords / Backlinks / Ref. Domains) + % เปลี่ยนแปลง
 export const MetricChangeIndicator: React.FC<MetricChangeIndicatorProps> = ({
   icon,
   label,
@@ -34,42 +27,39 @@ export const MetricChangeIndicator: React.FC<MetricChangeIndicatorProps> = ({
   iconClassName,
 }) => {
   const { percentage, trend, hasHistory } = changeData
-  const { Icon, className } = trendConfig[trend]
-
-  const percentageText = (() => {
-    if (trend === 'new') return 'New'
-    if (!hasHistory) return 'No data'
-    const abs = Math.abs(percentage).toFixed(1)
-    const sign = percentage >= 0 ? '+' : '-'
-    return `${sign}${abs}%`
-  })()
+  const pctText = `${Math.abs(percentage).toFixed(1)}%`
 
   return (
-    <div className="border-border bg-card relative h-full rounded-2xl border p-4 text-center transition-all hover:-translate-y-0.5 hover:shadow-md">
-      <div
-        className={cn('text-muted-foreground mb-1', iconClassName)}
-        style={color ? { color } : undefined}
-      >
-        {icon}
-      </div>
-
-      <p className="text-lg font-bold">{value}</p>
-      <p className="text-muted-foreground mb-1 text-sm">{label}</p>
-
-      {hasHistory && (
-        <div className="mt-1 flex items-center justify-center">
-          <Badge className={cn('gap-1 rounded-full px-2 py-0.5 text-xs font-semibold', className)}>
-            <Icon className="size-3" />
-            {percentageText}
+    <div className="bg-glass-tile border-glass-border flex h-full flex-col gap-1.5 rounded-2xl border px-3.5 py-3">
+      <span className="text-text-secondary flex items-center gap-1.5 text-xs">
+        <span
+          aria-hidden
+          className={cn('flex [&_svg]:size-4', iconClassName)}
+          style={color ? { color } : undefined}
+        >
+          {icon}
+        </span>
+        {label}
+      </span>
+      <span className="text-xl leading-tight font-semibold tabular-nums">{value}</span>
+      <span className="mt-auto self-start">
+        {trend === 'new' ? (
+          <Badge variant="info" className="gap-1 font-semibold">
+            <Sparkles aria-hidden />
+            ข้อมูลใหม่
           </Badge>
-        </div>
-      )}
-
-      {trend === 'new' && (
-        <Badge className="bg-info text-info-foreground absolute top-2 right-2 text-[0.6rem] font-bold">
-          NEW
-        </Badge>
-      )}
+        ) : !hasHistory ? (
+          <span className="text-text-secondary text-xs">ยังไม่มีข้อมูลให้เทียบ</span>
+        ) : trend === 'neutral' ? (
+          <DeltaChip direction="flat" tone="neutral">
+            0%
+          </DeltaChip>
+        ) : (
+          <DeltaChip direction={trend} tone={trend === 'up' ? 'good' : 'bad'}>
+            {pctText}
+          </DeltaChip>
+        )}
+      </span>
     </div>
   )
 }

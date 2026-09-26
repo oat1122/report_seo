@@ -1,10 +1,11 @@
 import { requireAdmin } from '@/lib/auth-utils'
 import { DashboardLayout } from '@/components/Layout/DashboardLayout'
-import { BackButton } from '@/components/shared/BackButton'
+import { CustomerWorkspaceHeader } from '@/features/users/presentation/components/workspace/CustomerWorkspaceHeader'
 import { PaymentDashboard } from '@/features/payments/presentation/components/admin/PaymentDashboard'
+import { PaymentSectionSwitch } from '@/features/payments/presentation/components/admin/PaymentSectionSwitch'
 
 export const metadata = {
-  title: 'Payment Management · Admin',
+  title: 'การชำระเงิน · Admin',
 }
 
 interface PageProps {
@@ -17,16 +18,9 @@ export default async function AdminPaymentsPage({ params }: PageProps) {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-        <div className="flex items-center gap-3">
-          <BackButton />
-          <header className="flex flex-col gap-1">
-            <h1 className="text-2xl font-semibold tracking-tight">จัดการการชำระเงิน</h1>
-            <p className="text-muted-foreground text-sm">
-              สร้างแผนเก็บเงิน · อัปโหลดสัญญา · ตรวจสอบหลักฐาน
-            </p>
-          </header>
-        </div>
+      <div className="flex flex-col gap-5">
+        <CustomerWorkspaceHeader userId={userId} basePath="/admin" />
+        <PaymentSectionSwitch customerId={userId} />
         <PaymentDashboard customerId={userId} />
       </div>
     </DashboardLayout>

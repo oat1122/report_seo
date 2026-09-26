@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -60,77 +61,82 @@ export function BlogSettingsCard({ customerId }: { customerId: string }) {
       requiresApproval !== settings.blogRequiresApproval)
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>ตั้งค่าแผนบทความ</CardTitle>
-        <CardDescription>
-          กำหนดโควตาต่อเดือน มอบหมายผู้เขียน และเลือกว่าลูกค้ารายนี้ต้องตรวจงานก่อนหรือไม่
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-5">
-        <div className="border-border flex flex-wrap items-start gap-3 rounded-xl border p-4">
-          <Switch
-            id="blog-requires-approval"
-            checked={requiresApproval}
-            onCheckedChange={setRequiresApproval}
+    <Card
+      role="region"
+      aria-label="ตั้งค่าแผนบทความ"
+      className="gap-4 px-5 py-4.5 sm:px-6 xl:grid xl:grid-cols-[minmax(0,1.6fr)_9.5rem_minmax(0,1fr)_auto] xl:items-end xl:gap-[18px]"
+    >
+      <div className="flex items-start gap-3">
+        <Switch
+          id="blog-requires-approval"
+          className="mt-0.5"
+          checked={requiresApproval}
+          onCheckedChange={setRequiresApproval}
+        />
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <Label htmlFor="blog-requires-approval" className="text-sm font-medium">
+            ให้ลูกค้าตรวจงานก่อน
+          </Label>
+          <span className="text-text-secondary text-xs leading-relaxed">
+            {requiresApproval
+              ? '5 ขั้นตอน: ส่งหัวข้อ → ลูกค้าตรวจ → ส่งบทความ → ลูกค้าตรวจ → ส่งไฟล์ final + ภาพปก'
+              : 'ขั้นเดียว: ผู้เขียนเลือกคีย์เวิร์ดแล้วอัปไฟล์ final + ภาพปกได้เลย'}
+            {' · '}เปลี่ยนแล้วมีผลกับบทความที่ยังไม่เสร็จของลูกค้ารายนี้ด้วย
+          </span>
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-[9.5rem_minmax(0,1fr)] xl:contents">
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="articles-per-month" className="text-[13px] font-medium">
+            บทความ/เดือน
+          </Label>
+          <Input
+            id="articles-per-month"
+            type="number"
+            inputMode="numeric"
+            min={0}
+            max={100}
+            className="h-11 rounded-[12px] tabular-nums"
+            value={quota}
+            onChange={(event) => setQuota(event.target.value)}
           />
-          <div className="flex min-w-56 flex-1 flex-col gap-1">
-            <Label htmlFor="blog-requires-approval">ให้ลูกค้าตรวจงานก่อน</Label>
-            <span className="text-muted-foreground text-sm">
-              {requiresApproval
-                ? 'เปิดอยู่ — 5 ขั้น: ส่งหัวข้อ → ลูกค้าตรวจ → ส่งบทความ → ลูกค้าตรวจ → ส่งไฟล์ final + ภาพปก'
-                : 'ปิดอยู่ — ขั้นเดียว: ผู้เขียนเลือกคีย์เวิร์ดแล้วอัปไฟล์ final + ภาพปกได้เลย'}
-            </span>
-            <span className="text-muted-foreground text-xs">
-              เปลี่ยนแล้วมีผลกับบทความที่ยังไม่เสร็จของลูกค้ารายนี้ด้วย
-            </span>
-          </div>
         </div>
 
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="flex w-32 flex-col gap-1.5">
-            <Label htmlFor="articles-per-month">บทความ/เดือน</Label>
-            <Input
-              id="articles-per-month"
-              type="number"
-              min={0}
-              max={100}
-              value={quota}
-              onChange={(event) => setQuota(event.target.value)}
-            />
-          </div>
-
-          <div className="flex min-w-56 flex-1 flex-col gap-1.5">
-            <Label htmlFor="blog-writer">ผู้เขียนที่รับผิดชอบ</Label>
-            <Select value={writerId} onValueChange={setWriterId}>
-              <SelectTrigger id="blog-writer">
-                <SelectValue placeholder="เลือกผู้เขียน" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={UNASSIGNED}>— ยังไม่มอบหมาย —</SelectItem>
-                {writers?.map((writer) => (
-                  <SelectItem key={writer.id} value={writer.id}>
-                    {writer.name ?? writer.email}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <Button
-            disabled={!isDirty || updateSettings.isPending}
-            onClick={() =>
-              updateSettings.mutate({
-                articlesPerMonth: Number(quota) || 0,
-                blogWriterId: writerId === UNASSIGNED ? null : writerId,
-                blogRequiresApproval: requiresApproval,
-              })
-            }
-          >
-            บันทึก
-          </Button>
+        <div className="flex min-w-0 flex-col gap-1.5">
+          <Label htmlFor="blog-writer" className="text-[13px] font-medium">
+            ผู้เขียนที่รับผิดชอบ
+          </Label>
+          <Select value={writerId} onValueChange={setWriterId}>
+            <SelectTrigger id="blog-writer" className="h-11 w-full rounded-[12px]">
+              <SelectValue placeholder="เลือกผู้เขียน" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={UNASSIGNED}>— ยังไม่มอบหมาย —</SelectItem>
+              {writers?.map((writer) => (
+                <SelectItem key={writer.id} value={writer.id}>
+                  {writer.name ?? writer.email}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-      </CardContent>
+      </div>
+
+      <Button
+        className="h-11 rounded-[12px] px-5 sm:w-fit sm:self-end"
+        disabled={!isDirty || updateSettings.isPending}
+        onClick={() =>
+          updateSettings.mutate({
+            articlesPerMonth: Number(quota) || 0,
+            blogWriterId: writerId === UNASSIGNED ? null : writerId,
+            blogRequiresApproval: requiresApproval,
+          })
+        }
+      >
+        {updateSettings.isPending && <Loader2 aria-hidden className="size-4 animate-spin" />}
+        {updateSettings.isPending ? 'กำลังบันทึก…' : 'บันทึก'}
+      </Button>
     </Card>
   )
 }

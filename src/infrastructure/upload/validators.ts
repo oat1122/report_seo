@@ -149,15 +149,42 @@ export async function validateMagicBytes(
   return { isValid: true }
 }
 
+// ตัดให้เหลือไม่เกิน maxBytes โดยไม่ผ่ากลาง multi-byte char (ไทย = 3 ไบต์/ตัว)
+function truncateBytes(value: string, maxBytes: number): string {
+  if (Buffer.byteLength(value, 'utf8') <= maxBytes) return value
+  let result = ''
+  let bytes = 0
+  for (const char of value) {
+    const size = Buffer.byteLength(char, 'utf8')
+    if (bytes + size > maxBytes) break
+    result += char
+    bytes += size
+  }
+  return result
+}
+
 /**
- * ต่อท้ายด้วย timestamp + uuid เพื่อกัน collision ใน ms เดียวกัน
+ * เก็บอักษรไทย/Unicode ไว้ (ของเดิมแทนที่ด้วย _ หมดจนชื่อกลายเป็นขีดล่างล้วน)
+ * แล้วต่อท้ายด้วย timestamp + uuid เพื่อกัน collision ใน ms เดียวกัน
  */
 export function sanitizeFilename(filename: string): string {
-  let sanitized = filename.replace(/\.\./g, '')
-  sanitized = sanitized.replace(/[^a-zA-Z0-9._-]/g, '_')
+  // ชื่อจาก macOS มาเป็น NFD — normalize ก่อน ไม่งั้นสระ/วรรณยุกต์แยกตัวกลายเป็นคนละ byte
+  let sanitized = filename.normalize('NFC')
+  // \p{C} คลุม control + format char รวม RTL-override ที่ใช้ปลอมนามสกุลไฟล์
+  sanitized = sanitized.replace(/\p{C}/gu, '')
+  // อนุญาตตัวอักษร/combining mark/ตัวเลข/. _ - ที่เหลือ (รวม / \ : * ? " < > | และช่องว่าง) เป็น _
+  // \p{M} ขาดไม่ได้ — สระ/วรรณยุกต์ไทย (ิ ั ุ ื ่ ้) เป็น mark ไม่ใช่ letter
+  sanitized = sanitized.replace(/[^\p{L}\p{M}\p{N}._-]/gu, '_')
+  sanitized = sanitized.replace(/\.\./g, '')
+  // จุดนำหน้าทำให้เป็น hidden file บน unix — ตัดทิ้ง
+  sanitized = sanitized.replace(/^\.+/, '')
 
-  const ext = sanitized.slice(sanitized.lastIndexOf('.'))
-  const name = sanitized.slice(0, sanitized.lastIndexOf('.'))
+  const lastDot = sanitized.lastIndexOf('.')
+  const hasExt = lastDot > 0 && lastDot < sanitized.length - 1
+  const ext = hasExt ? sanitized.slice(lastDot) : ''
+  const rawName = hasExt ? sanitized.slice(0, lastDot) : sanitized.replace(/\.+$/, '')
+  // limit ของ filesystem คือ 255 ไบต์ — กันที่ไว้ให้ suffix (23 ไบต์) + นามสกุล
+  const name = truncateBytes(rawName, 255 - 23 - Buffer.byteLength(ext, 'utf8')) || 'file'
   const timestamp = Date.now()
   const unique = crypto.randomUUID().slice(0, 8)
 

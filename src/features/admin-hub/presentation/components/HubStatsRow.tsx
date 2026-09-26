@@ -1,67 +1,109 @@
 'use client'
 
-import { Shield, Code2, Users, Bell } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
+import { Bell, Code2, Shield, Users, type LucideIcon } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { AnimatedNumber, Stagger, StaggerItem } from '@/components/motion'
+import { cn } from '@/lib/utils'
 
 interface HubStatsRowProps {
   userCounts: { ADMIN: number; SEO_DEV: number; CUSTOMER: number } | undefined
   unreadCount: number | undefined
   isLoading: boolean
+  /** ลูกค้าที่สร้างในเดือนปัจจุบัน (คำนวณจาก createdAt ใน hub summary) */
+  newCustomersThisMonth?: number
+  /** ลูกค้าที่มีผู้ดูแล ÷ จำนวน SEO Dev — null เมื่อยังไม่มี SEO Dev */
+  avgCustomersPerSeoDev?: number | null
 }
 
-const stats = [
-  { key: 'ADMIN' as const, label: 'Admins', icon: Shield, color: 'text-info bg-info/10' },
-  {
-    key: 'SEO_DEV' as const,
-    label: 'SEO Devs',
-    icon: Code2,
-    color: 'text-secondary-foreground dark:text-secondary bg-secondary/10',
-  },
-  {
-    key: 'CUSTOMER' as const,
-    label: 'Customers',
-    icon: Users,
-    color: 'text-primary bg-primary/10',
-  },
-] as const
+interface StatItem {
+  key: string
+  label: string
+  icon: LucideIcon
+  tone: string
+  value: number | undefined
+  note?: string
+}
 
-export function HubStatsRow({ userCounts, unreadCount, isLoading }: HubStatsRowProps) {
+export function HubStatsRow({
+  userCounts,
+  unreadCount,
+  isLoading,
+  newCustomersThisMonth,
+  avgCustomersPerSeoDev,
+}: HubStatsRowProps) {
+  const stats: StatItem[] = [
+    {
+      key: 'customers',
+      label: 'Customers',
+      icon: Users,
+      tone: 'bg-info-subtle text-info-strong',
+      value: userCounts?.CUSTOMER,
+      note:
+        newCustomersThisMonth && newCustomersThisMonth > 0
+          ? `+${newCustomersThisMonth.toLocaleString('th-TH')} เดือนนี้`
+          : undefined,
+    },
+    {
+      key: 'seo-devs',
+      label: 'SEO Devs',
+      icon: Code2,
+      tone: 'bg-secondary/20 text-success',
+      value: userCounts?.SEO_DEV,
+      note:
+        avgCustomersPerSeoDev != null
+          ? `ดูแลเฉลี่ย ${avgCustomersPerSeoDev.toLocaleString('th-TH', { maximumFractionDigits: 1 })} ราย`
+          : undefined,
+    },
+    {
+      key: 'admins',
+      label: 'Admins',
+      icon: Shield,
+      tone: 'bg-info-subtle text-info-strong',
+      value: userCounts?.ADMIN,
+    },
+    {
+      key: 'unread',
+      label: 'แจ้งเตือนยังไม่อ่าน',
+      icon: Bell,
+      tone: 'bg-danger-subtle text-danger-strong',
+      value: unreadCount,
+    },
+  ]
+
   return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-      {stats.map(({ key, label, icon: Icon, color }) => (
-        <Card key={key} size="sm">
-          <CardContent className="flex items-center gap-3">
-            <div className={`flex size-10 items-center justify-center rounded-lg ${color}`}>
-              <Icon className="size-5" />
-            </div>
-            <div>
-              {isLoading ? (
-                <Skeleton className="mb-1 h-6 w-8" />
-              ) : (
-                <p className="text-2xl font-bold">{userCounts?.[key] ?? 0}</p>
+    <section aria-label="สถิติผู้ใช้งาน">
+      <Stagger className="grid grid-cols-2 gap-2.5 md:gap-4 xl:grid-cols-4">
+        {stats.map(({ key, label, icon: Icon, tone, value, note }) => (
+          <StaggerItem
+            key={key}
+            className="border-glass-border bg-glass-card shadow-card flex items-center gap-2.5 rounded-[18px] border p-3 backdrop-blur-[14px] md:gap-3.5 md:rounded-[20px] md:px-5 md:py-[18px]"
+          >
+            <span
+              aria-hidden
+              className={cn(
+                'flex size-[38px] shrink-0 items-center justify-center rounded-[12px] md:size-[46px] md:rounded-[14px]',
+                tone,
               )}
-              <p className="text-muted-foreground text-xs">{label}</p>
+            >
+              <Icon className="size-[18px] md:size-5" />
+            </span>
+            <div className="flex min-w-0 flex-col gap-0.5">
+              <span className="text-text-secondary truncate text-xs md:text-[13px]">{label}</span>
+              <span className="flex flex-wrap items-baseline gap-x-2">
+                {isLoading && value === undefined ? (
+                  <Skeleton className="my-1 h-6 w-10" />
+                ) : (
+                  <AnimatedNumber
+                    value={value ?? 0}
+                    className="text-2xl leading-[1.1] font-semibold tabular-nums md:text-[28px]"
+                  />
+                )}
+                {note && <span className="text-text-secondary text-xs">{note}</span>}
+              </span>
             </div>
-          </CardContent>
-        </Card>
-      ))}
-
-      <Card size="sm">
-        <CardContent className="flex items-center gap-3">
-          <div className="bg-muted text-muted-foreground flex size-10 items-center justify-center rounded-lg">
-            <Bell className="size-5" />
-          </div>
-          <div>
-            {isLoading ? (
-              <Skeleton className="mb-1 h-6 w-8" />
-            ) : (
-              <p className="text-2xl font-bold">{unreadCount ?? 0}</p>
-            )}
-            <p className="text-muted-foreground text-xs">แจ้งเตือนยังไม่อ่าน</p>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+          </StaggerItem>
+        ))}
+      </Stagger>
+    </section>
   )
 }

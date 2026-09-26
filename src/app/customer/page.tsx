@@ -13,7 +13,7 @@ export default async function CustomerDashboard() {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto w-full max-w-screen-xl px-4 py-8">
+      <div className="flex flex-col gap-8 md:gap-10">
         <CustomerHubClient userId={session.user.id} userName={session.user.name ?? ''} />
         <PromotionSection />
       </div>

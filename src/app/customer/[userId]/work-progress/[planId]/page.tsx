@@ -13,6 +13,7 @@ interface PageProps {
   params: Promise<{ userId: string; planId: string }>
 }
 
+// ลำดับตามดีไซน์ฝั่งลูกค้า: การ์ดแผน → สรุปสถานะ/หมวด → ตารางงานรายเดือน
 export default async function CustomerPlanDetailPage({ params }: PageProps) {
   const session = await requireCustomer()
   const { userId, planId } = await params
@@ -21,10 +22,16 @@ export default async function CustomerPlanDetailPage({ params }: PageProps) {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-4 px-4 py-6">
+      <div className="flex flex-col gap-5">
+        <header className="flex flex-col gap-1">
+          <h1 className="text-[26px] leading-tight font-semibold sm:text-[28px]">Work Progress</h1>
+          <p className="text-text-secondary text-sm">
+            ทีมทำอะไรให้แล้วบ้าง? — ความคืบหน้าของแผนงาน SEO
+          </p>
+        </header>
         <PlanHeaderBar userId={userId} planId={planId} backHref={basePath} readOnly />
-        <PlanGrid userId={userId} planId={planId} readOnly />
         <PlanDashboardPanel userId={userId} planId={planId} />
+        <PlanGrid userId={userId} planId={planId} readOnly />
       </div>
     </DashboardLayout>
   )

@@ -43,6 +43,7 @@ export const messageBlogWriter = messageBlogWriterUseCase(settingsRepository)
 export {
   BLOG_STAGE_CODES,
   BLOG_FILE_FIELDS,
+  BLOG_MESSAGE_MAX_LENGTH,
   listArticlesQuerySchema,
   createArticleSchema,
   updateArticleSchema,

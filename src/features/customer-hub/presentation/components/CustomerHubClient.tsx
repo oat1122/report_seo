@@ -21,13 +21,13 @@ export function CustomerHubClient({ userId, userName }: CustomerHubClientProps) 
   const name = userName || data?.customerName || ''
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-5">
       <CustomerHubHero userId={userId} userName={name} domain={data?.domain} />
 
       <CustomerStatsRow metrics={data?.metrics} isLoading={isLoading} />
 
-      <div className="grid gap-[18px] lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:items-start">
-        <div className="flex flex-col gap-[18px]">
+      <div className="grid gap-4 md:gap-[18px] lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:items-start">
+        <div className="flex min-w-0 flex-col gap-4 md:gap-[18px]">
           <ReportRoiHighlight customerId={userId} />
           <NextStepsCard customerId={userId} limit={3} />
           <CustomerAgendaPanel
@@ -38,7 +38,7 @@ export function CustomerHubClient({ userId, userName }: CustomerHubClientProps) 
           />
         </div>
 
-        <div className="flex flex-col gap-[18px]">
+        <div className="flex min-w-0 flex-col gap-4 md:gap-[18px]">
           <CustomerNotificationsPanel />
           <CustomerQuickNav userId={userId} />
         </div>

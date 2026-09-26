@@ -1,10 +1,13 @@
 'use client'
 
-import React from 'react'
-import { Loader2 } from 'lucide-react'
+import React, { useDeferredValue, useMemo, useState } from 'react'
+import { AlertCircle } from 'lucide-react'
 import { DashboardLayout } from '@/components/Layout/DashboardLayout'
+import { DataTableSkeleton } from '@/components/skeletons'
 import { useGetManagedCustomers } from '@/hooks/api/useUsersApi'
 import { UserTable } from './UserTable'
+import { UserListToolbar } from './UserListToolbar'
+import { matchesUserSearch } from './user-filters'
 
 const UserManagementSeoDev: React.FC = () => {
   const {
@@ -13,34 +16,52 @@ const UserManagementSeoDev: React.FC = () => {
     error: usersError,
   } = useGetManagedCustomers()
 
+  const [search, setSearch] = useState('')
+  const deferredSearch = useDeferredValue(search)
+  const filtered = useMemo(
+    () => managedCustomers.filter((u) => matchesUserSearch(u, deferredSearch)),
+    [managedCustomers, deferredSearch],
+  )
+
   return (
     <DashboardLayout>
-      <div className="mx-auto w-full max-w-6xl py-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Customer Management</h1>
-          <p className="text-muted-foreground mt-1 text-sm">จัดการลูกค้าที่อยู่ในความดูแลของคุณ</p>
-        </div>
+      <div className="flex flex-col gap-5">
+        <header className="flex min-w-0 flex-col gap-1.5">
+          <h1 className="text-[26px] leading-tight font-semibold md:text-[28px]">ลูกค้าที่ดูแล</h1>
+          <p className="text-text-secondary text-[13px] md:text-sm">
+            จัดการลูกค้าที่อยู่ในความดูแลของคุณ · เปิด workspace เพื่อดู Domain และ Work Progress
+          </p>
+        </header>
+
+        <UserListToolbar
+          search={search}
+          onSearchChange={setSearch}
+          searchPlaceholder="ค้นหาชื่อลูกค้า อีเมล หรือ domain..."
+        />
 
         {usersError && (
           <div
             role="alert"
-            className="border-destructive/30 bg-destructive/10 text-destructive mb-4 rounded-lg border px-4 py-3 text-sm"
+            className="bg-danger-subtle text-danger-strong flex items-start gap-2 rounded-[16px] px-4 py-3 text-sm"
           >
-            {usersError.message || 'เกิดข้อผิดพลาดในการโหลดข้อมูล'}
+            <AlertCircle aria-hidden className="mt-0.5 size-4 shrink-0" />
+            <span>
+              {usersError.message || 'โหลดรายชื่อลูกค้าไม่สำเร็จ'} — ลองรีเฟรชหน้าอีกครั้ง
+            </span>
           </div>
         )}
 
         {loading ? (
-          <div className="flex min-h-96 items-center justify-center">
-            <Loader2 className="text-secondary size-10 animate-spin" />
-          </div>
+          <DataTableSkeleton rows={8} cols={5} />
         ) : (
           <UserTable
-            users={managedCustomers}
+            key={deferredSearch}
+            users={filtered}
             onEdit={() => {}}
             onDelete={() => {}}
             onRestore={() => {}}
             isSeoDevView
+            itemNoun="ลูกค้า"
           />
         )}
       </div>

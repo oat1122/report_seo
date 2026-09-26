@@ -1,8 +1,7 @@
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { requireBlogWriter } from '@/lib/auth-utils'
 import { DashboardLayout } from '@/components/Layout/DashboardLayout'
-import { Button } from '@/components/ui/button'
 import { BlogPlanBoard } from '@/features/blog-plan/presentation/components/BlogPlanBoard'
 
 export const metadata = {
@@ -19,18 +18,24 @@ export default async function BlogWriterWorkspacePage({ params }: PageProps) {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8">
-        <Button variant="ghost" size="sm" className="w-fit" asChild>
-          <Link href="/blog">
-            <ArrowLeft className="mr-1.5 size-4" />
-            กลับรายชื่อลูกค้า
-          </Link>
-        </Button>
-        <header className="flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold tracking-tight">แผนบทความ</h1>
-          <p className="text-muted-foreground text-sm">
-            เลือก keyword · เสนอหัวข้อ · อัปโหลดไฟล์บทความและภาพปก
-          </p>
+      <div className="flex flex-col gap-5">
+        <header className="flex flex-col gap-3">
+          <nav
+            aria-label="breadcrumb"
+            className="text-text-secondary flex items-center gap-1.5 text-[13px]"
+          >
+            <Link href="/blog" className="hover:text-foreground">
+              ลูกค้าที่ดูแล
+            </Link>
+            <ChevronRight aria-hidden className="size-3.5" />
+            <span className="text-foreground font-medium">แผนบทความ</span>
+          </nav>
+          <div className="flex flex-col gap-1.5">
+            <h1 className="text-[26px] leading-tight font-semibold sm:text-[28px]">แผนบทความ</h1>
+            <p className="text-text-secondary max-w-2xl text-sm leading-relaxed">
+              เลือก keyword · เสนอหัวข้อ · อัปโหลดไฟล์บทความและภาพปก
+            </p>
+          </div>
         </header>
         <BlogPlanBoard customerId={userId} canManage canRespond={false} />
       </div>

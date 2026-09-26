@@ -1,13 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Pencil, EyeOff, Flag, Star } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Flag, Star } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
-import { DataTable } from '@/components/shared/DataTable'
 import { ConfirmAlert } from '@/components/shared/ConfirmAlert'
 import { MasterRowDialog } from './MasterRowDialog'
+import { MasterTableCard } from './MasterTableCard'
 import { useStatuses } from '../../hooks/useMasterTables'
 import {
   useCreateStatus,
@@ -20,145 +18,80 @@ import type {
   UpdateStatusInput,
 } from '@/features/work-progress'
 
+const flagClass = 'text-text-secondary'
+
 export function StatusManager() {
-  const { data, isLoading } = useStatuses()
+  const { data, isLoading, isError, refetch } = useStatuses()
   const createMut = useCreateStatus()
   const updateMut = useUpdateStatus()
   const deactivateMut = useDeactivateMaster()
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<WorkProgressStatus | null>(null)
-  const [confirmId, setConfirmId] = useState<string | null>(null)
+  const [confirmRow, setConfirmRow] = useState<WorkProgressStatus | null>(null)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [pendingId, setPendingId] = useState<string | null>(null)
 
   const submitting = createMut.isPending || updateMut.isPending
-
-  if (isLoading) {
-    return <Skeleton className="h-64 w-full" />
-  }
-
   const rows = (data ?? []).slice().sort((a, b) => a.orderIndex - b.orderIndex)
 
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <p className="text-muted-foreground text-sm">
-          สถานะของ item · isDefault จำกัด 1 ตัว · isTerminal = ปลายทาง (COMPLETED/CANCELLED)
-        </p>
-        <Button
-          onClick={() => {
-            setEditing(null)
-            setDialogOpen(true)
-          }}
-          size="sm"
-        >
-          <Plus className="size-4" />
-          เพิ่มสถานะ
-        </Button>
-      </div>
+  const runRowAction = async (id: string, action: () => Promise<unknown>) => {
+    setPendingId(id)
+    try {
+      await action()
+    } catch {
+      // ข้อความ error แสดงผ่าน toast ของ axios interceptor แล้ว
+    } finally {
+      setPendingId(null)
+    }
+  }
 
-      <DataTable
+  return (
+    <>
+      <MasterTableCard
+        headingId="wp-master-status"
+        title="สถานะ (Status)"
+        description="Default = ค่าเริ่มต้นของ item ใหม่ (มีได้ 1 สถานะ) · Terminal = ถือว่างานจบ"
+        addLabel="เพิ่มสถานะ"
+        emptyText="ยังไม่มีสถานะ"
         rows={rows}
-        getRowKey={(r) => r.id}
-        emptyState="ยังไม่มีสถานะ"
-        columns={[
-          {
-            key: 'code',
-            header: 'Code',
-            cell: (r) => <span className="font-mono text-xs">{r.code}</span>,
-            className: 'w-40',
-          },
-          {
-            key: 'name',
-            header: 'ชื่อ',
-            cell: (r) => (
-              <div className="flex items-center gap-2">
-                <span
-                  className="inline-block size-3 rounded-full"
-                  style={
-                    r.color ? { backgroundColor: r.color } : { backgroundColor: 'var(--muted)' }
-                  }
-                  aria-hidden
-                />
-                <span>{r.name}</span>
-                {r.isSystem && (
-                  <Badge variant="secondary" className="text-xs">
-                    system
-                  </Badge>
-                )}
-              </div>
-            ),
-          },
-          {
-            key: 'flags',
-            header: 'คุณสมบัติ',
-            cell: (r) => (
-              <div className="flex flex-wrap gap-1">
-                {r.isDefault && (
-                  <Badge variant="default" className="gap-1 text-xs">
-                    <Star className="size-3" />
-                    default
-                  </Badge>
-                )}
-                {r.isTerminal && (
-                  <Badge variant="outline" className="gap-1 text-xs">
-                    <Flag className="size-3" />
-                    terminal
-                  </Badge>
-                )}
-              </div>
-            ),
-            className: 'w-44',
-          },
-          {
-            key: 'order',
-            header: 'ลำดับ',
-            cell: (r) => r.orderIndex,
-            align: 'right',
-            className: 'w-20',
-          },
-          {
-            key: 'active',
-            header: 'สถานะ',
-            cell: (r) =>
-              r.isActive ? (
-                <Badge variant="default">เปิดใช้</Badge>
-              ) : (
-                <Badge variant="outline">ปิด</Badge>
-              ),
-            className: 'w-24',
-          },
-          {
-            key: 'actions',
-            header: '',
-            align: 'right',
-            className: 'w-32',
-            cell: (r) => (
-              <div className="flex justify-end gap-1">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => {
-                    setEditing(r)
-                    setDialogOpen(true)
-                  }}
-                  aria-label="แก้ไข"
-                >
-                  <Pencil className="size-4" />
-                </Button>
-                {r.isActive && !r.isSystem && (
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => setConfirmId(r.id)}
-                    aria-label="ปิดใช้งาน"
-                  >
-                    <EyeOff className="size-4" />
-                  </Button>
-                )}
-              </div>
-            ),
-          },
-        ]}
+        isLoading={isLoading}
+        isError={isError}
+        pendingId={pendingId}
+        onRetry={() => void refetch()}
+        onAdd={() => {
+          setEditing(null)
+          setDialogOpen(true)
+        }}
+        onEdit={(row) => {
+          setEditing(row)
+          setDialogOpen(true)
+        }}
+        onDeactivate={(row) => {
+          setConfirmRow(row)
+          setConfirmOpen(true)
+        }}
+        onReactivate={(row) =>
+          void runRowAction(row.id, () =>
+            updateMut.mutateAsync({ id: row.id, body: { isActive: true } }),
+          )
+        }
+        renderFlags={(row) => (
+          <>
+            {row.isDefault && (
+              <Badge variant="outline" className={flagClass}>
+                <Star className="size-3" aria-hidden />
+                Default
+              </Badge>
+            )}
+            {row.isTerminal && (
+              <Badge variant="outline" className={flagClass}>
+                <Flag className="size-3" aria-hidden />
+                Terminal
+              </Badge>
+            )}
+          </>
+        )}
       />
 
       <MasterRowDialog
@@ -181,16 +114,17 @@ export function StatusManager() {
       />
 
       <ConfirmAlert
-        open={confirmId !== null}
-        onClose={() => setConfirmId(null)}
-        onConfirm={async () => {
-          if (!confirmId) return
-          await deactivateMut.mutateAsync({ kind: 'status', id: confirmId })
-          setConfirmId(null)
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={() => {
+          if (!confirmRow) return
+          const row = confirmRow
+          setConfirmOpen(false)
+          void runRowAction(row.id, () => deactivateMut.mutateAsync({ kind: 'status', id: row.id }))
         }}
-        title="ปิดใช้งานสถานะ"
-        message="สถานะที่ปิดใช้จะไม่ปรากฏในตัวเลือก แต่ item ที่ใช้อยู่จะยังคงอยู่"
+        title={`ปิดใช้งานสถานะ “${confirmRow?.name ?? ''}”`}
+        message="สถานะนี้จะไม่ปรากฏในตัวเลือกเมื่ออัปเดต item อีก · item ที่อยู่ในสถานะนี้แล้วจะยังคงสถานะเดิม · เปิดใช้งานอีกครั้งได้ภายหลัง"
       />
-    </div>
+    </>
   )
 }

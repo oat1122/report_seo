@@ -2,17 +2,20 @@
 
 import React, { useMemo } from 'react'
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts'
-import { Loader2 } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { Plus, X } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import { Shimmer } from '@/components/skeletons'
+import { cn } from '@/lib/utils'
 import { useHistoryContext } from './contexts/HistoryContext'
 import { useReportFilters } from './contexts/ReportFiltersContext'
 import { ChartEmptyState } from './components/ChartEmptyState'
 import { ChartFallbackNote } from './components/ChartFallbackNote'
-import { MiniSparkline } from './components/MiniSparkline'
 import { AnomalyDot } from './components/AnomalyDot'
+import { ReportCardHeader } from './components/ReportCardHeader'
 import { DOMAIN_METRICS_SERIES, MetricSeriesConfig } from './lib/chartConfig'
 import { buildChartConfig } from './lib/buildChartConfig'
+import { formatDateCE } from './lib/formatters'
 import {
   computeAnomalies,
   deduplicateByDay,
@@ -24,6 +27,7 @@ import type { OverallMetricsHistory } from '@/types/history'
 
 interface TrendChartsSectionProps {
   title?: string
+  className?: string
 }
 
 const formatVolumeValue = (val: number | null | undefined): string => {
@@ -34,17 +38,7 @@ const formatVolumeValue = (val: number | null | undefined): string => {
 }
 
 const fmtDateTick = (ms: number) =>
-  new Date(ms).toLocaleDateString('th-TH', {
-    day: '2-digit',
-    month: 'short',
-  })
-
-const fmtDateLabel = (ms: number) =>
-  new Date(ms).toLocaleDateString('th-TH', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  })
+  new Date(ms).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })
 
 const pickMetricValue = (record: OverallMetricsHistory, key: string): number =>
   Number(record[key as keyof OverallMetricsHistory] ?? 0)
@@ -54,8 +48,10 @@ interface WideRow {
   [key: string]: number | boolean
 }
 
+/** แนวโน้ม Domain Metrics — เลือก series ได้ (chip), คะแนนแกนซ้าย · ปริมาณแกนขวา */
 export const TrendChartsSection: React.FC<TrendChartsSectionProps> = ({
   title = 'แนวโน้ม Domain Metrics',
+  className,
 }) => {
   const { metricsHistory, isLoading } = useHistoryContext()
   const { period } = useReportFilters()
@@ -132,12 +128,12 @@ export const TrendChartsSection: React.FC<TrendChartsSectionProps> = ({
     return { hasScoreAxis: hasScore, hasVolumeAxis: hasVolume }
   }, [visibleConfigs])
 
-  // Mini-sparkline strip: metrics ที่ off chart
+  // metrics ที่ยังไม่อยู่บนกราฟ — chip "เพิ่มในกราฟ" พร้อมค่าล่าสุด
   const offSeries = useMemo(() => {
     return DOMAIN_METRICS_SERIES.filter((s) => !visibleSeries.has(s.dataKey)).map((s) => {
       const values = filteredHistory.map((r) => pickMetricValue(r, s.dataKey))
       const latest = values.length > 0 ? values[values.length - 1] : 0
-      return { config: s, values, latest }
+      return { config: s, latest }
     })
   }, [filteredHistory, visibleSeries])
 
@@ -165,162 +161,166 @@ export const TrendChartsSection: React.FC<TrendChartsSectionProps> = ({
 
   if (isLoading) {
     return (
-      <div className="border-border flex items-center gap-2 rounded-2xl border p-6">
-        <Loader2 className="text-info size-4 animate-spin" />
-        <span>กำลังโหลดข้อมูลแนวโน้ม...</span>
-      </div>
+      <Card className={className} role="status" aria-label="กำลังโหลดข้อมูลแนวโน้ม">
+        <CardContent className="flex flex-col gap-4">
+          <Shimmer className="h-5 w-48" />
+          <Shimmer className="h-[260px] w-full rounded-2xl" />
+        </CardContent>
+      </Card>
     )
   }
 
+  const axisNote =
+    hasScoreAxis && hasVolumeAxis
+      ? 'คะแนน 0–100 แกนซ้าย · ปริมาณแกนขวา'
+      : hasVolumeAxis
+        ? 'ปริมาณ (แกนขวา)'
+        : 'คะแนน 0–100'
+
   return (
-    <div className="border-border rounded-2xl border p-4 md:p-6">
-      <div className="mb-4">
-        <h3 className="text-xl font-bold">{title}</h3>
-      </div>
-
-      {/* Mini-sparkline strip — กดเพื่อ toggle metric ขึ้น chart */}
-      {offSeries.length > 0 && hasData && (
-        <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
-          {offSeries.map(({ config, values, latest }) => (
-            <button
-              key={config.dataKey}
-              type="button"
-              onClick={() => toggleSeries(config.dataKey)}
-              className="border-border bg-card hover:bg-muted flex flex-col items-start gap-1 rounded-lg border p-2 text-left transition-colors"
-              aria-label={`เพิ่ม ${config.name} ในกราฟ`}
-            >
-              <span className="text-muted-foreground text-[0.7rem] font-medium">{config.name}</span>
-              <div className="flex w-full items-center justify-between">
-                <span className="text-sm font-bold tabular-nums">
-                  {config.axisType === 'volume' ? formatVolumeValue(latest) : latest}
-                  {config.unit ?? ''}
-                </span>
-                <MiniSparkline data={values} color={config.color} width={56} height={20} />
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Active series chips */}
-      <div className="mb-4 flex flex-wrap gap-2">
-        {visibleConfigs.map((series: MetricSeriesConfig) => (
-          <button
-            key={series.dataKey}
-            type="button"
-            onClick={() => toggleSeries(series.dataKey)}
-            className="rounded-full px-3 py-1 text-xs font-semibold text-white transition-colors"
-            style={{ backgroundColor: series.color }}
-            aria-label={`ซ่อน ${series.name}`}
-          >
-            {series.name} ×
-          </button>
-        ))}
-      </div>
-
-      {/* Axis legend */}
-      <div className="mb-4 flex flex-wrap gap-4 text-xs">
-        {hasScoreAxis && (
-          <div className="flex items-center gap-1">
-            <span className="bg-success/70 size-3 rounded-sm" />
-            <span className="text-muted-foreground font-medium">Score (0-100) — แกนซ้าย</span>
-          </div>
-        )}
-        {hasVolumeAxis && (
-          <div className="flex items-center gap-1">
-            <span className="bg-secondary/70 size-3 rounded-sm" />
-            <span className="text-muted-foreground font-medium">Volume — แกนขวา</span>
-          </div>
-        )}
-      </div>
-
-      {!hasData ? (
-        <ChartEmptyState height="320px" />
-      ) : (
-        <ChartContainer config={chartConfig} className="h-[400px] w-full">
-          <LineChart data={chartData} margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-            <XAxis
-              dataKey="dateMs"
-              type="number"
-              domain={['dataMin', 'dataMax']}
-              scale="time"
-              tickFormatter={fmtDateTick}
-              stroke="var(--muted-foreground)"
-              tickLine={false}
-              tick={{ fontSize: 11 }}
-            />
-            {hasScoreAxis && (
-              <YAxis
-                yAxisId="score"
-                orientation="left"
-                domain={[0, 100]}
-                stroke="var(--muted-foreground)"
-                tick={{ fontSize: 11 }}
-                allowDecimals={false}
-              />
-            )}
-            {hasVolumeAxis && (
-              <YAxis
-                yAxisId="volume"
-                orientation="right"
-                domain={[0, 'auto']}
-                tickFormatter={formatVolumeValue}
-                stroke="var(--muted-foreground)"
-                tick={{ fontSize: 11 }}
-              />
-            )}
-            <ChartTooltip
-              cursor={{
-                stroke: 'var(--muted-foreground)',
-                strokeDasharray: '3 3',
-              }}
-              content={
-                <ChartTooltipContent
-                  labelFormatter={(_label, payload) => {
-                    const ms = payload?.[0]?.payload?.dateMs
-                    return typeof ms === 'number' ? fmtDateLabel(ms) : ''
-                  }}
-                  formatter={(value, name) => {
-                    const config = visibleConfigs.find((s) => s.dataKey === name)
-                    const formatted =
-                      config?.axisType === 'volume'
-                        ? formatVolumeValue(Number(value))
-                        : Number(value).toLocaleString()
-                    return [`${formatted}${config?.unit ?? ''}`, config?.name]
-                  }}
+    <Card className={cn('min-w-0', className)}>
+      <ReportCardHeader
+        title={title}
+        description={`${axisNote} · ${period} วันล่าสุด${flatLineMessage && hasData ? ` · ${flatLineMessage}` : ''}`}
+      />
+      <CardContent className="flex flex-col gap-4">
+        {/* chips: series บนกราฟ (กดเพื่อซ่อน) + เพิ่มในกราฟ */}
+        <div className="flex flex-wrap items-center gap-2">
+          {visibleConfigs.map((series: MetricSeriesConfig) => {
+            const onlyOne = visibleConfigs.length === 1
+            return (
+              <button
+                key={series.dataKey}
+                type="button"
+                onClick={() => toggleSeries(series.dataKey)}
+                disabled={onlyOne}
+                aria-pressed
+                aria-label={
+                  onlyOne ? `${series.name} (ต้องมีอย่างน้อย 1 เส้น)` : `ซ่อน ${series.name}`
+                }
+                className="bg-background shadow-card focus-visible:ring-ring/60 inline-flex min-h-11 items-center gap-1.5 rounded-full pr-2.5 pl-3 text-[13px] outline-none focus-visible:ring-3 disabled:cursor-not-allowed md:min-h-[34px]"
+              >
+                <span
+                  aria-hidden
+                  className="size-2.5 rounded-full"
+                  style={{ backgroundColor: series.color }}
                 />
-              }
-            />
-            {visibleConfigs.map((s) => (
-              <Line
-                key={s.dataKey}
-                yAxisId={s.axisType}
-                type="monotone"
-                dataKey={s.dataKey}
-                stroke={`var(--color-${s.dataKey})`}
-                strokeWidth={2}
-                dot={<AnomalyDot dataKey={s.dataKey} />}
-                activeDot={{ r: 5 }}
-                isAnimationActive={false}
+                {series.name}
+                {!onlyOne && <X aria-hidden className="text-text-secondary size-3.5" />}
+              </button>
+            )
+          })}
+          {offSeries.length > 0 && hasData && (
+            <>
+              <span className="text-text-secondary ml-1 text-xs">เพิ่มในกราฟ:</span>
+              {offSeries.map(({ config, latest }) => (
+                <button
+                  key={config.dataKey}
+                  type="button"
+                  onClick={() => toggleSeries(config.dataKey)}
+                  aria-pressed={false}
+                  aria-label={`เพิ่ม ${config.name} ในกราฟ (ล่าสุด ${latest}${config.unit ?? ''})`}
+                  className="border-border text-text-secondary hover:text-foreground hover:bg-background/60 focus-visible:ring-ring/60 inline-flex min-h-11 items-center gap-1 rounded-full border border-dashed px-3 text-[13px] outline-none focus-visible:ring-3 md:min-h-[34px]"
+                >
+                  <Plus aria-hidden className="size-3.5" />
+                  {config.name}
+                  <span className="text-foreground font-medium tabular-nums">
+                    {config.axisType === 'volume' ? formatVolumeValue(latest) : latest}
+                    {config.unit ?? ''}
+                  </span>
+                </button>
+              ))}
+            </>
+          )}
+        </div>
+
+        {!hasData ? (
+          <ChartEmptyState height="280px" />
+        ) : (
+          <ChartContainer
+            config={chartConfig}
+            className="aspect-auto h-[280px] w-full md:h-[320px]"
+          >
+            <LineChart data={chartData} margin={{ top: 12, right: 8, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 5" vertical={false} stroke="var(--border)" />
+              <XAxis
+                dataKey="dateMs"
+                type="number"
+                domain={['dataMin', 'dataMax']}
+                scale="time"
+                tickFormatter={fmtDateTick}
+                tickLine={false}
+                axisLine={false}
+                tick={{ fontSize: 11 }}
+                minTickGap={24}
               />
-            ))}
-          </LineChart>
-        </ChartContainer>
-      )}
+              {hasScoreAxis && (
+                <YAxis
+                  yAxisId="score"
+                  orientation="left"
+                  domain={[0, 100]}
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fontSize: 11 }}
+                  width={32}
+                  allowDecimals={false}
+                />
+              )}
+              {hasVolumeAxis && (
+                <YAxis
+                  yAxisId="volume"
+                  orientation="right"
+                  domain={[0, 'auto']}
+                  tickFormatter={formatVolumeValue}
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fontSize: 11 }}
+                  width={40}
+                />
+              )}
+              <ChartTooltip
+                cursor={{ stroke: 'var(--chart-3)', strokeDasharray: '3 4' }}
+                content={
+                  <ChartTooltipContent
+                    labelFormatter={(_label, payload) => {
+                      const ms = payload?.[0]?.payload?.dateMs
+                      return typeof ms === 'number' ? formatDateCE(ms) : ''
+                    }}
+                    formatter={(value, name) => {
+                      const config = visibleConfigs.find((s) => s.dataKey === name)
+                      const formatted =
+                        config?.axisType === 'volume'
+                          ? formatVolumeValue(Number(value))
+                          : Number(value).toLocaleString()
+                      return [`${formatted}${config?.unit ?? ''}`, config?.name]
+                    }}
+                  />
+                }
+              />
+              {visibleConfigs.map((s) => (
+                <Line
+                  key={s.dataKey}
+                  yAxisId={s.axisType}
+                  type="monotone"
+                  dataKey={s.dataKey}
+                  stroke={`var(--color-${s.dataKey})`}
+                  strokeWidth={2.5}
+                  dot={<AnomalyDot dataKey={s.dataKey} />}
+                  activeDot={{ r: 6, stroke: 'var(--background)', strokeWidth: 2 }}
+                  animationDuration={800}
+                />
+              ))}
+            </LineChart>
+          </ChartContainer>
+        )}
 
-      {hasData && isAllTimeFallback && <ChartFallbackNote />}
+        {hasData && isAllTimeFallback && <ChartFallbackNote />}
 
-      {flatLineMessage && hasData && (
-        <p className="text-muted-foreground mt-2 text-center text-xs italic">
-          📊 {flatLineMessage}
+        <p className="text-text-secondary text-right text-xs">
+          จาก {filteredHistory.length} รายการที่บันทึกไว้
         </p>
-      )}
-
-      <p className="text-muted-foreground mt-3 text-right text-xs">
-        ข้อมูลจาก Database: <Badge variant="outline">{filteredHistory.length} รายการ</Badge>
-      </p>
-    </div>
+      </CardContent>
+    </Card>
   )
 }
 

@@ -19,10 +19,15 @@ export function NotificationBell() {
     <>
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="ghost" size="icon-sm" className="relative" aria-label="การแจ้งเตือน">
-            <Bell className="size-5" />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="border-glass-border relative rounded-[14px] border bg-white/60 backdrop-blur-md hover:bg-white/85 dark:bg-white/5 dark:hover:bg-white/10"
+            aria-label={displayCount ? `การแจ้งเตือน (ยังไม่อ่าน ${displayCount})` : 'การแจ้งเตือน'}
+          >
+            <Bell className="size-[18px]" />
             {displayCount && (
-              <span className="bg-destructive text-destructive-foreground absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold">
+              <span className="bg-neon-pink absolute -top-1 -right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-white px-1 text-[10px] font-semibold text-white tabular-nums dark:border-zinc-900">
                 {displayCount}
               </span>
             )}

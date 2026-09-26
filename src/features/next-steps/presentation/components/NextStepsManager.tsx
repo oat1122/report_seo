@@ -1,13 +1,20 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Plus, Trash2, Pencil, Save, X } from 'lucide-react'
+import { Plus, Trash2, Pencil, Save, X, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Badge } from '@/components/ui/badge'
 import { Field, FieldGroup } from '@/components/ui/field'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import {
   Select,
   SelectContent,
@@ -16,7 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
-import { NEXT_STEP_PRIORITIES, type NextStepPriority } from '../../domain/NextStep'
+import { NEXT_STEP_PRIORITIES, type NextStep, type NextStepPriority } from '../../domain/NextStep'
 import { MAX_NEXT_STEP_IMAGES } from '../../schemas'
 import {
   useGetNextSteps,
@@ -30,6 +37,13 @@ const priorityLabel: Record<NextStepPriority, string> = {
   HIGH: 'สำคัญมาก',
   MEDIUM: 'ปานกลาง',
   LOW: 'ทั่วไป',
+}
+
+// คู่สีสถานะของ UI Kit (พื้น + ตัวอักษร)
+const priorityPill: Record<NextStepPriority, string> = {
+  HIGH: 'bg-danger-subtle text-danger-strong',
+  MEDIUM: 'bg-warning-subtle text-warning-text',
+  LOW: 'bg-info-subtle text-foreground',
 }
 
 const EMPTY_FORM: NextStepFormData = { title: '', description: '', priority: 'MEDIUM' }
@@ -49,6 +63,7 @@ export function NextStepsManager({ customerId }: NextStepsManagerProps) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [files, setFiles] = useState<File[]>([])
   const [imagesToDelete, setImagesToDelete] = useState<string[]>([])
+  const [pendingDelete, setPendingDelete] = useState<NextStep | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const editingStep = editingId ? steps.find((s) => s.id === editingId) : undefined
@@ -102,24 +117,33 @@ export function NextStepsManager({ customerId }: NextStepsManagerProps) {
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
+  const confirmDelete = () => {
+    if (!pendingDelete) return
+    deleteStep.mutate(
+      { customerId, stepId: pendingDelete.id },
+      { onSettled: () => setPendingDelete(null) },
+    )
+  }
+
   return (
-    <div className="border-border rounded-2xl border p-4 sm:p-6">
-      <div className="mb-4">
-        <h3 className="text-lg font-bold">สิ่งที่แนะนำให้ทำต่อ</h3>
-        <p className="text-muted-foreground mt-1 text-sm">
-          เขียน action item ที่อยากแนะนำให้ลูกค้าทำต่อ — ลูกค้าจะเห็นเป็นการ์ดบนสุดของหน้ารายงาน
+    <div className="bg-glass-card border-glass-border shadow-card rounded-[20px] border p-4 backdrop-blur-[14px] sm:p-6">
+      <div className="mb-4 flex flex-col gap-1">
+        <h3 className="text-[17px] leading-snug font-semibold">สิ่งที่แนะนำให้ทำต่อ</h3>
+        <p className="text-text-secondary text-[13px]">
+          เขียน action item ที่อยากแนะนำให้ลูกค้าทำต่อ — ลูกค้าจะเห็นเป็นการ์ดในหน้า Overview
+          ของรายงาน และบนหน้าหลักของลูกค้า (3 รายการแรก)
         </p>
       </div>
 
       <div
         className={cn(
-          'border-border mb-4 rounded-xl border p-4',
-          editingId ? 'bg-warning/10' : 'bg-muted/50',
+          'border-glass-border mb-5 rounded-2xl border p-4',
+          editingId ? 'bg-warning-subtle' : 'bg-glass-tile',
         )}
       >
         <FieldGroup>
           {editingId && (
-            <div className="border-info/30 bg-info/10 text-info rounded-md border px-3 py-2 text-sm">
+            <div className="bg-info-subtle text-foreground rounded-xl px-3 py-2 text-sm">
               กำลังแก้ไขรายการเดิม ปรับข้อมูลแล้วกดบันทึกการแก้ไขได้ทันที
             </div>
           )}
@@ -194,27 +218,32 @@ export function NextStepsManager({ customerId }: NextStepsManagerProps) {
               type="file"
               accept={ACCEPT}
               multiple
+              aria-invalid={overLimit || undefined}
+              aria-describedby={overLimit ? 'ns-images-error' : undefined}
               onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
             />
             {overLimit && (
-              <p className="text-destructive text-sm">
-                เลือกได้ไม่เกิน {MAX_NEXT_STEP_IMAGES} รูป (ตอนนี้ {totalImages})
+              <p id="ns-images-error" className="text-danger-strong text-xs">
+                เลือกได้ไม่เกิน {MAX_NEXT_STEP_IMAGES} รูป (ตอนนี้ {totalImages} รูป) —
+                ลบรูปที่ไม่ใช้ออกก่อนบันทึก
               </p>
             )}
           </Field>
 
-          <div className="flex flex-col justify-end gap-2 sm:flex-row">
+          <div className="flex flex-col-reverse justify-end gap-2 sm:flex-row">
             {editingId && (
-              <Button variant="ghost" onClick={resetForm} disabled={isSaving}>
+              <Button variant="outline" onClick={resetForm} disabled={isSaving}>
                 ยกเลิก
               </Button>
             )}
-            <Button
-              onClick={handleSave}
-              disabled={!canSave}
-              className="bg-info text-info-foreground hover:bg-info/90"
-            >
-              {editingId ? <Save /> : <Plus />}
+            <Button onClick={handleSave} disabled={!canSave}>
+              {isSaving ? (
+                <Loader2 aria-hidden className="animate-spin" />
+              ) : editingId ? (
+                <Save aria-hidden />
+              ) : (
+                <Plus aria-hidden />
+              )}
               {editingId ? 'บันทึกการแก้ไข' : 'เพิ่มรายการแนะนำ'}
             </Button>
           </div>
@@ -222,45 +251,51 @@ export function NextStepsManager({ customerId }: NextStepsManagerProps) {
       </div>
 
       <div>
-        <div className="mb-3 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
-          <h4 className="font-bold">รายการที่แนะนำ</h4>
-          <Badge variant="outline" className="border-info/40 text-info">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <h4 className="text-[15px] font-semibold">รายการที่แนะนำ</h4>
+          <span className="bg-muted text-text-secondary inline-flex h-6 items-center rounded-full px-2.5 text-xs font-semibold tabular-nums">
             {steps.length} รายการ
-          </Badge>
+          </span>
         </div>
 
         {steps.length === 0 ? (
-          <div className="border-border text-muted-foreground rounded-xl border p-6 text-center text-sm">
-            ยังไม่มีรายการแนะนำ
+          <div className="bg-glass-tile text-text-secondary rounded-2xl p-6 text-center text-sm">
+            ยังไม่มีรายการแนะนำ — เพิ่มรายการแรกจากฟอร์มด้านบน
           </div>
         ) : (
-          <ul className="flex flex-col gap-3">
+          <ul className="flex flex-col gap-2">
             {steps.map((step) => (
               <li
                 key={step.id}
-                className="border-border flex items-start justify-between gap-3 rounded-xl border p-4"
+                className="bg-glass-tile border-glass-border flex items-start justify-between gap-3 rounded-2xl border p-4"
               >
                 <div className="min-w-0 flex-1">
                   <div className="mb-1 flex flex-wrap items-center gap-2">
                     <span className="font-semibold break-words">{step.title}</span>
-                    <Badge variant="outline" className="border-info/40 text-info">
+                    <span
+                      className={cn(
+                        'inline-flex h-6 items-center rounded-full px-2.5 text-xs font-semibold',
+                        priorityPill[step.priority],
+                      )}
+                    >
                       {priorityLabel[step.priority]}
-                    </Badge>
+                    </span>
                   </div>
                   {step.description && (
-                    <p className="text-muted-foreground text-sm break-words whitespace-pre-line">
+                    <p className="text-text-secondary text-sm break-words whitespace-pre-line">
                       {step.description}
                     </p>
                   )}
                   {step.images.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-2">
-                      {step.images.map((img) => (
+                      {step.images.map((img, idx) => (
                         <a
                           key={img.id}
                           href={img.imageUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="border-border block size-16 overflow-hidden rounded-md border"
+                          aria-label={`เปิดรูปที่ ${idx + 1} ของ ${step.title} ในแท็บใหม่`}
+                          className="border-glass-border block size-16 overflow-hidden rounded-xl border"
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
@@ -277,17 +312,18 @@ export function NextStepsManager({ customerId }: NextStepsManagerProps) {
                   <Button
                     size="icon-sm"
                     variant="ghost"
-                    aria-label="แก้ไข"
+                    aria-label={`แก้ไข ${step.title}`}
                     onClick={() => handleEdit(step.id)}
+                    className="size-11 md:size-9"
                   >
                     <Pencil className="size-4" />
                   </Button>
                   <Button
                     size="icon-sm"
                     variant="ghost"
-                    aria-label="ลบ"
-                    onClick={() => deleteStep.mutate({ customerId, stepId: step.id })}
-                    className="text-destructive hover:bg-destructive/10"
+                    aria-label={`ลบ ${step.title}`}
+                    onClick={() => setPendingDelete(step)}
+                    className="text-danger-strong hover:bg-danger-subtle size-11 md:size-9"
                   >
                     <Trash2 className="size-4" />
                   </Button>
@@ -297,22 +333,64 @@ export function NextStepsManager({ customerId }: NextStepsManagerProps) {
           </ul>
         )}
       </div>
+
+      <AlertDialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
+        <AlertDialogContent className="flex flex-col gap-[18px] p-6 sm:max-w-[480px] sm:p-[26px]">
+          <span
+            aria-hidden
+            className="bg-danger-subtle text-danger-strong flex size-12 items-center justify-center rounded-2xl"
+          >
+            <Trash2 className="size-6" />
+          </span>
+          <div className="flex flex-col gap-1.5 text-left">
+            <AlertDialogTitle className="text-xl leading-snug font-semibold">
+              ลบรายการแนะนำนี้?
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="text-text-secondary text-sm leading-relaxed">
+                <p className="text-foreground font-medium break-words">“{pendingDelete?.title}”</p>
+                <ul className="mt-2 list-disc pl-5">
+                  <li>ลูกค้าจะไม่เห็นรายการนี้ในรายงานและหน้าหลักอีก</li>
+                  {(pendingDelete?.images.length ?? 0) > 0 && (
+                    <li>รูปประกอบ {pendingDelete?.images.length} รูปจะถูกลบไปด้วย</li>
+                  )}
+                  <li>ย้อนกลับไม่ได้</li>
+                </ul>
+              </div>
+            </AlertDialogDescription>
+          </div>
+          <div className="grid grid-cols-2 gap-2.5">
+            <AlertDialogCancel disabled={deleteStep.isPending}>ยกเลิก</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault()
+                confirmDelete()
+              }}
+              disabled={deleteStep.isPending}
+              className="bg-destructive hover:bg-danger-strong text-destructive-foreground"
+            >
+              {deleteStep.isPending && <Loader2 aria-hidden className="animate-spin" />}
+              ลบรายการ
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
 
 function ThumbWithRemove({ src, onRemove }: { src: string; onRemove: () => void }) {
   return (
-    <div className="border-border relative size-16 overflow-hidden rounded-md border">
+    <div className="border-glass-border relative size-16 overflow-hidden rounded-xl border">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={src} alt="" className="size-full object-cover" />
       <button
         type="button"
         aria-label="ลบรูป"
         onClick={onRemove}
-        className="bg-foreground/60 text-background hover:bg-destructive absolute top-0.5 right-0.5 flex size-5 items-center justify-center rounded-full"
+        className="bg-foreground/60 text-background hover:bg-destructive absolute top-0.5 right-0.5 flex size-6 items-center justify-center rounded-full"
       >
-        <X className="size-3" />
+        <X className="size-3.5" />
       </button>
     </div>
   )

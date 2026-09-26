@@ -10,15 +10,18 @@ interface EmptyPlansStateProps {
 
 export function EmptyPlansState({ onCreate, readOnly }: EmptyPlansStateProps) {
   return (
-    <div className="border-border bg-muted/30 flex flex-col items-center justify-center gap-4 rounded-lg border border-dashed p-12 text-center">
-      <div className="bg-primary/10 text-primary flex size-14 items-center justify-center rounded-full">
+    <div className="border-accent bg-glass-card flex flex-col items-center justify-center gap-4 rounded-[20px] border border-dashed px-6 py-12 text-center">
+      <div
+        aria-hidden
+        className="bg-info-subtle text-info-strong flex size-14 items-center justify-center rounded-[16px]"
+      >
         <ClipboardList className="size-6" />
       </div>
-      <div className="flex flex-col gap-1">
-        <h3 className="text-base font-semibold">ยังไม่มีแผนงาน</h3>
-        <p className="text-muted-foreground text-sm">
+      <div className="flex max-w-md flex-col gap-1">
+        <h3 className="text-[17px] font-semibold">ยังไม่มีแผนงาน</h3>
+        <p className="text-text-secondary text-sm">
           {readOnly
-            ? 'ยังไม่มีแผนงานที่เปิดให้ดู'
+            ? 'ทีมยังไม่ได้เปิดแผนงานให้ดู — เมื่อแผนพร้อม ความคืบหน้าจะแสดงที่นี่'
             : 'สร้างใหม่จากศูนย์ ใช้ template หรือ clone จากแผนเดิม'}
         </p>
       </div>

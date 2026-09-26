@@ -119,12 +119,16 @@ export interface KeywordVelocityPoint {
   quadrant: VelocityQuadrant
 }
 
-const classifyQuadrant = (posDelta: number, trafficDelta: number): VelocityQuadrant => {
+/**
+ * จุดบนเส้นแกน (อันดับหรือ traffic ไม่เปลี่ยน) ต้องไม่ตกเป็น 'falling' เสมอ:
+ * - อันดับเท่าเดิม + traffic ขึ้น → 'hidden' (traffic โตโดยอันดับไม่ได้ดีขึ้น)
+ * - อันดับดีขึ้น + traffic เท่าเดิม → 'rising'
+ */
+export const classifyQuadrant = (posDelta: number, trafficDelta: number): VelocityQuadrant => {
   if (posDelta === 0 && trafficDelta === 0) return 'stagnant'
-  if (posDelta < 0 && trafficDelta > 0) return 'rising'
-  if (posDelta > 0 && trafficDelta > 0) return 'hidden'
-  if (posDelta < 0 && trafficDelta < 0) return 'cooling'
-  return 'falling'
+  if (trafficDelta > 0) return posDelta < 0 ? 'rising' : 'hidden'
+  if (trafficDelta < 0) return posDelta < 0 ? 'cooling' : 'falling'
+  return posDelta < 0 ? 'rising' : 'falling'
 }
 
 /** Velocity scatter — position+traffic ปัจจุบัน vs N-day-ago snapshot */

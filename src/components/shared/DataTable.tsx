@@ -87,7 +87,10 @@ export function DataTable<TRow>({
           ))
         ) : (
           <TableRow>
-            <TableCell colSpan={columns.length} className="text-muted-foreground py-8 text-center">
+            <TableCell
+              colSpan={columns.length}
+              className="text-text-secondary py-10 text-center whitespace-normal"
+            >
               {emptyState ?? 'ยังไม่มีข้อมูล'}
             </TableCell>
           </TableRow>

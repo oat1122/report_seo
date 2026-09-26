@@ -1,7 +1,8 @@
 'use client'
 
+import type { CSSProperties } from 'react'
 import { Check } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { formatShortDate } from '@/lib/date'
 import { getCurrentStage, groupArticle } from './blog-plan-view'
@@ -40,67 +41,83 @@ export function MonthTimelineCard({
   const isCurrentMonth = today.getFullYear() === year && today.getMonth() + 1 === month
   const todayPercent = isCurrentMonth ? toPercent(today.getTime(), monthStart, span) : null
 
+  const clientTurns = articles.filter(
+    (article) => article.status === 'WAITING_CLIENT' && getCurrentStage(article) !== null,
+  ).length
+
   return (
-    <Card className="bg-muted/50 min-w-75">
-      <CardContent className="flex flex-col gap-3.5">
-        <div className="flex flex-wrap items-center gap-2.5">
-          <strong className="text-[15px] font-semibold">ไทม์ไลน์ทั้งเดือน</strong>
-          <span className="text-muted-foreground text-xs">
-            แถบสีเขียว = ช่วงที่รอฝั่งลูกค้า · แถบสีเข้ม = ช่วงที่ทีมเขียนทำงาน
-          </span>
-          <div className="text-muted-foreground ml-auto flex flex-wrap items-center gap-3 text-xs">
-            <span className="flex items-center gap-1.5">
-              <span className="bg-primary h-2.5 w-3.5 rounded-sm" />
-              ทีมเขียน
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="bg-secondary h-2.5 w-3.5 rounded-sm" />
-              ลูกค้า
-            </span>
-            {isCurrentMonth && (
-              <span className="flex items-center gap-1.5">
-                <span className="bg-destructive h-3 w-0.5" />
-                วันนี้
-              </span>
-            )}
-          </div>
+    <Card
+      role="region"
+      aria-labelledby="blog-timeline-title"
+      className="flex min-w-0 flex-col gap-4 px-5 py-5 sm:px-6"
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex min-w-0 flex-col gap-1">
+          <h2 id="blog-timeline-title" className="text-[17px] font-semibold">
+            ไทม์ไลน์ทั้งเดือน
+          </h2>
+          <p className="text-text-secondary text-[13px]">
+            ใครถือบอลอยู่ในแต่ละช่วง — {articles.length} บทความ
+            {clientTurns > 0 ? ` · รอฝั่งลูกค้า ${clientTurns} เรื่อง` : ''}
+          </p>
         </div>
 
-        <div className="overflow-x-auto">
-          <div className="flex min-w-125 flex-col gap-2.5">
-            <div className="flex items-center gap-3">
-              <span className="w-42.5 shrink-0" />
-              <div className="relative h-4 flex-1">
-                {buildTicks(daysInMonth).map((day) => (
-                  <span
-                    key={day}
-                    className="text-muted-foreground absolute top-0 text-[11px]"
-                    style={
-                      day === daysInMonth
-                        ? { right: 0 }
-                        : { left: `${((day - 1) / daysInMonth) * 100}%` }
-                    }
-                  >
-                    {day}
-                  </span>
-                ))}
-              </div>
-            </div>
+        <ul
+          aria-label="คำอธิบายสี"
+          className="text-text-secondary flex flex-wrap items-center gap-x-3.5 gap-y-1 text-xs"
+        >
+          <li className="flex items-center gap-1.5">
+            <span aria-hidden className="bg-info h-2.5 w-3.5 rounded-[3px]" />
+            ทีมเขียน
+          </li>
+          <li className="flex items-center gap-1.5">
+            <span aria-hidden className="bg-secondary h-2.5 w-3.5 rounded-[3px]" />
+            ลูกค้า
+          </li>
+          {isCurrentMonth && (
+            <li className="flex items-center gap-1.5">
+              <span aria-hidden className="bg-neon-pink h-3 w-0.5 rounded-full" />
+              วันนี้
+            </li>
+          )}
+        </ul>
+      </div>
 
-            {articles.map((article) => (
-              <TimelineRow
-                key={article.id}
-                article={article}
-                monthStart={monthStart}
-                span={span}
-                todayPercent={todayPercent}
-                canManage={canManage}
-                canRespond={canRespond}
-              />
-            ))}
-          </div>
+      <div className="grid grid-cols-1 gap-x-3.5 gap-y-2.5 sm:grid-cols-[minmax(0,13rem)_minmax(0,1fr)] sm:items-center">
+        <span aria-hidden className="hidden sm:block" />
+        <div aria-hidden className="text-muted-foreground relative h-4 text-[11px]">
+          {buildTicks(daysInMonth).map((day) => (
+            <span
+              key={day}
+              className="absolute top-0"
+              style={
+                day === daysInMonth ? { right: 0 } : { left: `${((day - 1) / daysInMonth) * 100}%` }
+              }
+            >
+              {day}
+            </span>
+          ))}
+          {todayPercent !== null && (
+            <span
+              className="bg-neon-pink absolute top-1 size-2 -translate-x-1/2 rounded-full"
+              style={{ left: `${todayPercent}%` }}
+            />
+          )}
         </div>
-      </CardContent>
+
+        {articles.map((article) => (
+          <TimelineRow
+            key={article.id}
+            article={article}
+            monthStart={monthStart}
+            span={span}
+            daysInMonth={daysInMonth}
+            todayPercent={todayPercent}
+            canManage={canManage}
+            canRespond={canRespond}
+          />
+        ))}
+      </div>
     </Card>
   )
 }
@@ -109,6 +126,7 @@ function TimelineRow({
   article,
   monthStart,
   span,
+  daysInMonth,
   todayPercent,
   canManage,
   canRespond,
@@ -116,6 +134,7 @@ function TimelineRow({
   article: BlogArticle
   monthStart: number
   span: number
+  daysInMonth: number
   todayPercent: number | null
   canManage: boolean
   canRespond: boolean
@@ -132,57 +151,69 @@ function TimelineRow({
   const finishedAt = article.stages.find((stage) => stage.stageCode === 'SUBMIT_FINAL')?.submittedAt
 
   return (
-    <div className="flex items-center gap-3">
-      <div className="flex w-42.5 shrink-0 items-center gap-2 overflow-hidden">
+    <>
+      <div className="mt-1 flex min-w-0 items-center gap-2 sm:mt-0">
         <span
+          aria-hidden
           className={cn(
-            'size-1.75 shrink-0 rounded-full',
-            group === 'mine' && 'bg-secondary animate-pulse',
+            'size-2 shrink-0 rounded-full',
+            group === 'mine' && 'bg-secondary motion-safe:animate-pulse',
             group === 'done' && 'bg-success',
-            group === 'waiting' && 'bg-muted-foreground/40',
+            group === 'waiting' && 'bg-border',
           )}
         />
         <span
           className={cn(
             'truncate text-[13px] font-medium',
-            group === 'done' && 'text-muted-foreground',
+            group === 'done' && 'text-text-secondary',
           )}
+          title={article.title}
         >
           {article.title}
         </span>
       </div>
 
-      <div className="bg-muted-foreground/10 relative h-7 flex-1 rounded-lg">
+      {/* เส้นแบ่งวันจาง ๆ ใต้แถบ — คำนวณจากจำนวนวันจริงของเดือน */}
+      <div
+        className="bg-muted/70 relative h-7 rounded-lg bg-[repeating-linear-gradient(90deg,transparent_0,transparent_calc(var(--day)_-_1px),var(--border)_calc(var(--day)_-_1px),var(--border)_var(--day))] dark:bg-white/5"
+        style={{ '--day': `${100 / daysInMonth}%` } as CSSProperties}
+      >
         {article.status === 'PUBLISHED' ? (
-          <span className="text-success absolute inset-y-0 left-2 flex items-center gap-1.5 text-[11.5px] font-medium">
-            <Check className="size-3.5" />
+          <span className="text-success absolute inset-y-0 left-2 flex items-center gap-1.5 text-xs font-medium">
+            <Check aria-hidden className="size-3.5" />
             ส่งครบแล้ว {formatShortDate(finishedAt)}
           </span>
         ) : windows.length === 0 ? (
-          <span className="text-muted-foreground absolute inset-y-0 left-2 flex items-center text-[11.5px]">
+          <span className="text-text-secondary absolute inset-y-0 left-2 flex items-center text-xs">
             ยังไม่กำหนดวัน
           </span>
         ) : (
           windows.map((window) => {
             const isCurrent = current?.definition.code === window.stageCode
             const isClient = window.actor === 'CLIENT'
+            const who = isClient ? 'ลูกค้า' : 'ทีมเขียน'
 
             return (
               <span
                 key={window.stageCode}
-                title={`${window.stageCode} · ${formatShortDate(window.start)} – ${formatShortDate(window.end)}`}
+                title={`${who} · ${formatShortDate(window.start)} – ${formatShortDate(window.end)}`}
                 className={cn(
-                  'absolute flex items-center justify-center overflow-hidden rounded-md text-[11px] font-medium',
-                  isCurrent ? 'inset-y-0 rounded-lg' : 'inset-y-1.5',
+                  'absolute flex items-center justify-center overflow-hidden rounded-md text-[11px] font-medium whitespace-nowrap',
+                  isCurrent
+                    ? 'text-secondary-foreground ring-foreground/70 inset-y-0.5 ring-2'
+                    : 'inset-y-1.5',
                   isClient
                     ? isCurrent
-                      ? 'bg-secondary text-secondary-foreground ring-primary ring-offset-card ring-2 ring-offset-2'
-                      : 'bg-secondary/30'
+                      ? 'bg-secondary'
+                      : 'bg-secondary/40'
                     : isCurrent
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-primary/15',
+                      ? 'bg-info'
+                      : 'bg-info/40',
                 )}
-                style={{ left: `${window.left}%`, width: `${window.width}%` }}
+                style={{
+                  left: `calc(${window.left}% + 1px)`,
+                  width: `calc(${window.width}% - 2px)`,
+                }}
               >
                 {isCurrent && window.width > 10 && (isClient ? 'ถึงคิวลูกค้า' : 'ทีมกำลังทำ')}
               </span>
@@ -192,12 +223,13 @@ function TimelineRow({
 
         {todayPercent !== null && (
           <span
-            className="bg-destructive absolute -inset-y-1 w-0.5 rounded-full"
+            aria-hidden
+            className="bg-neon-pink absolute -inset-y-1.5 w-0.5 rounded-full"
             style={{ left: `${todayPercent}%` }}
           />
         )}
       </div>
-    </div>
+    </>
   )
 }
 

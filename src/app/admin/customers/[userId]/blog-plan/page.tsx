@@ -1,6 +1,6 @@
 import { requireAdmin } from '@/lib/auth-utils'
 import { DashboardLayout } from '@/components/Layout/DashboardLayout'
-import { BackButton } from '@/components/shared/BackButton'
+import { CustomerWorkspaceHeader } from '@/features/users/presentation/components/workspace/CustomerWorkspaceHeader'
 import { BlogSettingsCard } from '@/features/blog-plan/presentation/components/admin/BlogSettingsCard'
 import { BlogPlanBoard } from '@/features/blog-plan/presentation/components/BlogPlanBoard'
 
@@ -18,16 +18,8 @@ export default async function AdminBlogPlanPage({ params }: PageProps) {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-        <div className="flex items-center gap-3">
-          <BackButton />
-          <header className="flex flex-col gap-1">
-            <h1 className="text-2xl font-semibold tracking-tight">แผนบทความ</h1>
-            <p className="text-muted-foreground text-sm">
-              ตั้งโควตาต่อเดือน · มอบหมายผู้เขียน · ติดตามทุกขั้นตอนของแต่ละบทความ
-            </p>
-          </header>
-        </div>
+      <div className="flex flex-col gap-5">
+        <CustomerWorkspaceHeader userId={userId} basePath="/admin" />
         <BlogSettingsCard customerId={userId} />
         <BlogPlanBoard customerId={userId} canManage canRespond />
       </div>

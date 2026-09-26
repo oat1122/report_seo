@@ -1,12 +1,12 @@
 'use client'
 
 import { useMemo } from 'react'
-import { Bar, BarChart, Cell, XAxis, YAxis } from 'recharts'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
-import { buildChartConfig } from '../lib/buildChartConfig'
-import { ReportIcon } from '../components/ReportIcon'
+import { GrowBar } from '@/components/motion'
 import { computeKdSuccessRate, type KdLevelString } from '../lib/historyCalculations'
+import { KdBadge } from '../keywords/KdBadge'
+import { ReportCard } from '../keywords/ReportCard'
+import { SummaryNote } from '../keywords/SummaryNote'
+import { kdSuccessSummary } from '../keywords/keyword-view'
 
 interface KdItem {
   kd: KdLevelString | string
@@ -18,98 +18,52 @@ interface KdSuccessRateBarProps {
   topN?: number
 }
 
-const KD_COLORS: Record<KdLevelString, string> = {
-  HARD: 'var(--destructive)',
-  MEDIUM: 'var(--warning)',
-  EASY: 'var(--success)',
-}
-const KD_LABELS: Record<KdLevelString, string> = {
-  HARD: 'ยาก (HARD)',
-  MEDIUM: 'ปานกลาง (MEDIUM)',
-  EASY: 'ง่าย (EASY)',
-}
-
-const chartConfig = buildChartConfig([{ key: 'rate', label: 'Top 10 %', color: 'var(--info)' }])
-
+// % keyword ที่ติด Top N แยกตามความยาก — แถบ progress + ตัวเลข (ไม่พึ่งสีอย่างเดียว)
 export const KdSuccessRateBar = ({ keywords, topN = 10 }: KdSuccessRateBarProps) => {
-  const rows = useMemo(() => {
-    const rates = computeKdSuccessRate(keywords, topN)
-    return rates.map((r) => ({
-      level: r.level,
-      label: KD_LABELS[r.level],
-      pct: Math.round(r.rate * 100),
-      inTopN: r.inTopN,
-      total: r.total,
-      color: KD_COLORS[r.level],
-    }))
-  }, [keywords, topN])
+  const rows = useMemo(
+    () =>
+      computeKdSuccessRate(keywords, topN).map((r) => ({
+        ...r,
+        pct: Math.round(r.rate * 100),
+      })),
+    [keywords, topN],
+  )
 
   const hasAny = rows.some((r) => r.total > 0)
+  const summary = kdSuccessSummary(rows, topN)
 
   return (
-    <Card className="h-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base">
-          <ReportIcon name="check" trigger="hover" color="bg-success" size={18} />
-          KD Success Rate
-        </CardTitle>
-        <p className="text-muted-foreground text-xs">% keyword ที่ติด Top {topN} แยกตามความยาก</p>
-      </CardHeader>
-      <CardContent>
-        {!hasAny ? (
-          <p className="text-muted-foreground py-8 text-center text-sm">ยังไม่มี keyword</p>
-        ) : (
-          <ChartContainer config={chartConfig} className="h-[180px] w-full">
-            <BarChart
-              data={rows}
-              layout="vertical"
-              margin={{ top: 4, right: 64, left: 8, bottom: 4 }}
-            >
-              <XAxis type="number" domain={[0, 100]} hide />
-              <YAxis
-                type="category"
-                dataKey="label"
-                stroke="var(--muted-foreground)"
-                tick={{ fontSize: 11 }}
-                tickLine={false}
-                width={130}
-              />
-              <ChartTooltip
-                content={
-                  <ChartTooltipContent
-                    hideLabel
-                    formatter={(_v, _n, item) => {
-                      const p = item.payload as {
-                        label: string
-                        inTopN: number
-                        total: number
-                        pct: number
-                      }
-                      return [`${p.inTopN} / ${p.total} (${p.pct}%)`, p.label]
-                    }}
+    <ReportCard title="KD Success Rate" description={`% keyword ที่ติด Top ${topN} แยกตามความยาก`}>
+      {!hasAny ? (
+        <p className="text-text-secondary py-8 text-center text-sm">ยังไม่มี keyword</p>
+      ) : (
+        <>
+          <ul className="flex flex-col gap-3.5">
+            {rows.map((r, idx) => (
+              <li key={r.level} className="flex flex-col gap-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <KdBadge kd={r.level} />
+                  <span className="text-text-secondary text-[13px] tabular-nums">
+                    {r.inTopN}/{r.total} คำ ·{' '}
+                    <strong className="text-foreground text-[15px] font-semibold">{r.pct}%</strong>
+                  </span>
+                </div>
+                <div
+                  aria-hidden="true"
+                  className="bg-info-subtle h-2.5 overflow-hidden rounded-full"
+                >
+                  <GrowBar
+                    value={r.pct}
+                    delay={idx * 0.08}
+                    className="bg-info-strong h-full rounded-full"
                   />
-                }
-              />
-              <Bar
-                dataKey="pct"
-                radius={[0, 4, 4, 0]}
-                barSize={20}
-                label={{
-                  position: 'right',
-                  formatter: (v) => (v == null ? '' : `${v}%`),
-                  fill: 'var(--muted-foreground)',
-                  fontSize: 11,
-                  fontWeight: 600,
-                }}
-              >
-                {rows.map((r) => (
-                  <Cell key={r.level} fill={r.color} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ChartContainer>
-        )}
-      </CardContent>
-    </Card>
+                </div>
+              </li>
+            ))}
+          </ul>
+          {summary && <SummaryNote>{summary}</SummaryNote>}
+        </>
+      )}
+    </ReportCard>
   )
 }

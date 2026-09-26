@@ -38,7 +38,11 @@ export const PERIOD_OPTIONS: { value: PeriodOption; label: string }[] = [
 
 export const DEFAULT_PERIOD: PeriodOption = 30
 
+// --- Spam score --- เกินค่านี้ = โซนอันตราย (ใช้ร่วมกัน timeline / metrics card / status banner)
+export const SPAM_DANGER_THRESHOLD = 2
+
 // --- Metric series definitions for combined chart ---
+// สีตาม UI Kit Data viz: series หลัก chart-1, health/คาดการณ์ chart-2 · green brand (chart-4) ห้ามเป็นเส้น
 export interface MetricSeriesConfig {
   dataKey: string
   name: string
@@ -52,42 +56,42 @@ export const DOMAIN_METRICS_SERIES: MetricSeriesConfig[] = [
   {
     dataKey: 'domainRating',
     name: 'Domain Rating',
-    color: CHART_COLORS.primary,
+    color: 'var(--chart-1)',
     defaultVisible: true,
     axisType: 'score',
   },
   {
     dataKey: 'healthScore',
     name: 'Health Score',
-    color: CHART_COLORS.healthScore,
-    defaultVisible: false,
+    color: 'var(--chart-2)',
+    defaultVisible: true,
     axisType: 'score',
   },
   {
     dataKey: 'organicTraffic',
     name: 'Organic Traffic',
-    color: CHART_COLORS.traffic,
-    defaultVisible: true,
+    color: 'var(--chart-5)',
+    defaultVisible: false,
     axisType: 'volume',
   },
   {
     dataKey: 'organicKeywords',
     name: 'Organic Keywords',
-    color: CHART_COLORS.keywords,
+    color: 'var(--chart-3)',
     defaultVisible: false,
     axisType: 'volume',
   },
   {
     dataKey: 'backlinks',
     name: 'Backlinks',
-    color: CHART_COLORS.backlinks,
+    color: 'var(--primary)',
     defaultVisible: false,
     axisType: 'volume',
   },
   {
     dataKey: 'refDomains',
     name: 'Ref. Domains',
-    color: CHART_COLORS.refDomains,
+    color: 'var(--muted-foreground)',
     defaultVisible: false,
     axisType: 'volume',
   },

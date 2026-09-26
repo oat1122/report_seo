@@ -4,6 +4,7 @@ import { BadRequestError } from '@/lib/errors'
 import { createNotification, NOTIFICATION_TYPES } from '@/features/notifications'
 import {
   BLOG_FILE_FIELDS,
+  BLOG_MESSAGE_MAX_LENGTH,
   BLOG_STAGE_CODES,
   getStageLabel,
   submitStageWork,
@@ -28,7 +29,13 @@ export const POST = withApiHandler({ params: paramsSchema }, async ({ req, param
     linkUrl: form.get('linkUrl') || null,
   })
   if (!parsed.success) {
-    throw new BadRequestError('ข้อความหรือลิงก์ไม่ถูกต้อง')
+    // บอกให้ตรงช่อง ไม่งั้นผู้ใช้เจอ 400 เปล่า ๆ แล้วเดาไม่ออกว่าข้อความยาวไปหรือลิงก์ผิด
+    const field = parsed.error.issues[0]?.path[0]
+    throw new BadRequestError(
+      field === 'linkUrl'
+        ? 'ลิงก์ไม่ถูกต้อง — ต้องขึ้นต้นด้วย http:// หรือ https://'
+        : `ข้อความยาวเกิน ${BLOG_MESSAGE_MAX_LENGTH.toLocaleString('th-TH')} ตัวอักษร`,
+    )
   }
 
   const files = Object.entries(BLOG_FILE_FIELDS).flatMap<StageWorkFile>(([kind, field]) => {

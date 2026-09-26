@@ -2,17 +2,10 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import {
-  ListChecks,
-  ArrowRight,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  X,
-} from 'lucide-react'
-import { Card } from '@/components/ui/card'
+import { ListChecks, ArrowRight, ChevronDown, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { Card, CardAction, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
+import { Shimmer } from '@/components/skeletons'
 import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
@@ -29,98 +22,99 @@ interface NextStepsCardProps {
   // จำกัดจำนวนที่โชว์ (เช่น glimpse บนหน้า /customer hub) — ไม่ใส่ = โชว์ทั้งหมด
   limit?: number
   className?: string
+  /** true = แสดงการ์ดพร้อมข้อความว่างเมื่อยังไม่มีรายการ (ค่าเดิม: ซ่อนการ์ดทั้งใบ) */
+  showEmpty?: boolean
 }
 
-// rail = แถบสีซ้าย, pill = badge ความสำคัญ — map สี design → theme token (rule 08)
+// rail = แถบสีซ้าย, badge = ป้ายความสำคัญ (Badge สถานะของ UI Kit)
 const priorityStyle: Record<
   NextStepPriority,
-  { label: string; rail: string; pill: string; dot: string }
+  { label: string; rail: string; badge: 'danger' | 'warning' | 'info' }
 > = {
-  HIGH: {
-    label: 'สำคัญมาก',
-    rail: 'bg-destructive',
-    pill: 'bg-destructive/10 text-destructive',
-    dot: 'bg-destructive',
-  },
-  MEDIUM: {
-    label: 'ปานกลาง',
-    rail: 'bg-warning',
-    pill: 'bg-warning/10 text-warning',
-    dot: 'bg-warning',
-  },
-  LOW: {
-    label: 'ทั่วไป',
-    rail: 'bg-info',
-    pill: 'bg-info/10 text-info',
-    dot: 'bg-info',
-  },
+  HIGH: { label: 'สำคัญมาก', rail: 'bg-destructive', badge: 'danger' },
+  MEDIUM: { label: 'ปานกลาง', rail: 'bg-warning-accent', badge: 'warning' },
+  LOW: { label: 'ทั่วไป', rail: 'bg-info-strong', badge: 'info' },
 }
 
-export function NextStepsCard({ customerId, limit, className }: NextStepsCardProps) {
+export function NextStepsCard({
+  customerId,
+  limit,
+  className,
+  showEmpty = false,
+}: NextStepsCardProps) {
   const { data, isLoading } = useGetNextSteps(customerId)
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null)
 
   if (isLoading) {
-    return <Skeleton className={cn('h-64 w-full rounded-2xl', className)} />
+    return <Shimmer className={cn('h-64 w-full rounded-[20px]', className)} />
   }
 
   const steps = data ?? []
-  if (steps.length === 0) return null
+  if (steps.length === 0 && !showEmpty) return null
 
   const shown = limit ? steps.slice(0, limit) : steps
   const hasHidden = steps.length > shown.length
 
   const showPrev = () =>
-    setLightbox((l) =>
-      l ? { ...l, index: (l.index - 1 + l.images.length) % l.images.length } : l,
-    )
+    setLightbox((l) => (l ? { ...l, index: (l.index - 1 + l.images.length) % l.images.length } : l))
   const showNext = () =>
     setLightbox((l) => (l ? { ...l, index: (l.index + 1) % l.images.length } : l))
 
   return (
-    <Card className={cn('border-border gap-0 rounded-2xl border py-0 shadow-sm ring-0', className)}>
-      <div className="flex items-center gap-3 px-[22px] pt-5 pb-4">
-        <span className="bg-info/15 text-info flex size-[38px] shrink-0 items-center justify-center rounded-xl">
-          <ListChecks className="size-5" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-base leading-tight font-semibold tracking-tight">
-            สิ่งที่แนะนำให้ทำต่อ
-          </p>
-          <p className="text-muted-foreground mt-0.5 text-xs">รายการที่ทีมแนะนำให้ดำเนินการ</p>
+    <Card className={cn('min-w-0', className)}>
+      <CardHeader>
+        <div className="flex min-w-0 items-center gap-3">
+          <span
+            aria-hidden
+            className="bg-info-subtle text-info-strong flex size-10 shrink-0 items-center justify-center rounded-xl"
+          >
+            <ListChecks className="size-5" />
+          </span>
+          <div className="flex min-w-0 flex-col gap-1">
+            <h2 className="text-[17px] leading-snug font-semibold">สิ่งที่แนะนำให้ทำต่อ</h2>
+            <CardDescription>รายการที่ทีมแนะนำให้ดำเนินการ</CardDescription>
+          </div>
         </div>
-        <Badge variant="secondary" className="bg-muted text-muted-foreground h-[26px] gap-1.5 px-3 text-sm font-semibold">
-          <span className="bg-info size-1.5 rounded-full" />
-          {steps.length}
-        </Badge>
-      </div>
+        {steps.length > 0 && (
+          <CardAction>
+            <Badge variant="neutral" className="h-7 px-3 text-sm font-semibold tabular-nums">
+              <span data-dot aria-hidden className="bg-info-strong" />
+              {steps.length}
+              <span className="sr-only">รายการ</span>
+            </Badge>
+          </CardAction>
+        )}
+      </CardHeader>
 
-      <div className="bg-border mx-[22px] h-px" />
+      <CardContent className="flex flex-1 flex-col gap-1.5 px-3 md:px-4">
+        {steps.length === 0 ? (
+          <p className="bg-glass-tile text-text-secondary rounded-[14px] px-4 py-8 text-center text-sm">
+            ยังไม่มีรายการแนะนำในตอนนี้ — ทีมจะเพิ่มคำแนะนำหลังตรวจเว็บรอบถัดไป
+          </p>
+        ) : (
+          shown.map((step) => (
+            <NextStepRow
+              key={step.id}
+              step={step}
+              expanded={!!expanded[step.id]}
+              onToggle={() => setExpanded((e) => ({ ...e, [step.id]: !e[step.id] }))}
+              onOpenImage={(index) =>
+                setLightbox({ images: step.images.map((img) => img.imageUrl), index })
+              }
+            />
+          ))
+        )}
 
-      <div className="flex flex-col">
-        {shown.map((step) => (
-          <NextStepRow
-            key={step.id}
-            step={step}
-            expanded={!!expanded[step.id]}
-            onToggle={() => setExpanded((e) => ({ ...e, [step.id]: !e[step.id] }))}
-            onOpenImage={(index) =>
-              setLightbox({ images: step.images.map((img) => img.imageUrl), index })
-            }
-          />
-        ))}
-      </div>
-
-      {hasHidden && (
-        <Link
-          href={FULL_REPORT_HREF}
-          className="bg-muted/40 text-muted-foreground hover:text-foreground flex items-center justify-center gap-1.5 border-t px-4 py-3.5 text-sm font-semibold transition-colors"
-        >
-          ดูทั้งหมดในรายงานเต็ม ({steps.length} รายการ)
-          <ArrowRight className="size-4" />
-        </Link>
-      )}
+        {hasHidden && (
+          <Button asChild variant="soft" className="mt-2 w-full">
+            <Link href={FULL_REPORT_HREF}>
+              ดูทั้งหมดในรายงานเต็ม ({steps.length} รายการ)
+              <ArrowRight aria-hidden />
+            </Link>
+          </Button>
+        )}
+      </CardContent>
 
       <Dialog open={!!lightbox} onOpenChange={(o) => !o && setLightbox(null)}>
         <DialogContent
@@ -135,7 +129,7 @@ export function NextStepsCard({ customerId, limit, className }: NextStepsCardPro
                 variant="secondary"
                 aria-label="ปิด"
                 onClick={() => setLightbox(null)}
-                className="bg-foreground/60 text-background hover:bg-foreground/80 absolute -top-12 right-0 rounded-full"
+                className="bg-foreground/60 text-background hover:bg-foreground/80 absolute -top-12 right-0 size-11 rounded-full"
               >
                 <X />
               </Button>
@@ -154,7 +148,7 @@ export function NextStepsCard({ customerId, limit, className }: NextStepsCardPro
                     variant="secondary"
                     aria-label="ก่อนหน้า"
                     onClick={showPrev}
-                    className="bg-foreground/60 text-background hover:bg-foreground/80 rounded-full"
+                    className="bg-foreground/60 text-background hover:bg-foreground/80 size-11 rounded-full"
                   >
                     <ChevronLeft />
                   </Button>
@@ -164,7 +158,7 @@ export function NextStepsCard({ customerId, limit, className }: NextStepsCardPro
                     variant="secondary"
                     aria-label="ถัดไป"
                     onClick={showNext}
-                    className="bg-foreground/60 text-background hover:bg-foreground/80 rounded-full"
+                    className="bg-foreground/60 text-background hover:bg-foreground/80 size-11 rounded-full"
                   >
                     <ChevronRight />
                   </Button>
@@ -193,18 +187,18 @@ function NextStepRow({ step, expanded, onToggle, onOpenImage }: NextStepRowProps
   const extraCount = images.length - MAX_THUMBS + 1
 
   return (
-    <div className="hover:bg-muted/40 relative px-[22px] py-[18px] pl-[26px] transition-colors">
+    <div className="hover:bg-glass-tile relative rounded-[14px] py-3.5 pr-3 pl-5 transition-colors">
       <span
-        className={cn('absolute top-[18px] bottom-[18px] left-0 w-[3px] rounded-r-[3px]', p.rail)}
+        className={cn('absolute top-3.5 bottom-3.5 left-1.5 w-[3px] rounded-full', p.rail)}
         aria-hidden
       />
 
       <div className="flex items-start gap-3">
-        <p className="min-w-0 flex-1 text-[15px] leading-snug font-semibold tracking-tight break-words">
+        <p className="min-w-0 flex-1 text-[15px] leading-snug font-semibold break-words">
           {step.title}
         </p>
-        <Badge className={cn('h-[23px] gap-1.5 border-transparent px-[9px] font-semibold', p.pill)}>
-          <span className={cn('size-[5px] rounded-full', p.dot)} />
+        <Badge variant={p.badge} className="font-semibold">
+          <span data-dot aria-hidden />
           {p.label}
         </Badge>
       </div>
@@ -212,7 +206,7 @@ function NextStepRow({ step, expanded, onToggle, onOpenImage }: NextStepRowProps
       {step.description && (
         <p
           className={cn(
-            'text-muted-foreground mt-[7px] text-[13.5px] leading-relaxed break-words whitespace-pre-line',
+            'text-text-secondary mt-1.5 text-sm leading-relaxed break-words whitespace-pre-line',
             isLongDesc && !expanded && 'line-clamp-2',
           )}
         >
@@ -224,7 +218,8 @@ function NextStepRow({ step, expanded, onToggle, onOpenImage }: NextStepRowProps
         <button
           type="button"
           onClick={onToggle}
-          className="text-muted-foreground hover:text-foreground mt-1.5 inline-flex items-center gap-1 text-xs font-semibold transition-colors"
+          aria-expanded={expanded}
+          className="text-text-secondary hover:text-foreground focus-visible:ring-ring/60 -ml-1 inline-flex min-h-11 items-center gap-1 rounded-lg px-1 text-xs font-semibold outline-none focus-visible:ring-3 md:min-h-8"
         >
           {expanded ? 'ย่อ' : 'ดูเพิ่มเติม'}
           <ChevronDown
@@ -243,8 +238,8 @@ function NextStepRow({ step, expanded, onToggle, onOpenImage }: NextStepRowProps
                 type="button"
                 key={url}
                 onClick={() => onOpenImage(idx)}
-                aria-label="ดูรูปภาพ"
-                className="border-border bg-muted relative size-[68px] shrink-0 overflow-hidden rounded-xl border transition-transform hover:-translate-y-0.5 hover:shadow-md"
+                aria-label={`ดูรูปภาพที่ ${idx + 1}`}
+                className="border-glass-border bg-muted focus-visible:ring-ring/60 relative size-[68px] shrink-0 overflow-hidden rounded-xl border outline-none focus-visible:ring-3"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={url} alt={step.title} className="size-full object-cover" />

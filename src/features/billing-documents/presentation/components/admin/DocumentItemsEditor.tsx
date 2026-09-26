@@ -1,19 +1,10 @@
 'use client'
 
-import { Fragment } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { formatMoney } from './document-display'
 
 export interface EditableItem {
   key: string
@@ -29,16 +20,18 @@ export function createItemKey() {
   return `item-${++nextKey}`
 }
 
-function formatAmount(amount: number) {
-  return amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })
-}
-
 interface Props {
   items: EditableItem[]
   onItemsChange: (items: EditableItem[]) => void
+  /** แสดงยอดรวมท้ายรายการ (ปิดเมื่อหน้ามีกล่องสรุปยอดแยก) */
+  showTotal?: boolean
 }
 
-export function DocumentItemsEditor({ items, onItemsChange }: Props) {
+// คอลัมน์ตาม artboard: รายละเอียด · จำนวน · หน่วย · ราคา/หน่วย · รวม · ลบ
+const ROW_GRID =
+  'grid grid-cols-3 gap-2 sm:grid-cols-[minmax(0,1fr)_70px_84px_120px_110px_40px] sm:items-end'
+
+export function DocumentItemsEditor({ items, onItemsChange, showTotal = true }: Props) {
   const total = items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)
 
   const handleItemChange = (
@@ -67,42 +60,42 @@ export function DocumentItemsEditor({ items, onItemsChange }: Props) {
     onItemsChange(items.filter((item) => item.key !== key))
   }
 
+  const inputClass = 'h-11 rounded-[10px] text-[13px] sm:h-10'
+
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <Label>รายการในเอกสาร</Label>
-        <Button type="button" variant="outline" size="sm" onClick={handleAddItem}>
-          <Plus className="mr-1 size-4" />
-          เพิ่มรายการ
-        </Button>
+    <div className="flex flex-col gap-2">
+      <div aria-hidden className={`${ROW_GRID} text-text-secondary hidden px-0.5 text-xs sm:grid`}>
+        <span>รายละเอียด</span>
+        <span className="text-right">จำนวน</span>
+        <span>หน่วย</span>
+        <span className="text-right">ราคา/หน่วย</span>
+        <span className="text-right">รวม</span>
+        <span />
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>รายละเอียด</TableHead>
-            <TableHead className="w-20">จำนวน</TableHead>
-            <TableHead className="w-24">หน่วย</TableHead>
-            <TableHead className="w-28">ราคา/หน่วย</TableHead>
-            <TableHead className="w-24 text-right">รวม</TableHead>
-            <TableHead className="w-10" />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {items.map((item) => (
-            <Fragment key={item.key}>
-              <TableRow className="border-0">
-              <TableCell className="p-1">
+      <ol className="flex flex-col gap-2.5">
+        {items.map((item, index) => (
+          <li
+            key={item.key}
+            className="border-border/70 flex flex-col gap-2 rounded-[14px] border bg-white/60 p-3 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 dark:bg-white/5 sm:dark:bg-transparent"
+          >
+            <div className={ROW_GRID}>
+              <label className="col-span-3 flex min-w-0 flex-col gap-1 sm:col-span-1">
+                <span className="text-text-secondary text-xs sm:sr-only">
+                  รายละเอียดรายการที่ {index + 1}
+                </span>
                 <Input
                   value={item.description}
                   onChange={(e) => handleItemChange(item.key, 'description', e.target.value)}
-                  placeholder="รายละเอียด..."
-                  className="h-8"
+                  placeholder="เช่น ค่าบริการ SEO รายเดือน"
+                  className={inputClass}
                 />
-              </TableCell>
-              <TableCell className="p-1">
+              </label>
+              <label className="flex min-w-0 flex-col gap-1">
+                <span className="text-text-secondary text-xs sm:sr-only">จำนวน</span>
                 <Input
                   type="number"
+                  inputMode="numeric"
                   min={1}
                   value={item.quantity}
                   onChange={(e) =>
@@ -112,19 +105,22 @@ export function DocumentItemsEditor({ items, onItemsChange }: Props) {
                       Math.max(1, parseInt(e.target.value) || 1),
                     )
                   }
-                  className="h-8"
+                  className={`${inputClass} text-right tabular-nums`}
                 />
-              </TableCell>
-              <TableCell className="p-1">
+              </label>
+              <label className="flex min-w-0 flex-col gap-1">
+                <span className="text-text-secondary text-xs sm:sr-only">หน่วย</span>
                 <Input
                   value={item.unit}
                   onChange={(e) => handleItemChange(item.key, 'unit', e.target.value)}
-                  className="h-8"
+                  className={inputClass}
                 />
-              </TableCell>
-              <TableCell className="p-1">
+              </label>
+              <label className="flex min-w-0 flex-col gap-1">
+                <span className="text-text-secondary text-xs sm:sr-only">ราคาต่อหน่วย</span>
                 <Input
                   type="number"
+                  inputMode="decimal"
                   min={0}
                   step={0.01}
                   value={item.unitPrice}
@@ -135,43 +131,59 @@ export function DocumentItemsEditor({ items, onItemsChange }: Props) {
                       Math.max(0, parseFloat(e.target.value) || 0),
                     )
                   }
-                  className="h-8"
+                  className={`${inputClass} text-right tabular-nums`}
                 />
-              </TableCell>
-              <TableCell className="p-1 text-right text-sm font-medium">
-                {formatAmount(item.quantity * item.unitPrice)}
-              </TableCell>
-              <TableCell className="p-1">
+              </label>
+              <p className="col-span-2 flex h-11 items-center justify-start gap-1.5 text-sm font-semibold tabular-nums sm:col-span-1 sm:h-10 sm:justify-end">
+                <span className="text-text-secondary text-xs font-normal sm:sr-only">รวม</span>
+                {formatMoney(item.quantity * item.unitPrice)}
+              </p>
+              <div className="flex items-center justify-end">
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon-sm"
                   onClick={() => handleRemoveItem(item.key)}
                   disabled={items.length <= 1}
+                  aria-label={`ลบรายการที่ ${index + 1}`}
+                  className="text-danger-strong hover:bg-danger-subtle hover:text-danger-strong max-sm:size-11"
                 >
-                  <Trash2 className="text-destructive size-4" />
+                  <Trash2 aria-hidden />
                 </Button>
-              </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell colSpan={6} className="p-1 pt-0">
-                  <Textarea
-                    value={item.detail}
-                    onChange={(e) => handleItemChange(item.key, 'detail', e.target.value)}
-                    placeholder="รายละเอียดเพิ่มเติม (ขึ้นบรรทัดใหม่ได้ · ขึ้นต้นด้วย . หรือ - = หัวข้อย่อย)"
-                    className="min-h-16 text-sm"
-                  />
-                </TableCell>
-              </TableRow>
-            </Fragment>
-          ))}
-        </TableBody>
-      </Table>
+              </div>
+            </div>
+            <label className="flex flex-col gap-1">
+              <span className="sr-only">รายละเอียดเพิ่มเติมของรายการที่ {index + 1}</span>
+              <Textarea
+                value={item.detail}
+                onChange={(e) => handleItemChange(item.key, 'detail', e.target.value)}
+                placeholder="รายละเอียดเพิ่มเติม (ขึ้นบรรทัดใหม่ได้ · ขึ้นต้นด้วย . หรือ - = หัวข้อย่อย)"
+                className="min-h-14 rounded-[10px] text-[13px]"
+              />
+            </label>
+          </li>
+        ))}
+      </ol>
 
-      <p className="text-muted-foreground text-right text-sm">
-        รวมทั้งสิ้น:{' '}
-        <span className="text-foreground font-semibold">{formatAmount(total)} บาท</span>
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleAddItem}
+          className="border-accent bg-info-subtle/40 hover:bg-info-subtle border-dashed"
+        >
+          <Plus aria-hidden />
+          เพิ่มรายการ
+        </Button>
+        {showTotal && (
+          <p className="text-text-secondary text-sm">
+            รวมทั้งสิ้น:{' '}
+            <span className="text-foreground font-semibold tabular-nums">
+              {formatMoney(total)} บาท
+            </span>
+          </p>
+        )}
+      </div>
     </div>
   )
 }

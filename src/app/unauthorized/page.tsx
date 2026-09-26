@@ -1,49 +1,54 @@
+import Image from 'next/image'
 import Link from 'next/link'
+import { ShieldAlert } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export default function UnauthorizedPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8 text-center">
-        <div className="rounded-lg bg-white p-8 shadow-lg">
-          <div className="mb-4 text-red-500">
-            <svg
-              className="mx-auto h-16 w-16"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z"
-              />
-            </svg>
+    <main className="flex min-h-dvh items-center justify-center px-4 py-10">
+      <div className="flex w-full max-w-[420px] flex-col items-center gap-6">
+        <span className="flex items-center gap-2.5">
+          <Image src="/img/brand/logo-mark.png" alt="" width={46} height={45} priority />
+          <Image
+            src="/img/brand/logo-wordmark.png"
+            alt="SEO PRIME"
+            width={142}
+            height={18}
+            priority
+          />
+        </span>
+
+        <section
+          aria-labelledby="unauthorized-title"
+          className="border-glass-border bg-glass-card shadow-card flex w-full flex-col gap-5 rounded-[24px] border p-6 backdrop-blur-[14px] sm:p-8"
+        >
+          <span
+            aria-hidden
+            className="bg-danger-subtle text-danger-strong flex size-[52px] items-center justify-center rounded-[16px]"
+          >
+            <ShieldAlert className="size-6" />
+          </span>
+
+          <div className="flex flex-col gap-1.5">
+            <h1 id="unauthorized-title" className="text-[26px] leading-tight font-semibold">
+              ไม่มีสิทธิ์เข้าถึง
+            </h1>
+            <p className="text-text-secondary text-sm leading-relaxed">
+              บัญชีนี้ไม่มีสิทธิ์เข้าหน้าที่คุณเปิด กลับไปหน้าหลักของบัญชี
+              หรือเข้าสู่ระบบด้วยบัญชีอื่น หากคิดว่าผิดพลาดกรุณาติดต่อผู้ดูแลระบบ
+            </p>
           </div>
 
-          <h1 className="text-text-dark mb-2 text-2xl font-bold">ไม่มีสิทธิ์เข้าถึง</h1>
-
-          <p className="mb-6 text-gray-600">
-            คุณไม่มีสิทธิ์ในการเข้าถึงหน้านี้ กรุณาติดต่อผู้ดูแลระบบหากคุณคิดว่านี่เป็นข้อผิดพลาด
-          </p>
-
-          <div className="space-y-3">
-            <Link
-              href="/"
-              className="bg-primary-purple hover:bg-accent-purple-dark inline-block w-full rounded-lg px-4 py-2 font-medium text-white transition-colors duration-200"
-            >
-              กลับไปหน้าหลัก
-            </Link>
-
-            <Link
-              href="/login"
-              className="text-text-dark inline-block w-full rounded-lg border border-gray-300 px-4 py-2 font-medium transition-colors duration-200 hover:bg-gray-50"
-            >
-              เข้าสู่ระบบใหม่
-            </Link>
+          <div className="flex flex-col-reverse gap-2.5 sm:grid sm:grid-cols-2">
+            <Button variant="outline" asChild>
+              <Link href="/login">เข้าสู่ระบบใหม่</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/">กลับไปหน้าหลัก</Link>
+            </Button>
           </div>
-        </div>
+        </section>
       </div>
-    </div>
+    </main>
   )
 }

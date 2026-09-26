@@ -1,6 +1,6 @@
 'use client'
 
-import { Loader2 } from 'lucide-react'
+import { Loader2, UserCog } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   AlertDialog,
@@ -8,8 +8,8 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
   AlertDialogHeader,
+  AlertDialogMedia,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 
@@ -35,15 +35,20 @@ export function CustomerSyncDialog({
 }: Props) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
+      <AlertDialogContent className="data-[size=default]:max-w-[min(520px,calc(100%-2rem))]">
         <AlertDialogHeader>
+          <AlertDialogMedia>
+            <UserCog aria-hidden />
+          </AlertDialogMedia>
           <AlertDialogTitle>อัปเดตข้อมูลลูกค้าในระบบ?</AlertDialogTitle>
           <AlertDialogDescription>
             ข้อมูลลูกค้าที่กรอกในเอกสารต่างจากที่บันทึกไว้ในระบบ
             ต้องการอัปเดตข้อมูลลูกค้าในระบบให้ตรงกับเอกสารนี้ไหม?
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter className="gap-2 sm:gap-2">
+
+        {/* 3 ปุ่ม: มือถือเรียงแนวตั้ง (ปุ่มหลักบนสุด) · จอกว้างเรียงแถวเดียว ยกเลิกซ้าย ปุ่มหลักขวาสุด */}
+        <div className="flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end">
           <AlertDialogCancel disabled={isPending}>ยกเลิก</AlertDialogCancel>
           <Button variant="outline" onClick={onProceedWithoutSync} disabled={isPending}>
             {proceedLabel}โดยไม่อัปเดต
@@ -55,10 +60,10 @@ export function CustomerSyncDialog({
             }}
             disabled={isPending}
           >
-            {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+            {isPending && <Loader2 aria-hidden className="animate-spin" />}
             อัปเดตแล้ว{proceedLabel}
           </AlertDialogAction>
-        </AlertDialogFooter>
+        </div>
       </AlertDialogContent>
     </AlertDialog>
   )

@@ -1,6 +1,7 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
+import { Loader2, LockKeyhole, ShieldAlert } from 'lucide-react'
 import { Role } from '@/types/auth'
 import { ReactNode } from 'react'
 
@@ -18,8 +19,9 @@ export function RoleGuard({ allowedRoles, children, fallback = null }: RoleGuard
 
   if (status === 'loading') {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="border-primary-purple h-8 w-8 animate-spin rounded-full border-b-2"></div>
+      <div className="flex items-center justify-center p-8" role="status">
+        <Loader2 aria-hidden className="text-info-strong size-7 animate-spin" />
+        <span className="sr-only">กำลังตรวจสอบสิทธิ์</span>
       </div>
     )
   }
@@ -27,8 +29,9 @@ export function RoleGuard({ allowedRoles, children, fallback = null }: RoleGuard
   if (!session?.user) {
     return (
       fallback || (
-        <div className="p-8 text-center">
-          <p className="text-gray-600">กรุณาเข้าสู่ระบบเพื่อดูเนื้อหานี้</p>
+        <div className="text-text-secondary flex flex-col items-center gap-2 p-8 text-center text-sm">
+          <LockKeyhole aria-hidden className="size-6" />
+          <p>กรุณาเข้าสู่ระบบเพื่อดูเนื้อหานี้</p>
         </div>
       )
     )
@@ -37,10 +40,16 @@ export function RoleGuard({ allowedRoles, children, fallback = null }: RoleGuard
   if (!allowedRoles.includes(session.user.role)) {
     return (
       fallback || (
-        <div className="p-8 text-center">
-          <div className="rounded-lg border border-red-200 bg-red-50 p-6">
-            <h3 className="mb-2 text-lg font-semibold text-red-800">ไม่มีสิทธิ์เข้าถึง</h3>
-            <p className="text-red-600">คุณไม่มีสิทธิ์ในการเข้าถึงเนื้อหาในส่วนนี้</p>
+        <div className="p-8">
+          <div
+            role="alert"
+            className="bg-danger-subtle mx-auto flex max-w-md flex-col items-center gap-2 rounded-[20px] p-6 text-center"
+          >
+            <ShieldAlert aria-hidden className="text-danger-strong size-7" />
+            <h3 className="text-danger-strong text-lg font-semibold">ไม่มีสิทธิ์เข้าถึง</h3>
+            <p className="text-danger-strong text-sm">
+              คุณไม่มีสิทธิ์ในการเข้าถึงเนื้อหาในส่วนนี้ หากคิดว่าผิดพลาดกรุณาติดต่อผู้ดูแลระบบ
+            </p>
           </div>
         </div>
       )

@@ -1,13 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Pencil, EyeOff } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
-import { DataTable } from '@/components/shared/DataTable'
 import { ConfirmAlert } from '@/components/shared/ConfirmAlert'
 import { MasterRowDialog } from './MasterRowDialog'
+import { MasterTableCard } from './MasterTableCard'
 import { useCategories } from '../../hooks/useMasterTables'
 import {
   useCreateCategory,
@@ -21,14 +17,16 @@ import type {
 } from '@/features/work-progress'
 
 export function CategoryManager() {
-  const { data, isLoading } = useCategories()
+  const { data, isLoading, isError, refetch } = useCategories()
   const createMut = useCreateCategory()
   const updateMut = useUpdateCategory()
   const deactivateMut = useDeactivateMaster()
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<WorkProgressCategory | null>(null)
-  const [confirmId, setConfirmId] = useState<string | null>(null)
+  const [confirmRow, setConfirmRow] = useState<WorkProgressCategory | null>(null)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [pendingId, setPendingId] = useState<string | null>(null)
 
   const openCreate = () => {
     setEditing(null)
@@ -51,100 +49,44 @@ export function CategoryManager() {
     setDialogOpen(false)
   }
 
-  const submitting = createMut.isPending || updateMut.isPending
-
-  if (isLoading) {
-    return <Skeleton className="h-64 w-full" />
+  const runRowAction = async (id: string, action: () => Promise<unknown>) => {
+    setPendingId(id)
+    try {
+      await action()
+    } catch {
+      // ข้อความ error แสดงผ่าน toast ของ axios interceptor แล้ว
+    } finally {
+      setPendingId(null)
+    }
   }
 
+  const submitting = createMut.isPending || updateMut.isPending
   const rows = (data ?? []).slice().sort((a, b) => a.orderIndex - b.orderIndex)
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <p className="text-muted-foreground text-sm">
-          หมวดของกิจกรรมในแผนงาน · ปิดใช้งานเพื่อซ่อนจากตัวเลือก
-        </p>
-        <Button onClick={openCreate} size="sm">
-          <Plus className="size-4" />
-          เพิ่มหมวด
-        </Button>
-      </div>
-
-      <DataTable
+    <>
+      <MasterTableCard
+        headingId="wp-master-category"
+        title="หมวด (Category)"
+        description="หมวดของกิจกรรมในแผนงาน · ปิดใช้งานเพื่อซ่อนจากตัวเลือก"
+        addLabel="เพิ่มหมวด"
+        emptyText="ยังไม่มีหมวด"
         rows={rows}
-        getRowKey={(r) => r.id}
-        emptyState="ยังไม่มีหมวด — เพิ่มใหม่ได้"
-        columns={[
-          {
-            key: 'code',
-            header: 'Code',
-            cell: (r) => <span className="font-mono text-xs">{r.code}</span>,
-            className: 'w-40',
-          },
-          {
-            key: 'name',
-            header: 'ชื่อ',
-            cell: (r) => (
-              <div className="flex items-center gap-2">
-                <span
-                  className="inline-block size-3 rounded-sm"
-                  style={
-                    r.color ? { backgroundColor: r.color } : { backgroundColor: 'var(--muted)' }
-                  }
-                  aria-hidden
-                />
-                <span>{r.name}</span>
-                {r.isSystem && (
-                  <Badge variant="secondary" className="text-xs">
-                    system
-                  </Badge>
-                )}
-              </div>
-            ),
-          },
-          {
-            key: 'order',
-            header: 'ลำดับ',
-            cell: (r) => r.orderIndex,
-            align: 'right',
-            className: 'w-20',
-          },
-          {
-            key: 'active',
-            header: 'สถานะ',
-            cell: (r) =>
-              r.isActive ? (
-                <Badge variant="default">เปิดใช้</Badge>
-              ) : (
-                <Badge variant="outline">ปิด</Badge>
-              ),
-            className: 'w-24',
-          },
-          {
-            key: 'actions',
-            header: '',
-            align: 'right',
-            className: 'w-32',
-            cell: (r) => (
-              <div className="flex justify-end gap-1">
-                <Button size="icon" variant="ghost" onClick={() => openEdit(r)} aria-label="แก้ไข">
-                  <Pencil className="size-4" />
-                </Button>
-                {r.isActive && !r.isSystem && (
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => setConfirmId(r.id)}
-                    aria-label="ปิดใช้งาน"
-                  >
-                    <EyeOff className="size-4" />
-                  </Button>
-                )}
-              </div>
-            ),
-          },
-        ]}
+        isLoading={isLoading}
+        isError={isError}
+        pendingId={pendingId}
+        onRetry={() => void refetch()}
+        onAdd={openCreate}
+        onEdit={openEdit}
+        onDeactivate={(row) => {
+          setConfirmRow(row)
+          setConfirmOpen(true)
+        }}
+        onReactivate={(row) =>
+          void runRowAction(row.id, () =>
+            updateMut.mutateAsync({ id: row.id, body: { isActive: true } }),
+          )
+        }
       />
 
       <MasterRowDialog
@@ -157,16 +99,19 @@ export function CategoryManager() {
       />
 
       <ConfirmAlert
-        open={confirmId !== null}
-        onClose={() => setConfirmId(null)}
-        onConfirm={async () => {
-          if (!confirmId) return
-          await deactivateMut.mutateAsync({ kind: 'category', id: confirmId })
-          setConfirmId(null)
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={() => {
+          if (!confirmRow) return
+          const row = confirmRow
+          setConfirmOpen(false)
+          void runRowAction(row.id, () =>
+            deactivateMut.mutateAsync({ kind: 'category', id: row.id }),
+          )
         }}
-        title="ปิดใช้งานหมวด"
-        message="หมวดที่ปิดใช้จะไม่ปรากฏในตัวเลือก แต่ item ที่ใช้อยู่จะยังคงอยู่ ดำเนินการต่อ?"
+        title={`ปิดใช้งานหมวด “${confirmRow?.name ?? ''}”`}
+        message="หมวดนี้จะไม่ปรากฏในตัวเลือกของแผนงานและ template อีก · item ที่ใช้หมวดนี้อยู่แล้วจะยังคงอยู่ครบ · เปิดใช้งานอีกครั้งได้ภายหลัง"
       />
-    </div>
+    </>
   )
 }

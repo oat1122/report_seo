@@ -30,7 +30,13 @@ function toIsoDate(date: Date): string {
   return `${year}-${month}-${day}`
 }
 
-export function DatePickerField({ value, onChange, placeholder = 'เลือกวันที่', id, disabled }: Props) {
+export function DatePickerField({
+  value,
+  onChange,
+  placeholder = 'เลือกวันที่',
+  id,
+  disabled,
+}: Props) {
   const [open, setOpen] = useState(false)
   const selected = parseDate(value)
 
@@ -42,16 +48,20 @@ export function DatePickerField({ value, onChange, placeholder = 'เลือ�
           type="button"
           variant="outline"
           disabled={disabled}
-          className={cn('w-full justify-start font-normal', !selected && 'text-muted-foreground')}
+          className={cn(
+            'w-full justify-between bg-white px-3 font-normal tabular-nums dark:bg-white/5',
+            !selected && 'text-muted-foreground',
+          )}
         >
-          <CalendarIcon className="mr-2 size-4" />
+          {/* วันที่ ค.ศ. ตาม Handoff 04 ข้อ 8 เช่น 28 ก.ย. 2026 */}
           {selected
-            ? selected.toLocaleDateString('th-TH', {
+            ? selected.toLocaleDateString('th-TH-u-ca-gregory', {
                 year: 'numeric',
-                month: 'long',
+                month: 'short',
                 day: 'numeric',
               })
             : placeholder}
+          <CalendarIcon aria-hidden className="text-text-secondary size-4" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">

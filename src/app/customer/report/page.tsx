@@ -1,9 +1,6 @@
 // src/app/customer/report/page.tsx
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
 import { DashboardLayout } from '@/components/Layout/DashboardLayout'
-import { Button } from '@/components/ui/button'
 import ReportPage from '@/features/customer-report/presentation/ReportPage'
 import { requireCustomer } from '@/lib/auth-utils'
 import { getCustomerReport } from '@/features/customer-report'
@@ -13,6 +10,7 @@ export const metadata: Metadata = {
   title: 'รายงาน SEO | SEO Report',
 }
 
+// เมนูส่วนของรายงาน + ทางกลับหน้าหลักอยู่ใน sidebar / topbar ของ shell แล้ว
 export default async function CustomerReportPage() {
   const session = await requireCustomer()
   const reportData = await getCustomerReport(session.user.id)
@@ -21,14 +19,6 @@ export default async function CustomerReportPage() {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto w-full max-w-screen-xl px-4 pt-4 md:px-6">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/customer">
-            <ArrowLeft className="mr-1.5 size-4" />
-            กลับหน้าหลัก
-          </Link>
-        </Button>
-      </div>
       <ReportPage customerId={session.user.id} initialData={initialData} />
     </DashboardLayout>
   )

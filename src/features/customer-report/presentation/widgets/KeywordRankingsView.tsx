@@ -1,334 +1,248 @@
 'use client'
 
-import React, { useMemo } from 'react'
-import { ArrowDown, ArrowUp, Loader2, Minus, Sparkles } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import React, { useId, useMemo, useState } from 'react'
+import { AlertCircle, ChevronDown, Search } from 'lucide-react'
+import type { Variants } from 'motion/react'
+import { AnimatePresence, EASE_OUT, motion } from '@/components/motion'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import { useHistoryContext } from '../contexts/HistoryContext'
 import { useReportFilters } from '../contexts/ReportFiltersContext'
-import { MiniSparkline } from '../components/MiniSparkline'
 import { ChartEmptyState } from '../components/ChartEmptyState'
-import { KeywordEvidenceDialog } from '../components/KeywordEvidenceDialog'
 import {
+  computeBracketTransitions,
   computeKeywordRankings,
   type KeywordRankCard,
-  type PositionBucket,
 } from '../lib/historyCalculations'
+import { BracketSummaryCards } from '../keywords/BracketSummaryCards'
+import { KeywordRankTile } from '../keywords/KeywordRankTile'
+import { KeywordRankRow } from '../keywords/KeywordRankRow'
+import { RankFilterSegment } from '../keywords/RankFilterSegment'
+import {
+  RANK_SORTS,
+  applyRankView,
+  countByFilter,
+  previousBracketCounts,
+  type RankFilter,
+  type RankSort,
+} from '../keywords/keyword-view'
 
-// bracket → สี (theme token เท่านั้น) + label + สี sparkline (CSS var)
-const bracketConfig: Record<
-  PositionBucket,
-  { label: string; text: string; bg: string; dot: string; spark: string }
-> = {
-  top3: {
-    label: 'Top 3',
-    text: 'text-success',
-    bg: 'bg-success/10',
-    dot: 'bg-success',
-    spark: 'var(--success)',
-  },
-  top10: {
-    label: 'Top 10',
-    text: 'text-info',
-    bg: 'bg-info/10',
-    dot: 'bg-info',
-    spark: 'var(--info)',
-  },
-  top20: {
-    label: 'Top 20',
-    text: 'text-warning',
-    bg: 'bg-warning/10',
-    dot: 'bg-warning',
-    spark: 'var(--warning)',
-  },
-  beyond: {
-    label: '20+',
-    text: 'text-destructive',
-    bg: 'bg-destructive/10',
-    dot: 'bg-destructive',
-    spark: 'var(--destructive)',
-  },
-  unranked: {
-    label: 'ไม่มีข้อมูล',
-    text: 'text-muted-foreground',
-    bg: 'bg-muted',
-    dot: 'bg-muted-foreground',
-    spark: 'var(--muted-foreground)',
-  },
+const INITIAL_VISIBLE = 8
+
+const LIST_VARIANTS: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.04 } },
 }
-
-const kdConfig: Record<string, { label: string; className: string }> = {
-  EASY: { label: 'ง่าย', className: 'bg-success/10 text-success' },
-  MEDIUM: { label: 'ปานกลาง', className: 'bg-warning/10 text-warning' },
-  HARD: { label: 'ยาก', className: 'bg-destructive/10 text-destructive' },
+const ITEM_VARIANTS: Variants = {
+  hidden: { opacity: 0, y: 14 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.36, ease: EASE_OUT } },
 }
-const getKd = (kd: string) => kdConfig[String(kd).toUpperCase()] ?? kdConfig.MEDIUM
+const ITEM_EXIT = { opacity: 0, scale: 0.96, transition: { duration: 0.18 } }
 
-const fmtTraffic = (v: number): string => {
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`
-  if (v >= 1_000) return `${(v / 1_000).toFixed(1).replace(/\.0$/, '')}K`
-  return v.toLocaleString()
-}
+const RankList = ({
+  cards,
+  className,
+  render,
+}: {
+  cards: KeywordRankCard[]
+  className: string
+  render: (card: KeywordRankCard) => React.ReactNode
+}) => (
+  <motion.ul initial="hidden" animate="show" variants={LIST_VARIANTS} className={className}>
+    <AnimatePresence mode="popLayout">
+      {cards.map((card) => (
+        <motion.li
+          key={card.id}
+          layout
+          variants={ITEM_VARIANTS}
+          exit={ITEM_EXIT}
+          className="min-w-0"
+        >
+          {render(card)}
+        </motion.li>
+      ))}
+    </AnimatePresence>
+  </motion.ul>
+)
 
-interface DeltaView {
-  icon: React.ReactNode
-  text: string
-  color: string
-}
-
-const getDeltaView = (card: KeywordRankCard): DeltaView => {
-  if (card.currentPosition === null)
-    return { icon: <Minus className="size-3" />, text: '—', color: 'text-muted-foreground' }
-  if (card.isNew)
-    return { icon: <Sparkles className="size-3" />, text: 'ใหม่', color: 'text-info' }
-  if (card.delta === null || card.delta === 0)
-    return { icon: <Minus className="size-3" />, text: 'คงที่', color: 'text-muted-foreground' }
-  if (card.delta > 0)
-    return {
-      icon: <ArrowUp className="size-3" />,
-      text: `+${card.delta} อันดับ`,
-      color: 'text-success',
-    }
-  return {
-    icon: <ArrowDown className="size-3" />,
-    text: `${card.delta} อันดับ`,
-    color: 'text-destructive',
-  }
-}
-
-const DeltaIndicator = ({ card }: { card: KeywordRankCard }) => {
-  const d = getDeltaView(card)
-  return (
-    <span className={cn('inline-flex items-center gap-1 text-xs font-semibold', d.color)}>
-      {d.icon}
-      {d.text}
-    </span>
-  )
-}
-
-const BracketBadge = ({ bucket }: { bucket: PositionBucket }) => {
-  const c = bracketConfig[bucket]
-  return (
-    <span
-      className={cn('inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5', c.bg)}
-    >
-      <span className={cn('size-1.5 rounded-full', c.dot)} />
-      <span className={cn('text-[11px] font-semibold', c.text)}>{c.label}</span>
-    </span>
-  )
-}
-
-const RankCard = ({ card }: { card: KeywordRankCard }) => {
-  const c = bracketConfig[card.bucket]
-  const kd = getKd(card.kd)
-
-  return (
-    <div className="border-border bg-card flex flex-col overflow-hidden rounded-2xl border">
-      {/* top: keyword + rank */}
-      <div className="flex items-start justify-between gap-3 p-4 pb-3">
-        <div className="min-w-0">
-          <p className="truncate text-base font-semibold" title={card.keyword}>
-            {card.keyword}
-          </p>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <BracketBadge bucket={card.bucket} />
-            <KeywordEvidenceDialog keyword={card.keyword} images={card.images} />
-          </div>
-        </div>
-        <div className="shrink-0 text-right">
-          <div className={cn('flex items-baseline justify-end gap-0.5', c.text)}>
-            <span className="text-sm font-semibold">#</span>
-            <span className="text-4xl leading-none font-bold tabular-nums">
-              {card.currentPosition ?? '—'}
-            </span>
-          </div>
-          <div className="mt-1.5">
-            <DeltaIndicator card={card} />
-          </div>
-        </div>
-      </div>
-
-      {/* sparkline */}
-      <div className="px-3 pb-2">
-        {card.hasTrend ? (
-          <MiniSparkline
-            data={card.positionSeries}
-            color={c.spark}
-            invert
-            responsive
-            width={280}
-            height={56}
-            className="h-14 w-full"
-            ariaLabel={`แนวโน้มอันดับของ ${card.keyword}`}
-          />
-        ) : (
-          <div className="text-muted-foreground flex h-14 items-center gap-2 px-1 text-xs">
-            <span className={cn('size-2 rounded-full', c.dot)} />
-            {card.positionSeries.length === 0
-              ? 'ยังไม่ติดอันดับในช่วงนี้'
-              : 'ยังมีข้อมูลรอบเดียว — แสดงเป็น snapshot'}
-          </div>
-        )}
-      </div>
-
-      {/* footer: traffic + KD */}
-      <div className="border-border/60 flex border-t">
-        <div className="border-border/60 flex-1 border-r p-3">
-          <p className="text-muted-foreground text-[11px] font-medium">Traffic / เดือน</p>
-          <p className="mt-0.5 text-base font-bold tabular-nums">{fmtTraffic(card.traffic)}</p>
-        </div>
-        <div className="flex-1 p-3">
-          <p className="text-muted-foreground text-[11px] font-medium">ความยาก (KD)</p>
-          <Badge className={cn('mt-1 font-semibold', kd.className)}>{kd.label}</Badge>
-        </div>
-      </div>
+const LoadingState = () => (
+  <div role="status" className="flex flex-col gap-5">
+    <span className="sr-only">กำลังโหลดข้อมูล Keyword...</span>
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+      {Array.from({ length: 4 }, (_, i) => (
+        <Skeleton key={i} className="h-[124px] rounded-[20px]" />
+      ))}
     </div>
-  )
-}
+    <Skeleton className="h-8 w-64 rounded-xl" />
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+      {Array.from({ length: 4 }, (_, i) => (
+        <Skeleton key={i} className="h-[196px] rounded-[18px]" />
+      ))}
+    </div>
+  </div>
+)
 
 export const KeywordRankingsView = () => {
-  const { keywordHistory, currentKeywords, isLoading } = useHistoryContext()
+  const { keywordHistory, currentKeywords, isLoading, error } = useHistoryContext()
   const { period } = useReportFilters()
+  const searchId = useId()
+  const headingId = useId()
+
+  const [query, setQuery] = useState('')
+  const [filter, setFilter] = useState<RankFilter>('all')
+  const [sort, setSort] = useState<RankSort>('position')
+  const [showAll, setShowAll] = useState(false)
 
   const { cards, brackets, total } = useMemo(
     () => computeKeywordRankings(keywordHistory, currentKeywords, period),
     [keywordHistory, currentKeywords, period],
   )
+  const previous = useMemo(
+    () => previousBracketCounts(computeBracketTransitions(keywordHistory, currentKeywords, period)),
+    [keywordHistory, currentKeywords, period],
+  )
+  const counts = useMemo(() => countByFilter(cards), [cards])
+  const filtered = useMemo(
+    () => applyRankView(cards, { filter, sort, query }),
+    [cards, filter, sort, query],
+  )
+
+  if (isLoading) return <LoadingState />
+
+  if (error && total === 0) {
+    return (
+      <div
+        role="alert"
+        className="bg-glass-card border-glass-border shadow-card flex flex-col items-start gap-3 rounded-[20px] border p-5 md:flex-row md:items-center md:p-6"
+      >
+        <AlertCircle className="text-danger-strong size-6 shrink-0" aria-hidden="true" />
+        <div className="flex flex-1 flex-col gap-1">
+          <p className="font-medium">โหลดข้อมูลอันดับ Keyword ไม่สำเร็จ</p>
+          <p className="text-text-secondary text-[13px]">
+            การเชื่อมต่อขัดข้องชั่วคราว ลองโหลดหน้านี้ใหม่อีกครั้ง ถ้ายังไม่ได้ให้แจ้งทีม SEO
+            ที่ดูแลบัญชีของคุณ
+          </p>
+        </div>
+        <Button variant="outline" onClick={() => window.location.reload()}>
+          โหลดใหม่
+        </Button>
+      </div>
+    )
+  }
+
+  if (total === 0) {
+    return <ChartEmptyState message="ยังไม่มี Keyword ในรายงานนี้" height="200px" />
+  }
+
+  const visible = showAll ? filtered : filtered.slice(0, INITIAL_VISIBLE)
+  const clearFilters = () => {
+    setQuery('')
+    setFilter('all')
+  }
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div>
-        <p className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
-          Keyword Rankings
-        </p>
-        <h2 className="mt-1 text-2xl font-bold">ผลอันดับของแต่ละ Keyword</h2>
-        <p className="text-muted-foreground mt-0.5 text-sm">
-          ดูได้เลยว่าแต่ละคำติดอันดับที่เท่าไหร่ · Current ranking per keyword
-        </p>
-      </div>
+    <div className="flex flex-col gap-5">
+      <BracketSummaryCards brackets={brackets} total={total} previous={previous} period={period} />
 
-      {isLoading ? (
-        <div className="border-border flex items-center gap-2 rounded-2xl border p-6">
-          <Loader2 className="text-info size-4 animate-spin" />
-          <span>กำลังโหลดข้อมูล Keyword...</span>
+      <section aria-labelledby={headingId} className="flex flex-col gap-3.5">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between md:gap-4">
+          <div className="flex flex-col gap-1">
+            <span className="text-text-secondary hidden text-[11px] tracking-[0.14em] uppercase md:block">
+              Keyword Rankings
+            </span>
+            <h2 id={headingId} className="text-lg font-semibold md:text-[19px]">
+              ผลอันดับของแต่ละ Keyword
+            </h2>
+            <p className="text-text-secondary text-[13px]">
+              ดูได้เลยว่าแต่ละคำติดอันดับที่เท่าไหร่ · เส้นขึ้น = อันดับดีขึ้น
+            </p>
+          </div>
+          <div className="relative w-full md:w-[280px]">
+            <label htmlFor={searchId} className="sr-only">
+              ค้นหา keyword
+            </label>
+            <Search
+              aria-hidden="true"
+              className="text-muted-foreground pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2"
+            />
+            <Input
+              id={searchId}
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="ค้นหา keyword..."
+              className="border-glass-border rounded-[14px] bg-white/75 pl-10 dark:bg-white/5"
+            />
+          </div>
         </div>
-      ) : total === 0 ? (
-        <ChartEmptyState message="ยังไม่มี Keyword ในรายงานนี้" height="200px" />
-      ) : (
-        <>
-          {/* Bracket summary strip */}
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-            {brackets.map((b) => {
-              const c = bracketConfig[b.bucket]
-              return (
-                <div
-                  key={b.bucket}
-                  className="border-border bg-card flex flex-col gap-2.5 rounded-2xl border p-4"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className={cn('size-2.5 rounded-sm', c.dot)} />
-                    <span className="text-muted-foreground text-sm font-semibold">{c.label}</span>
-                  </div>
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-3xl leading-none font-bold tabular-nums">{b.count}</span>
-                    <span className="text-muted-foreground text-xs">/ {total} คำ</span>
-                  </div>
-                  <div className="bg-muted h-1.5 overflow-hidden rounded-full">
-                    <div
-                      className={cn('h-full rounded-full', c.dot)}
-                      style={{ width: `${b.pct}%` }}
-                    />
-                  </div>
-                </div>
-              )
-            })}
-          </div>
 
-          {/* Per-keyword cards */}
-          <div>
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-base font-bold">การ์ดราย Keyword</h3>
-              <span className="text-muted-foreground text-xs">เส้นขึ้น = อันดับดีขึ้น</span>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {cards.map((card) => (
-                <RankCard key={card.id} card={card} />
+        <div className="flex flex-col gap-2 md:flex-row md:items-center">
+          <RankFilterSegment value={filter} counts={counts} onChange={setFilter} />
+          <Select value={sort} onValueChange={(v) => setSort(v as RankSort)}>
+            <SelectTrigger className="border-glass-border w-full bg-white/70 text-[13px] md:ml-auto md:w-auto md:data-[size=default]:h-10 dark:bg-white/5">
+              <span className="text-text-secondary">เรียงตาม:</span>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent position="popper" align="end">
+              {RANK_SORTS.map((s) => (
+                <SelectItem key={s.value} value={s.value}>
+                  {s.label}
+                </SelectItem>
               ))}
-            </div>
-          </div>
+            </SelectContent>
+          </Select>
+        </div>
 
-          {/* Detail table */}
-          <div className="border-border bg-card overflow-hidden rounded-2xl border">
-            <div className="p-4 pb-2">
-              <h3 className="text-base font-bold">ตารางสรุปทั้งหมด</h3>
-              <p className="text-muted-foreground mt-0.5 text-xs">
-                รายละเอียดทุก keyword · เรียงตามอันดับที่ดีที่สุด
-              </p>
-            </div>
-            <div className="overflow-x-auto p-2">
-              <table className="w-full min-w-[560px] border-collapse text-sm">
-                <thead>
-                  <tr className="text-muted-foreground text-left">
-                    <th className="px-3.5 py-2.5 text-[11px] font-bold tracking-wider uppercase">
-                      Keyword
-                    </th>
-                    <th className="px-3.5 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase">
-                      อันดับ
-                    </th>
-                    <th className="px-3.5 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase">
-                      เปลี่ยนแปลง
-                    </th>
-                    <th className="px-3.5 py-2.5 text-right text-[11px] font-bold tracking-wider uppercase">
-                      Traffic
-                    </th>
-                    <th className="px-3.5 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase">
-                      KD
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {cards.map((card) => {
-                    const c = bracketConfig[card.bucket]
-                    const kd = getKd(card.kd)
-                    return (
-                      <tr key={card.id} className="border-border/60 border-t">
-                        <td className="px-3.5 py-3">
-                          <div className="flex flex-wrap items-center gap-2.5">
-                            <span className={cn('size-2 rounded-sm', c.dot)} />
-                            <span className="font-semibold">{card.keyword}</span>
-                            <KeywordEvidenceDialog keyword={card.keyword} images={card.images} />
-                          </div>
-                        </td>
-                        <td className="px-3.5 py-3 text-center">
-                          <span
-                            className={cn(
-                              'inline-flex items-center rounded-full px-2.5 py-0.5 text-[13px] font-bold tabular-nums',
-                              c.bg,
-                              c.text,
-                            )}
-                          >
-                            {card.currentPosition !== null ? `#${card.currentPosition}` : '—'}
-                          </span>
-                        </td>
-                        <td className="px-3.5 py-3 text-center">
-                          <DeltaIndicator card={card} />
-                        </td>
-                        <td className="px-3.5 py-3 text-right font-semibold tabular-nums">
-                          {fmtTraffic(card.traffic)}
-                        </td>
-                        <td className="px-3.5 py-3 text-center">
-                          <Badge className={cn('font-semibold', kd.className)}>{kd.label}</Badge>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
+        {filtered.length === 0 ? (
+          <div className="bg-glass-card border-glass-border flex flex-col items-center gap-3 rounded-[20px] border px-5 py-10 text-center">
+            <Search className="text-muted-foreground size-6" aria-hidden="true" />
+            <p className="text-sm">
+              ไม่พบ keyword ที่ตรงกับตัวกรอง
+              {query.trim() !== '' && <> “{query.trim()}”</>}
+            </p>
+            <Button variant="soft" size="sm" onClick={clearFilters}>
+              ล้างตัวกรอง
+            </Button>
           </div>
-        </>
-      )}
+        ) : (
+          <>
+            <RankList
+              cards={visible}
+              className="hidden gap-4 md:grid md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
+              render={(card) => <KeywordRankTile card={card} />}
+            />
+            <RankList
+              cards={visible}
+              className="flex flex-col gap-2.5 md:hidden"
+              render={(card) => <KeywordRankRow card={card} />}
+            />
+          </>
+        )}
+
+        {filtered.length > INITIAL_VISIBLE && (
+          <button
+            type="button"
+            aria-expanded={showAll}
+            onClick={() => setShowAll((v) => !v)}
+            className="bg-info-subtle hover:bg-info-subtle/70 focus-visible:ring-ring/70 inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-[14px] text-sm font-medium transition-colors outline-none focus-visible:ring-[3px] md:h-10 md:w-auto md:self-center md:rounded-full md:px-[18px] md:text-[13px]"
+          >
+            {showAll ? 'แสดงน้อยลง' : `ดูทั้งหมด ${filtered.length} คำ`}
+            <ChevronDown
+              aria-hidden="true"
+              className={cn('size-4 transition-transform', showAll && 'rotate-180')}
+            />
+          </button>
+        )}
+      </section>
     </div>
   )
 }

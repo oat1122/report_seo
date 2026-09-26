@@ -12,7 +12,6 @@ import {
   Undo2,
   UserRound,
 } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -44,21 +43,17 @@ interface ArticleThreadProps {
   canRespond: boolean
   isPending?: boolean
   onPreviewFile: (file: BlogArticleFile) => void
-  onApprove: (stageCode: BlogStageCode) => void
-  onRequestChanges: (stageCode: BlogStageCode) => void
-  onSubmitWork: (stageCode: BlogStageCode) => void
-  onUnsubmit: (stageCode: BlogStageCode) => void
+  /** ไม่ส่ง = อ่านอย่างเดียว (คอลัมน์ประกอบในหน้าฟอร์ม) — ปุ่มยกเลิกการส่งจะไม่ขึ้น */
+  onUnsubmit?: (stageCode: BlogStageCode) => void
 }
 
+/** เนื้อบทสนทนาล้วน ๆ — ส่วนที่ต้องเลื่อน ปุ่มลงมืออยู่ที่ <ArticleThreadActions> แยกไว้ค้างท้ายการ์ด */
 export function ArticleThread({
   article,
   canManage,
   canRespond,
   isPending,
   onPreviewFile,
-  onApprove,
-  onRequestChanges,
-  onSubmitWork,
   onUnsubmit,
 }: ArticleThreadProps) {
   const entries: ThreadEntry[] = [
@@ -77,65 +72,103 @@ export function ArticleThread({
   const latestSubmissionId = new Map(
     article.submissions.map((submission) => [submission.stageCode, submission.id]),
   )
-  const pendingWriterStages = getArticleFlow(article.stages).filter(
-    (stage) => stage.actor === 'WRITER' && !submittedCodes.has(stage.code),
-  )
-  const current = getCurrentStage(article)
-  const awaitsClient = canRespond && article.status === 'WAITING_CLIENT' && current !== null
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3.5">
       {entries.length === 0 && (
-        <p className="text-muted-foreground border-border rounded-xl border border-dashed p-6 text-center text-sm">
+        <p className="text-text-secondary border-border rounded-2xl border border-dashed bg-white/40 p-6 text-center text-sm dark:bg-white/5">
           ยังไม่มีการพูดคุยในบทความนี้
         </p>
       )}
 
       {entries.map((entry, index) => (
-        <div key={entry.data.id} className="flex flex-col gap-4">
+        <div key={entry.data.id} className="flex flex-col gap-3.5">
           {isNewDay(entries[index - 1], entry) && <DateDivider date={entry.at} />}
           {entry.kind === 'submission' ? (
             <SubmissionBubble
               submission={entry.data}
               stageLabel={canManage ? getStageLabel(entry.data.stageCode) : undefined}
               canUnsubmit={
+                Boolean(onUnsubmit) &&
                 canManage &&
                 submittedCodes.has(entry.data.stageCode) &&
                 latestSubmissionId.get(entry.data.stageCode) === entry.data.id
               }
               isPending={isPending}
               onPreviewFile={onPreviewFile}
-              onUnsubmit={() => onUnsubmit(entry.data.stageCode)}
+              onUnsubmit={() => onUnsubmit?.(entry.data.stageCode)}
             />
           ) : (
             <FeedbackBubble feedback={entry.data} isOwnSide={canRespond && !canManage} />
           )}
         </div>
       ))}
+    </div>
+  )
+}
 
+interface ArticleThreadActionsProps {
+  article: BlogArticle
+  canManage: boolean
+  canRespond: boolean
+  isPending?: boolean
+  onApprove?: (stageCode: BlogStageCode) => void
+  onRequestChanges?: (stageCode: BlogStageCode) => void
+  onSubmitWork?: (stageCode: BlogStageCode) => void
+}
+
+/** แถบลงมือท้ายบทสนทนา — แยกจากตัวข้อความเพื่อให้ค้างไว้ท้ายการ์ดได้เหมือนช่องพิมพ์ของแอปแชท */
+export function ArticleThreadActions({
+  article,
+  canManage,
+  canRespond,
+  isPending,
+  onApprove,
+  onRequestChanges,
+  onSubmitWork,
+}: ArticleThreadActionsProps) {
+  const submittedCodes = new Set(
+    article.stages.filter((stage) => stage.submittedAt).map((stage) => stage.stageCode),
+  )
+  const pendingWriterStages = getArticleFlow(article.stages).filter(
+    (stage) => stage.actor === 'WRITER' && !submittedCodes.has(stage.code),
+  )
+  const current = getCurrentStage(article)
+  const awaitsClient = canRespond && article.status === 'WAITING_CLIENT' && current !== null
+  const showSubmitBar = canManage && pendingWriterStages.length > 0
+  const showWaitingNotice = !awaitsClient && !canManage && current !== null
+
+  // ไม่มีอะไรให้ลงมือ (เช่นทีมส่งครบแล้วรอลูกค้าตอบ) = ไม่ต้องมีแถบท้ายการ์ดเปล่า ๆ
+  if (!awaitsClient && !showSubmitBar && !showWaitingNotice && current) return null
+
+  return (
+    <div className="border-border/70 flex shrink-0 flex-col gap-3 border-t px-5 pt-4 pb-5 sm:px-6">
       {awaitsClient && current && (
-        <div className="border-secondary bg-secondary/6 flex flex-col gap-3.5 rounded-2xl border-[1.5px] p-4">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <span className="bg-secondary text-secondary-foreground flex size-7.5 items-center justify-center rounded-full">
+        <div className="bg-info-subtle flex flex-col gap-3.5 rounded-2xl p-4">
+          <div className="flex items-center gap-2.5">
+            <span
+              aria-hidden
+              className="bg-secondary text-secondary-foreground flex size-8 shrink-0 items-center justify-center rounded-full"
+            >
               <UserRound className="size-4" />
             </span>
-            <strong className="text-base font-semibold">
+            <strong className="text-[15px] leading-snug font-semibold">
               ตาคุณแล้ว — อ่านงานที่ทีมส่งมา แล้วเลือกอย่างใดอย่างหนึ่ง
             </strong>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-2.5 sm:grid-cols-2">
             <button
               type="button"
               disabled={isPending}
-              onClick={() => onApprove(current.definition.code)}
-              className="bg-secondary text-secondary-foreground hover:bg-secondary/90 flex min-h-11 cursor-pointer flex-col items-start gap-1.5 rounded-xl p-4 text-left disabled:opacity-60"
+              onClick={() => onApprove?.(current.definition.code)}
+              className="bg-secondary text-secondary-foreground focus-visible:ring-ring/60 flex min-h-11 cursor-pointer flex-col items-start gap-1 rounded-[14px] p-4 text-left transition-[filter] hover:brightness-95 focus-visible:ring-[3px] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <span className="flex items-center gap-2 text-base font-semibold">
-                <CircleCheckBig className="size-4.5" />
+              <span className="flex items-center gap-2 text-[15px] font-semibold">
+                <CircleCheckBig aria-hidden className="size-4.5" />
                 อนุมัติเลย
               </span>
-              <span className="text-sm opacity-75">
+              <span className="text-[13px] leading-snug">
                 พอใจแล้ว ให้ทีมทำขั้นตอนถัดไปได้เลย · ทีมจะได้รับแจ้งทันที
               </span>
             </button>
@@ -143,22 +176,22 @@ export function ArticleThread({
             <button
               type="button"
               disabled={isPending}
-              onClick={() => onRequestChanges(current.definition.code)}
-              className="border-border bg-card hover:bg-muted flex min-h-11 cursor-pointer flex-col items-start gap-1.5 rounded-xl border p-4 text-left disabled:opacity-60"
+              onClick={() => onRequestChanges?.(current.definition.code)}
+              className="border-border focus-visible:ring-ring/60 flex min-h-11 cursor-pointer flex-col items-start gap-1 rounded-[14px] border bg-white/85 p-4 text-left transition-colors hover:bg-white focus-visible:ring-[3px] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white/5 dark:hover:bg-white/10"
             >
-              <span className="flex items-center gap-2 text-base font-semibold">
-                <Pencil className="text-warning size-4.5" />
+              <span className="flex items-center gap-2 text-[15px] font-semibold">
+                <Pencil aria-hidden className="text-warning-text size-4.5" />
                 ขอแก้ไข
               </span>
-              <span className="text-muted-foreground text-sm">
+              <span className="text-text-secondary text-[13px] leading-snug">
                 ยังไม่โอเค พิมพ์บอกทีมว่าอยากให้แก้ตรงไหน แล้วทีมจะส่งใหม่
               </span>
             </button>
           </div>
 
           {current.dueDate && (
-            <p className="text-muted-foreground flex items-start gap-2 text-xs">
-              <Info className="mt-0.5 size-3.5 shrink-0" />
+            <p className="text-text-secondary flex items-start gap-2 text-xs leading-relaxed">
+              <Info aria-hidden className="mt-0.5 size-3.5 shrink-0" />
               ยังไม่พร้อมตอบตอนนี้ก็ได้ งานจะรอคุณอยู่ตรงนี้ แต่ถ้าเลย{' '}
               {formatShortDate(current.dueDate)} แผนทั้งเดือนจะเลื่อนตามไปด้วย
             </p>
@@ -166,49 +199,60 @@ export function ArticleThread({
         </div>
       )}
 
-      {canManage && pendingWriterStages.length > 0 && (
-        <div className="border-border bg-card flex flex-wrap items-center gap-2 rounded-xl border p-3">
-          <span className="text-muted-foreground mr-auto text-sm">
-            ขั้นตอนที่ยังไม่ได้ส่ง {pendingWriterStages.length} ขั้น
+      {showSubmitBar && (
+        <div className="bg-info-subtle flex flex-col gap-3 rounded-[14px] p-3.5 sm:flex-row sm:items-center">
+          <span className="text-[13px] sm:mr-auto">
+            ถึงคิวทีม — ขั้นตอนที่ยังไม่ได้ส่ง{' '}
+            <strong className="font-semibold tabular-nums">{pendingWriterStages.length}</strong>{' '}
+            ขั้น
           </span>
-          <Button
-            disabled={isPending}
-            onClick={() => onSubmitWork(pendingWriterStages[0].code)}
-            className="min-h-11"
-          >
-            <Send className="mr-1.5 size-4" />
-            ส่งงาน: {pendingWriterStages[0].label}
-          </Button>
-          {pendingWriterStages.length > 1 && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="min-h-11" disabled={isPending}>
-                  ขั้นตอนอื่น
-                  <ChevronDown className="ml-1.5 size-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-auto min-w-56">
-                {pendingWriterStages.slice(1).map((stage) => (
-                  <DropdownMenuItem key={stage.code} onClick={() => onSubmitWork(stage.code)}>
-                    {stage.label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+          <div className="flex flex-wrap gap-2">
+            <Button
+              disabled={isPending}
+              onClick={() => onSubmitWork?.(pendingWriterStages[0].code)}
+              className="h-11 flex-1 rounded-[12px] px-4 sm:h-10 sm:flex-none"
+            >
+              <Send aria-hidden className="size-4" />
+              ส่งงาน: {pendingWriterStages[0].label}
+            </Button>
+            {pendingWriterStages.length > 1 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="h-11 rounded-[12px] px-4 sm:h-10"
+                    disabled={isPending}
+                  >
+                    ขั้นตอนอื่น
+                    <ChevronDown aria-hidden className="size-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-auto min-w-56">
+                  {pendingWriterStages.slice(1).map((stage) => (
+                    <DropdownMenuItem key={stage.code} onClick={() => onSubmitWork?.(stage.code)}>
+                      {stage.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
         </div>
       )}
 
-      {!awaitsClient && !canManage && current && (
-        <div className="border-border bg-card flex items-center gap-3 rounded-xl border border-dashed p-4">
-          <span className="bg-muted text-muted-foreground flex size-9 shrink-0 items-center justify-center rounded-full">
+      {showWaitingNotice && current && (
+        <div className="border-border flex items-center gap-3 rounded-[14px] border border-dashed bg-white/60 p-3.5 dark:bg-white/5">
+          <span
+            aria-hidden
+            className="bg-muted text-text-secondary flex size-9 shrink-0 items-center justify-center rounded-full"
+          >
             <Clock className="size-4" />
           </span>
           <div className="flex flex-col gap-0.5">
             <strong className="text-sm font-semibold">
               รอทีมเขียน{current.definition.actor === 'WRITER' ? '' : 'ดำเนินการต่อ'}
             </strong>
-            <span className="text-muted-foreground text-sm">
+            <span className="text-text-secondary text-[13px] leading-snug">
               ตอนนี้คุณยังไม่ต้องทำอะไร พอทีมส่งมา เรื่องนี้จะเด้งขึ้นไปอยู่กลุ่ม “ถึงคิวคุณแล้ว”
               {current.dueDate ? ` · กำหนดส่ง ${formatShortDate(current.dueDate)}` : ''}
             </span>
@@ -217,13 +261,16 @@ export function ArticleThread({
       )}
 
       {!current && (
-        <div className="border-success/35 bg-success/8 flex items-center gap-3 rounded-xl border p-4">
-          <span className="bg-success text-success-foreground flex size-9 shrink-0 items-center justify-center rounded-full">
+        <div className="bg-success-subtle flex items-center gap-3 rounded-[14px] p-3.5">
+          <span
+            aria-hidden
+            className="bg-success text-success-foreground flex size-9 shrink-0 items-center justify-center rounded-full"
+          >
             <Check className="size-4" />
           </span>
           <div className="flex flex-col gap-0.5">
             <strong className="text-success text-sm font-semibold">ส่งงานครบทุกขั้นแล้ว</strong>
-            <span className="text-muted-foreground text-sm">
+            <span className="text-foreground text-[13px]">
               ไฟล์ทุกเวอร์ชันยังเก็บไว้ให้ในแท็บ “ไฟล์ทั้งหมด”
             </span>
           </div>
@@ -241,11 +288,11 @@ function isNewDay(previous: ThreadEntry | undefined, entry: ThreadEntry): boolea
 function DateDivider({ date }: { date: Date }) {
   return (
     <div className="flex items-center gap-2.5">
-      <span className="bg-border h-px flex-1" />
-      <span className="text-muted-foreground text-xs">
+      <span aria-hidden className="bg-border h-px flex-1" />
+      <span className="text-text-secondary text-xs">
         {date.toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' })}
       </span>
-      <span className="bg-border h-px flex-1" />
+      <span aria-hidden className="bg-border h-px flex-1" />
     </div>
   )
 }
@@ -253,16 +300,19 @@ function DateDivider({ date }: { date: Date }) {
 function Avatar({ name, tone }: { name: string; tone: 'writer' | 'client' }) {
   return (
     <span
+      aria-hidden
       className={cn(
-        'flex size-8.5 shrink-0 items-center justify-center rounded-full text-sm font-medium',
-        tone === 'writer'
-          ? 'bg-primary text-primary-foreground'
-          : 'bg-secondary text-secondary-foreground',
+        'text-foreground flex size-8.5 shrink-0 items-center justify-center rounded-full border-2 border-white text-[13px] font-semibold dark:border-white/15',
+        tone === 'writer' ? 'bg-info-subtle' : 'bg-secondary/30',
       )}
     >
       {name.trim().charAt(0) || '?'}
     </span>
   )
+}
+
+function formatTime(date: Date | string): string {
+  return `${new Date(date).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.`
 }
 
 function SubmissionBubble({
@@ -283,39 +333,33 @@ function SubmissionBubble({
   const author = submission.authorName ?? 'ทีมเขียน'
 
   return (
-    <div className="flex items-start gap-3">
+    <div className="flex items-start gap-2.5">
       <Avatar name={author} tone="writer" />
-      <div className="flex max-w-160 min-w-0 flex-col gap-1.5">
-        <div className="flex flex-wrap items-baseline gap-2">
-          <strong className="text-sm font-semibold">{author}</strong>
-          <span className="text-muted-foreground text-xs">
-            ทีมเขียน ·{' '}
-            {new Date(submission.createdAt).toLocaleTimeString('th-TH', {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}{' '}
-            น.
+      <div className="flex max-w-[min(40rem,85%)] min-w-0 flex-col gap-1.5">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="text-text-secondary text-xs">
+            <strong className="text-foreground font-medium">{author}</strong> · ทีมเขียน ·{' '}
+            {formatTime(submission.createdAt)}
           </span>
-          <Badge variant="outline" className="text-muted-foreground text-[11px]">
+          <span className="bg-muted text-text-secondary rounded-full px-2 py-0.5 text-[11px] font-medium">
             {stageLabel ? `${stageLabel} · ` : ''}รอบ {submission.round}
-          </Badge>
+          </span>
           {canUnsubmit && (
             <Button
-              size="sm"
               variant="ghost"
-              className="text-muted-foreground h-7 px-2 text-xs"
+              className="text-text-secondary h-11 rounded-[10px] px-2 text-xs sm:h-7"
               disabled={isPending}
               onClick={onUnsubmit}
             >
-              <Undo2 className="mr-1 size-3.5" />
+              <Undo2 aria-hidden className="size-3.5" />
               ยกเลิกการส่ง
             </Button>
           )}
         </div>
 
-        <div className="border-border bg-card flex flex-col gap-2.5 rounded-[4px_14px_14px_14px] border p-3.5">
+        <div className="border-border flex flex-col gap-2.5 rounded-[4px_16px_16px_16px] border bg-white p-3.5 dark:bg-white/5">
           {submission.message && (
-            <p className="text-sm leading-6 whitespace-pre-wrap">{submission.message}</p>
+            <p className="text-sm leading-relaxed whitespace-pre-wrap">{submission.message}</p>
           )}
 
           {submission.linkUrl && (
@@ -323,9 +367,9 @@ function SubmissionBubble({
               href={submission.linkUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-info flex items-center gap-1.5 text-xs break-all underline"
+              className="text-foreground flex items-center gap-1.5 text-[13px] break-all underline underline-offset-2"
             >
-              <LinkIcon className="size-3.5 shrink-0" />
+              <LinkIcon aria-hidden className="size-3.5 shrink-0" />
               {submission.linkUrl}
             </a>
           )}
@@ -335,7 +379,7 @@ function SubmissionBubble({
               key={file.id}
               file={file}
               meta={`เวอร์ชัน ${file.version}`}
-              className="bg-muted"
+              className="bg-muted/60 dark:bg-white/5"
               onPreview={onPreviewFile}
             />
           ))}
@@ -356,45 +400,39 @@ function FeedbackBubble({
   const author = isOwnSide ? 'คุณ' : (feedback.authorName ?? 'ลูกค้า')
 
   return (
-    <div className="flex items-start justify-end gap-3">
-      <div className="flex max-w-160 min-w-0 flex-col items-end gap-1.5">
-        <div className="flex flex-wrap items-baseline justify-end gap-2">
-          <span className="text-muted-foreground text-xs">
-            {new Date(feedback.createdAt).toLocaleTimeString('th-TH', {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}{' '}
-            น.
-          </span>
-          <strong className="text-sm font-semibold">{author}</strong>
-        </div>
+    <div className="flex flex-row-reverse items-start gap-2.5">
+      <Avatar name={author} tone="client" />
+      <div className="flex max-w-[min(40rem,85%)] min-w-0 flex-col items-end gap-1.5">
+        <span className="text-text-secondary text-xs">
+          <strong className="text-foreground font-medium">{author}</strong> ·{' '}
+          {formatTime(feedback.createdAt)}
+        </span>
 
         <div
           className={cn(
-            'flex flex-col gap-2 rounded-[14px_4px_14px_14px] border p-3.5',
-            isApproved ? 'border-success/35 bg-success/8' : 'border-warning/35 bg-warning/8',
+            'flex flex-col gap-2 rounded-[16px_4px_16px_16px] border p-3.5',
+            isApproved
+              ? 'bg-success-subtle border-success/25'
+              : 'bg-warning-subtle border-warning-accent/35',
           )}
         >
-          <Badge
+          <span
             className={cn(
-              'w-fit',
-              isApproved
-                ? 'bg-success text-success-foreground'
-                : 'bg-warning text-warning-foreground',
+              'bg-background/80 w-fit rounded-full px-2.5 py-0.5 text-xs font-semibold',
+              isApproved ? 'text-success' : 'text-warning-text',
             )}
           >
             {isApproved ? 'อนุมัติแล้ว' : 'ขอแก้ไข'}
-          </Badge>
+          </span>
           {feedback.comment && (
-            <p className="text-sm leading-6 whitespace-pre-wrap">{feedback.comment}</p>
+            <p className="text-sm leading-relaxed whitespace-pre-wrap">{feedback.comment}</p>
           )}
         </div>
 
-        <span className="text-muted-foreground text-xs">
+        <span className="text-text-secondary text-xs">
           {getClientStageLabel(feedback.stageCode)}
         </span>
       </div>
-      <Avatar name={author} tone="client" />
     </div>
   )
 }

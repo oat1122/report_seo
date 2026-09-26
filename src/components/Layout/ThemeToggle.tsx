@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react'
 import { useTheme } from 'next-themes'
 import { Moon, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
-export const ThemeToggle = () => {
+export const ThemeToggle = ({ className }: { className?: string }) => {
   const { resolvedTheme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
@@ -13,7 +14,13 @@ export const ThemeToggle = () => {
 
   if (!mounted) {
     return (
-      <Button variant="ghost" size="icon-sm" aria-label="สลับโหมดสีของหน้าจอ" disabled>
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        className={className}
+        aria-label="สลับโหมดสีของหน้าจอ"
+        disabled
+      >
         <Sun className="size-4" />
       </Button>
     )
@@ -24,6 +31,7 @@ export const ThemeToggle = () => {
     <Button
       variant="ghost"
       size="icon-sm"
+      className={cn(className)}
       aria-label={isDark ? 'เปลี่ยนเป็นโหมดสว่าง' : 'เปลี่ยนเป็นโหมดมืด'}
       title={isDark ? 'เปลี่ยนเป็นโหมดสว่าง' : 'เปลี่ยนเป็นโหมดมืด'}
       onClick={() => setTheme(isDark ? 'light' : 'dark')}

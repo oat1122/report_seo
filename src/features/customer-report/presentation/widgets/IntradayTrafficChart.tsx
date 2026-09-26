@@ -1,26 +1,25 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
+import { useReducedMotion } from 'motion/react'
 import { Area, AreaChart, CartesianGrid, ReferenceLine, XAxis, YAxis } from 'recharts'
-import { Activity } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import { cn } from '@/lib/utils'
 import { ChartEmptyState } from '../components/ChartEmptyState'
+import { ReportCardHeader } from '../components/ReportCardHeader'
 import { buildChartConfig } from '../lib/buildChartConfig'
 import { computeIntradayTraffic, localDayKey } from '../lib/historyCalculations'
+import { formatTimeTH } from '../lib/formatters'
 import { useHistoryContext } from '../contexts/HistoryContext'
 
 const chartConfig = buildChartConfig([
-  { key: 'actual', label: 'จำนวนจริง', color: 'var(--success)' },
-  { key: 'forecast', label: 'คาดการณ์', color: 'var(--info)' },
+  { key: 'actual', label: 'จำนวนจริง', color: 'var(--chart-1)' },
+  { key: 'forecast', label: 'คาดการณ์', color: 'var(--chart-2)' },
 ])
 
 const nf = new Intl.NumberFormat('th-TH')
 const fmtHour = (h: number): string => `${String(h).padStart(2, '0')}:00`
-/** เวลาจริงรูปแบบไทย เช่น "16.35 น." */
-const fmtClock = (ms: number): string => {
-  const d = new Date(ms)
-  return `${String(d.getHours()).padStart(2, '0')}.${String(d.getMinutes()).padStart(2, '0')} น.`
-}
 const TICK_MS = 5000
 
 interface IntradayChartPoint {
@@ -43,10 +42,17 @@ const makeLeadingDot = (animate: boolean) => {
     if (cx == null || cy == null || !payload?.isLeading) return <g key={key} />
     return (
       <g key={key}>
-        <circle cx={cx} cy={cy} r={4} fill="var(--success)" />
+        <circle
+          cx={cx}
+          cy={cy}
+          r={5}
+          fill="var(--chart-1)"
+          stroke="var(--background)"
+          strokeWidth={2}
+        />
         {animate && (
-          <circle cx={cx} cy={cy} r={4} fill="none" stroke="var(--success)" strokeWidth={2}>
-            <animate attributeName="r" values="4;12" dur="2.2s" repeatCount="indefinite" />
+          <circle cx={cx} cy={cy} r={5} fill="none" stroke="var(--chart-1)" strokeWidth={2}>
+            <animate attributeName="r" values="5;13" dur="2.2s" repeatCount="indefinite" />
             <animate attributeName="opacity" values="0.7;0" dur="2.2s" repeatCount="indefinite" />
           </circle>
         )}
@@ -57,19 +63,12 @@ const makeLeadingDot = (animate: boolean) => {
   return LeadingDot
 }
 
-export const IntradayTrafficChart = () => {
+export const IntradayTrafficChart = ({ className }: { className?: string }) => {
   const { metricsHistory } = useHistoryContext()
   const [nowMs, setNowMs] = useState(() => Date.now())
-  const [reduced, setReduced] = useState(false)
-
-  // เคารพ prefers-reduced-motion — ปิดการขยับทั้งหมดถ้าผู้ใช้ตั้งค่าไว้
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    setReduced(mq.matches)
-    const onChange = (e: MediaQueryListEvent) => setReduced(e.matches)
-    mq.addEventListener('change', onChange)
-    return () => mq.removeEventListener('change', onChange)
-  }, [])
+  // เคารพ prefers-reduced-motion — หยุด ticker + pulse ทั้งหมด
+  const reduced = useReducedMotion() ?? false
+  const gradientId = `intraday-fill-${useId().replace(/:/g, '')}`
 
   // live ticker — timer ตัวเดียว, cleanup เสมอ, หยุดเมื่อ reduced-motion
   useEffect(() => {
@@ -86,7 +85,6 @@ export const IntradayTrafficChart = () => {
   )
 
   // ชั่วโมงปัจจุบัน "ไต่ขึ้นแบบสะสม" ตามนาทีจริง — monotonic ไม่ลดลง (traffic ทยอยเข้า)
-  // ค่อย ๆ เพิ่มจาก 0 → เป้าหมายของชั่วโมง เมื่อหมดชั่วโมง ไม่มี random/wobble
   const view = useMemo(() => {
     const nowHour = new Date(nowMs).getHours()
     if (!base.hasData) return { points: [] as IntradayChartPoint[], nowHour }
@@ -113,135 +111,130 @@ export const IntradayTrafficChart = () => {
     : 'กราฟการเข้าชมรายชั่วโมงวันนี้ — ยังไม่มีข้อมูล'
 
   return (
-    <div
-      className="border-border rounded-2xl border p-4 md:p-6"
-      role="img"
-      aria-label={ariaSummary}
-    >
-      <div className="mb-4 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
-        <div>
-          <h3 className="flex items-center gap-2 text-xl font-bold">
-            <Activity className="text-success size-5" aria-hidden="true" />
-            การเข้าชมรายชั่วโมง · วันนี้
-          </h3>
-          <p className="text-muted-foreground mt-1 text-xs">
-            จำนวนจริงเทียบกับเส้นคาดการณ์ตลอดวัน — อัปเดตชั่วโมงปัจจุบันแบบเรียลไทม์ พีคช่วง{' '}
-            {fmtHour(base.peakHour)}
-          </p>
-        </div>
-        {base.hasData && (
-          <div className="border-border bg-card flex items-center gap-2 rounded-lg border px-3 py-1.5">
-            <span className="relative flex size-2.5" aria-hidden="true">
-              {!reduced && (
-                <span className="bg-destructive absolute inline-flex size-full animate-ping rounded-full opacity-75 [animation-duration:2.2s]" />
-              )}
-              <span className="bg-destructive relative inline-flex size-2.5 rounded-full" />
+    <Card className={cn('min-w-0', className)}>
+      <ReportCardHeader
+        title="การเข้าชมรายชั่วโมง · วันนี้"
+        description={
+          base.hasData
+            ? `จำนวนจริงเทียบเส้นคาดการณ์ตลอดวัน · ช่วงที่คนเข้าเยอะสุดคือ ${fmtHour(base.peakHour)} น.`
+            : 'จะแสดงเมื่อมีค่า Organic Traffic ในรายงาน'
+        }
+        action={
+          base.hasData ? (
+            <span className="border-glass-border inline-flex h-8 items-center gap-2 rounded-full border bg-white/70 px-3 dark:bg-white/5">
+              <span className="relative flex size-2.5" aria-hidden="true">
+                {!reduced && (
+                  <span className="bg-destructive absolute inline-flex size-full animate-ping rounded-full opacity-75 [animation-duration:2.2s]" />
+                )}
+                <span className="bg-destructive relative inline-flex size-2.5 rounded-full" />
+              </span>
+              <span className="text-xs font-semibold tracking-[0.14em] uppercase">Live</span>
             </span>
-            <span className="text-sm font-bold tracking-wide uppercase">LIVE</span>
-          </div>
+          ) : null
+        }
+      />
+      <CardContent className="flex flex-col gap-3">
+        {!base.hasData ? (
+          <ChartEmptyState
+            message="ยังไม่มีค่า Organic Traffic สำหรับจำลองการเข้าชม"
+            height="240px"
+          />
+        ) : (
+          <>
+            <div role="img" aria-label={ariaSummary}>
+              <ChartContainer config={chartConfig} className="aspect-auto h-[240px] w-full">
+                <AreaChart data={view.points} margin={{ top: 16, right: 8, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="var(--chart-1)" stopOpacity={0.35} />
+                      <stop offset="100%" stopColor="var(--chart-1)" stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 5" vertical={false} stroke="var(--border)" />
+                  <XAxis
+                    dataKey="label"
+                    tickLine={false}
+                    axisLine={false}
+                    tick={{ fontSize: 11 }}
+                    interval={3}
+                  />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tick={{ fontSize: 11 }}
+                    width={36}
+                    allowDecimals={false}
+                    tickFormatter={(v) => nf.format(Number(v))}
+                  />
+                  <ReferenceLine
+                    x={fmtHour(view.nowHour)}
+                    stroke="var(--neon-pink)"
+                    strokeDasharray="3 3"
+                    strokeOpacity={0.7}
+                    label={{
+                      value: formatTimeTH(nowMs),
+                      position: view.nowHour >= 12 ? 'insideTopLeft' : 'insideTopRight',
+                      fill: 'var(--text-secondary)',
+                      fontSize: 11,
+                    }}
+                  />
+                  <ChartTooltip
+                    cursor={{ strokeDasharray: '3 4', stroke: 'var(--chart-3)' }}
+                    content={
+                      <ChartTooltipContent
+                        formatter={(value, name) => {
+                          if (value == null) return []
+                          const label = name === 'actual' ? 'จำนวนจริง' : 'คาดการณ์'
+                          return [`${nf.format(Math.round(Number(value)))} ครั้ง`, label]
+                        }}
+                      />
+                    }
+                  />
+                  {/* คาดการณ์ — เส้นประ ทอดทั้งวัน (วาดก่อนเพื่อให้จำนวนจริงอยู่ด้านบน) */}
+                  <Area
+                    type="monotone"
+                    dataKey="forecast"
+                    stroke="var(--color-forecast)"
+                    strokeWidth={2.5}
+                    strokeDasharray="6 5"
+                    fill="none"
+                    dot={false}
+                    isAnimationActive={false}
+                  />
+                  {/* จำนวนจริง — เส้นทึบ หยุดที่ "ตอนนี้" + จุด pulsing ที่หัวเส้น */}
+                  <Area
+                    type="monotone"
+                    dataKey="actual"
+                    stroke="var(--color-actual)"
+                    strokeWidth={3}
+                    fill={`url(#${gradientId})`}
+                    dot={makeLeadingDot(!reduced)}
+                    activeDot={{
+                      r: 5,
+                      fill: 'var(--color-actual)',
+                      stroke: 'var(--background)',
+                      strokeWidth: 2,
+                    }}
+                    isAnimationActive={false}
+                    connectNulls={false}
+                  />
+                </AreaChart>
+              </ChartContainer>
+            </div>
+            <div className="text-text-secondary flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+              <span className="flex items-center gap-1.5">
+                <span aria-hidden className="bg-chart-1 h-[3px] w-4 rounded-full" />
+                จำนวนจริง
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span aria-hidden className="border-chart-2 w-4 border-t-2 border-dashed" />
+                คาดการณ์
+              </span>
+              <span className="ml-auto">หน่วย: ครั้ง/ชั่วโมง</span>
+            </div>
+          </>
         )}
-      </div>
-
-      {!base.hasData ? (
-        <ChartEmptyState
-          message="ยังไม่มีค่า Organic Traffic สำหรับจำลองการเข้าชม"
-          height="260px"
-        />
-      ) : (
-        <ChartContainer config={chartConfig} className="h-[260px] w-full">
-          <AreaChart data={view.points} margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
-            <defs>
-              <linearGradient id="intradayActualFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--success)" stopOpacity={0.32} />
-                <stop offset="100%" stopColor="var(--success)" stopOpacity={0.04} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-            <XAxis
-              dataKey="label"
-              stroke="var(--muted-foreground)"
-              tick={{ fontSize: 10 }}
-              tickLine={false}
-              interval={2}
-            />
-            <YAxis
-              stroke="var(--muted-foreground)"
-              tick={{ fontSize: 11 }}
-              width={36}
-              allowDecimals={false}
-              tickFormatter={(v) => nf.format(Number(v))}
-            />
-            <ReferenceLine
-              x={fmtHour(view.nowHour)}
-              stroke="var(--muted-foreground)"
-              strokeDasharray="3 3"
-              strokeOpacity={0.6}
-              label={{
-                value: fmtClock(nowMs),
-                position: view.nowHour >= 12 ? 'insideTopLeft' : 'insideTopRight',
-                fill: 'var(--muted-foreground)',
-                fontSize: 10,
-              }}
-            />
-            <ChartTooltip
-              cursor={{ strokeDasharray: '3 3' }}
-              content={
-                <ChartTooltipContent
-                  formatter={(value, name) => {
-                    if (value == null) return []
-                    const label = name === 'actual' ? 'จำนวนจริง' : 'คาดการณ์'
-                    return [`${nf.format(Math.round(Number(value)))} ครั้ง`, label]
-                  }}
-                />
-              }
-            />
-            {/* คาดการณ์ — เส้นประ ทอดทั้งวัน (วาดก่อนเพื่อให้จำนวนจริงอยู่ด้านบน) */}
-            <Area
-              type="monotone"
-              dataKey="forecast"
-              stroke="var(--info)"
-              strokeWidth={2}
-              strokeDasharray="5 4"
-              strokeOpacity={0.8}
-              fill="var(--info)"
-              fillOpacity={0.05}
-              dot={false}
-              isAnimationActive={false}
-            />
-            {/* จำนวนจริง — เส้นทึบ หยุดที่ "ตอนนี้" + จุด pulsing ที่หัวเส้น */}
-            <Area
-              type="monotone"
-              dataKey="actual"
-              stroke="var(--success)"
-              strokeWidth={2}
-              fill="url(#intradayActualFill)"
-              dot={makeLeadingDot(!reduced)}
-              activeDot={{
-                r: 4,
-                fill: 'var(--success)',
-                stroke: 'var(--background)',
-                strokeWidth: 2,
-              }}
-              isAnimationActive={false}
-              connectNulls={false}
-            />
-          </AreaChart>
-        </ChartContainer>
-      )}
-
-      {base.hasData && (
-        <div className="text-muted-foreground mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-          <span className="flex items-center gap-1.5">
-            <span className="bg-success h-0.5 w-4" />
-            จำนวนจริง
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="border-info h-0.5 w-4 border-t-2 border-dashed" />
-            คาดการณ์
-          </span>
-          <span className="ml-auto">หน่วย: ครั้ง/ชั่วโมง</span>
-        </div>
-      )}
-    </div>
+      </CardContent>
+    </Card>
   )
 }

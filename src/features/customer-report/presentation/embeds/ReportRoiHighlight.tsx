@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { ChevronRight, Sparkles } from 'lucide-react'
-import { Skeleton } from '@/components/ui/skeleton'
+import { Shimmer } from '@/components/skeletons'
 import { HistoryProvider, useHistoryContext } from '../contexts/HistoryContext'
 import { ReportFiltersProvider } from '../contexts/ReportFiltersContext'
 import { HeroStatusCard } from '../widgets/HeroStatusCard'
@@ -17,18 +17,18 @@ interface ReportRoiHighlightProps {
  */
 export function ReportRoiHighlight({ customerId }: ReportRoiHighlightProps) {
   return (
-    <section className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-base font-semibold">
-          <Sparkles className="text-info size-5" />
+    <section aria-labelledby="roi-highlight-title" className="flex flex-col gap-3">
+      <div className="flex items-center justify-between gap-3">
+        <h2 id="roi-highlight-title" className="flex items-center gap-2 text-xl font-semibold">
+          <Sparkles aria-hidden className="text-info-strong size-5" />
           สรุปผล SEO ล่าสุด
         </h2>
         <Link
           href="/customer/report"
-          className="text-info flex items-center gap-1 text-xs font-medium hover:underline"
+          className="hover:text-info-strong focus-visible:ring-ring/60 inline-flex min-h-11 items-center gap-1 rounded-lg px-1 text-[13px] font-medium outline-none focus-visible:ring-3 md:min-h-8"
         >
           ดูรายงานเต็ม
-          <ChevronRight className="size-3" />
+          <ChevronRight aria-hidden className="size-4" />
         </Link>
       </div>
 
@@ -43,6 +43,6 @@ export function ReportRoiHighlight({ customerId }: ReportRoiHighlightProps) {
 
 function RoiBody() {
   const { isLoading } = useHistoryContext()
-  if (isLoading) return <Skeleton className="h-44 w-full rounded-2xl" />
+  if (isLoading) return <Shimmer className="h-40 w-full rounded-[20px]" />
   return <HeroStatusCard />
 }

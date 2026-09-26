@@ -7,6 +7,7 @@ import { ThemeProvider } from 'next-themes'
 import { store } from '@/store/store'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { MotionConfig } from 'motion/react'
 
 interface ProvidersProps {
   children: ReactNode
@@ -26,7 +27,9 @@ export function Providers({ children }: ProvidersProps) {
             enableSystem
             disableTransitionOnChange
           >
-            <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
+            <MotionConfig reducedMotion="user">
+              <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
+            </MotionConfig>
           </ThemeProvider>
         </QueryClientProvider>
       </ReduxProvider>

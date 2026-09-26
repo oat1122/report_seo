@@ -15,9 +15,7 @@ export default async function TemplateBuilderPage({ params }: PageProps) {
   const { id } = await params
   return (
     <DashboardLayout>
-      <div className="mx-auto w-full max-w-5xl">
-        <TemplateBuilder templateId={id} backHref="/admin/settings/work-progress?tab=templates" />
-      </div>
+      <TemplateBuilder templateId={id} backHref="/admin/settings/work-progress?tab=templates" />
     </DashboardLayout>
   )
 }

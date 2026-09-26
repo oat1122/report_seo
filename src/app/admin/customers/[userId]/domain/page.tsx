@@ -1,5 +1,6 @@
 import { requireAdmin } from '@/lib/auth-utils'
 import { DashboardLayout } from '@/components/Layout/DashboardLayout'
+import { CustomerWorkspaceHeader } from '@/features/users/presentation/components/workspace/CustomerWorkspaceHeader'
 import { DomainDataManager } from '@/features/users/presentation/components/MetricsModal/DomainDataManager'
 
 export const metadata = {
@@ -15,7 +16,10 @@ export default async function AdminDomainDataPage({ params }: PageProps) {
   const { userId } = await params
   return (
     <DashboardLayout>
-      <DomainDataManager userId={userId} basePath="/admin" />
+      <div className="flex flex-col gap-5">
+        <CustomerWorkspaceHeader userId={userId} basePath="/admin" />
+        <DomainDataManager userId={userId} />
+      </div>
     </DashboardLayout>
   )
 }

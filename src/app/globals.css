@@ -53,6 +53,37 @@
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
   --animate-blink: blink 1.1s steps(1, end) infinite;
+  --animate-shimmer: shimmer 1.4s ease-in-out infinite;
+
+  /* UI Kit v1.0 tokens (Handoff 01) */
+  --color-text-secondary: var(--text-secondary);
+  --color-info-strong: var(--info-strong);
+  --color-info-subtle: var(--info-subtle);
+  --color-success-subtle: var(--success-subtle);
+  --color-danger-subtle: var(--danger-subtle);
+  --color-danger-strong: var(--danger-strong);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-warning-text: var(--warning-text);
+  --color-warning-accent: var(--warning-accent);
+  --color-neon-pink: var(--neon-pink);
+  --color-glass-card: var(--glass-card);
+  --color-glass-tile: var(--glass-tile);
+  --color-glass-border: var(--glass-border);
+  --color-scrim: var(--scrim);
+  --color-toast: var(--toast);
+  --shadow-card: var(--shadow-card);
+  --shadow-popover: var(--shadow-popover);
+  --shadow-overlay: var(--shadow-overlay);
+  --shadow-toast: var(--shadow-toast);
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 /* Neon blink — สลับเขียว (--secondary) ↔ ชมพูนีออน (--neon-pink) ดึงจาก brand var ไม่ hardcode hex (rule 08) */
@@ -131,17 +162,46 @@
   --input: #e2e8f0;
   --ring: #9592ff; /* info.main (focus ring) */
 
-  /* Charts */
-  --chart-1: #31fb4c; /* brand.secondary */
-  --chart-2: #9592ff; /* info.main */
-  --chart-3: #7dfd91; /* brand.secondaryLight */
-  --chart-4: #bdbcff; /* info.light */
-  --chart-5: #2f2f2f; /* brand.primary */
+  /* Charts — ลำดับใหม่ (UI Kit Data viz 01): series แรกต้องเข้มพอเป็นเส้น */
+  --chart-1: #6c68e8; /* info.dark */
+  --chart-2: #059669; /* success.dark */
+  --chart-3: #9592ff; /* info.main */
+  --chart-4: #31fb4c; /* brand.secondary — fill เท่านั้น */
+  --chart-5: #f59e0b; /* warning.accent */
 
   --radius: 0.625rem;
 
+  /* UI Kit v1.0 (Handoff 01) */
+  --text-secondary: #475569; /* slate.600 — ตัวอักษรรองบน glass */
+  --info-strong: #6c68e8; /* info.dark */
+  --info-subtle: #eeedff; /* info.bg */
+  --success-subtle: #e8f5e9; /* success.bg */
+  --danger-subtle: #ffebee; /* error.bg */
+  --danger-strong: #c62828; /* error.dark */
+  --warning-subtle: #fef3c7; /* warning.accentBg */
+  --warning-text: #92400e; /* warning.accentText */
+  --warning-accent: #f59e0b; /* warning.accent */
+  --glass-card: rgba(255, 255, 255, 0.62);
+  --glass-tile: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.95);
+  --scrim: rgba(47, 47, 47, 0.45);
+  --toast: rgba(31, 31, 35, 0.94);
+  --shadow-card: 0 1px 2px rgba(47, 47, 47, 0.04), 0 14px 32px -18px rgba(108, 104, 232, 0.4);
+  --shadow-popover: 0 16px 32px -20px rgba(47, 47, 47, 0.45);
+  --shadow-overlay: 0 40px 80px -30px rgba(47, 47, 47, 0.6);
+  --shadow-toast: 0 24px 48px -18px rgba(15, 15, 20, 0.6);
+
+  /* App background + rim (Foundations 05) */
+  --page-bg:
+    radial-gradient(900px 600px at 88% -5%, rgba(189, 188, 255, 0.6), transparent 60%),
+    radial-gradient(760px 520px at -5% 105%, rgba(125, 253, 145, 0.3), transparent 60%), #f1f5f9;
+  --rim-customer: linear-gradient(140deg, #6c68e8 0%, #9592ff 45%, #bdbcff 100%);
+  --rim-admin: linear-gradient(140deg, #2f2f2f 0%, #6c68e8 55%, #9592ff 100%);
+  --shell-surface: linear-gradient(160deg, rgba(248, 250, 252, 0.97) 0%, rgba(238, 237, 255, 0.94) 100%);
+  --sidebar-glass: rgba(255, 255, 255, 0.35);
+
   /* Sidebar */
-  --sidebar: #f8f9fa;
+  --sidebar: rgba(255, 255, 255, 0.35);
   --sidebar-foreground: #2f2f2f;
   --sidebar-primary: #2f2f2f;
   --sidebar-primary-foreground: #ffffff;
@@ -190,14 +250,41 @@
   --ring: #9592ff;
 
   /* Charts */
-  --chart-1: #31fb4c;
-  --chart-2: #9592ff;
-  --chart-3: #7dfd91;
-  --chart-4: #bdbcff;
-  --chart-5: #71717a; /* zinc-500 — รองรับ white text บน bar */
+  --chart-1: #9592ff;
+  --chart-2: #34d399;
+  --chart-3: #bdbcff;
+  --chart-4: #31fb4c;
+  --chart-5: #f59e0b;
+
+  /* UI Kit v1.0 — dark (glass → zinc 900/60%) */
+  --text-secondary: #a1a1aa;
+  --info-strong: #9592ff;
+  --info-subtle: rgba(108, 104, 232, 0.22);
+  --success-subtle: rgba(34, 197, 94, 0.16);
+  --danger-subtle: rgba(239, 68, 68, 0.16);
+  --danger-strong: #f87171;
+  --warning-subtle: rgba(245, 158, 11, 0.16);
+  --warning-text: #fbbf24;
+  --warning-accent: #f59e0b;
+  --glass-card: rgba(24, 24, 27, 0.6);
+  --glass-tile: rgba(39, 39, 42, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --scrim: rgba(0, 0, 0, 0.6);
+  --toast: rgba(39, 39, 42, 0.96);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 14px 32px -18px rgba(0, 0, 0, 0.7);
+  --shadow-popover: 0 16px 32px -20px rgba(0, 0, 0, 0.8);
+  --shadow-overlay: 0 40px 80px -30px rgba(0, 0, 0, 0.9);
+  --shadow-toast: 0 24px 48px -18px rgba(0, 0, 0, 0.8);
+  --page-bg:
+    radial-gradient(900px 600px at 88% -5%, rgba(108, 104, 232, 0.28), transparent 60%),
+    radial-gradient(760px 520px at -5% 105%, rgba(49, 251, 76, 0.1), transparent 60%), #09090b;
+  --rim-customer: linear-gradient(140deg, #4f4bc4 0%, #6c68e8 45%, #9592ff 100%);
+  --rim-admin: linear-gradient(140deg, #18181b 0%, #4f4bc4 55%, #6c68e8 100%);
+  --shell-surface: linear-gradient(160deg, rgba(12, 12, 14, 0.97) 0%, rgba(24, 22, 40, 0.95) 100%);
+  --sidebar-glass: rgba(24, 24, 27, 0.45);
 
   /* Sidebar */
-  --sidebar: #18181b;
+  --sidebar: rgba(24, 24, 27, 0.45);
   --sidebar-foreground: #fafafa;
   --sidebar-primary: #fafafa;
   --sidebar-primary-foreground: #18181b;
@@ -212,7 +299,10 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background: var(--page-bg);
+    background-attachment: fixed;
+    min-height: 100dvh;
   }
   html {
     @apply font-sans;

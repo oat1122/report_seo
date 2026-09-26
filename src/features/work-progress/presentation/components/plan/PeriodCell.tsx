@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { useMarkTypes } from '../../hooks/useMasterTables'
 import { useClearPeriodMark, useSetPeriodMark } from '../../hooks/useSetPeriodMark'
+import { onColorTextClass } from './planDisplay'
 import type { WorkProgressPeriodMarkWithType } from '@/features/work-progress'
 
 interface PeriodCellProps {
@@ -17,6 +18,8 @@ interface PeriodCellProps {
   planId: string
   itemId: string
   periodId: string
+  // ชื่อรอบ (เช่น "ก.ย. 2026") — ใช้ใน aria-label และหัว popover
+  periodLabel?: string
   mark: WorkProgressPeriodMarkWithType | undefined
   subtaskPercent: number | null
   statusColor: string | null
@@ -41,6 +44,7 @@ function PeriodCellInner({
   planId,
   itemId,
   periodId,
+  periodLabel,
   mark,
   subtaskPercent,
   statusColor,
@@ -51,6 +55,7 @@ function PeriodCellInner({
   const [percent, setPercent] = useState<string>(
     mark?.progressPercent != null ? String(mark.progressPercent) : '',
   )
+  const [percentError, setPercentError] = useState('')
   const [note, setNote] = useState(mark?.note ?? '')
   const [scheduledDate, setScheduledDate] = useState<string>(
     toDateInputValue(mark?.scheduledDate ?? defaultScheduledDate),
@@ -62,6 +67,7 @@ function PeriodCellInner({
 
   const reset = () => {
     setPercent(mark?.progressPercent != null ? String(mark.progressPercent) : '')
+    setPercentError('')
     setNote(mark?.note ?? '')
     setScheduledDate(toDateInputValue(mark?.scheduledDate ?? defaultScheduledDate))
   }
@@ -83,6 +89,7 @@ function PeriodCellInner({
     const p = percent.trim()
     const parsedPercent = p ? Number(p) : null
     if (p && (Number.isNaN(parsedPercent) || parsedPercent! < 0 || parsedPercent! > 100)) {
+      setPercentError('กรอกตัวเลข 0–100 หรือเว้นว่างไว้')
       return
     }
     await setMut.mutateAsync({
@@ -111,35 +118,43 @@ function PeriodCellInner({
   }
 
   const markColor = mark ? (statusColor ?? mark.markType.color ?? null) : null
-  const bgStyle = markColor ? { backgroundColor: markColor } : undefined
-  const iconCls = markColor ? 'text-white drop-shadow' : 'text-foreground'
+  const detail = mark
+    ? `${mark.markType.name}${scheduledDay != null ? ` · วันที่ ${scheduledDay}` : ''}${subtaskPercent != null ? ` · ${subtaskPercent}%` : ''}`
+    : 'ว่าง'
+  const label = periodLabel ? `${periodLabel}: ${detail}` : detail
+
+  // ชิปของช่อง: มี mark = พื้นสีสถานะ + % / วันที่ / เครื่องหมายถูก · ว่าง = กรอบบาง (แก้ได้) หรือจุด (ดูอย่างเดียว)
+  const chip = mark ? (
+    <span
+      aria-hidden
+      className={cn(
+        'inline-flex h-7 min-w-7 items-center justify-center rounded-[8px] px-0.5 text-[10px] font-semibold tabular-nums',
+        markColor ? onColorTextClass(markColor) : 'bg-info-subtle text-foreground',
+      )}
+      style={markColor ? { backgroundColor: markColor } : undefined}
+    >
+      {subtaskPercent != null ? (
+        `${subtaskPercent}%`
+      ) : scheduledDay != null ? (
+        scheduledDay
+      ) : (
+        <Check className="size-3.5" strokeWidth={3} />
+      )}
+    </span>
+  ) : readOnly ? (
+    <span aria-hidden className="bg-border size-1.5 rounded-full" />
+  ) : (
+    <span
+      aria-hidden
+      className="border-border group-hover/cell:border-info inline-block size-7 rounded-[8px] border transition-colors"
+    />
+  )
 
   if (readOnly) {
     return (
-      <div
-        className={cn(
-          'flex h-full w-full items-center justify-center text-xs',
-          mark && !markColor && 'bg-muted',
-          !mark && 'text-muted-foreground/40',
-        )}
-        style={bgStyle}
-        title={
-          mark
-            ? `${mark.markType.name}${scheduledDay != null ? ` · วันที่ ${scheduledDay}` : ''}${subtaskPercent != null ? ` · ${subtaskPercent}%` : ''}`
-            : ''
-        }
-      >
-        {mark ? (
-          subtaskPercent != null ? (
-            <span className={cn('font-medium', iconCls)}>{subtaskPercent}%</span>
-          ) : scheduledDay != null ? (
-            <span className={cn('font-medium', iconCls)}>{scheduledDay}</span>
-          ) : (
-            <Check className={cn('size-4', iconCls)} />
-          )
-        ) : (
-          '·'
-        )}
+      <div className="flex h-full w-full items-center justify-center" title={mark ? detail : ''}>
+        {chip}
+        <span className="sr-only">{label}</span>
       </div>
     )
   }
@@ -149,49 +164,50 @@ function PeriodCellInner({
       <PopoverTrigger asChild>
         <button
           type="button"
-          className={cn(
-            'hover:ring-primary/40 h-full w-full cursor-pointer transition hover:ring-2',
-            mark && !markColor && 'bg-muted',
-            !mark && 'bg-muted/50',
-          )}
-          style={bgStyle}
-          aria-label={mark ? `mark: ${mark.markType.name}` : 'ว่าง'}
+          className="group/cell hover:bg-info-subtle/60 focus-visible:ring-ring/70 flex h-full min-h-11 w-full cursor-pointer items-center justify-center rounded-[10px] transition-colors outline-none focus-visible:ring-[3px]"
+          aria-label={label}
+          title={mark ? detail : undefined}
         >
-          {mark ? (
-            subtaskPercent != null ? (
-              <span className={cn('text-xs font-medium', iconCls)}>{subtaskPercent}%</span>
-            ) : scheduledDay != null ? (
-              <span className={cn('text-xs font-medium', iconCls)}>{scheduledDay}</span>
-            ) : (
-              <Check className={cn('mx-auto size-4', iconCls)} />
-            )
-          ) : (
-            <span className="text-muted-foreground/40 text-xs">·</span>
-          )}
+          {chip}
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-72" align="start">
+      <PopoverContent className="w-72 rounded-[16px]" align="start">
         <div className="grid gap-3">
-          <div className="grid grid-cols-2 gap-2">
-            <div className="grid gap-1">
-              <Label htmlFor={`pc-pct-${itemId}-${periodId}`} className="text-xs">
-                %
-              </Label>
-              <Input
-                id={`pc-pct-${itemId}-${periodId}`}
-                type="number"
-                min={0}
-                max={100}
-                value={percent}
-                onChange={(e) => setPercent(e.target.value)}
-                placeholder="0-100"
-                className="h-8"
-              />
-            </div>
+          <div className="flex flex-col gap-0.5">
+            <p className="text-sm font-semibold">{periodLabel ?? 'ตั้ง mark'}</p>
+            <p className="text-text-secondary text-xs">
+              {mark ? `ตอนนี้: ${mark.markType.name}` : 'ยังไม่มี mark ในรอบนี้'}
+            </p>
           </div>
 
-          <div className="grid gap-1">
-            <Label htmlFor={`pc-date-${itemId}-${periodId}`} className="text-xs">
+          <div className="grid gap-1.5">
+            <Label htmlFor={`pc-pct-${itemId}-${periodId}`} className="text-[13px]">
+              ความคืบหน้า (%)
+            </Label>
+            <Input
+              id={`pc-pct-${itemId}-${periodId}`}
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={100}
+              value={percent}
+              onChange={(e) => {
+                setPercent(e.target.value)
+                setPercentError('')
+              }}
+              placeholder="0-100"
+              aria-invalid={percentError ? true : undefined}
+              aria-describedby={percentError ? `pc-pct-err-${itemId}-${periodId}` : undefined}
+            />
+            {percentError && (
+              <p id={`pc-pct-err-${itemId}-${periodId}`} className="text-danger-strong text-xs">
+                {percentError}
+              </p>
+            )}
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label htmlFor={`pc-date-${itemId}-${periodId}`} className="text-[13px]">
               วันที่ทำงาน (ในเดือนนี้)
             </Label>
             <Input
@@ -199,12 +215,11 @@ function PeriodCellInner({
               type="date"
               value={scheduledDate}
               onChange={(e) => setScheduledDate(e.target.value)}
-              className="h-8"
             />
           </div>
 
-          <div className="grid gap-1">
-            <Label htmlFor={`pc-note-${itemId}-${periodId}`} className="text-xs">
+          <div className="grid gap-1.5">
+            <Label htmlFor={`pc-note-${itemId}-${periodId}`} className="text-[13px]">
               หมายเหตุ
             </Label>
             <Textarea
@@ -216,11 +231,24 @@ function PeriodCellInner({
             />
           </div>
 
-          <div className="flex justify-between gap-2 pt-1">
+          {!effectiveMarkType && (
+            <p className="text-warning-text text-xs">
+              ยังไม่มีประเภท mark ที่เปิดใช้ — เปิดได้ที่หน้าตั้งค่า Work Progress
+            </p>
+          )}
+
+          <div className="flex items-center justify-between gap-2 pt-1">
             {mark ? (
-              <Button type="button" variant="ghost" size="sm" onClick={handleClear}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-danger-strong hover:text-danger-strong"
+                onClick={handleClear}
+                disabled={clearMut.isPending}
+              >
                 <X className="size-4" />
-                ลบ
+                ลบ mark
               </Button>
             ) : (
               <span />
@@ -235,7 +263,7 @@ function PeriodCellInner({
                 onClick={handleSave}
                 disabled={!effectiveMarkType || setMut.isPending}
               >
-                บันทึก
+                {setMut.isPending ? 'กำลังบันทึก...' : 'บันทึก'}
               </Button>
             </div>
           </div>

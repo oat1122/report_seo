@@ -1,30 +1,19 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Loader2 } from 'lucide-react'
+import { CircleAlert, CircleCheck, FilePen, Loader2, X } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { Field, FieldGroup } from '@/components/ui/field'
-import { Separator } from '@/components/ui/separator'
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { DatePickerField } from '@/components/shared/DatePickerField'
 import { useUpdateDocument, useCustomerDocumentInfo } from '../../hooks/useDocuments'
 import { useUpdateCustomerInfo } from '../../hooks/useUpdateCustomerInfo'
@@ -34,6 +23,9 @@ import type { BillingDocument } from '../../../domain/BillingDocument'
 import { DocumentItemsEditor, createItemKey, type EditableItem } from './DocumentItemsEditor'
 import { CustomerInfoFields } from './CustomerInfoFields'
 import { CustomerSyncDialog } from './CustomerSyncDialog'
+import { SegmentedRadio } from './SegmentedRadio'
+import { DocumentSummaryAside } from './DocumentSummaryAside'
+import { formatMoney } from './document-display'
 import {
   emptyCustomerInfo,
   customerInfoFromSnapshot,
@@ -50,9 +42,9 @@ interface Props {
   onOpenChange: (open: boolean) => void
 }
 
-function formatAmount(amount: number) {
-  return amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })
-}
+const TYPE_OPTIONS = (Object.entries(DOCUMENT_TYPE_LABELS) as [BillingDocumentType, string][]).map(
+  ([value, label]) => ({ value, label }),
+)
 
 // แปลงค่าวันที่จากเอกสาร (ISO string หรือ Date) เป็น 'YYYY-MM-DD' สำหรับ date picker
 function isoDateOnly(value: string | Date | null): string {
@@ -188,113 +180,188 @@ export function EditDocumentDialog({
   }
 
   const isPending = updateMutation.isPending || updateCustomerMutation.isPending
+  const matchesCycle = cycleAmount != null && total === cycleAmount
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>แก้ไขเอกสาร {doc.documentNumber}</DialogTitle>
-          <DialogDescription>แก้ไขรายละเอียดเอกสารแล้วสร้าง PDF ใหม่</DialogDescription>
-        </DialogHeader>
-
-        {cycleAmount != null && (
-          <div className="border-border bg-muted/50 flex items-center gap-2 rounded-md border px-3 py-2">
-            <span className="text-muted-foreground text-sm">ยอดตามแผนชำระ:</span>
-            <Badge variant="secondary" className="text-sm">
-              {formatAmount(cycleAmount)} บาท
-            </Badge>
-            {total !== cycleAmount && items.length > 0 && (
-              <Badge variant="destructive" className="text-xs">
-                ต่างจากแผน {formatAmount(Math.abs(total - cycleAmount))} บาท
-              </Badge>
-            )}
+      <DialogContent
+        showCloseButton={false}
+        size="xl"
+        className="flex max-h-[92dvh] flex-col gap-0 overflow-hidden p-0 max-sm:pb-0"
+      >
+        <header className="flex items-start gap-3.5 px-6 pt-[22px] pb-[18px]">
+          <span
+            aria-hidden
+            className="bg-info-subtle text-info-strong flex size-11 shrink-0 items-center justify-center rounded-[14px]"
+          >
+            <FilePen className="size-5" />
+          </span>
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <DialogTitle className="text-xl leading-snug font-semibold">
+              แก้ไขเอกสาร <span className="tabular-nums">{doc.documentNumber}</span>
+            </DialogTitle>
+            <DialogDescription className="text-text-secondary text-[13px]">
+              แก้ไขรายละเอียดเอกสารแล้วสร้าง PDF ใหม่แทนไฟล์เดิม
+            </DialogDescription>
           </div>
-        )}
+          <DialogClose asChild>
+            <Button
+              variant="outline"
+              size="icon-sm"
+              aria-label="ปิด"
+              className="shrink-0"
+              disabled={isPending}
+            >
+              <X aria-hidden />
+            </Button>
+          </DialogClose>
+        </header>
 
-        {/* ข้อมูลลูกค้า — แก้ไขได้ */}
-        <div>
-          <p className="text-info mb-2 text-sm font-semibold">ข้อมูลลูกค้า</p>
-          {infoLoading || !customerLoaded ? (
-            <div className="flex items-center justify-center py-6">
-              <Loader2 className="text-muted-foreground size-4 animate-spin" />
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 pt-1 pb-6">
+          <div className="grid items-start gap-7 lg:grid-cols-[minmax(0,1fr)_300px]">
+            <div className="flex min-w-0 flex-col gap-[26px]">
+              {/* ข้อมูลลูกค้า — แก้ไขได้ */}
+              <fieldset className="m-0 flex min-w-0 flex-col border-0 p-0">
+                <legend className="mb-3.5 p-0 text-[15px] font-semibold">ข้อมูลลูกค้า</legend>
+                {infoLoading || !customerLoaded ? (
+                  <div className="flex items-center justify-center py-6" role="status">
+                    <Loader2 aria-hidden className="text-text-secondary size-4 animate-spin" />
+                    <span className="sr-only">กำลังโหลดข้อมูลลูกค้า</span>
+                  </div>
+                ) : (
+                  <CustomerInfoFields
+                    value={customer}
+                    onChange={patchCustomer}
+                    email={info?.email}
+                  />
+                )}
+              </fieldset>
+
+              <fieldset className="m-0 flex min-w-0 flex-col gap-3.5 border-0 p-0">
+                <legend className="mb-3.5 p-0 text-[15px] font-semibold">ตั้งค่าเอกสาร</legend>
+
+                <div className="flex flex-col gap-1.5">
+                  <span id="edit-doc-type-label" className="text-sm font-medium">
+                    ประเภทเอกสาร
+                  </span>
+                  <SegmentedRadio
+                    value={type}
+                    onValueChange={setType}
+                    options={TYPE_OPTIONS}
+                    labelledBy="edit-doc-type-label"
+                    pillId="edit-doc-type-pill"
+                    className="grid-cols-2 sm:grid-cols-4"
+                  />
+                </div>
+
+                {(type === 'INVOICE' || type === 'BILLING_NOTE' || type === 'RECEIPT') && (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {(type === 'INVOICE' || type === 'BILLING_NOTE') && (
+                      <div className="flex flex-col gap-1.5">
+                        <Label htmlFor="edit-doc-due-date">กำหนดชำระ</Label>
+                        <DatePickerField
+                          id="edit-doc-due-date"
+                          value={dueDate}
+                          onChange={setDueDate}
+                          placeholder="เลือกกำหนดชำระ"
+                        />
+                      </div>
+                    )}
+                    {type === 'RECEIPT' && (
+                      <div className="flex flex-col gap-1.5">
+                        <Label htmlFor="edit-doc-paid-date">วันที่ชำระ</Label>
+                        <DatePickerField
+                          id="edit-doc-paid-date"
+                          value={paidDate}
+                          onChange={setPaidDate}
+                          placeholder="เลือกวันที่ชำระ"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {type === 'INVOICE' && (
+                  <div className="border-border flex min-h-14 items-center justify-between gap-4 rounded-[14px] border bg-white px-3.5 py-2.5 dark:bg-white/5">
+                    <label
+                      htmlFor="edit-include-vat"
+                      className="flex cursor-pointer flex-col gap-0.5"
+                    >
+                      <span className="text-sm font-medium">รวม VAT 7%</span>
+                      <span className="text-text-secondary text-xs">คำนวณภาษีจากยอดรวมรายการ</span>
+                    </label>
+                    <Switch
+                      id="edit-include-vat"
+                      checked={includeVat}
+                      onCheckedChange={setIncludeVat}
+                    />
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="edit-doc-note">หมายเหตุ (ถ้ามี)</Label>
+                  <Textarea
+                    id="edit-doc-note"
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    rows={2}
+                    placeholder="เช่น เงื่อนไขการชำระเงิน เลขบัญชี"
+                  />
+                </div>
+              </fieldset>
+
+              <fieldset className="m-0 flex min-w-0 flex-col border-0 p-0">
+                <legend className="mb-3.5 p-0 text-[15px] font-semibold">รายการในเอกสาร</legend>
+                <DocumentItemsEditor items={items} onItemsChange={setItems} showTotal={false} />
+              </fieldset>
             </div>
-          ) : (
-            <FieldGroup>
-              <CustomerInfoFields value={customer} onChange={patchCustomer} email={info?.email} />
-            </FieldGroup>
-          )}
+
+            <DocumentSummaryAside
+              subtotal={total}
+              withVat={type === 'INVOICE' && includeVat}
+              typeLabel={DOCUMENT_TYPE_LABELS[type]}
+              customerName={customer.name}
+            >
+              {cycleAmount != null && items.length > 0 && (
+                <p
+                  className={
+                    matchesCycle
+                      ? 'bg-secondary/15 flex items-start gap-2 rounded-[12px] px-3 py-2.5 text-[13px]'
+                      : 'bg-danger-subtle text-danger-strong flex items-start gap-2 rounded-[12px] px-3 py-2.5 text-[13px]'
+                  }
+                >
+                  {matchesCycle ? (
+                    <CircleCheck aria-hidden className="text-success mt-0.5 size-4 shrink-0" />
+                  ) : (
+                    <CircleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
+                  )}
+                  <span>
+                    {matchesCycle
+                      ? `ตรงกับยอดตามแผน (${formatMoney(cycleAmount)} บาท)`
+                      : `ต่างจากยอดตามแผน ${formatMoney(Math.abs(total - cycleAmount))} บาท (แผน ${formatMoney(cycleAmount)} บาท)`}
+                  </span>
+                </p>
+              )}
+            </DocumentSummaryAside>
+          </div>
         </div>
 
-        <Separator />
-
-        <FieldGroup>
-          <Field>
-            <Label>ประเภทเอกสาร</Label>
-            <Select value={type} onValueChange={(v) => setType(v as BillingDocumentType)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {(Object.entries(DOCUMENT_TYPE_LABELS) as [BillingDocumentType, string][]).map(
-                  ([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ),
-                )}
-              </SelectContent>
-            </Select>
-          </Field>
-
-          {type === 'INVOICE' && (
-            <Field>
-              <div className="flex items-center gap-2">
-                <Switch id="edit-include-vat" checked={includeVat} onCheckedChange={setIncludeVat} />
-                <Label htmlFor="edit-include-vat">รวม VAT 7%</Label>
-              </div>
-            </Field>
-          )}
-
-          {(type === 'INVOICE' || type === 'BILLING_NOTE') && (
-            <Field>
-              <Label>กำหนดชำระ</Label>
-              <DatePickerField value={dueDate} onChange={setDueDate} placeholder="เลือกกำหนดชำระ" />
-            </Field>
-          )}
-
-          {type === 'RECEIPT' && (
-            <Field>
-              <Label>วันที่ชำระ</Label>
-              <DatePickerField value={paidDate} onChange={setPaidDate} placeholder="เลือกวันที่ชำระ" />
-            </Field>
-          )}
-
-          <Field>
-            <Label>หมายเหตุ (ถ้ามี)</Label>
-            <Textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              rows={2}
-              placeholder="หมายเหตุเพิ่มเติม..."
-            />
-          </Field>
-        </FieldGroup>
-
-        <DocumentItemsEditor items={items} onItemsChange={setItems} />
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
-            ยกเลิก
-          </Button>
-          <Button
-            onClick={handleSave}
-            disabled={isPending || !isValid}
-            className="bg-info text-info-foreground hover:bg-info/90"
-          >
-            {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
-            บันทึกและสร้าง PDF ใหม่
-          </Button>
-        </DialogFooter>
+        <footer className="border-border bg-muted/40 flex flex-col gap-3 border-t px-6 py-4 max-sm:pb-[max(1rem,env(safe-area-inset-bottom))] sm:flex-row sm:items-center sm:justify-between dark:bg-white/5">
+          <span className="text-text-secondary text-xs">
+            {isValid || !customerLoaded
+              ? 'บันทึกแล้วระบบจะสร้าง PDF ใหม่แทนไฟล์เดิม'
+              : 'กรอกชื่อลูกค้าและรายละเอียดของทุกรายการก่อนบันทึก'}
+          </span>
+          <div className="flex flex-col-reverse gap-2.5 sm:flex-row">
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
+              ยกเลิก
+            </Button>
+            <Button onClick={handleSave} disabled={isPending || !isValid}>
+              {isPending && <Loader2 aria-hidden className="animate-spin" />}
+              {isPending ? 'กำลังบันทึก...' : 'บันทึกและสร้าง PDF ใหม่'}
+            </Button>
+          </div>
+        </footer>
 
         <CustomerSyncDialog
           open={syncPromptOpen}

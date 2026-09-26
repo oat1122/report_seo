@@ -2,9 +2,11 @@
 
 import { useRef, useState } from 'react'
 import { Upload, FileText, Trash2, Loader2, Eye } from 'lucide-react'
+import { AnimatePresence, motion } from '@/components/motion'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { displayFilename } from '@/lib/filename'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,17 +22,10 @@ import {
   useUploadContractFile,
   useDeleteContractFile,
 } from '../../hooks/useContractFiles'
+import { formatPaymentDate } from '../shared/payment-view'
 
 interface ContractFileUploadProps {
   customerId: string
-}
-
-function formatDate(date: Date | string): string {
-  return new Date(date).toLocaleDateString('th-TH', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
 }
 
 export function ContractFileUpload({ customerId }: ContractFileUploadProps) {
@@ -56,78 +51,111 @@ export function ContractFileUpload({ customerId }: ContractFileUploadProps) {
     setDeleteTarget(null)
   }
 
-  if (isLoading) {
-    return <Skeleton className="h-48 w-full" />
-  }
-
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">ไฟล์สัญญา</h2>
-        <div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".pdf,.doc,.docx"
-            className="hidden"
-            onChange={handleFileSelect}
-          />
-          <Button
-            size="sm"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploadMutation.isPending}
-          >
-            {uploadMutation.isPending ? (
-              <Loader2 className="mr-1 size-4 animate-spin" />
-            ) : (
-              <Upload className="mr-1 size-4" />
-            )}
-            อัปโหลดสัญญา
-          </Button>
+    <Card role="region" aria-labelledby="contract-files-title" className="gap-3.5 px-5 py-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 flex-col gap-1">
+          <h2 id="contract-files-title" className="text-[17px] font-semibold">
+            ไฟล์สัญญา
+          </h2>
+          <p className="text-text-secondary text-[13px]">
+            {isLoading
+              ? 'กำลังโหลดไฟล์…'
+              : files?.length
+                ? `${files.length} ไฟล์ · ลูกค้าเปิดดูได้จากหน้าการชำระเงินของตัวเอง`
+                : 'PDF หรือ Word — ลูกค้าจะเห็นไฟล์ที่อัปโหลดทันที'}
+          </p>
         </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".pdf,.doc,.docx"
+          className="hidden"
+          aria-label="เลือกไฟล์สัญญา"
+          onChange={handleFileSelect}
+        />
+        <Button
+          variant="outline"
+          className="h-11 shrink-0 rounded-[12px] px-3.5 text-[13px] sm:h-9"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploadMutation.isPending}
+        >
+          {uploadMutation.isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Upload className="size-4" />
+          )}
+          {uploadMutation.isPending ? 'กำลังอัปโหลด…' : 'อัปโหลด'}
+        </Button>
       </div>
 
-      {files?.length === 0 && (
-        <Card>
-          <CardContent className="text-muted-foreground py-8 text-center">
-            ยังไม่มีไฟล์สัญญา
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="space-y-2">
-        {files?.map((file) => (
-          <Card key={file.id}>
-            <CardContent className="flex items-center justify-between px-4 py-3">
-              <div className="flex items-center gap-3">
-                <FileText className="text-muted-foreground size-5" />
-                <div>
-                  <p className="text-sm font-medium">{file.fileName}</p>
-                  <p className="text-muted-foreground text-xs">
-                    อัปโหลดเมื่อ {formatDate(file.uploadDate)}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-1">
-                <Button size="sm" variant="ghost" asChild>
-                  <a href={file.fileUrl} target="_blank" rel="noopener noreferrer">
-                    <Eye className="size-4" />
-                  </a>
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-destructive"
-                  onClick={() => setDeleteTarget({ id: file.id, name: file.fileName })}
-                  disabled={deleteMutation.isPending}
+      {isLoading ? (
+        <div className="flex flex-col gap-2" aria-busy="true">
+          <Skeleton className="h-14 w-full rounded-[12px]" />
+          <Skeleton className="h-14 w-full rounded-[12px]" />
+        </div>
+      ) : files?.length === 0 ? (
+        <p className="text-text-secondary border-border rounded-[14px] border border-dashed px-4 py-5 text-center text-sm">
+          ยังไม่มีไฟล์สัญญา
+        </p>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          <AnimatePresence initial={false}>
+            {files?.map((file) => {
+              const name = displayFilename(file.fileName)
+              return (
+                <motion.li
+                  key={file.id}
+                  layout
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className="flex items-center gap-3 rounded-[12px] bg-white/70 px-3 py-2.5 dark:bg-white/5"
                 >
-                  <Trash2 className="size-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                  <span
+                    aria-hidden
+                    className="bg-info-subtle text-info-strong flex size-9 shrink-0 items-center justify-center rounded-[10px]"
+                  >
+                    <FileText className="size-4" />
+                  </span>
+                  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <span className="truncate text-sm font-medium">{name}</span>
+                    <span className="text-text-secondary text-xs">
+                      อัปโหลดเมื่อ {formatPaymentDate(file.uploadDate)}
+                    </span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    className="size-11 shrink-0 rounded-[10px] p-0 sm:size-9"
+                    asChild
+                  >
+                    <a
+                      href={file.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`เปิด ${name}`}
+                      title="เปิดไฟล์"
+                    >
+                      <Eye className="size-4" />
+                    </a>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="text-danger-strong hover:bg-danger-subtle hover:text-danger-strong size-11 shrink-0 rounded-[10px] p-0 sm:size-9"
+                    aria-label={`ลบ ${name}`}
+                    title="ลบไฟล์"
+                    onClick={() => setDeleteTarget({ id: file.id, name })}
+                    disabled={deleteMutation.isPending}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </motion.li>
+              )
+            })}
+          </AnimatePresence>
+        </ul>
+      )}
 
       <AlertDialog
         open={!!deleteTarget}
@@ -137,19 +165,23 @@ export function ContractFileUpload({ customerId }: ContractFileUploadProps) {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>ยืนยันการลบ</AlertDialogTitle>
-            <AlertDialogDescription>
-              คุณแน่ใจหรือไม่ว่าต้องการลบไฟล์ &quot;{deleteTarget?.name}&quot; ?
+            <AlertDialogTitle>ลบไฟล์ “{deleteTarget?.name}” ?</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <ul className="text-text-secondary flex list-disc flex-col gap-1 pl-5 text-left text-sm">
+                <li>ไฟล์จะถูกลบออกจากระบบ</li>
+                <li>ลูกค้าจะเปิดหรือดาวน์โหลดสัญญาฉบับนี้ไม่ได้อีก</li>
+                <li>ลบแล้วกู้คืนไม่ได้ ต้องอัปโหลดใหม่เท่านั้น</li>
+              </ul>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
             <AlertDialogAction variant="destructive" onClick={handleConfirmDelete}>
-              ยืนยัน
+              ลบไฟล์
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </Card>
   )
 }

@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 
 import { cn } from '@/lib/utils'
+import { XIcon } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 
@@ -30,7 +31,7 @@ function FieldLegend({
       data-slot="field-legend"
       data-variant={variant}
       className={cn(
-        'mb-1.5 font-medium data-[variant=label]:text-sm data-[variant=legend]:text-base',
+        'mb-1.5 font-medium data-[variant=label]:text-[13px] data-[variant=legend]:text-base',
         className,
       )}
       {...props}
@@ -51,7 +52,8 @@ function FieldGroup({ className, ...props }: React.ComponentProps<'div'>) {
   )
 }
 
-const fieldVariants = cva('group/field data-[invalid=true]:text-destructive flex w-full gap-2', {
+// UI Kit v1.0 — label 13/500 · control · hint/error 12 เรียงห่าง 6px
+const fieldVariants = cva('group/field data-[invalid=true]:text-destructive flex w-full gap-1.5', {
   variants: {
     orientation: {
       vertical: 'flex-col *:w-full [&>.sr-only]:w-auto',
@@ -97,7 +99,11 @@ function FieldLabel({ className, ...props }: React.ComponentProps<typeof Label>)
     <Label
       data-slot="field-label"
       className={cn(
-        'group/field-label peer/field-label has-data-checked:border-primary/30 has-data-checked:bg-primary/5 dark:has-data-checked:border-primary/20 dark:has-data-checked:bg-primary/10 flex w-fit gap-2 leading-snug group-data-[disabled=true]/field:opacity-50 has-[>[data-slot=field]]:rounded-lg has-[>[data-slot=field]]:border *:data-[slot=field]:p-2.5',
+        'group/field-label peer/field-label flex w-fit gap-2 leading-snug group-data-[disabled=true]/field:opacity-50',
+        // radio card: FieldLabel ห่อ <Field> ที่มี RadioGroupItem/Checkbox → การ์ดขาวมุม 14 · เลือกแล้วขอบ info-strong 2px + พื้น info-subtle
+        'has-[>[data-slot=field]]:rounded-[14px] has-[>[data-slot=field]]:border *:data-[slot=field]:px-3.5 *:data-[slot=field]:py-3',
+        '[&:has(>[data-slot=field]):not(:has([data-state=checked]))]:bg-white dark:[&:has(>[data-slot=field]):not(:has([data-state=checked]))]:bg-input/30',
+        '[&:has(>[data-slot=field]):has([data-state=checked])]:border-info-strong [&:has(>[data-slot=field]):has([data-state=checked])]:bg-info-subtle [&:has(>[data-slot=field]):has([data-state=checked])]:inset-ring-1 [&:has(>[data-slot=field]):has([data-state=checked])]:inset-ring-info-strong',
         'has-[>[data-slot=field]]:w-full has-[>[data-slot=field]]:flex-col',
         className,
       )}
@@ -111,7 +117,7 @@ function FieldTitle({ className, ...props }: React.ComponentProps<'div'>) {
     <div
       data-slot="field-label"
       className={cn(
-        'flex w-fit items-center gap-2 text-sm font-medium group-data-[disabled=true]/field:opacity-50',
+        'flex w-fit items-center gap-2 text-[13px] font-medium group-data-[disabled=true]/field:opacity-50',
         className,
       )}
       {...props}
@@ -124,7 +130,7 @@ function FieldDescription({ className, ...props }: React.ComponentProps<'p'>) {
     <p
       data-slot="field-description"
       className={cn(
-        'text-muted-foreground text-left text-sm leading-normal font-normal group-has-data-horizontal/field:text-balance [[data-variant=legend]+&]:-mt-1.5',
+        'text-text-secondary text-left text-xs leading-normal font-normal group-has-data-horizontal/field:text-balance [[data-variant=legend]+&]:-mt-1.5',
         'last:mt-0 nth-last-2:-mt-1',
         '[&>a:hover]:text-primary [&>a]:underline [&>a]:underline-offset-4',
         className,
@@ -202,10 +208,11 @@ function FieldError({
     <div
       role="alert"
       data-slot="field-error"
-      className={cn('text-destructive text-sm font-normal', className)}
+      className={cn('text-danger-strong flex items-start gap-1.5 text-xs font-normal', className)}
       {...props}
     >
-      {content}
+      <XIcon aria-hidden="true" strokeWidth={3} className="mt-0.5 size-3 shrink-0" />
+      <div className="min-w-0">{content}</div>
     </div>
   )
 }

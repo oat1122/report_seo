@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { BarChart3, ChevronRight, ClipboardList, CreditCard, PenLine } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
+import { motion } from '@/components/motion'
 import { cn } from '@/lib/utils'
 
 interface CustomerQuickNavProps {
@@ -13,66 +14,68 @@ export function CustomerQuickNav({ userId }: CustomerQuickNavProps) {
   const navItems = [
     {
       label: 'รายงาน SEO',
-      desc: 'อันดับคีย์เวิร์ด · backlink · traffic',
+      desc: 'อันดับ Keyword · Backlinks · Traffic',
       href: '/customer/report',
       icon: BarChart3,
-      tile: 'bg-info/10 text-info',
+      tile: 'bg-info-subtle text-info-strong',
     },
     {
       label: 'Work Progress',
       desc: 'ติดตามงานทุกแผน',
       href: `/customer/${userId}/work-progress`,
       icon: ClipboardList,
-      tile: 'bg-success/10 text-success',
+      tile: 'bg-success-subtle text-success',
     },
     {
       label: 'แผนบทความ',
       desc: 'ตรวจ · ให้ความเห็น · โหลดไฟล์',
       href: `/customer/${userId}/blog-plan`,
       icon: PenLine,
-      tile: 'bg-secondary/20 text-secondary-foreground',
+      tile: 'bg-secondary text-secondary-foreground',
     },
     {
       label: 'การชำระเงิน',
       desc: 'ดูรอบบิลและสถานะ',
       href: `/customer/${userId}/payments`,
       icon: CreditCard,
-      tile: 'bg-warning/10 text-warning',
+      tile: 'bg-warning-subtle text-warning-text',
     },
   ]
 
   return (
-    <Card className="rounded-2xl" size="sm">
-      <CardHeader>
-        <CardTitle className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+    <Card size="sm">
+      <CardContent className="flex flex-col gap-3">
+        <h2 className="text-text-secondary text-[11px] font-medium tracking-[0.14em] uppercase">
           ทางลัด
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-2.5">
-        {navItems.map((item) => {
-          const Icon = item.icon
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="hover:bg-muted/40 flex items-center gap-3 rounded-xl border p-3 transition-colors"
-            >
-              <div
-                className={cn(
-                  'flex size-9 shrink-0 items-center justify-center rounded-[10px]',
-                  item.tile,
-                )}
-              >
-                <Icon className="size-[18px]" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-sm font-medium">{item.label}</div>
-                <div className="text-muted-foreground truncate text-xs">{item.desc}</div>
-              </div>
-              <ChevronRight className="text-muted-foreground/50 size-4 shrink-0" />
-            </Link>
-          )
-        })}
+        </h2>
+        <nav aria-label="ทางลัด" className="flex flex-col gap-2">
+          {navItems.map((item) => {
+            const Icon = item.icon
+            return (
+              <motion.div key={item.href} whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
+                <Link
+                  href={item.href}
+                  className="bg-glass-tile border-glass-border hover:bg-background/80 focus-visible:ring-ring/60 flex min-h-14 items-center gap-3 rounded-2xl border p-3 transition-colors outline-none focus-visible:ring-3"
+                >
+                  <span
+                    aria-hidden
+                    className={cn(
+                      'flex size-10 shrink-0 items-center justify-center rounded-xl',
+                      item.tile,
+                    )}
+                  >
+                    <Icon className="size-5" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-medium">{item.label}</span>
+                    <span className="text-text-secondary block truncate text-xs">{item.desc}</span>
+                  </span>
+                  <ChevronRight aria-hidden className="text-text-secondary size-4 shrink-0" />
+                </Link>
+              </motion.div>
+            )
+          })}
+        </nav>
       </CardContent>
     </Card>
   )

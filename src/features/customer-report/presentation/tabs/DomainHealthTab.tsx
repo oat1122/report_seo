@@ -2,6 +2,7 @@
 
 import { OverallMetricsCard } from '../OverallMetricsCard'
 import { TrendChartsSection } from '../TrendChartsSection'
+import { DomainHealthStatus } from '../components/DomainHealthStatus'
 import { DomainAuthorityRadar } from '../widgets/DomainAuthorityRadar'
 import { SpamScoreTimeline } from '../widgets/SpamScoreTimeline'
 import { BacklinksVsRefDomains } from '../widgets/BacklinksVsRefDomains'
@@ -14,33 +15,33 @@ interface DomainHealthTabProps {
   metrics: CustomerReportData['metrics'] | null | undefined
 }
 
-// Tab 2: Domain Health — "เว็บสุขภาพดีไหม?" (Phase C complete)
+// Tab 2: Domain Health — "เว็บสุขภาพดีไหม?"
+// Desktop (DomainHealth.dc.html): สถานะ → radar 5fr | metrics + lifecycle 7fr → spam | backlinks → trend
+// Mobile (DomainHealth-Mobile.dc.html): สถานะ → metrics → radar → lifecycle → spam → backlinks → trend
 export const DomainHealthTab = ({ customerId, customerName, metrics }: DomainHealthTabProps) => {
   return (
-    <div className="flex flex-col gap-6">
-      {/* Row 1: Radar (col-5) | AuthorityCard + Lifecycle stacked (col-7) */}
-      <div className="grid gap-4 md:grid-cols-12 md:gap-5">
-        <div className="md:col-span-5">
-          <DomainAuthorityRadar />
-        </div>
-        <div className="flex flex-col gap-4 md:col-span-7">
+    <div className="grid grid-cols-1 gap-4 md:gap-[18px] xl:grid-cols-12">
+      {metrics && <DomainHealthStatus metrics={metrics} className="order-1 xl:col-span-12" />}
+
+      <DomainAuthorityRadar className="order-3 xl:order-2 xl:col-span-5" />
+
+      {/* มือถือ: contents → ลูกเรียงแทรก radar ได้ · xl: คอลัมน์ขวาซ้อนกัน */}
+      <div className="contents xl:order-3 xl:col-span-7 xl:flex xl:min-w-0 xl:flex-col xl:gap-[18px]">
+        <div className="order-2 min-w-0">
           <OverallMetricsCard
             metrics={metrics ?? null}
             customerId={customerId}
             customerName={customerName}
           />
-          <DomainLifecycleCard metrics={metrics} />
         </div>
+        <DomainLifecycleCard metrics={metrics} className="order-4" />
       </div>
 
-      {/* Row 2 */}
-      <SpamScoreTimeline />
+      <SpamScoreTimeline className="order-5 xl:col-span-6" />
 
-      {/* Row 3 */}
-      <BacklinksVsRefDomains />
+      <BacklinksVsRefDomains className="order-6 xl:col-span-6" />
 
-      {/* Row 4: existing trend chart */}
-      <TrendChartsSection title="แนวโน้ม Domain Metrics" />
+      <TrendChartsSection title="แนวโน้ม Domain Metrics" className="order-7 xl:col-span-12" />
     </div>
   )
 }

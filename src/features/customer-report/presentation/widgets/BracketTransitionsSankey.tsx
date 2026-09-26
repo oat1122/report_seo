@@ -1,6 +1,8 @@
 'use client'
 
 import { useMemo } from 'react'
+import { ArrowRight } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import {
   computeBracketTransitions,
   type Bracket,
@@ -8,14 +10,19 @@ import {
 } from '../lib/historyCalculations'
 import { useHistoryContext } from '../contexts/HistoryContext'
 import { useReportFilters } from '../contexts/ReportFiltersContext'
+import { ReportCard } from '../keywords/ReportCard'
+import { summarizeTransitions } from '../keywords/keyword-view'
 
+// สีเดียวกับ bracket ทั้งหน้า (Top 3 เขียวแบรนด์ = fill เท่านั้น)
 const BRACKET_COLOR: Record<Bracket, string> = {
-  top3: 'var(--success)',
-  top10: 'var(--info)',
-  top20: 'var(--warning)',
-  beyond: 'var(--destructive)',
-  missing: 'var(--muted-foreground)',
+  top3: 'var(--chart-4)',
+  top10: 'var(--chart-3)',
+  top20: 'var(--accent)',
+  beyond: 'var(--muted-foreground)',
+  missing: 'var(--border)',
 }
+
+const BRACKET_ORDER: Bracket[] = ['top3', 'top10', 'top20', 'beyond', 'missing']
 
 const WIDTH = 720
 const HEIGHT = 320
@@ -127,9 +134,10 @@ export const BracketTransitionsSankey = () => {
       // Color the link by the "to" bracket — emphasizes outcome
       const color = BRACKET_COLOR[link.toBracket]
       // Improved vs degraded
-      const order: Bracket[] = ['top3', 'top10', 'top20', 'beyond', 'missing']
-      const improved = order.indexOf(link.toBracket) < order.indexOf(link.fromBracket)
-      const degraded = order.indexOf(link.toBracket) > order.indexOf(link.fromBracket)
+      const improved =
+        BRACKET_ORDER.indexOf(link.toBracket) < BRACKET_ORDER.indexOf(link.fromBracket)
+      const degraded =
+        BRACKET_ORDER.indexOf(link.toBracket) > BRACKET_ORDER.indexOf(link.fromBracket)
 
       return {
         key: `${link.source}-${link.target}-${idx}`,
@@ -143,35 +151,79 @@ export const BracketTransitionsSankey = () => {
     })
   }, [data.links, data.total, layout])
 
-  return (
-    <div className="border-border rounded-2xl border p-4 md:p-6">
-      <div className="mb-4">
-        <h3 className="text-xl font-bold">Bracket Transitions</h3>
-        <p className="text-muted-foreground mt-1 text-xs">
-          การไหลของ keyword ระหว่าง bracket · ระยะ {period} วัน · รวม{' '}
-          <span className="text-foreground font-semibold">{data.total}</span> keywords
-        </p>
-      </div>
+  const summary = useMemo(() => summarizeTransitions(data.links), [data.links])
 
+  // มือถือ: รายการการเปลี่ยน bracket เรียงจากจำนวนมาก → น้อย (sankey อ่านไม่ออกที่ 390px)
+  const movedLinks = useMemo(
+    () =>
+      [...data.links]
+        .filter((l) => l.fromBracket !== l.toBracket)
+        .sort((a, b) => b.count - a.count),
+    [data.links],
+  )
+
+  const description = data.hasData ? (
+    <>
+      การไหลของ keyword ระหว่างช่วงอันดับ · ระยะ {period} วัน — ดีขึ้น{' '}
+      <strong className="text-foreground font-semibold tabular-nums">{summary.improved}</strong> คำ
+      · แย่ลง{' '}
+      <strong className="text-foreground font-semibold tabular-nums">{summary.declined}</strong> คำ
+      · คงเดิม <span className="tabular-nums">{summary.same}</span> คำ
+    </>
+  ) : (
+    `การไหลของ keyword ระหว่างช่วงอันดับ · ระยะ ${period} วัน`
+  )
+
+  return (
+    <ReportCard title="Bracket Transitions" description={description}>
       {!data.hasData ? (
-        <p className="text-muted-foreground py-12 text-center text-sm">
+        <p className="text-text-secondary py-12 text-center text-sm">
           ยังไม่มีข้อมูลตำแหน่ง keyword สำหรับแสดงการเปลี่ยนแปลง
         </p>
       ) : (
         <>
-          <div className="overflow-x-auto">
+          <ul className="flex flex-col gap-2 md:hidden">
+            {movedLinks.length === 0 ? (
+              <li className="text-text-secondary text-sm">
+                ทุก keyword ยังอยู่ช่วงอันดับเดิมตลอดช่วงนี้
+              </li>
+            ) : (
+              movedLinks.map((l) => {
+                const improved =
+                  BRACKET_ORDER.indexOf(l.toBracket) < BRACKET_ORDER.indexOf(l.fromBracket)
+                return (
+                  <li
+                    key={`${l.source}-${l.target}`}
+                    className="bg-glass-tile flex items-center justify-between gap-3 rounded-2xl px-3.5 py-3 text-sm"
+                  >
+                    <span className="flex min-w-0 flex-wrap items-center gap-1.5">
+                      {bracketLabel(l.fromBracket)}
+                      <ArrowRight className="text-muted-foreground size-3.5" aria-hidden="true" />
+                      <span className="sr-only">ไปเป็น</span>
+                      <span className="font-medium">{bracketLabel(l.toBracket)}</span>
+                    </span>
+                    <Badge variant={improved ? 'success' : 'danger'} className="tabular-nums">
+                      {l.count} คำ
+                    </Badge>
+                  </li>
+                )
+              })
+            )}
+          </ul>
+
+          <div className="hidden md:block">
             <svg
               viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-              className="h-auto w-full min-w-[640px]"
+              className="h-auto w-full"
               role="img"
-              aria-label="Position bracket transitions"
+              aria-label={`การเปลี่ยนช่วงอันดับของ keyword: ดีขึ้น ${summary.improved} คำ แย่ลง ${summary.declined} คำ คงเดิม ${summary.same} คำ`}
             >
               {/* Side labels */}
               <text
                 x={SIDE_INSET / 2}
                 y={PAD_TOP - 2}
                 textAnchor="middle"
-                className="fill-muted-foreground text-[11px] font-semibold"
+                className="fill-muted-foreground text-[11px] font-medium"
               >
                 ก่อนหน้า
               </text>
@@ -179,7 +231,7 @@ export const BracketTransitionsSankey = () => {
                 x={WIDTH - SIDE_INSET / 2}
                 y={PAD_TOP - 2}
                 textAnchor="middle"
-                className="fill-muted-foreground text-[11px] font-semibold"
+                className="fill-muted-foreground text-[11px] font-medium"
               >
                 ปัจจุบัน
               </text>
@@ -193,7 +245,7 @@ export const BracketTransitionsSankey = () => {
                       d={lp.d}
                       stroke={lp.color}
                       strokeWidth={lp.strokeWidth}
-                      strokeOpacity={lp.improved ? 0.5 : lp.degraded ? 0.35 : 0.25}
+                      strokeOpacity={lp.improved ? 0.55 : lp.degraded ? 0.35 : 0.25}
                       fill="none"
                     >
                       <title>
@@ -213,23 +265,23 @@ export const BracketTransitionsSankey = () => {
                     width={NODE_WIDTH}
                     height={n.h}
                     fill={BRACKET_COLOR[n.bracket]}
-                    rx={2}
+                    rx={4}
                   />
                   <text
-                    x={SIDE_INSET - 6}
+                    x={SIDE_INSET - 8}
                     y={n.y + n.h / 2}
                     textAnchor="end"
                     dominantBaseline="middle"
-                    className="fill-foreground text-[11px] font-semibold"
+                    className="fill-foreground text-[12px] font-medium"
                   >
                     {n.label}
                   </text>
                   <text
-                    x={SIDE_INSET - 6}
-                    y={n.y + n.h / 2 + 12}
+                    x={SIDE_INSET - 8}
+                    y={n.y + n.h / 2 + 14}
                     textAnchor="end"
                     dominantBaseline="middle"
-                    className="fill-muted-foreground text-[10px] tabular-nums"
+                    className="fill-muted-foreground text-[11px] tabular-nums"
                   >
                     {n.total}
                   </text>
@@ -245,23 +297,23 @@ export const BracketTransitionsSankey = () => {
                     width={NODE_WIDTH}
                     height={n.h}
                     fill={BRACKET_COLOR[n.bracket]}
-                    rx={2}
+                    rx={4}
                   />
                   <text
-                    x={WIDTH - SIDE_INSET + 6}
+                    x={WIDTH - SIDE_INSET + 8}
                     y={n.y + n.h / 2}
                     textAnchor="start"
                     dominantBaseline="middle"
-                    className="fill-foreground text-[11px] font-semibold"
+                    className="fill-foreground text-[12px] font-medium"
                   >
                     {n.label}
                   </text>
                   <text
-                    x={WIDTH - SIDE_INSET + 6}
-                    y={n.y + n.h / 2 + 12}
+                    x={WIDTH - SIDE_INSET + 8}
+                    y={n.y + n.h / 2 + 14}
                     textAnchor="start"
                     dominantBaseline="middle"
-                    className="fill-muted-foreground text-[10px] tabular-nums"
+                    className="fill-muted-foreground text-[11px] tabular-nums"
                   >
                     {n.total}
                   </text>
@@ -270,28 +322,23 @@ export const BracketTransitionsSankey = () => {
             </svg>
           </div>
 
-          {/* Legend / summary */}
-          <div className="text-muted-foreground mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-            <span className="flex items-center gap-1.5">
-              <span className="bg-success size-2 rounded-full" />
-              Top 3
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="bg-info size-2 rounded-full" />
-              Top 10
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="bg-warning size-2 rounded-full" />
-              Top 20
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="bg-destructive size-2 rounded-full" />
-              20+
-            </span>
-          </div>
+          {/* Legend */}
+          <ul className="text-text-secondary hidden flex-wrap items-center gap-x-4 gap-y-1 text-xs md:flex">
+            {(['top3', 'top10', 'top20', 'beyond'] as Bracket[]).map((b) => (
+              <li key={b} className="flex items-center gap-1.5">
+                <span
+                  aria-hidden="true"
+                  className="size-2.5 rounded-[3px]"
+                  style={{ backgroundColor: BRACKET_COLOR[b] }}
+                />
+                {bracketLabel(b)}
+              </li>
+            ))}
+            <li className="ml-auto">เส้นเข้ม = อันดับดีขึ้น</li>
+          </ul>
         </>
       )}
-    </div>
+    </ReportCard>
   )
 }
 

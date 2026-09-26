@@ -1,13 +1,16 @@
 'use client'
 
+import Link from 'next/link'
+import { ChevronRight, Lightbulb } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { SummaryStatistics } from '../SummaryStatistics'
 import { PositionDistribution } from '../PositionDistribution'
 import { TopMovers } from '../TopMovers'
-import { HeroStatusCard } from '../widgets/HeroStatusCard'
 import { CoverageSnapshotCard } from '../widgets/CoverageSnapshotCard'
 import { TrafficForecastCone } from '../widgets/TrafficForecastCone'
 import { IntradayTrafficChart } from '../widgets/IntradayTrafficChart'
 import { TopKeywordsSparklineGrid } from '../widgets/TopKeywordsSparklineGrid'
+import { useReportTabHref } from '../hooks/useReportTabHref'
 import { NextStepsCard } from '@/features/next-steps/presentation/components/NextStepsCard'
 
 interface OverviewTabProps {
@@ -16,30 +19,41 @@ interface OverviewTabProps {
 }
 
 // Tab 1: Overview — "ดีขึ้นไหม? คุ้มไหม?"
+// Desktop (Main.dc.html): KPI 4 ใบ → traffic 2fr + movers 1fr → distribution 2fr + next steps 1fr
+// Mobile (Mobile.dc.html): traffic ก่อน → KPI 2×2 → distribution → movers → next steps
 export const OverviewTab = ({ customerId, recommendationsCount }: OverviewTabProps) => {
+  const tabHref = useReportTabHref()
+
   return (
-    <div className="flex flex-col gap-6">
-      <NextStepsCard customerId={customerId} />
+    <div className="grid grid-cols-1 gap-4 md:gap-[18px] xl:grid-cols-3">
+      <SummaryStatistics className="order-2 md:order-1 xl:col-span-3" />
 
-      <HeroStatusCard />
+      <TrafficForecastCone className="order-1 md:order-2 xl:col-span-2" />
 
-      <CoverageSnapshotCard />
+      <TopMovers className="order-4 md:order-3" />
 
-      <SummaryStatistics recommendationsCount={recommendationsCount} />
+      <PositionDistribution className="order-3 md:order-4 xl:col-span-2" />
 
-      <TrafficForecastCone />
+      <NextStepsCard customerId={customerId} showEmpty className="order-5" />
 
-      <IntradayTrafficChart />
+      <CoverageSnapshotCard
+        className="order-6 xl:col-span-3"
+        action={
+          recommendationsCount > 0 ? (
+            <Button asChild variant="soft" className="w-full rounded-full md:h-9 md:w-auto">
+              <Link href={tabHref('ai')} replace>
+                <Lightbulb aria-hidden className="text-info-strong" />
+                Keyword ที่แนะนำ {recommendationsCount} คำ
+                <ChevronRight aria-hidden />
+              </Link>
+            </Button>
+          ) : null
+        }
+      />
 
-      <TopKeywordsSparklineGrid />
-
-      <div className="grid gap-4 md:grid-cols-12 md:gap-5">
-        <div className="md:col-span-7">
-          <PositionDistribution className="h-full" />
-        </div>
-        <div className="md:col-span-5">
-          <TopMovers className="h-full" />
-        </div>
+      <div className="order-7 grid grid-cols-1 gap-4 md:gap-[18px] xl:col-span-3 xl:grid-cols-2">
+        <TopKeywordsSparklineGrid />
+        <IntradayTrafficChart />
       </div>
     </div>
   )

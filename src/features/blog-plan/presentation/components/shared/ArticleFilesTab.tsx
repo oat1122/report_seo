@@ -26,15 +26,15 @@ export function ArticleFilesTab({
 
   if (files.length === 0) {
     return (
-      <p className="text-muted-foreground border-border rounded-xl border border-dashed p-6 text-center text-sm">
+      <p className="text-text-secondary border-border rounded-2xl border border-dashed bg-white/40 p-6 text-center text-sm dark:bg-white/5">
         ยังไม่มีไฟล์ — ไฟล์บทความและภาพประกอบจะมาโผล่ที่นี่เมื่อทีมส่งในขั้นตอนถัดไป
       </p>
     )
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      <p className="text-muted-foreground text-sm">
+    <div className="flex flex-col gap-2.5">
+      <p className="text-text-secondary text-[13px]">
         ไฟล์ทุกเวอร์ชันของบทความนี้ เรียงจากใหม่ไปเก่า ดาวน์โหลดได้ตลอด
       </p>
       {files.map((file) => (

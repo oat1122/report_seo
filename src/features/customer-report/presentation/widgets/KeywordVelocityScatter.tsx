@@ -12,19 +12,19 @@ import {
   YAxis,
   ZAxis,
 } from 'recharts'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
-import { ReportIcon } from '../components/ReportIcon'
 import { ChartEmptyState } from '../components/ChartEmptyState'
 import { buildChartConfig } from '../lib/buildChartConfig'
 import { computeKeywordVelocity, type VelocityQuadrant } from '../lib/historyCalculations'
 import { useHistoryContext } from '../contexts/HistoryContext'
 import { useReportFilters } from '../contexts/ReportFiltersContext'
+import { ChartTooltipRow, DARK_TOOLTIP_CLASS } from '../keywords/ChartTooltipRow'
+import { ReportCard } from '../keywords/ReportCard'
 
 const QUADRANT_COLOR: Record<VelocityQuadrant, string> = {
-  rising: 'var(--success)',
-  hidden: 'var(--info)',
-  cooling: 'var(--warning)',
+  rising: 'var(--chart-2)',
+  hidden: 'var(--chart-1)',
+  cooling: 'var(--chart-5)',
   falling: 'var(--destructive)',
   stagnant: 'var(--muted-foreground)',
 }
@@ -37,7 +37,14 @@ const QUADRANT_LABEL: Record<VelocityQuadrant, string> = {
   stagnant: 'Stagnant',
 }
 
-const chartConfig = buildChartConfig([{ key: 'points', label: 'Keywords', color: 'var(--info)' }])
+const LEGEND_ORDER: VelocityQuadrant[] = ['rising', 'hidden', 'cooling', 'falling']
+
+const AXIS_TICK = { fontSize: 11, fill: 'var(--muted-foreground)' }
+const QUADRANT_TEXT = { fill: 'var(--text-secondary)', fontSize: 11, fontWeight: 600 }
+
+const chartConfig = buildChartConfig([
+  { key: 'points', label: 'Keywords', color: 'var(--chart-1)' },
+])
 
 export const KeywordVelocityScatter = () => {
   const { keywordHistory, currentKeywords } = useHistoryContext()
@@ -75,27 +82,35 @@ export const KeywordVelocityScatter = () => {
     }
   }, [points])
 
+  const quadrantCounts = useMemo(() => {
+    const counts: Record<VelocityQuadrant, number> = {
+      rising: 0,
+      hidden: 0,
+      cooling: 0,
+      falling: 0,
+      stagnant: 0,
+    }
+    points.forEach((p) => (counts[p.quadrant] += 1))
+    return counts
+  }, [points])
+
+  const description =
+    points.length === 0
+      ? 'X = อันดับที่เปลี่ยน (← ดีขึ้น) · Y = traffic ที่เปลี่ยน (↑ ดีขึ้น)'
+      : `Rising Star (อันดับและ traffic ดีขึ้นพร้อมกัน) ${quadrantCounts.rising} คำ · Falling ${quadrantCounts.falling} คำ · ระยะ ${period} วัน`
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <ReportIcon name="trending-up" trigger="hover" color="bg-info" size={18} />
-          Keyword Velocity
-        </CardTitle>
-        <p className="text-muted-foreground text-xs">
-          X = position change (← ดีขึ้น) · Y = traffic change (↑ ดีขึ้น)
-        </p>
-      </CardHeader>
-      <CardContent>
-        {points.length === 0 ? (
-          <ChartEmptyState
-            message="ยังไม่มี keyword ที่ขยับมากพอ — ต้องมี history ≥ 2 รอบ"
-            height="320px"
-          />
-        ) : (
-          <ChartContainer config={chartConfig} className="h-[360px] w-full">
-            <ScatterChart margin={{ top: 16, right: 24, bottom: 24, left: 16 }}>
-              <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" />
+    <ReportCard title="Keyword Velocity" description={description}>
+      {points.length === 0 ? (
+        <ChartEmptyState
+          message="ยังไม่มี keyword ที่ขยับมากพอ — ต้องมี history ≥ 2 รอบ"
+          height="320px"
+        />
+      ) : (
+        <>
+          <ChartContainer config={chartConfig} className="h-[300px] w-full md:h-[340px]">
+            <ScatterChart margin={{ top: 12, right: 12, bottom: 20, left: 4 }}>
+              <CartesianGrid stroke="var(--border)" strokeDasharray="3 5" />
 
               {/* Quadrant tints — rendered before scatter so points sit on top */}
               <ReferenceArea
@@ -104,13 +119,11 @@ export const KeywordVelocityScatter = () => {
                 y1={0}
                 y2={yMax}
                 fill={QUADRANT_COLOR.rising}
-                fillOpacity={0.06}
+                fillOpacity={0.07}
                 label={{
                   value: QUADRANT_LABEL.rising,
                   position: 'insideTopLeft',
-                  fill: QUADRANT_COLOR.rising,
-                  fontSize: 11,
-                  fontWeight: 600,
+                  ...QUADRANT_TEXT,
                 }}
               />
               <ReferenceArea
@@ -119,13 +132,11 @@ export const KeywordVelocityScatter = () => {
                 y1={0}
                 y2={yMax}
                 fill={QUADRANT_COLOR.hidden}
-                fillOpacity={0.05}
+                fillOpacity={0.06}
                 label={{
                   value: QUADRANT_LABEL.hidden,
                   position: 'insideTopRight',
-                  fill: QUADRANT_COLOR.hidden,
-                  fontSize: 11,
-                  fontWeight: 600,
+                  ...QUADRANT_TEXT,
                 }}
               />
               <ReferenceArea
@@ -134,13 +145,11 @@ export const KeywordVelocityScatter = () => {
                 y1={yMin}
                 y2={0}
                 fill={QUADRANT_COLOR.cooling}
-                fillOpacity={0.05}
+                fillOpacity={0.06}
                 label={{
                   value: QUADRANT_LABEL.cooling,
                   position: 'insideBottomLeft',
-                  fill: QUADRANT_COLOR.cooling,
-                  fontSize: 11,
-                  fontWeight: 600,
+                  ...QUADRANT_TEXT,
                 }}
               />
               <ReferenceArea
@@ -149,13 +158,11 @@ export const KeywordVelocityScatter = () => {
                 y1={yMin}
                 y2={0}
                 fill={QUADRANT_COLOR.falling}
-                fillOpacity={0.05}
+                fillOpacity={0.06}
                 label={{
                   value: QUADRANT_LABEL.falling,
                   position: 'insideBottomRight',
-                  fill: QUADRANT_COLOR.falling,
-                  fontSize: 11,
-                  fontWeight: 600,
+                  ...QUADRANT_TEXT,
                 }}
               />
 
@@ -166,12 +173,14 @@ export const KeywordVelocityScatter = () => {
                 type="number"
                 dataKey="positionDelta"
                 domain={[xMin, xMax]}
-                stroke="var(--muted-foreground)"
-                tick={{ fontSize: 11 }}
+                tickLine={false}
+                axisLine={false}
+                tick={AXIS_TICK}
+                tickFormatter={(v: number) => Math.round(v).toString()}
                 label={{
                   value: 'Δ Position',
                   position: 'insideBottom',
-                  offset: -8,
+                  offset: -12,
                   fill: 'var(--muted-foreground)',
                   fontSize: 11,
                 }}
@@ -180,22 +189,19 @@ export const KeywordVelocityScatter = () => {
                 type="number"
                 dataKey="trafficDelta"
                 domain={[yMin, yMax]}
-                stroke="var(--muted-foreground)"
-                tick={{ fontSize: 11 }}
-                label={{
-                  value: 'Δ Traffic',
-                  angle: -90,
-                  position: 'insideLeft',
-                  fill: 'var(--muted-foreground)',
-                  fontSize: 11,
-                }}
+                tickLine={false}
+                axisLine={false}
+                tick={AXIS_TICK}
+                width={48}
+                tickFormatter={(v: number) => Math.round(v).toLocaleString('th-TH')}
               />
-              <ZAxis range={[80, 80]} />
+              <ZAxis range={[90, 90]} />
               <ChartTooltip
-                cursor={{ strokeDasharray: '3 3' }}
+                cursor={{ strokeDasharray: '3 5' }}
                 content={
                   <ChartTooltipContent
                     hideLabel
+                    className={DARK_TOOLTIP_CLASS}
                     formatter={(_v, _n, item) => {
                       const p = item.payload as {
                         keyword: string
@@ -211,25 +217,50 @@ export const KeywordVelocityScatter = () => {
                             : '—'
                       const trafLabel =
                         p.trafficDelta > 0
-                          ? `+${p.trafficDelta.toLocaleString()}`
-                          : p.trafficDelta.toLocaleString()
-                      return [
-                        `pos ${posLabel} · traffic ${trafLabel} · ${QUADRANT_LABEL[p.quadrant]}`,
-                        p.keyword,
-                      ]
+                          ? `+${p.trafficDelta.toLocaleString('th-TH')}`
+                          : p.trafficDelta.toLocaleString('th-TH')
+                      return (
+                        <div className="flex w-full flex-col gap-1">
+                          <span className="font-medium text-white">{p.keyword}</span>
+                          <ChartTooltipRow
+                            color={QUADRANT_COLOR[p.quadrant]}
+                            label={QUADRANT_LABEL[p.quadrant]}
+                            value={`อันดับ ${posLabel} · traffic ${trafLabel}`}
+                          />
+                        </div>
+                      )
                     }}
                   />
                 }
               />
-              <Scatter data={points} fill="var(--info)">
+              <Scatter data={points} fill="var(--chart-1)" animationDuration={800}>
                 {points.map((p) => (
                   <Cell key={p.keyword} fill={QUADRANT_COLOR[p.quadrant]} />
                 ))}
               </Scatter>
             </ScatterChart>
           </ChartContainer>
-        )}
-      </CardContent>
-    </Card>
+
+          <ul className="text-text-secondary flex flex-wrap gap-x-4 gap-y-1.5 text-xs">
+            {LEGEND_ORDER.map((q) => (
+              <li key={q} className="inline-flex items-center gap-1.5">
+                <span
+                  aria-hidden="true"
+                  className="size-2.5 rounded-full"
+                  style={{ backgroundColor: QUADRANT_COLOR[q] }}
+                />
+                {QUADRANT_LABEL[q]}
+                <span className="text-foreground font-semibold tabular-nums">
+                  {quadrantCounts[q]}
+                </span>
+              </li>
+            ))}
+            <li className="w-full sm:ml-auto sm:w-auto">
+              X = Δ อันดับ (← ดีขึ้น) · Y = Δ traffic (↑ ดีขึ้น)
+            </li>
+          </ul>
+        </>
+      )}
+    </ReportCard>
   )
 }

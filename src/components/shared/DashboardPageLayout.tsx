@@ -1,7 +1,8 @@
 import React from 'react'
 import Link from 'next/link'
+import { ArrowRight, LayoutGrid, type LucideIcon } from 'lucide-react'
 import { Role } from '@/types/auth'
-import { Card, CardContent } from '@/components/ui/card'
+import { getRoleLabel } from '@/lib/role-display'
 import { cn } from '@/lib/utils'
 
 type CardColor = 'primary' | 'secondary' | 'info' | 'success' | 'warning' | 'error'
@@ -12,6 +13,8 @@ interface DashboardCard {
   href: string
   color: CardColor
   disabled?: boolean
+  /** ไอคอนในกล่องสีหัวการ์ด (ไม่ส่ง = ไอคอนกริด) */
+  icon?: LucideIcon
 }
 
 interface DashboardPageLayoutProps {
@@ -24,67 +27,95 @@ interface DashboardPageLayoutProps {
   cards: DashboardCard[]
 }
 
-const cardColorClass: Record<CardColor, string> = {
-  primary: 'bg-primary/5 border-primary/30 hover:border-primary',
-  secondary: 'bg-secondary/10 border-secondary/40 hover:border-secondary',
-  info: 'bg-info/10 border-info/30 hover:border-info',
-  success: 'bg-success/10 border-success/30 hover:border-success',
-  warning: 'bg-warning/10 border-warning/30 hover:border-warning',
-  error: 'bg-destructive/10 border-destructive/30 hover:border-destructive',
+// สีกล่องไอคอนตาม color เดิมของการ์ด — token เท่านั้น
+const iconTone: Record<CardColor, string> = {
+  primary: 'bg-muted text-foreground',
+  secondary: 'bg-secondary/20 text-success',
+  info: 'bg-info-subtle text-info-strong',
+  success: 'bg-success-subtle text-success',
+  warning: 'bg-warning-subtle text-warning-text',
+  error: 'bg-danger-subtle text-danger-strong',
 }
+
+const cardBase =
+  'border-glass-border bg-glass-card shadow-card flex h-full flex-col gap-3.5 rounded-[20px] border p-5 backdrop-blur-[14px]'
 
 export const DashboardPageLayout: React.FC<DashboardPageLayoutProps> = ({ user, title, cards }) => {
   return (
-    <div className="mx-auto w-full max-w-6xl py-8">
-      <Card className="rounded-2xl">
-        <CardContent className="p-8">
-          <h1 className="mb-4 text-3xl font-bold tracking-tight">{title}</h1>
+    <div className="flex flex-col gap-5">
+      <header className="flex min-w-0 flex-col gap-1.5">
+        <h1 className="text-[26px] leading-tight font-semibold md:text-[28px]">{title}</h1>
+        <p className="text-text-secondary text-[13px] md:text-sm">
+          ยินดีต้อนรับ, <span className="text-foreground font-medium">{user.name}</span>
+          {user.role && ` · ${getRoleLabel(user.role)}`}
+          {user.email && ` · ${user.email}`}
+        </p>
+      </header>
 
-          <div className="border-info/30 bg-info/10 mb-6 rounded-lg border p-4">
-            <p>
-              ยินดีต้อนรับ, <span className="font-bold">{user.name}</span>!
-            </p>
-            <p className="text-muted-foreground text-sm">
-              บทบาท: {user.role} | อีเมล: {user.email}
-            </p>
-          </div>
+      <nav aria-label="เมนูลัด">
+        <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {cards.map((card) => {
+            const Icon = card.icon ?? LayoutGrid
+            const content = (
+              <>
+                <span
+                  aria-hidden
+                  className={cn(
+                    'flex size-[46px] shrink-0 items-center justify-center rounded-[14px]',
+                    card.disabled ? 'bg-muted text-muted-foreground' : iconTone[card.color],
+                  )}
+                >
+                  <Icon className="size-5" />
+                </span>
+                <div className="flex flex-1 flex-col gap-1">
+                  <h2 className="text-[17px] font-semibold">{card.title}</h2>
+                  <p className="text-text-secondary text-[13px] leading-relaxed">
+                    {card.description}
+                  </p>
+                </div>
+                <span
+                  className={cn(
+                    'flex items-center gap-1 text-[13px] font-medium',
+                    card.disabled ? 'text-text-secondary' : 'group-hover:text-info-strong',
+                  )}
+                >
+                  {card.disabled ? (
+                    'เร็ว ๆ นี้'
+                  ) : (
+                    <>
+                      เปิด
+                      <ArrowRight
+                        aria-hidden
+                        className="size-4 transition-transform motion-safe:group-hover:translate-x-0.5"
+                      />
+                    </>
+                  )}
+                </span>
+              </>
+            )
 
-          <div className="grid gap-4 md:grid-cols-3">
-            {cards.map((card) => {
-              if (card.disabled) {
-                return (
-                  <Card
-                    key={card.href}
-                    className="border-border bg-muted cursor-not-allowed border opacity-60"
-                  >
-                    <CardContent className="p-6">
-                      <h3 className="text-muted-foreground mb-2 text-xl font-semibold">
-                        {card.title}
-                      </h3>
-                      <p className="text-muted-foreground">{card.description}</p>
-                    </CardContent>
-                  </Card>
-                )
-              }
-              return (
-                <Link key={card.href} href={card.href} className="no-underline">
-                  <Card
+            return (
+              <li key={card.href}>
+                {card.disabled ? (
+                  <div aria-disabled className={cn(cardBase, 'cursor-not-allowed opacity-60')}>
+                    {content}
+                  </div>
+                ) : (
+                  <Link
+                    href={card.href}
                     className={cn(
-                      'h-full cursor-pointer border transition-all hover:-translate-y-0.5 hover:shadow-md',
-                      cardColorClass[card.color],
+                      cardBase,
+                      'group focus-visible:ring-ring/70 transition-[transform,box-shadow] duration-200 outline-none focus-visible:ring-[3px] motion-safe:hover:-translate-y-0.5',
                     )}
                   >
-                    <CardContent className="p-6">
-                      <h3 className="mb-2 text-xl font-semibold">{card.title}</h3>
-                      <p className="text-foreground/80">{card.description}</p>
-                    </CardContent>
-                  </Card>
-                </Link>
-              )
-            })}
-          </div>
-        </CardContent>
-      </Card>
+                    {content}
+                  </Link>
+                )}
+              </li>
+            )
+          })}
+        </ul>
+      </nav>
     </div>
   )
 }

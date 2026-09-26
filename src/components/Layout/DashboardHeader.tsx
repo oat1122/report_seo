@@ -1,11 +1,9 @@
 'use client'
 
-import Image from 'next/image'
-import { useSession } from 'next-auth/react'
-import { Globe, Menu } from 'lucide-react'
-import { AnimatedIcon } from '@/components/shared/AnimatedIcon'
+import { Suspense } from 'react'
+import Link from 'next/link'
+import { Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
 import {
   Sheet,
   SheetContent,
@@ -14,89 +12,61 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
-import { Role } from '@/types'
 import { useMobileDrawer } from '@/hooks/ui/useMobileDrawer'
-import { UserMenu } from './UserMenu'
-import { MobileMenuContent } from './MobileMenuContent'
-import { ThemeToggle } from './ThemeToggle'
 import { NotificationBell } from '@/features/notifications/presentation/components/NotificationBell'
+import { ThemeToggle } from './ThemeToggle'
+import { BrandLogo, ShellNav, UserCard } from './AppSidebar'
+import type { ShellConfig } from './nav-config'
 
-export const DashboardHeader = () => {
-  const { data: session, status } = useSession()
+export const GLASS_ICON_BTN =
+  'size-11 rounded-[14px] border border-glass-border bg-white/60 backdrop-blur-md hover:bg-white/85 dark:bg-white/5 dark:hover:bg-white/10'
+
+interface DashboardHeaderProps {
+  config: ShellConfig
+  userName: string
+  userRole: string | undefined
+}
+
+/** แถบบน: desktop = ปุ่มชิดขวา · มือถือ = โลโก้ + กระดิ่ง + เมนู (sheet ขวา) */
+export const DashboardHeader = ({ config, userName, userRole }: DashboardHeaderProps) => {
   const { mobileOpen, handleDrawerToggle, handleDrawerClose } = useMobileDrawer()
 
-  const isLoading = status === 'loading'
-  const userName = session?.user?.name || 'Guest'
-  const userRole = session?.user?.role
-
   return (
-    <header className="bg-background shadow-sm">
-      <div className="mx-auto w-full max-w-screen-2xl px-4">
-        <div className="flex min-h-12 items-center justify-between py-1">
-          <div className="flex items-center">
-            <Image
-              src="/img/LOGO_SEO_PRIME4_0-removebg.png"
-              alt="SEO Prime Logo"
-              width={70}
-              height={24}
-              priority
-            />
-          </div>
+    <header className="flex h-14 items-center justify-between gap-2.5 md:h-11 md:justify-end">
+      <Link href="/" aria-label="หน้าแรก SEO PRIME" className="md:hidden">
+        <BrandLogo compact />
+      </Link>
 
-          {/* Desktop actions */}
-          <div className="hidden items-center gap-2 md:flex">
-            <ThemeToggle />
-            <NotificationBell />
-            <UserMenu userName={userName} isLoading={isLoading} />
-          </div>
+      <div className="flex items-center gap-2 md:gap-2.5">
+        <ThemeToggle className={`hidden md:inline-flex ${GLASS_ICON_BTN}`} />
+        <NotificationBell />
 
-          {/* Mobile hamburger → Sheet */}
-          <Sheet
-            open={mobileOpen}
-            onOpenChange={(o) => (o ? handleDrawerToggle() : handleDrawerClose())}
-          >
-            <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label="เปิดเมนู"
-                className="group md:hidden"
-              >
-                <AnimatedIcon
-                  name="menu"
-                  trigger="hover"
-                  size={20}
-                  fallback={<Menu className="size-5" />}
-                />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-72">
-              <SheetHeader>
-                <SheetTitle>เมนู</SheetTitle>
-                <SheetDescription className="sr-only">เมนูสำหรับผู้ใช้</SheetDescription>
-              </SheetHeader>
-              <MobileMenuContent
-                userName={userName}
-                userRole={userRole}
-                isLoading={isLoading}
-                onAction={handleDrawerClose}
-              />
-            </SheetContent>
-          </Sheet>
-        </div>
-
-        <div className="border-border flex items-center gap-2 border-t px-2 py-1">
-          <Globe className="text-muted-foreground size-4" />
-          <span className="text-muted-foreground text-xs">
-            {isLoading ? (
-              <Skeleton className="inline-block h-3 w-32" />
-            ) : userRole === Role.CUSTOMER ? (
-              'Customer Report Panel'
-            ) : (
-              `${userRole || 'USER'} Dashboard`
-            )}
-          </span>
-        </div>
+        <Sheet
+          open={mobileOpen}
+          onOpenChange={(o) => (o ? handleDrawerToggle() : handleDrawerClose())}
+        >
+          <SheetTrigger asChild>
+            <Button size="icon" aria-label="เปิดเมนู" className="rounded-[14px] md:hidden">
+              <Menu className="size-[18px]" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="flex w-[330px] max-w-[88vw] flex-col gap-5 p-4">
+            <SheetHeader className="border-0 p-0">
+              <SheetTitle className="text-lg">เมนู</SheetTitle>
+              <SheetDescription className="sr-only">เมนูนำทางและบัญชีผู้ใช้</SheetDescription>
+            </SheetHeader>
+            <UserCard name={userName} role={userRole} dark={config.variant === 'admin'} />
+            <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-color:var(--border)_transparent] [scrollbar-width:thin]">
+              <Suspense fallback={null}>
+                <ShellNav config={config} layoutId="sheet-active" onNavigate={handleDrawerClose} />
+              </Suspense>
+            </div>
+            <div className="border-border flex min-h-11 items-center justify-between border-t pt-3 text-sm">
+              <span>โหมดสี</span>
+              <ThemeToggle className={GLASS_ICON_BTN} />
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
     </header>
   )

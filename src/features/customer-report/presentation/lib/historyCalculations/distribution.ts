@@ -43,6 +43,24 @@ export const computePositionDistribution = (
   return result
 }
 
+/**
+ * การกระจายอันดับ ณ N วันก่อน — ใช้ snapshot ล่าสุดที่ ≤ cutoff ของ keyword ที่ยัง track อยู่
+ * (semantics เดียวกับ baseline ของ computeKpiSnapshots) · null = ยังไม่มี history ให้เทียบ
+ */
+export const computePreviousPositionDistribution = (
+  keywordHistory: KeywordReportHistory[],
+  currentKeywords: CurrentKeyword[],
+  daysAgo: number,
+): PositionDistributionResult | null => {
+  const cutoffMs = Date.now() - daysAgo * 24 * 60 * 60 * 1000
+  const tracked = new Set(currentKeywords.map((k) => k.keyword))
+  const previous = Array.from(
+    latestRecordByKeywordBeforeCutoff(keywordHistory, cutoffMs, tracked).values(),
+  )
+  if (previous.length === 0) return null
+  return computePositionDistribution(previous)
+}
+
 // ============================================================
 // Top movers / losers
 // ============================================================
@@ -205,13 +223,25 @@ export const computeBracketTransitions = (
   for (const b of order) {
     const fromTotal = links.filter((l) => l.fromBracket === b).reduce((s, l) => s + l.count, 0)
     if (fromTotal > 0) {
-      nodes.push({ id: `from-${b}`, label: BRACKET_LABELS[b], bracket: b, side: 'from', total: fromTotal })
+      nodes.push({
+        id: `from-${b}`,
+        label: BRACKET_LABELS[b],
+        bracket: b,
+        side: 'from',
+        total: fromTotal,
+      })
     }
   }
   for (const b of order) {
     const toTotal = links.filter((l) => l.toBracket === b).reduce((s, l) => s + l.count, 0)
     if (toTotal > 0) {
-      nodes.push({ id: `to-${b}`, label: BRACKET_LABELS[b], bracket: b, side: 'to', total: toTotal })
+      nodes.push({
+        id: `to-${b}`,
+        label: BRACKET_LABELS[b],
+        bracket: b,
+        side: 'to',
+        total: toTotal,
+      })
     }
   }
 

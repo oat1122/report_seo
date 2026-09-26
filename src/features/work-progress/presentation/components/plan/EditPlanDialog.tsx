@@ -1,9 +1,11 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { Pencil } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -23,21 +25,7 @@ import { updatePlanSchema, type UpdatePlanInput } from '@/features/work-progress
 import { FieldError, parseFieldErrors, type FieldErrors } from '../FieldError'
 import type { WorkProgressPlan } from '@/features/work-progress/domain/WorkProgressPlan'
 import { useUpdatePlan } from '../../hooks/useWorkProgressPlans'
-
-const THAI_MONTHS = [
-  'ม.ค.',
-  'ก.พ.',
-  'มี.ค.',
-  'เม.ย.',
-  'พ.ค.',
-  'มิ.ย.',
-  'ก.ค.',
-  'ส.ค.',
-  'ก.ย.',
-  'ต.ค.',
-  'พ.ย.',
-  'ธ.ค.',
-] as const
+import { THAI_MONTHS } from './planDisplay'
 
 function countMonths(sm: number, sy: number, em: number, ey: number): number {
   return (ey - sy) * 12 + (em - sm) + 1
@@ -138,17 +126,64 @@ export function EditPlanDialog({ userId, plan, open, onOpenChange }: EditPlanDia
     onOpenChange(false)
   }
 
+  const monthSelect = (
+    id: string,
+    label: string,
+    value: number,
+    onChange: (v: number) => void,
+    options: readonly (string | number)[],
+    toValue: (opt: string | number, i: number) => number,
+  ) => (
+    <div className="grid gap-1.5">
+      <Label htmlFor={id} className="text-[13px]">
+        {label}
+      </Label>
+      <Select value={String(value)} onValueChange={(v) => onChange(Number(v))}>
+        <SelectTrigger
+          id={id}
+          className="w-full"
+          aria-invalid={rangeInvalid && id.startsWith('ep-e') ? true : undefined}
+          aria-describedby="ep-range-hint"
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((opt, i) => (
+            <SelectItem key={String(opt)} value={String(toValue(opt, i))}>
+              {opt}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  )
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>แก้ไขแผนงาน</DialogTitle>
+      <DialogContent size="md" className="max-h-[92dvh] overflow-y-auto">
+        <DialogHeader className="flex-row items-start gap-3.5 text-left">
+          <span
+            aria-hidden
+            className="bg-info-subtle text-info-strong flex size-11 shrink-0 items-center justify-center rounded-[14px]"
+          >
+            <Pencil className="size-5" />
+          </span>
+          <div className="flex min-w-0 flex-col gap-1">
+            <DialogTitle className="text-xl font-semibold">แก้ไขแผนงาน</DialogTitle>
+            <DialogDescription className="text-text-secondary truncate text-[13px]">
+              {plan.title}
+            </DialogDescription>
+          </div>
         </DialogHeader>
 
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="ep-title">ชื่อแผน</Label>
-            <FieldError error={errors.title} />
+        <div className="grid gap-5">
+          <div className="grid gap-1.5">
+            <Label htmlFor="ep-title" className="text-[13px]">
+              ชื่อแผน{' '}
+              <span className="text-danger-strong" aria-hidden>
+                *
+              </span>
+            </Label>
             <Input
               id="ep-title"
               value={title}
@@ -159,93 +194,55 @@ export function EditPlanDialog({ userId, plan, open, onOpenChange }: EditPlanDia
               placeholder="เช่น SEO Plan 2026"
               maxLength={200}
               autoFocus
+              aria-required
+              aria-invalid={errors.title ? true : undefined}
+              aria-describedby={errors.title ? 'ep-title-err' : undefined}
             />
+            <FieldError error={errors.title} id="ep-title-err" />
           </div>
 
           {hasDateRange && (
-            <div className="border-border bg-muted/30 grid gap-3 rounded-md border p-3">
+            <div className="grid gap-2">
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <div className="grid gap-1.5">
-                  <Label className="text-xs">เริ่มเดือน</Label>
-                  <Select
-                    value={String(startMonth)}
-                    onValueChange={(v) => setStartMonth(Number(v))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {THAI_MONTHS.map((m, i) => (
-                        <SelectItem key={i} value={String(i + 1)}>
-                          {m}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-1.5">
-                  <Label className="text-xs">เริ่มปี</Label>
-                  <Select value={String(startYear)} onValueChange={(v) => setStartYear(Number(v))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {yearOptions.map((y) => (
-                        <SelectItem key={y} value={String(y)}>
-                          {y}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-1.5">
-                  <Label className="text-xs">ถึงเดือน</Label>
-                  <Select value={String(endMonth)} onValueChange={(v) => setEndMonth(Number(v))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {THAI_MONTHS.map((m, i) => (
-                        <SelectItem key={i} value={String(i + 1)}>
-                          {m}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-1.5">
-                  <Label className="text-xs">ถึงปี</Label>
-                  <Select value={String(endYear)} onValueChange={(v) => setEndYear(Number(v))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {yearOptions.map((y) => (
-                        <SelectItem key={y} value={String(y)}>
-                          {y}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {monthSelect(
+                  'ep-sm',
+                  'เริ่มเดือน',
+                  startMonth,
+                  setStartMonth,
+                  THAI_MONTHS,
+                  (_, i) => i + 1,
+                )}
+                {monthSelect('ep-sy', 'ปี', startYear, setStartYear, yearOptions, (y) => Number(y))}
+                {monthSelect(
+                  'ep-em',
+                  'ถึงเดือน',
+                  endMonth,
+                  setEndMonth,
+                  THAI_MONTHS,
+                  (_, i) => i + 1,
+                )}
+                {monthSelect('ep-ey', 'ปี', endYear, setEndYear, yearOptions, (y) => Number(y))}
               </div>
-              <FieldError error={errors.endMonth} />
-              <div className="text-muted-foreground text-xs">
-                {rangeInvalid ? (
-                  <span className="text-destructive">เดือนจบต้องไม่อยู่ก่อนเดือนเริ่ม</span>
+              <p id="ep-range-hint" className="text-xs">
+                {rangeInvalid || errors.endMonth ? (
+                  <span className="text-danger-strong">
+                    {errors.endMonth || 'เดือนจบต้องไม่อยู่ก่อนเดือนเริ่ม'}
+                  </span>
                 ) : (
-                  <>
+                  <span className="text-text-secondary">
                     {THAI_MONTHS[startMonth - 1]} {startYear} → {THAI_MONTHS[endMonth - 1]}{' '}
                     {endYear}
                     {monthCount !== null && <span className="ml-1">({monthCount} เดือน)</span>}
-                  </>
+                  </span>
                 )}
-              </div>
+              </p>
             </div>
           )}
 
-          <div className="grid gap-2">
-            <Label htmlFor="ep-pkg">Package (optional)</Label>
+          <div className="grid gap-1.5">
+            <Label htmlFor="ep-pkg" className="text-[13px]">
+              Package (ไม่บังคับ)
+            </Label>
             <Input
               id="ep-pkg"
               value={packageName}
@@ -254,8 +251,10 @@ export function EditPlanDialog({ userId, plan, open, onOpenChange }: EditPlanDia
             />
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="ep-note">หมายเหตุ</Label>
+          <div className="grid gap-1.5">
+            <Label htmlFor="ep-note" className="text-[13px]">
+              หมายเหตุ
+            </Label>
             <Textarea
               id="ep-note"
               value={note}
@@ -266,7 +265,7 @@ export function EditPlanDialog({ userId, plan, open, onOpenChange }: EditPlanDia
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="sticky bottom-0 z-10">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             ยกเลิก
           </Button>

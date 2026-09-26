@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
+  collectAllFiles,
   collectArticleFiles,
   daysUntil,
+  EMPTY_FILE_FILTERS,
+  filterFiles,
   formatMonthLabel,
   getCurrentStage,
   groupArticle,
@@ -126,5 +129,86 @@ describe('collectArticleFiles', () => {
     expect(entries[0]).toMatchObject({ stageCode: 'SUBMIT_ARTICLE', round: 1 })
     // ไฟล์เก่าไม่มี submission → ผูก stage ตามชนิดไฟล์ และไม่มีเลขรอบ
     expect(entries[1]).toMatchObject({ stageCode: 'SUBMIT_FINAL', round: null })
+  })
+})
+
+/** บทความ 1 เรื่องพร้อมไฟล์ 1 ไฟล์ — พอสำหรับทดสอบการรวมและการกรองในคลังไฟล์ */
+function articleWithFile(
+  overrides: Partial<BlogArticle>,
+  fileOverrides: Partial<BlogArticleFile>,
+): BlogArticle {
+  return buildArticle({
+    ...overrides,
+    submissions: [
+      {
+        id: `sub-${overrides.id}`,
+        stageCode: 'SUBMIT_ARTICLE',
+        round: 1,
+        message: null,
+        linkUrl: null,
+        createdAt: new Date('2026-08-02T00:00:00.000Z'),
+        authorName: null,
+        files: [file(fileOverrides)],
+      },
+    ],
+  })
+}
+
+const HUB_ARTICLES = [
+  articleWithFile(
+    { id: 'a-aug', title: 'ดูแลรถหน้าฝน', targetMonth: 8, status: 'IN_PROGRESS' },
+    { id: 'f-aug', filename: 'august.docx', createdAt: new Date('2026-08-10T00:00:00.000Z') },
+  ),
+  articleWithFile(
+    { id: 'a-jul', title: 'ล้างแอร์รถยนต์', targetMonth: 7, status: 'PUBLISHED' },
+    {
+      id: 'f-jul',
+      kind: 'COVER_IMAGE',
+      filename: 'july-cover.png',
+      createdAt: new Date('2026-07-10T00:00:00.000Z'),
+    },
+  ),
+]
+
+describe('collectAllFiles', () => {
+  it('รวมไฟล์ข้ามบทความ เรียงใหม่ไปเก่า พร้อมพกที่มาของไฟล์มาด้วย', () => {
+    const entries = collectAllFiles(HUB_ARTICLES)
+
+    expect(entries.map((entry) => entry.id)).toEqual(['f-aug', 'f-jul'])
+    expect(entries[0]).toMatchObject({
+      articleId: 'a-aug',
+      articleTitle: 'ดูแลรถหน้าฝน',
+      articleStatus: 'IN_PROGRESS',
+      targetYear: 2026,
+      targetMonth: 8,
+    })
+  })
+})
+
+describe('filterFiles', () => {
+  const entries = collectAllFiles(HUB_ARTICLES)
+  const ids = (filters: Partial<typeof EMPTY_FILE_FILTERS>) =>
+    filterFiles(entries, { ...EMPTY_FILE_FILTERS, ...filters }).map((entry) => entry.id)
+
+  it('ไม่ตั้งค่าอะไรเลย = ได้ครบทุกไฟล์', () => {
+    expect(ids({})).toEqual(['f-aug', 'f-jul'])
+  })
+
+  it('กรองได้ทีละแกน: ชนิดไฟล์ / เดือน / บทความ / สถานะ', () => {
+    expect(ids({ kind: 'COVER_IMAGE' })).toEqual(['f-jul'])
+    expect(ids({ month: '2026-08' })).toEqual(['f-aug'])
+    expect(ids({ articleId: 'a-jul' })).toEqual(['f-jul'])
+    expect(ids({ status: 'PUBLISHED' })).toEqual(['f-jul'])
+  })
+
+  it('ค้นหาแมตช์ทั้งชื่อไฟล์และชื่อบทความ แบบไม่สนตัวพิมพ์', () => {
+    expect(ids({ search: 'AUGUST' })).toEqual(['f-aug'])
+    expect(ids({ search: 'ล้างแอร์' })).toEqual(['f-jul'])
+    expect(ids({ search: 'ไม่มีคำนี้' })).toEqual([])
+  })
+
+  it('ตัวกรองหลายตัวทำงานร่วมกันแบบ AND', () => {
+    expect(ids({ month: '2026-08', kind: 'COVER_IMAGE' })).toEqual([])
+    expect(ids({ month: '2026-08', stageCode: 'SUBMIT_ARTICLE' })).toEqual(['f-aug'])
   })
 })

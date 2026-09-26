@@ -1,15 +1,20 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { signIn, getSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { AlertCircle, Eye, EyeOff, Loader2 } from 'lucide-react'
 import { Role } from '@/types/auth'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Field, FieldGroup } from '@/components/ui/field'
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from '@/components/ui/input-group'
 import { cn } from '@/lib/utils'
 
 interface LoginFormProps {
@@ -37,7 +42,7 @@ export default function LoginForm({ className }: LoginFormProps) {
       })
 
       if (result?.error) {
-        setError('Invalid email or password')
+        setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง ตรวจสอบแล้วลองอีกครั้ง')
       } else if (result?.ok) {
         const session = await getSession()
         switch (session?.user?.role) {
@@ -58,92 +63,112 @@ export default function LoginForm({ className }: LoginFormProps) {
         }
       }
     } catch (err) {
-      setError('An error occurred during login')
+      setError('เข้าสู่ระบบไม่สำเร็จ กรุณาลองใหม่อีกครั้ง หากยังไม่ได้ให้ติดต่อผู้ดูแลระบบ')
       console.error('Login error:', err)
     } finally {
       setIsLoading(false)
     }
   }
 
+  const errorId = error ? 'login-error' : undefined
+
   return (
-    <div className={cn('flex min-h-screen items-center justify-center px-4 py-8', className)}>
-      <Card className="w-full max-w-md">
-        <CardContent className="p-8">
-          <div className="mb-6 text-center">
-            <h1 className="text-2xl font-bold tracking-tight">เข้าสู่ระบบ</h1>
-            <p className="text-muted-foreground mt-1 text-sm">
-              กรุณาใส่อีเมลและรหัสผ่านเพื่อเข้าสู่ระบบ
-            </p>
+    <main className={cn('flex min-h-dvh items-center justify-center px-4 py-10', className)}>
+      <div className="flex w-full max-w-[420px] flex-col items-center gap-6">
+        <span className="flex items-center gap-2.5">
+          <Image src="/img/brand/logo-mark.png" alt="" width={46} height={45} priority />
+          <Image
+            src="/img/brand/logo-wordmark.png"
+            alt="SEO PRIME"
+            width={142}
+            height={18}
+            priority
+          />
+        </span>
+
+        <section
+          aria-labelledby="login-title"
+          className="border-glass-border bg-glass-card shadow-card w-full rounded-[24px] border p-6 backdrop-blur-[14px] sm:p-8"
+        >
+          <div className="mb-6 flex flex-col gap-1.5">
+            <h1 id="login-title" className="text-[26px] leading-tight font-semibold">
+              เข้าสู่ระบบ
+            </h1>
+            <p className="text-text-secondary text-sm">กรุณาใส่อีเมลและรหัสผ่านเพื่อเข้าสู่ระบบ</p>
           </div>
 
-          <form onSubmit={handleSubmit}>
-            <FieldGroup>
-              {error && (
-                <div
-                  role="alert"
-                  className="border-destructive/30 bg-destructive/10 text-destructive rounded-md border px-3 py-2 text-sm"
-                >
-                  {error}
-                </div>
-              )}
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            {error && (
+              <div
+                id="login-error"
+                role="alert"
+                className="bg-danger-subtle text-danger-strong flex items-start gap-2 rounded-[12px] px-3.5 py-3 text-sm"
+              >
+                <AlertCircle aria-hidden className="mt-0.5 size-4 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
 
-              <Field>
-                <Label htmlFor="email">อีเมล</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  autoFocus
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="email">อีเมล</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                autoFocus
+                required
+                disabled={isLoading}
+                placeholder="example@domain.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                aria-invalid={!!error || undefined}
+                aria-describedby={errorId}
+                className="bg-white/90"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="password">รหัสผ่าน</Label>
+              <InputGroup className="bg-white/90">
+                <InputGroupInput
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
                   required
                   disabled={isLoading}
-                  placeholder="example@domain.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  aria-invalid={!!error || undefined}
+                  aria-describedby={errorId}
                 />
-              </Field>
-
-              <Field>
-                <Label htmlFor="password">รหัสผ่าน</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    name="password"
-                    type={showPassword ? 'text' : 'password'}
-                    autoComplete="current-password"
-                    required
-                    disabled={isLoading}
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pr-9"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
+                <InputGroupAddon align="inline-end">
+                  <InputGroupButton
                     size="icon-sm"
                     aria-label={showPassword ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
+                    aria-pressed={showPassword}
                     onClick={() => setShowPassword((v) => !v)}
                     disabled={isLoading}
-                    className="absolute top-1/2 right-1 -translate-y-1/2"
                   >
-                    {showPassword ? <EyeOff /> : <Eye />}
-                  </Button>
-                </div>
-              </Field>
+                    {showPassword ? <EyeOff aria-hidden /> : <Eye aria-hidden />}
+                  </InputGroupButton>
+                </InputGroupAddon>
+              </InputGroup>
+            </div>
 
-              <Button type="submit" disabled={isLoading} className="mt-2 w-full" size="lg">
-                {isLoading && <Loader2 className="animate-spin" />}
-                {isLoading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
-              </Button>
+            <Button type="submit" disabled={isLoading} className="mt-2 w-full">
+              {isLoading && <Loader2 aria-hidden className="animate-spin" />}
+              {isLoading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
+            </Button>
 
-              <p className="text-muted-foreground text-center text-sm">
-                ยังไม่มีบัญชี? กรุณาติดต่อผู้ดูแลระบบ
-              </p>
-            </FieldGroup>
+            <p className="text-text-secondary text-center text-[13px]">
+              ยังไม่มีบัญชี? กรุณาติดต่อผู้ดูแลระบบ
+            </p>
           </form>
-        </CardContent>
-      </Card>
-    </div>
+        </section>
+      </div>
+    </main>
   )
 }

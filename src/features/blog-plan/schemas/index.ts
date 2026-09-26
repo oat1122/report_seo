@@ -62,19 +62,25 @@ export const updateStageSchema = z
   .partial()
 
 /**
+ * เพดานข้อความที่คุยกันในบทความ (ส่งงาน / ขอแก้ไข) — คอลัมน์เป็น MySQL TEXT = 65,535 ไบต์
+ * ตัวอักษรไทยกิน 3 ไบต์ อิโมจิ 4 ไบต์ จึงตั้งไว้ 15,000 ตัวให้ปลอดภัยแม้กรณีแย่สุด
+ */
+export const BLOG_MESSAGE_MAX_LENGTH = 15_000
+
+/**
  * เนื้อหาที่ส่งให้ลูกค้า 1 รอบ — ไฟล์มาทาง multipart จึงไม่อยู่ใน schema
  * use case เป็นคนบังคับว่าต้องมีอย่างน้อย 1 อย่าง (ข้อความ / ลิงก์ / ไฟล์)
  * และต้องแนบไฟล์ครบตาม requiredFileKinds ของ stage นั้น
  */
 export const submitStageWorkSchema = z.object({
-  message: z.string().trim().max(5000).nullable().default(null),
+  message: z.string().trim().max(BLOG_MESSAGE_MAX_LENGTH).nullable().default(null),
   linkUrl: z.url().max(2000).nullable().default(null),
 })
 
 export const submitFeedbackSchema = z.object({
   stageCode: stageCodeSchema,
   decision: z.enum(['APPROVED', 'CHANGES_REQUESTED']),
-  comment: z.string().trim().max(5000).nullable().default(null),
+  comment: z.string().trim().max(BLOG_MESSAGE_MAX_LENGTH).nullable().default(null),
 })
 
 /** ข้อความที่ลูกค้าทักไปหาทีมเขียน — ส่งเป็น notification ไม่ได้เก็บเป็น thread */

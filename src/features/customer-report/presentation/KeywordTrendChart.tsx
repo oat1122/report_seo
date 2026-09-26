@@ -13,10 +13,10 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { ChevronDown, Check, X, Loader2 } from 'lucide-react'
+import { ChevronDown, Check, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   Command,
@@ -33,12 +33,7 @@ import { ChartEmptyState } from './components/ChartEmptyState'
 import { AnomalyDot } from './components/AnomalyDot'
 import { ClippedDot } from './components/ClippedDot'
 import { SnapshotView, type SnapshotEntry } from './components/SnapshotView'
-import {
-  MAX_SELECTED_KEYWORDS,
-  POSITION_CLIP_THRESHOLD,
-  CHART_COLORS,
-  getKeywordColor,
-} from './lib/chartConfig'
+import { MAX_SELECTED_KEYWORDS, POSITION_CLIP_THRESHOLD } from './lib/chartConfig'
 import { buildChartConfig } from './lib/buildChartConfig'
 import {
   computeAnomalies,
@@ -46,7 +41,25 @@ import {
   filterHistoryByPeriod,
   localDayKey,
 } from './lib/historyCalculations'
+import { ReportCard } from './keywords/ReportCard'
+import { ChartTooltipRow, DARK_TOOLTIP_CLASS } from './keywords/ChartTooltipRow'
 import { cn } from '@/lib/utils'
+
+// สีเส้นราย keyword — เรียงตาม --chart-* (ไม่ใช้ chart-4 เขียวแบรนด์เป็นเส้นบางบนพื้นขาว)
+const TREND_COLORS = [
+  'var(--chart-1)',
+  'var(--chart-2)',
+  'var(--chart-5)',
+  'var(--destructive)',
+  'var(--chart-3)',
+  'var(--warning)',
+  'var(--foreground)',
+  'var(--success)',
+] as const
+const FALLBACK_COLOR = TREND_COLORS[0]
+const getKeywordColor = (index: number): string => TREND_COLORS[index % TREND_COLORS.length]
+
+const AXIS_TICK = { fontSize: 11, fill: 'var(--muted-foreground)' }
 
 interface KeywordOption {
   keyword: string
@@ -116,7 +129,7 @@ const KeywordSelector = ({
           aria-expanded={open}
           className="w-full justify-between font-normal"
         >
-          <span className="text-muted-foreground truncate">
+          <span className="text-text-secondary truncate">
             {selected.length === 0
               ? 'เลือก Keyword...'
               : `เลือก ${selected.length}/${MAX_SELECTED_KEYWORDS} คำ`}
@@ -149,8 +162,8 @@ const KeywordSelector = ({
                     <span className={cn('flex-1 truncate', isSelected && 'font-semibold')}>
                       {opt.keyword}
                     </span>
-                    <span className="text-muted-foreground text-xs">
-                      {opt.traffic.toLocaleString()}
+                    <span className="text-text-secondary text-xs tabular-nums">
+                      {opt.traffic.toLocaleString('th-TH')}
                     </span>
                     {isSelected && <Check className="text-success size-3" />}
                   </CommandItem>
@@ -278,7 +291,7 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
         selectedKeywords.map((k) => ({
           key: `pos_${k}`,
           label: k,
-          color: keywordColorMap.get(k) || CHART_COLORS.primary,
+          color: keywordColorMap.get(k) || FALLBACK_COLOR,
         })),
       ),
     [selectedKeywords, keywordColorMap],
@@ -290,7 +303,7 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
         selectedKeywords.map((k) => ({
           key: `traffic_${k}`,
           label: k,
-          color: keywordColorMap.get(k) || CHART_COLORS.primary,
+          color: keywordColorMap.get(k) || FALLBACK_COLOR,
         })),
       ),
     [selectedKeywords, keywordColorMap],
@@ -327,7 +340,7 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
     return selectedKeywords.map((keyword) => {
       const records = recordsByKeyword.get(keyword) ?? []
       const latest = records[records.length - 1]
-      const color = keywordColorMap.get(keyword) || CHART_COLORS.primary
+      const color = keywordColorMap.get(keyword) || FALLBACK_COLOR
       const pos = latest?.position ?? null
       return {
         keyword,
@@ -347,20 +360,34 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
 
   // shadcn ChartTooltipContent ปล่อย return ของ formatter ลงแถวตรง ๆ ไม่จัด layout ให้
   // → ต้อง return row ที่มี dot + keyword (truncate) + value แยกกันชัด ไม่ให้เลขติดกับคำ
-  const renderTooltipRow = (keyword: string, valueNode: React.ReactNode) => {
-    const color = keywordColorMap.get(keyword) || CHART_COLORS.primary
-    return (
-      <div className="flex w-full items-center gap-2">
-        <span className="size-2.5 shrink-0 rounded-[2px]" style={{ backgroundColor: color }} />
-        <span className="text-muted-foreground min-w-0 max-w-[220px] flex-1 truncate">
-          {keyword}
-        </span>
-        <span className="text-foreground shrink-0 font-mono font-semibold tabular-nums">
-          {valueNode}
-        </span>
-      </div>
-    )
-  }
+  const renderTooltipRow = (keyword: string, valueNode: React.ReactNode) => (
+    <ChartTooltipRow
+      color={keywordColorMap.get(keyword) || FALLBACK_COLOR}
+      label={keyword}
+      value={valueNode}
+    />
+  )
+
+  // ประโยคสรุปบนหัวการ์ด: keyword ที่อันดับดีขึ้นมากที่สุดในช่วงที่เลือก (จาก records ชุดเดียวกับกราฟ)
+  const bestMover = useMemo(() => {
+    let best: { keyword: string; from: number; to: number } | null = null
+    selectedKeywords.forEach((keyword) => {
+      const ranked = (recordsByKeyword.get(keyword) ?? []).filter(
+        (r): r is KeywordRecord & { position: number } => r.position != null && r.position > 0,
+      )
+      if (ranked.length < 2) return
+      const from = ranked[0].position
+      const to = ranked[ranked.length - 1].position
+      if (from - to > 0 && (!best || from - to > best.from - best.to)) {
+        best = { keyword, from, to }
+      }
+    })
+    return best as { keyword: string; from: number; to: number } | null
+  }, [recordsByKeyword, selectedKeywords])
+
+  const description = bestMover
+    ? `ขยับดีขึ้นมากที่สุด: “${bestMover.keyword}” จาก #${bestMover.from} → #${bestMover.to} ในช่วง ${period} วัน`
+    : `เปรียบเทียบอันดับและ traffic ของ keyword ที่เลือก (สูงสุด ${MAX_SELECTED_KEYWORDS} คำ) · ช่วง ${period} วัน`
 
   const positionTooltipFormatter = (
     value: unknown,
@@ -376,34 +403,32 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
 
   const trafficTooltipFormatter = (value: unknown, name: unknown) => {
     const k = String(name).replace(/^traffic_/, '')
-    return renderTooltipRow(k, Number(value).toLocaleString())
+    return renderTooltipRow(k, Number(value).toLocaleString('th-TH'))
   }
 
   if (isLoading) {
     return (
-      <div className="border-border flex items-center gap-2 rounded-2xl border p-6">
-        <Loader2 className="text-info size-4 animate-spin" />
-        <span>กำลังโหลดข้อมูล Keyword...</span>
-      </div>
+      <ReportCard title={title}>
+        <div role="status" className="flex flex-col gap-3">
+          <span className="sr-only">กำลังโหลดข้อมูล Keyword...</span>
+          <Skeleton className="h-11 w-full max-w-md rounded-xl" />
+          <Skeleton className="h-[260px] w-full rounded-2xl" />
+        </div>
+      </ReportCard>
     )
   }
 
   if (keywordOptions.length === 0) {
     return (
-      <div className="border-border rounded-2xl border p-4 md:p-6">
-        <h3 className="mb-3 text-xl font-bold">{title}</h3>
+      <ReportCard title={title} description="อันดับและ traffic ราย keyword ตามช่วงเวลา">
         <ChartEmptyState message="ยังไม่มีประวัติ Keyword" height="240px" />
-      </div>
+      </ReportCard>
     )
   }
 
   return (
-    <div className="border-border rounded-2xl border p-4 md:p-6">
-      <div className="mb-4">
-        <h3 className="text-xl font-bold">{title}</h3>
-      </div>
-
-      <div className="mb-4 max-w-md">
+    <ReportCard title={title} description={description}>
+      <div className="w-full md:max-w-md">
         <KeywordSelector
           options={keywordOptions}
           selected={selectedKeywords}
@@ -411,30 +436,33 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
         />
       </div>
 
-      {/* Selected keyword chips */}
-      <div className="mb-4 flex flex-wrap gap-2">
+      {/* Selected keyword chips (legend) — แตะเพื่อไฮไลต์เส้น */}
+      <ul className="flex flex-wrap gap-2" aria-label="keyword ที่แสดงในกราฟ">
         {selectedKeywords.map((keyword) => {
-          const color = keywordColorMap.get(keyword) || CHART_COLORS.primary
+          const color = keywordColorMap.get(keyword) || FALLBACK_COLOR
           const isFocused = focusedKeyword === keyword
           return (
-            <Badge
+            <li
               key={keyword}
-              variant="outline"
               className={cn(
-                'gap-1.5 border-2 font-semibold transition-opacity',
+                'border-border flex h-11 max-w-full items-center rounded-full border bg-white/85 text-[13px] transition-[opacity,box-shadow] md:h-9 dark:bg-white/5',
+                isFocused && 'border-foreground/40 shadow-[0_0_0_2px_var(--info-subtle)]',
                 focusedKeyword && !isFocused && 'opacity-50',
               )}
-              style={{ borderColor: color, color }}
             >
               <button
                 type="button"
                 onClick={() => setFocusedKeyword(isFocused ? null : keyword)}
-                className="flex items-center gap-1.5"
+                className="focus-visible:ring-ring/70 flex h-full min-w-0 items-center gap-2 rounded-full pr-2 pl-3 outline-none focus-visible:ring-[3px]"
                 aria-pressed={isFocused}
                 aria-label={`${isFocused ? 'ยกเลิก ' : ''}highlight ${keyword}`}
               >
-                <span className="size-2 rounded-full" style={{ backgroundColor: color }} />
-                {keyword}
+                <span
+                  aria-hidden="true"
+                  className="size-2.5 shrink-0 rounded-full"
+                  style={{ backgroundColor: color }}
+                />
+                <span className={cn('truncate', isFocused && 'font-medium')}>{keyword}</span>
               </button>
               {selectedKeywords.length > 1 && (
                 <button
@@ -443,16 +471,16 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
                     if (focusedKeyword === keyword) setFocusedKeyword(null)
                     setSelectedKeywords((prev) => prev.filter((k) => k !== keyword))
                   }}
-                  className="ml-1 hover:opacity-70"
+                  className="text-text-secondary hover:text-foreground hover:bg-foreground/6 focus-visible:ring-ring/70 mr-1 flex size-9 shrink-0 items-center justify-center rounded-full outline-none focus-visible:ring-[3px] md:size-7"
                   aria-label={`ลบ ${keyword}`}
                 >
-                  <X className="size-3" />
+                  <X className="size-3.5" aria-hidden="true" />
                 </button>
               )}
-            </Badge>
+            </li>
           )
         })}
-      </div>
+      </ul>
 
       {isSinglePoint ? (
         <SnapshotView
@@ -462,71 +490,74 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
       ) : !hasPositionData && !hasTrafficData ? (
         <ChartEmptyState message="ยังไม่มีข้อมูลเพียงพอสำหรับ Keywords ที่เลือก" height="240px" />
       ) : (
-        <div className="grid gap-4 md:grid-cols-3 md:gap-6">
+        <div className="grid gap-4 lg:grid-cols-3">
           {/* 2 stacked charts (synced) */}
-          <div className="flex flex-col gap-4 md:col-span-2">
-            <div className="border-border bg-background rounded-xl border p-3">
-              <div className="mb-2 flex items-center justify-between text-xs">
-                <span className="text-muted-foreground font-semibold">Position Trend</span>
-                <span className="text-muted-foreground">เส้นประ = เป้าหมาย (Top 3 / Top 10)</span>
+          <div className="flex min-w-0 flex-col gap-4 lg:col-span-2">
+            <div className="bg-glass-tile border-glass-border rounded-2xl border p-3 md:p-4">
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs">
+                <span className="text-foreground text-[13px] font-medium">Position Trend</span>
+                <span className="text-text-secondary">เส้นประ = เป้าหมาย (Top 3 / Top 10)</span>
               </div>
               {hasPositionData ? (
                 <ChartContainer config={positionConfig} className="h-[220px] w-full">
                   <LineChart
                     data={wideRows}
                     syncId="kw-trend"
-                    margin={{ top: 8, right: 32, left: 8, bottom: 8 }}
+                    margin={{ top: 8, right: 36, left: 0, bottom: 4 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                    <CartesianGrid strokeDasharray="3 5" stroke="var(--border)" vertical={false} />
                     <XAxis
                       dataKey="dateMs"
                       type="number"
                       domain={['dataMin', 'dataMax']}
                       scale="time"
                       tickFormatter={fmtDateTick}
-                      stroke="var(--muted-foreground)"
                       tickLine={false}
-                      tick={{ fontSize: 11 }}
+                      axisLine={false}
+                      tick={AXIS_TICK}
+                      tickMargin={8}
                     />
                     <YAxis
                       reversed
                       domain={[1, POSITION_CLIP_THRESHOLD]}
                       tickFormatter={(v) => `#${v}`}
-                      stroke="var(--muted-foreground)"
-                      tick={{ fontSize: 11 }}
-                      width={44}
+                      tickLine={false}
+                      axisLine={false}
+                      tick={AXIS_TICK}
+                      width={40}
                     />
                     <ReferenceLine
                       y={10}
                       stroke="var(--muted-foreground)"
-                      strokeDasharray="6 4"
+                      strokeDasharray="6 5"
                       strokeOpacity={0.6}
                       label={{
                         value: 'Top 10',
                         position: 'right',
                         fill: 'var(--muted-foreground)',
-                        fontSize: 10,
+                        fontSize: 11,
                       }}
                     />
                     <ReferenceLine
                       y={3}
-                      stroke="var(--success)"
-                      strokeDasharray="6 4"
-                      strokeOpacity={0.6}
+                      stroke="var(--chart-2)"
+                      strokeDasharray="6 5"
+                      strokeOpacity={0.8}
                       label={{
                         value: 'Top 3',
                         position: 'right',
-                        fill: 'var(--success)',
-                        fontSize: 10,
+                        fill: 'var(--muted-foreground)',
+                        fontSize: 11,
                       }}
                     />
                     <ChartTooltip
                       cursor={{
                         stroke: 'var(--muted-foreground)',
-                        strokeDasharray: '3 3',
+                        strokeDasharray: '3 5',
                       }}
                       content={
                         <ChartTooltipContent
+                          className={DARK_TOOLTIP_CLASS}
                           labelFormatter={(_label, payload) => {
                             const ms = payload?.[0]?.payload?.dateMs
                             return typeof ms === 'number' ? fmtDateLabel(ms) : ''
@@ -536,7 +567,7 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
                       }
                     />
                     {selectedKeywords.map((k) => {
-                      const baseColor = keywordColorMap.get(k) || CHART_COLORS.primary
+                      const baseColor = keywordColorMap.get(k) || FALLBACK_COLOR
                       const isDim = focusedKeyword !== null && focusedKeyword !== k
                       return (
                         <Line
@@ -544,11 +575,12 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
                           type="monotone"
                           dataKey={`pos_${k}`}
                           connectNulls
-                          stroke={isDim ? 'var(--muted)' : baseColor}
-                          strokeWidth={focusedKeyword === k ? 3 : 2}
-                          opacity={isDim ? 0.35 : 1}
+                          stroke={isDim ? 'var(--muted-foreground)' : baseColor}
+                          strokeWidth={focusedKeyword === k ? 3.5 : 2.5}
+                          strokeLinecap="round"
+                          opacity={isDim ? 0.25 : 1}
                           dot={<ClippedDot keyword={k} />}
-                          activeDot={{ r: 5 }}
+                          activeDot={{ r: 5, strokeWidth: 2, stroke: 'var(--background)' }}
                           isAnimationActive={false}
                         />
                       )
@@ -560,42 +592,46 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
               )}
             </div>
 
-            <div className="border-border bg-background rounded-xl border p-3">
-              <div className="mb-2 flex items-center justify-between text-xs">
-                <span className="text-muted-foreground font-semibold">Traffic Trend</span>
-                <span className="text-muted-foreground">จุดวงแหวน = Outlier (z &gt; 2.5)</span>
+            <div className="bg-glass-tile border-glass-border rounded-2xl border p-3 md:p-4">
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs">
+                <span className="text-foreground text-[13px] font-medium">Traffic Trend</span>
+                <span className="text-text-secondary">จุดวงแหวน = Outlier (z &gt; 2.5)</span>
               </div>
               {hasTrafficData ? (
                 <ChartContainer config={trafficConfig} className="h-[220px] w-full">
                   <LineChart
                     data={wideRows}
                     syncId="kw-trend"
-                    margin={{ top: 8, right: 16, left: 8, bottom: 8 }}
+                    margin={{ top: 8, right: 16, left: 0, bottom: 4 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                    <CartesianGrid strokeDasharray="3 5" stroke="var(--border)" vertical={false} />
                     <XAxis
                       dataKey="dateMs"
                       type="number"
                       domain={['dataMin', 'dataMax']}
                       scale="time"
                       tickFormatter={fmtDateTick}
-                      stroke="var(--muted-foreground)"
                       tickLine={false}
-                      tick={{ fontSize: 11 }}
+                      axisLine={false}
+                      tick={AXIS_TICK}
+                      tickMargin={8}
                     />
                     <YAxis
                       domain={[0, 'auto']}
                       tickFormatter={formatTrafficValue}
-                      stroke="var(--muted-foreground)"
-                      tick={{ fontSize: 11 }}
+                      tickLine={false}
+                      axisLine={false}
+                      tick={AXIS_TICK}
+                      width={44}
                     />
                     <ChartTooltip
                       cursor={{
                         stroke: 'var(--muted-foreground)',
-                        strokeDasharray: '3 3',
+                        strokeDasharray: '3 5',
                       }}
                       content={
                         <ChartTooltipContent
+                          className={DARK_TOOLTIP_CLASS}
                           labelFormatter={(_label, payload) => {
                             const ms = payload?.[0]?.payload?.dateMs
                             return typeof ms === 'number' ? fmtDateLabel(ms) : ''
@@ -605,7 +641,7 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
                       }
                     />
                     {selectedKeywords.map((k) => {
-                      const baseColor = keywordColorMap.get(k) || CHART_COLORS.primary
+                      const baseColor = keywordColorMap.get(k) || FALLBACK_COLOR
                       const isDim = focusedKeyword !== null && focusedKeyword !== k
                       return (
                         <Line
@@ -613,11 +649,12 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
                           type="monotone"
                           dataKey={`traffic_${k}`}
                           connectNulls
-                          stroke={isDim ? 'var(--muted)' : baseColor}
-                          strokeWidth={focusedKeyword === k ? 3 : 2}
-                          opacity={isDim ? 0.35 : 1}
+                          stroke={isDim ? 'var(--muted-foreground)' : baseColor}
+                          strokeWidth={focusedKeyword === k ? 3.5 : 2.5}
+                          strokeLinecap="round"
+                          opacity={isDim ? 0.25 : 1}
                           dot={<AnomalyDot dataKey={`traffic_${k}`} />}
-                          activeDot={{ r: 5 }}
+                          activeDot={{ r: 5, strokeWidth: 2, stroke: 'var(--background)' }}
                           isAnimationActive={false}
                         />
                       )
@@ -631,17 +668,13 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
           </div>
 
           {/* Donut sidebar */}
-          <div className="border-border bg-background rounded-xl border p-3">
-            <div className="mb-2 flex items-center justify-between">
-              <p className="text-muted-foreground text-xs font-semibold">สัดส่วน Traffic</p>
+          <div className="bg-glass-tile border-glass-border flex min-w-0 flex-col rounded-2xl border p-3 md:p-4">
+            <div className="mb-2 flex min-h-9 items-center justify-between gap-2">
+              <p className="text-foreground text-[13px] font-medium">สัดส่วน Traffic</p>
               {focusedKeyword && (
-                <button
-                  type="button"
-                  onClick={() => setFocusedKeyword(null)}
-                  className="text-info text-xs hover:underline"
-                >
-                  เคลียร์
-                </button>
+                <Button variant="ghost" size="sm" onClick={() => setFocusedKeyword(null)}>
+                  เคลียร์ไฮไลต์
+                </Button>
               )}
             </div>
             <ChartContainer config={donutConfig} className="mx-auto aspect-square w-[200px]">
@@ -650,7 +683,10 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
                   content={
                     <ChartTooltipContent
                       hideLabel
-                      formatter={(value, name) => [Number(value).toLocaleString(), String(name)]}
+                      className={DARK_TOOLTIP_CLASS}
+                      formatter={(value, name) =>
+                        renderTooltipRow(String(name), Number(value).toLocaleString('th-TH'))
+                      }
                     />
                   }
                 />
@@ -658,9 +694,10 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
                   data={donutData}
                   dataKey="value"
                   nameKey="label"
-                  innerRadius={60}
-                  outerRadius={86}
-                  strokeWidth={2}
+                  innerRadius={64}
+                  outerRadius={80}
+                  paddingAngle={donutData.length > 1 ? 2 : 0}
+                  stroke="none"
                   onClick={(d) => {
                     const label =
                       (d as { label?: string; payload?: { label?: string } }).label ??
@@ -673,7 +710,7 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
                     <Cell
                       key={d.label}
                       fill={d.color}
-                      opacity={focusedKeyword && focusedKeyword !== d.label ? 0.35 : 1}
+                      opacity={focusedKeyword && focusedKeyword !== d.label ? 0.3 : 1}
                       style={{ cursor: 'pointer', outline: 'none' }}
                     />
                   ))}
@@ -692,10 +729,10 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
                         : null
                       const centerLabel = active ? active.label : 'Total'
                       const centerValue = active
-                        ? active.value.toLocaleString()
+                        ? active.value.toLocaleString('th-TH')
                         : totalTraffic >= 1000
                           ? `${(totalTraffic / 1000).toFixed(1)}K`
-                          : totalTraffic.toLocaleString()
+                          : totalTraffic.toLocaleString('th-TH')
                       return (
                         <text
                           x={viewBox.cx}
@@ -705,15 +742,15 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
                         >
                           <tspan
                             x={viewBox.cx}
-                            dy="-0.4em"
-                            className="fill-muted-foreground text-xs"
+                            dy="-0.5em"
+                            className="fill-muted-foreground text-[11px]"
                           >
-                            {centerLabel}
+                            {centerLabel.length > 16 ? `${centerLabel.slice(0, 15)}…` : centerLabel}
                           </tspan>
                           <tspan
                             x={viewBox.cx}
-                            dy="1.4em"
-                            className="fill-foreground text-lg font-bold"
+                            dy="1.5em"
+                            className="fill-foreground text-xl font-semibold tabular-nums"
                           >
                             {centerValue}
                           </tspan>
@@ -724,7 +761,7 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
                 </Pie>
               </PieChart>
             </ChartContainer>
-            <ul className="border-border mt-3 space-y-1 border-t pt-2">
+            <ul className="border-border/70 mt-3 flex flex-col gap-0.5 border-t pt-2">
               {donutData.map((item) => {
                 const pct = totalTraffic > 0 ? (item.value / totalTraffic) * 100 : 0
                 const isFocused = focusedKeyword === item.label
@@ -732,32 +769,33 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
                   <li
                     key={item.label}
                     className={cn(
-                      'flex items-center justify-between gap-2 rounded px-1 text-xs transition-opacity',
+                      'flex items-center justify-between gap-2 text-[13px] transition-opacity',
                       focusedKeyword && !isFocused && 'opacity-50',
                     )}
                   >
                     <button
                       type="button"
                       onClick={() => setFocusedKeyword(isFocused ? null : item.label)}
-                      className="flex min-w-0 items-center gap-2 hover:opacity-80"
+                      className="hover:bg-foreground/6 focus-visible:ring-ring/70 flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-lg px-1.5 text-left outline-none focus-visible:ring-[3px] md:min-h-9"
                       aria-pressed={isFocused}
                     >
                       <span
-                        className="size-2 shrink-0 rounded-full"
+                        aria-hidden="true"
+                        className="size-2.5 shrink-0 rounded-full"
                         style={{ backgroundColor: item.color }}
                       />
-                      <span className="truncate font-medium" title={item.label}>
+                      <span
+                        className={cn('truncate', isFocused && 'font-medium')}
+                        title={item.label}
+                      >
                         {item.label}
                       </span>
                     </button>
-                    <div className="text-muted-foreground flex items-center gap-2">
-                      <span>{item.value.toLocaleString()}</span>
-                      <span
-                        className="min-w-10 text-right font-semibold"
-                        style={{ color: item.color }}
-                      >
-                        {pct.toFixed(1)}%
+                    <div className="flex shrink-0 items-center gap-2 tabular-nums">
+                      <span className="text-text-secondary">
+                        {item.value.toLocaleString('th-TH')}
                       </span>
+                      <span className="min-w-12 text-right font-semibold">{pct.toFixed(1)}%</span>
                     </div>
                   </li>
                 )
@@ -767,8 +805,8 @@ export const KeywordTrendChart: React.FC<KeywordTrendChartProps> = ({
         </div>
       )}
 
-      <p className="text-muted-foreground mt-3 text-right text-xs">ข้อมูลจาก Database</p>
-    </div>
+      <p className="text-text-secondary text-right text-xs">ข้อมูลจาก Database</p>
+    </ReportCard>
   )
 }
 

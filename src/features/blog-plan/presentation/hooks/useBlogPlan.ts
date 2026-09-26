@@ -25,9 +25,10 @@ export interface ArticleListPayload {
   monthlyCount: number | null
 }
 
+/** ไม่ใส่ทั้งคู่ = เอาบทความทุกเดือนของลูกค้ารายนี้ (API รับ year/month เป็น optional) */
 export interface MonthFilter {
-  year: number
-  month: number
+  year?: number
+  month?: number
 }
 
 const base = (customerId: string) => `/customers/${customerId}/blog-articles`

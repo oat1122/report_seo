@@ -1,7 +1,7 @@
 'use client'
 
-import React from 'react'
-import { Lightbulb, Star, Sparkles, Info } from 'lucide-react'
+import React, { useState } from 'react'
+import { ChevronDown, Star } from 'lucide-react'
 import {
   Table,
   TableBody,
@@ -11,64 +11,55 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import { KeywordRecommend } from '@/types/metrics'
+import { KdBadge } from './keywords/KdBadge'
+import { ReportCard } from './keywords/ReportCard'
 
 interface RecommendKeywordTableProps {
   keywords: KeywordRecommend[]
   title?: string
 }
 
-const kdStyle: Record<string, { label: string; className: string }> = {
-  EASY: { label: 'Easy', className: 'bg-success/10 text-success' },
-  MEDIUM: { label: 'Medium', className: 'bg-warning/10 text-warning' },
-  HARD: { label: 'Hard', className: 'bg-destructive/10 text-destructive' },
-}
+const INITIAL_VISIBLE = 8
 
-const getKdStyle = (kd: string | null | undefined) => (kd && kdStyle[kd]) || kdStyle.MEDIUM
+const PriorityStar = ({ isTop }: { isTop: boolean }) => (
+  <>
+    <Star
+      aria-hidden="true"
+      className={cn(
+        'size-4 shrink-0',
+        isTop ? 'fill-warning-accent text-warning-accent' : 'text-muted-foreground/50',
+      )}
+    />
+    <span className="sr-only">{isTop ? 'Top Pick' : 'คำแนะนำทั่วไป'}</span>
+  </>
+)
 
 const KeywordCard: React.FC<{ kw: KeywordRecommend }> = ({ kw }) => {
-  const kd = kw.kd ? getKdStyle(kw.kd) : null
   const isTop = kw.isTopReport
 
   return (
-    <div
+    <article
       className={cn(
-        'border-border rounded-2xl border p-4 transition-all hover:-translate-y-0.5 hover:shadow-md',
-        isTop && 'bg-warning/5',
+        'border-glass-border flex flex-col gap-2.5 rounded-2xl border p-3.5',
+        isTop ? 'bg-warning-subtle/50' : 'bg-glass-tile',
       )}
     >
-      <div className="mb-3 flex items-start gap-3">
-        <div
-          className={cn(
-            'flex size-8 items-center justify-center rounded-lg',
-            isTop ? 'bg-warning/15 text-warning' : 'bg-info/15 text-info',
-          )}
-        >
-          {isTop ? <Sparkles className="size-4" /> : <Lightbulb className="size-4" />}
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
+          <PriorityStar isTop={isTop} />
+          <h3 className="text-[15px] font-medium break-words">{kw.keyword}</h3>
         </div>
-        <div className="min-w-0 flex-1">
-          <p className="mb-1 font-bold">{kw.keyword}</p>
-          {isTop && (
-            <Badge className="border-warning bg-warning/15 text-warning gap-1">
-              <Star className="size-3" />
-              Top Pick
-            </Badge>
-          )}
-        </div>
-        {kd && (
-          <Badge className={cn('min-w-16 justify-center font-semibold', kd.className)}>
-            {kd.label}
-          </Badge>
-        )}
+        {kw.kd && <KdBadge kd={kw.kd} />}
       </div>
+      {isTop && <Badge variant="warning">Top Pick</Badge>}
       {kw.note && (
-        <div className="border-info/10 bg-info/5 rounded-lg border p-3">
-          <p className="text-muted-foreground text-sm">{kw.note}</p>
-        </div>
+        <p className="bg-info-subtle rounded-xl px-3 py-2.5 text-[13px] leading-relaxed">
+          {kw.note}
+        </p>
       )}
-    </div>
+    </article>
   )
 }
 
@@ -76,97 +67,96 @@ export const RecommendKeywordTable: React.FC<RecommendKeywordTableProps> = ({
   keywords,
   title,
 }) => {
+  const [showAll, setShowAll] = useState(false)
+
   if (keywords.length === 0) return null
 
   const topCount = keywords.filter((k) => k.isTopReport).length
+  const visible = showAll ? keywords : keywords.slice(0, INITIAL_VISIBLE)
+  const hasMore = keywords.length > INITIAL_VISIBLE
 
   return (
-    <>
+    <ReportCard
+      title={title ?? 'Recommended Keywords'}
+      description={
+        <>
+          keyword ที่แนะนำให้ทำต่อ · <span aria-hidden="true">★</span>
+          <span className="sr-only">ดาว</span> = Top Pick
+        </>
+      }
+    >
       {/* Mobile: card layout */}
-      <div className="md:hidden">
-        {title && <h3 className="mb-3 text-xl font-bold">{title}</h3>}
-        <div className="flex flex-col gap-3">
-          {keywords.map((kw) => (
-            <KeywordCard key={kw.id} kw={kw} />
-          ))}
-        </div>
-      </div>
+      <ul className="flex flex-col gap-2.5 md:hidden">
+        {visible.map((kw) => (
+          <li key={kw.id}>
+            <KeywordCard kw={kw} />
+          </li>
+        ))}
+      </ul>
 
-      {/* Desktop: compact table */}
-      <div className="border-border hidden h-fit max-h-[600px] overflow-hidden rounded-2xl border md:block">
-        {title && (
-          <div className="from-secondary to-secondary/80 bg-gradient-to-br p-4">
-            <div className="flex items-center gap-2">
-              <Lightbulb className="text-secondary-foreground size-5" />
-              <h3 className="text-secondary-foreground font-bold">{title}</h3>
-            </div>
-          </div>
-        )}
-        <Table>
+      {/* Desktop: table */}
+      <div className="hidden md:block">
+        <Table className="table-fixed">
           <TableHeader>
-            <TableRow className="bg-muted">
-              <TableHead className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
-                Keyword
+            <TableRow>
+              <TableHead className="w-11">
+                <span className="sr-only">ความสำคัญ</span>
               </TableHead>
-              <TableHead className="text-muted-foreground w-20 text-center text-xs font-bold tracking-wider uppercase">
-                KD
-              </TableHead>
-              <TableHead className="w-12 text-center">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="text-muted-foreground mx-auto size-4" />
-                  </TooltipTrigger>
-                  <TooltipContent>Strategic Note</TooltipContent>
-                </Tooltip>
+              <TableHead className="w-[34%] lg:w-[260px]">Keyword</TableHead>
+              <TableHead className="w-[120px]">ความยาก (KD)</TableHead>
+              <TableHead>เหตุผลที่แนะนำ</TableHead>
+              <TableHead className="w-[110px]">
+                <span className="sr-only">สถานะ</span>
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {keywords.map((kw) => {
-              const kd = kw.kd ? getKdStyle(kw.kd) : null
+            {visible.map((kw) => {
               const isTop = kw.isTopReport
               return (
-                <TableRow key={kw.id} className={cn(isTop && 'bg-warning/5')}>
+                <TableRow
+                  key={kw.id}
+                  className={cn(isTop && 'bg-warning-subtle/45 hover:bg-warning-subtle/70')}
+                >
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={cn(
-                          'size-1.5 shrink-0 rounded-full',
-                          isTop ? 'bg-warning' : 'bg-info',
-                        )}
-                      />
-                      <span className="text-sm font-semibold">{kw.keyword}</span>
-                      {isTop && <Star className="text-warning ml-auto size-3.5" />}
-                    </div>
+                    <PriorityStar isTop={isTop} />
                   </TableCell>
-                  <TableCell className="text-center">
-                    {kd && (
-                      <Badge className={cn('min-w-14 justify-center font-semibold', kd.className)}>
-                        {kd.label}
-                      </Badge>
-                    )}
+                  <TableCell className="font-medium break-words whitespace-normal">
+                    {kw.keyword}
                   </TableCell>
-                  <TableCell className="text-center">
-                    {kw.note && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info className="text-info mx-auto size-4 cursor-pointer" />
-                        </TooltipTrigger>
-                        <TooltipContent side="left">{kw.note}</TooltipContent>
-                      </Tooltip>
-                    )}
+                  <TableCell>{kw.kd ? <KdBadge kd={kw.kd} /> : '—'}</TableCell>
+                  <TableCell className="text-text-secondary text-[13px] leading-relaxed whitespace-normal">
+                    {kw.note || '—'}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {isTop && <Badge variant="warning">Top Pick</Badge>}
                   </TableCell>
                 </TableRow>
               )
             })}
           </TableBody>
         </Table>
-        <div className="border-border bg-info/5 border-t p-2 text-center">
-          <p className="text-muted-foreground text-xs font-semibold">
-            {keywords.length} recommendations • {topCount} top priorities
-          </p>
-        </div>
       </div>
-    </>
+
+      <div className="text-text-secondary flex flex-col gap-2 text-[13px] sm:flex-row sm:items-center sm:justify-between">
+        <span className="tabular-nums">
+          {keywords.length} recommendations • {topCount} top priorities
+        </span>
+        {hasMore && (
+          <button
+            type="button"
+            aria-expanded={showAll}
+            onClick={() => setShowAll((v) => !v)}
+            className="text-foreground hover:bg-foreground/6 focus-visible:ring-ring/70 max-sm:bg-info-subtle inline-flex min-h-11 items-center justify-center gap-1 rounded-xl px-3 font-medium outline-none focus-visible:ring-[3px] sm:min-h-10"
+          >
+            {showAll ? 'แสดงน้อยลง' : `ดูทั้งหมด ${keywords.length} คำ`}
+            <ChevronDown
+              aria-hidden="true"
+              className={cn('size-4 transition-transform', showAll && 'rotate-180')}
+            />
+          </button>
+        )}
+      </div>
+    </ReportCard>
   )
 }

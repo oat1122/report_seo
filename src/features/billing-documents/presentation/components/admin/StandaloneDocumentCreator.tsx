@@ -7,21 +7,12 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { Badge } from '@/components/ui/badge'
-import { Field, FieldGroup } from '@/components/ui/field'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DatePickerField } from '@/components/shared/DatePickerField'
 import { CustomerSearchCombobox } from './CustomerSearchCombobox'
 import { CustomerInfoFields } from './CustomerInfoFields'
 import { CustomerSyncDialog } from './CustomerSyncDialog'
+import { SegmentedRadio } from './SegmentedRadio'
+import { DocumentSummaryAside } from './DocumentSummaryAside'
 import {
   emptyCustomerInfo,
   customerInfoFromSnapshot,
@@ -36,6 +27,7 @@ import { useUpdateCustomerInfo } from '../../hooks/useUpdateCustomerInfo'
 import { DOCUMENT_TYPE_LABELS } from '../../../domain/DocumentType'
 import type { BillingDocumentType } from '../../../domain/DocumentType'
 import { computeVatBreakdown } from '../../../domain/vat'
+import { formatMoney } from './document-display'
 import type { CustomerForDocument } from '../../../application/ports/BillingDocumentRepository'
 
 type Mode = 'manual' | 'autofill'
@@ -53,9 +45,28 @@ export interface LockedCustomer {
 interface Props {
   lockedCustomer?: LockedCustomer
   onSuccess?: () => void
+  /** แสดงปุ่ม "ยกเลิก" ในแถบล่าง (เช่น เมื่ออยู่ใน dialog) */
+  onCancel?: () => void
 }
 
-export function StandaloneDocumentCreator({ lockedCustomer, onSuccess }: Props) {
+const MODE_OPTIONS: { value: Mode; label: string }[] = [
+  { value: 'manual', label: 'กรอกเอง' },
+  { value: 'autofill', label: 'เลือกจากระบบ' },
+]
+
+const TYPE_OPTIONS = (Object.entries(DOCUMENT_TYPE_LABELS) as [BillingDocumentType, string][]).map(
+  ([value, label]) => ({ value, label }),
+)
+
+function RequiredMark() {
+  return (
+    <span aria-hidden className="text-danger-strong">
+      *
+    </span>
+  )
+}
+
+export function StandaloneDocumentCreator({ lockedCustomer, onSuccess, onCancel }: Props) {
   const generateMutation = useGenerateStandaloneDocument()
   const updateCustomerMutation = useUpdateCustomerInfo()
   const isLocked = !!lockedCustomer
@@ -99,8 +110,8 @@ export function StandaloneDocumentCreator({ lockedCustomer, onSuccess }: Props) 
   }
 
   const total = items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)
-  const displayTotal =
-    type === 'INVOICE' && includeVat ? computeVatBreakdown(total).grandTotal : total
+  const withVat = type === 'INVOICE' && includeVat
+  const displayTotal = withVat ? computeVatBreakdown(total).grandTotal : total
 
   const isValid =
     customer.name.trim().length > 0 && items.length > 0 && items.every((i) => i.description.trim())
@@ -166,149 +177,179 @@ export function StandaloneDocumentCreator({ lockedCustomer, onSuccess }: Props) 
     runGenerate()
   }
 
+  const isBusy = generateMutation.isPending || updateCustomerMutation.isPending
+
   return (
-    <div className="flex flex-col gap-6">
-      {/* Customer Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle>ข้อมูลลูกค้า</CardTitle>
-          <CardDescription>
-            {isLocked
-              ? 'ออกเอกสารให้ลูกค้ารายนี้ — แก้ไขข้อมูลบนเอกสารได้ก่อนสร้าง'
-              : 'กรอกข้อมูลเอง หรือเลือกจากลูกค้าที่มีในระบบ'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <FieldGroup>
-            {!isLocked && (
-              <Tabs value={mode} onValueChange={handleModeChange}>
-                <TabsList className="w-full">
-                  <TabsTrigger value="manual" className="flex-1">
-                    กรอกเอง
-                  </TabsTrigger>
-                  <TabsTrigger value="autofill" className="flex-1">
-                    เลือกจากระบบ
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-            )}
-
-            {!isLocked && mode === 'autofill' && (
-              <Field>
-                <Label>ค้นหาลูกค้า</Label>
-                <CustomerSearchCombobox
-                  selected={selectedCustomer}
-                  onSelect={handleCustomerSelect}
-                />
-              </Field>
-            )}
-
-            {(selectedCustomer || lockedCustomer) && (
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">{lockedCustomer?.name ?? selectedCustomer?.name}</Badge>
-                <span className="text-muted-foreground text-xs">
-                  ข้อมูลจากระบบ — แก้ไขได้ก่อนสร้างเอกสาร
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="min-h-0 flex-1 overflow-y-auto px-6 pt-1 pb-6">
+        <div className="grid items-start gap-7 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="flex min-w-0 flex-col gap-[26px]">
+            {/* Customer Info */}
+            <fieldset className="m-0 flex min-w-0 flex-col gap-3.5 border-0 p-0">
+              <legend className="mb-3.5 flex flex-col gap-0.5 p-0">
+                <span className="text-[15px] font-semibold">ข้อมูลลูกค้า</span>
+                <span className="text-text-secondary text-xs">
+                  {isLocked
+                    ? 'ออกเอกสารให้ลูกค้ารายนี้ — แก้ไขข้อมูลบนเอกสารได้ก่อนสร้าง'
+                    : 'กรอกข้อมูลเอง หรือเลือกจากลูกค้าที่มีในระบบ'}
                 </span>
-              </div>
-            )}
+              </legend>
 
-            <CustomerInfoFields value={customer} onChange={patchCustomer} email={accountEmail} />
-          </FieldGroup>
-        </CardContent>
-      </Card>
-
-      {/* Document Config */}
-      <Card>
-        <CardHeader>
-          <CardTitle>ตั้งค่าเอกสาร</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <FieldGroup>
-            <Field>
-              <Label>ประเภทเอกสาร</Label>
-              <Select value={type} onValueChange={(v) => setType(v as BillingDocumentType)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {(Object.entries(DOCUMENT_TYPE_LABELS) as [BillingDocumentType, string][]).map(
-                    ([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ),
-                  )}
-                </SelectContent>
-              </Select>
-            </Field>
-
-            {type === 'INVOICE' && (
-              <Field>
-                <div className="flex items-center gap-2">
-                  <Switch id="include-vat" checked={includeVat} onCheckedChange={setIncludeVat} />
-                  <Label htmlFor="include-vat">รวม VAT 7%</Label>
+              {!isLocked && (
+                <div className="flex flex-col gap-1.5">
+                  <span id="doc-source-label" className="text-sm font-medium">
+                    ที่มาของข้อมูล
+                  </span>
+                  <SegmentedRadio
+                    value={mode}
+                    onValueChange={handleModeChange}
+                    options={MODE_OPTIONS}
+                    labelledBy="doc-source-label"
+                    pillId="doc-source-pill"
+                    className="grid-cols-2"
+                  />
                 </div>
-              </Field>
+              )}
+
+              {!isLocked && mode === 'autofill' && (
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="doc-customer-search">ค้นหาลูกค้า</Label>
+                  <CustomerSearchCombobox
+                    id="doc-customer-search"
+                    selected={selectedCustomer}
+                    onSelect={handleCustomerSelect}
+                  />
+                  <span className="text-text-secondary text-xs">
+                    เติมข้อมูลด้านล่างให้อัตโนมัติ แก้ได้ก่อนสร้าง
+                  </span>
+                </div>
+              )}
+
+              {lockedCustomer && (
+                <p className="text-text-secondary text-xs">
+                  ข้อมูลจากระบบของ{' '}
+                  <span className="text-foreground font-medium">{lockedCustomer.name}</span> —
+                  แก้ไขได้ก่อนสร้างเอกสาร
+                </p>
+              )}
+
+              <CustomerInfoFields value={customer} onChange={patchCustomer} email={accountEmail} />
+            </fieldset>
+
+            {/* Document Config */}
+            <fieldset className="m-0 flex min-w-0 flex-col gap-3.5 border-0 p-0">
+              <legend className="mb-3.5 p-0 text-[15px] font-semibold">ตั้งค่าเอกสาร</legend>
+
+              <div className="flex flex-col gap-1.5">
+                <span id="doc-type-label" className="text-sm font-medium">
+                  ประเภทเอกสาร <RequiredMark />
+                </span>
+                <SegmentedRadio
+                  value={type}
+                  onValueChange={setType}
+                  options={TYPE_OPTIONS}
+                  labelledBy="doc-type-label"
+                  pillId="doc-type-pill"
+                  className="grid-cols-2 sm:grid-cols-4"
+                />
+              </div>
+
+              {(type === 'INVOICE' || type === 'BILLING_NOTE' || type === 'RECEIPT') && (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {(type === 'INVOICE' || type === 'BILLING_NOTE') && (
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="doc-due-date">กำหนดชำระ</Label>
+                      <DatePickerField
+                        id="doc-due-date"
+                        value={dueDate}
+                        onChange={setDueDate}
+                        placeholder="เลือกกำหนดชำระ"
+                      />
+                    </div>
+                  )}
+                  {type === 'RECEIPT' && (
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="doc-paid-date">วันที่ชำระ</Label>
+                      <DatePickerField
+                        id="doc-paid-date"
+                        value={paidDate}
+                        onChange={setPaidDate}
+                        placeholder="เลือกวันที่ชำระ"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {type === 'INVOICE' && (
+                <div className="border-border flex min-h-14 items-center justify-between gap-4 rounded-[14px] border bg-white px-3.5 py-2.5 dark:bg-white/5">
+                  <label htmlFor="include-vat" className="flex cursor-pointer flex-col gap-0.5">
+                    <span className="text-sm font-medium">รวม VAT 7%</span>
+                    <span className="text-text-secondary text-xs">คำนวณภาษีจากยอดรวมรายการ</span>
+                  </label>
+                  <Switch id="include-vat" checked={includeVat} onCheckedChange={setIncludeVat} />
+                </div>
+              )}
+
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="doc-note">หมายเหตุ (ถ้ามี)</Label>
+                <Textarea
+                  id="doc-note"
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  rows={2}
+                  placeholder="เช่น เงื่อนไขการชำระเงิน เลขบัญชี"
+                />
+              </div>
+            </fieldset>
+
+            {/* Line Items */}
+            <fieldset className="m-0 flex min-w-0 flex-col gap-3.5 border-0 p-0">
+              <legend className="mb-3.5 p-0 text-[15px] font-semibold">รายการในเอกสาร</legend>
+              <DocumentItemsEditor items={items} onItemsChange={setItems} showTotal={false} />
+            </fieldset>
+          </div>
+
+          <DocumentSummaryAside
+            subtotal={total}
+            withVat={withVat}
+            typeLabel={DOCUMENT_TYPE_LABELS[type]}
+            customerName={customer.name}
+          />
+        </div>
+      </div>
+
+      <footer className="border-border bg-muted/40 flex flex-col gap-3 border-t px-6 py-4 max-sm:pb-[max(1rem,env(safe-area-inset-bottom))] sm:flex-row sm:items-center sm:justify-between dark:bg-white/5">
+        <span className="text-text-secondary text-xs">
+          {isValid ? (
+            <>
+              <RequiredMark /> จำเป็นต้องกรอก
+            </>
+          ) : (
+            'กรอกชื่อลูกค้าและรายละเอียดของทุกรายการก่อนสร้างเอกสาร'
+          )}
+        </span>
+        <div className="flex flex-col-reverse gap-2.5 sm:flex-row">
+          {onCancel && (
+            <Button variant="outline" onClick={onCancel} disabled={isBusy}>
+              ยกเลิก
+            </Button>
+          )}
+          <Button onClick={handleGenerate} disabled={isBusy || !isValid}>
+            {generateMutation.isPending ? (
+              <Loader2 aria-hidden className="animate-spin" />
+            ) : (
+              <FileText aria-hidden />
             )}
-
-            {(type === 'INVOICE' || type === 'BILLING_NOTE') && (
-              <Field>
-                <Label>กำหนดชำระ</Label>
-                <DatePickerField value={dueDate} onChange={setDueDate} placeholder="เลือกกำหนดชำระ" />
-              </Field>
+            {generateMutation.isPending
+              ? 'กำลังสร้าง PDF...'
+              : `สร้าง PDF (${DOCUMENT_TYPE_LABELS[type]})`}
+            {!generateMutation.isPending && displayTotal > 0 && (
+              <span className="tabular-nums">· {formatMoney(displayTotal)} บาท</span>
             )}
-
-            {type === 'RECEIPT' && (
-              <Field>
-                <Label>วันที่ชำระ</Label>
-                <DatePickerField value={paidDate} onChange={setPaidDate} placeholder="เลือกวันที่ชำระ" />
-              </Field>
-            )}
-
-            <Field>
-              <Label>หมายเหตุ (ถ้ามี)</Label>
-              <Textarea
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                rows={2}
-                placeholder="หมายเหตุเพิ่มเติม..."
-              />
-            </Field>
-          </FieldGroup>
-        </CardContent>
-      </Card>
-
-      {/* Line Items */}
-      <Card>
-        <CardHeader>
-          <CardTitle>รายการในเอกสาร</CardTitle>
-          <CardDescription>เพิ่ม / แก้ไขรายการสินค้าหรือบริการในเอกสาร</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <DocumentItemsEditor items={items} onItemsChange={setItems} />
-        </CardContent>
-      </Card>
-
-      {/* Generate Button */}
-      <Button
-        onClick={handleGenerate}
-        disabled={generateMutation.isPending || updateCustomerMutation.isPending || !isValid}
-        size="lg"
-        className="bg-info text-info-foreground hover:bg-info/90 w-full"
-      >
-        {generateMutation.isPending ? (
-          <Loader2 className="mr-2 size-4 animate-spin" />
-        ) : (
-          <FileText className="mr-2 size-4" />
-        )}
-        สร้าง PDF ({DOCUMENT_TYPE_LABELS[type]})
-        {displayTotal > 0 && (
-          <span className="ml-2">
-            · {displayTotal.toLocaleString('th-TH', { minimumFractionDigits: 2 })} บาท
-            {type === 'INVOICE' && includeVat && ' (รวม VAT)'}
-          </span>
-        )}
-      </Button>
+          </Button>
+        </div>
+      </footer>
 
       <CustomerSyncDialog
         open={syncPromptOpen}

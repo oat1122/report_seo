@@ -5,7 +5,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { CalendarDays, ChevronDown, ChevronRight, ChevronUp } from 'lucide-react'
 import type { CalendarEvent } from '@schedule-x/calendar'
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardAction, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import type { CalendarItemLookup } from './calendar/calendar-event-transforms'
@@ -41,7 +41,7 @@ function dateLabel(date: Temporal.PlainDate, today: Temporal.PlainDate): string 
 }
 
 function dotClass(date: Temporal.PlainDate, today: Temporal.PlainDate): string {
-  return Temporal.PlainDate.compare(date, today) === 0 ? 'bg-info' : 'bg-secondary'
+  return Temporal.PlainDate.compare(date, today) === 0 ? 'bg-neon-pink' : 'bg-info-strong'
 }
 
 function selectRows(events: CalendarEvent[], today: Temporal.PlainDate): AgendaRow[] {
@@ -80,32 +80,42 @@ export function CustomerAgendaPanel({
   const toggle = (id: string) => setOpen((s) => ({ ...s, [id]: !s[id] }))
 
   return (
-    <Card className="rounded-2xl">
-      <CardHeader className="border-b">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <CalendarDays className="text-info size-5" />
-          กำหนดการ &amp; งานใกล้ถึง
-        </CardTitle>
+    <Card>
+      <CardHeader>
+        <div className="flex min-w-0 items-center gap-3">
+          <span
+            aria-hidden
+            className="bg-info-subtle text-info-strong flex size-10 shrink-0 items-center justify-center rounded-xl"
+          >
+            <CalendarDays className="size-5" />
+          </span>
+          <div className="flex min-w-0 flex-col gap-1">
+            <h2 className="text-[17px] leading-snug font-semibold">กำหนดการ &amp; งานใกล้ถึง</h2>
+            <CardDescription>งานและรอบชำระเงินที่กำลังจะมาถึง</CardDescription>
+          </div>
+        </div>
         <CardAction>
           <Link
             href={`/customer/${userId}/work-progress`}
-            className="text-info flex items-center gap-1 text-xs font-medium hover:underline"
+            className="hover:text-info-strong focus-visible:ring-ring/60 inline-flex min-h-11 items-center gap-1 rounded-lg px-1 text-[13px] font-medium outline-none focus-visible:ring-3 md:min-h-8"
           >
             เปิดปฏิทินเต็ม
-            <ChevronRight className="size-3" />
+            <ChevronRight aria-hidden className="size-4" />
           </Link>
         </CardAction>
       </CardHeader>
 
-      <CardContent className="px-5 py-1">
+      <CardContent className="px-4 md:px-5">
         {isLoading ? (
           <div className="flex flex-col gap-3 py-3">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-12 w-full rounded-xl" />
+            <Skeleton className="h-12 w-full rounded-xl" />
+            <Skeleton className="h-12 w-full rounded-xl" />
           </div>
         ) : rows.length === 0 ? (
-          <p className="text-muted-foreground py-6 text-center text-sm">ไม่มีกำหนดการที่ใกล้ถึง</p>
+          <p className="bg-glass-tile text-text-secondary rounded-[14px] px-4 py-6 text-center text-sm">
+            ไม่มีกำหนดการที่ใกล้ถึง — งานใหม่จะแสดงที่นี่เมื่อทีมวางแผนไว้
+          </p>
         ) : (
           rows.map((row) => {
             const item = row.isPayment ? null : itemLookup.get(row.id)
@@ -119,11 +129,16 @@ export function CustomerAgendaPanel({
                 : ''
 
             return (
-              <div key={row.id} className="border-b last:border-b-0">
+              <div key={row.id} className="border-border border-b last:border-b-0">
                 <div
-                  className={cn('flex items-center gap-3 py-3', canExpand && 'cursor-pointer')}
+                  className={cn(
+                    'flex min-h-14 items-center gap-3 rounded-xl py-2.5 outline-none',
+                    canExpand &&
+                      'hover:bg-glass-tile focus-visible:ring-ring/60 -mx-2 cursor-pointer px-2 focus-visible:ring-3',
+                  )}
                   role={canExpand ? 'button' : undefined}
                   tabIndex={canExpand ? 0 : undefined}
+                  aria-expanded={canExpand ? isOpen : undefined}
                   onClick={canExpand ? () => toggle(row.id) : undefined}
                   onKeyDown={
                     canExpand
@@ -137,23 +152,26 @@ export function CustomerAgendaPanel({
                   }
                 >
                   <div className="w-12 shrink-0 text-center">
-                    <div className="text-muted-foreground text-[11px]">
+                    <div className="text-text-secondary text-[11px]">
                       {dateLabel(row.date, today)}
                     </div>
                     <div className="text-lg leading-tight font-bold tabular-nums">
                       {row.date.day}
                     </div>
                   </div>
-                  <span className={cn('size-2 shrink-0 rounded-full', dotClass(row.date, today))} />
+                  <span
+                    aria-hidden
+                    className={cn('size-2 shrink-0 rounded-full', dotClass(row.date, today))}
+                  />
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-medium">{row.title}</div>
-                    {subtitle && <div className="text-muted-foreground text-xs">{subtitle}</div>}
+                    {subtitle && <div className="text-text-secondary text-xs">{subtitle}</div>}
                   </div>
                   {canExpand ? (
                     isOpen ? (
-                      <ChevronUp className="text-muted-foreground size-4 shrink-0" />
+                      <ChevronUp aria-hidden className="text-text-secondary size-4 shrink-0" />
                     ) : (
-                      <ChevronDown className="text-muted-foreground/60 size-4 shrink-0" />
+                      <ChevronDown aria-hidden className="text-text-secondary size-4 shrink-0" />
                     )
                   ) : (
                     <span className="size-4 shrink-0" />
@@ -167,13 +185,13 @@ export function CustomerAgendaPanel({
                         <span
                           className={cn(
                             'size-3.5 shrink-0 rounded-[4px] border',
-                            sub.isDone ? 'bg-secondary border-secondary' : 'border-input',
+                            sub.isDone ? 'bg-secondary border-secondary' : 'border-border',
                           )}
                         />
                         <span
                           className={cn(
                             'text-[13px]',
-                            sub.isDone ? 'text-muted-foreground line-through' : 'text-foreground',
+                            sub.isDone ? 'text-text-secondary line-through' : 'text-foreground',
                           )}
                         >
                           {sub.title}

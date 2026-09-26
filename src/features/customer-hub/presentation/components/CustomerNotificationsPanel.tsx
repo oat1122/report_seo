@@ -2,14 +2,7 @@
 
 import { useState } from 'react'
 import { Bell, CheckCheck, Settings } from 'lucide-react'
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardAction,
-  CardContent,
-  CardFooter,
-} from '@/components/ui/card'
+import { Card, CardHeader, CardAction, CardContent, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { NotificationCenter } from '@/features/notifications/presentation/components/NotificationCenter'
@@ -26,26 +19,34 @@ export function CustomerNotificationsPanel() {
 
   return (
     <>
-      <Card className="flex flex-col overflow-hidden rounded-2xl">
+      <Card className="flex flex-col pb-0">
         <CardHeader className="border-b">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Bell className="size-4" />
-            การแจ้งเตือน
-            {unreadCount != null && unreadCount > 0 && (
-              <Badge variant="destructive" className="text-xs">
-                {unreadCount > 99 ? '99+' : unreadCount}
-              </Badge>
-            )}
-          </CardTitle>
+          <div className="flex min-w-0 items-center gap-3">
+            <span
+              aria-hidden
+              className="bg-info-subtle text-info-strong flex size-10 shrink-0 items-center justify-center rounded-xl"
+            >
+              <Bell className="size-5" />
+            </span>
+            <h2 className="flex items-center gap-2 text-[17px] leading-snug font-semibold">
+              การแจ้งเตือน
+              {unreadCount != null && unreadCount > 0 && (
+                <Badge variant="danger" className="tabular-nums">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                  <span className="sr-only">รายการที่ยังไม่อ่าน</span>
+                </Badge>
+              )}
+            </h2>
+          </div>
           <CardAction>
             <Button
               variant="ghost"
               size="sm"
-              className="h-auto px-2 py-1 text-xs"
               onClick={() => markAllAsRead.mutate()}
               disabled={markAllAsRead.isPending}
+              className="min-h-11 md:min-h-9"
             >
-              <CheckCheck className="mr-1 size-3.5" />
+              <CheckCheck aria-hidden />
               อ่านทั้งหมด
             </Button>
           </CardAction>
@@ -58,14 +59,14 @@ export function CustomerNotificationsPanel() {
             hideFooter
           />
         </CardContent>
-        <CardFooter className="justify-center border-t px-4 py-2">
+        <CardFooter className="justify-center px-4 py-2">
           <Button
             variant="ghost"
             size="sm"
-            className="text-muted-foreground w-full text-xs"
+            className="text-text-secondary min-h-11 w-full md:min-h-9"
             onClick={() => setPrefOpen(true)}
           >
-            <Settings className="mr-1 size-3.5" />
+            <Settings aria-hidden />
             ตั้งค่าการแจ้งเตือน
           </Button>
         </CardFooter>

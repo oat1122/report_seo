@@ -1,46 +1,36 @@
 'use client'
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Reveal } from '@/components/motion'
 import { PaymentPlanList } from './PaymentPlanList'
 import { BillingCycleTable } from './BillingCycleTable'
 import { ContractFileUpload } from './ContractFileUpload'
 import { ProofReviewList } from './ProofReviewList'
-import { DocumentList } from '@/features/billing-documents/presentation/components/admin/DocumentList'
+import { RecentDocumentsCard } from './RecentDocumentsCard'
 
 interface PaymentDashboardProps {
   customerId: string
 }
 
+/**
+ * Workspace — การชำระเงิน: แผน → ตารางรอบจ่ายเงิน (2fr) + หลักฐาน/สัญญา/เอกสาร (1fr)
+ * ตัวจัดการเอกสารเต็มอยู่หน้า /documents (สลับด้วย PaymentSectionSwitch)
+ */
 export function PaymentDashboard({ customerId }: PaymentDashboardProps) {
   return (
-    <Tabs defaultValue="plans" className="w-full">
-      <TabsList className="grid w-full grid-cols-5">
-        <TabsTrigger value="plans">แผนชำระเงิน</TabsTrigger>
-        <TabsTrigger value="cycles">รอบจ่ายเงิน</TabsTrigger>
-        <TabsTrigger value="contracts">ไฟล์สัญญา</TabsTrigger>
-        <TabsTrigger value="proofs">หลักฐานการโอน</TabsTrigger>
-        <TabsTrigger value="documents">เอกสาร</TabsTrigger>
-      </TabsList>
+    <div className="flex flex-col gap-5">
+      <PaymentPlanList customerId={customerId} />
 
-      <TabsContent value="plans" className="mt-6">
-        <PaymentPlanList customerId={customerId} />
-      </TabsContent>
+      <div className="grid items-start gap-[18px] xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <Reveal className="min-w-0">
+          <BillingCycleTable customerId={customerId} />
+        </Reveal>
 
-      <TabsContent value="cycles" className="mt-6">
-        <BillingCycleTable customerId={customerId} />
-      </TabsContent>
-
-      <TabsContent value="contracts" className="mt-6">
-        <ContractFileUpload customerId={customerId} />
-      </TabsContent>
-
-      <TabsContent value="proofs" className="mt-6">
-        <ProofReviewList customerId={customerId} />
-      </TabsContent>
-
-      <TabsContent value="documents" className="mt-6">
-        <DocumentList customerId={customerId} />
-      </TabsContent>
-    </Tabs>
+        <Reveal delay={0.08} className="flex min-w-0 flex-col gap-[18px]">
+          <ProofReviewList customerId={customerId} />
+          <ContractFileUpload customerId={customerId} />
+          <RecentDocumentsCard customerId={customerId} />
+        </Reveal>
+      </div>
+    </div>
   )
 }

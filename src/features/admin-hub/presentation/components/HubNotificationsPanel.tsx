@@ -1,15 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Bell, CheckCheck, Settings } from 'lucide-react'
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardAction,
-  CardContent,
-  CardFooter,
-} from '@/components/ui/card'
+import { CheckCheck, Loader2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { NotificationCenter } from '@/features/notifications/presentation/components/NotificationCenter'
@@ -24,52 +16,48 @@ export function HubNotificationsPanel() {
   const markAllAsRead = useMarkAllAsRead()
   const [prefOpen, setPrefOpen] = useState(false)
 
+  const hasUnread = unreadCount != null && unreadCount > 0
+
   return (
     <>
-      <Card className="flex flex-col overflow-hidden">
-        <CardHeader className="border-b">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Bell className="size-4" />
+      <section
+        aria-labelledby="hub-notifications"
+        className="border-glass-border bg-glass-card shadow-card flex min-w-0 flex-col gap-3 rounded-[20px] border p-4 backdrop-blur-[14px] sm:gap-4 sm:p-5"
+      >
+        <div className="flex items-center justify-between gap-3">
+          <h2 id="hub-notifications" className="text-base font-semibold sm:text-[17px]">
             การแจ้งเตือน
-            {unreadCount != null && unreadCount > 0 && (
-              <Badge variant="destructive" className="text-xs">
-                {unreadCount > 99 ? '99+' : unreadCount}
+          </h2>
+          <div className="flex items-center gap-1.5">
+            {hasUnread && (
+              <Badge variant="info" className="tabular-nums">
+                <span data-dot className="bg-neon-pink" />
+                {unreadCount > 99 ? '99+' : unreadCount} ใหม่
               </Badge>
             )}
-          </CardTitle>
-          <CardAction>
             <Button
               variant="ghost"
               size="sm"
-              className="h-auto px-2 py-1 text-xs"
               onClick={() => markAllAsRead.mutate()}
               disabled={markAllAsRead.isPending}
             >
-              <CheckCheck className="mr-1 size-3.5" />
+              {markAllAsRead.isPending ? (
+                <Loader2 aria-hidden className="animate-spin" />
+              ) : (
+                <CheckCheck aria-hidden />
+              )}
               อ่านทั้งหมด
             </Button>
-          </CardAction>
-        </CardHeader>
-        <CardContent className="max-h-[600px] overflow-y-auto p-0">
-          <NotificationCenter
-            onOpenPreferences={() => setPrefOpen(true)}
-            className="w-full"
-            hideHeader
-            hideFooter
-          />
-        </CardContent>
-        <CardFooter className="justify-center border-t px-4 py-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-muted-foreground w-full text-xs"
-            onClick={() => setPrefOpen(true)}
-          >
-            <Settings className="mr-1 size-3.5" />
-            ตั้งค่าการแจ้งเตือน
-          </Button>
-        </CardFooter>
-      </Card>
+          </div>
+        </div>
+
+        <NotificationCenter
+          onOpenPreferences={() => setPrefOpen(true)}
+          className="w-full"
+          listClassName="max-h-[560px]"
+          hideHeader
+        />
+      </section>
 
       <NotificationPreferencesDialog open={prefOpen} onOpenChange={setPrefOpen} />
     </>

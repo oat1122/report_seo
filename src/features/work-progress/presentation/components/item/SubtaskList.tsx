@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
+import { AnimatePresence, motion } from '@/components/motion'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
 import { useAddSubtask, useDeleteSubtask, useToggleSubtask } from '../../hooks/useSubtaskActions'
 import type { WorkProgressSubtask } from '@/features/work-progress'
 
@@ -37,60 +39,80 @@ export function SubtaskList({ userId, planId, itemId, subtasks, readOnly }: Subt
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2.5">
       {sorted.length === 0 ? (
-        <p className="text-muted-foreground text-xs">ยังไม่มีงานย่อย</p>
+        <p className="text-text-secondary text-[13px]">
+          {readOnly
+            ? 'ยังไม่มีงานย่อย'
+            : 'ยังไม่มีงานย่อย — เพิ่มขั้นตอนย่อยเพื่อคำนวณ % อัตโนมัติ'}
+        </p>
       ) : (
-        <ul className="flex flex-col gap-1">
-          {sorted.map((s) => (
-            <li
-              key={s.id}
-              className="border-border flex items-center gap-2 rounded-md border px-2 py-1.5"
-            >
-              <Checkbox
-                checked={s.isDone}
-                disabled={readOnly || toggleMut.isPending}
-                onCheckedChange={() =>
-                  toggleMut.mutate({
-                    userId,
-                    planId,
-                    itemId,
-                    subtaskId: s.id,
-                  })
-                }
-              />
-              <span
-                className={
-                  s.isDone ? 'text-muted-foreground flex-1 text-sm line-through' : 'flex-1 text-sm'
-                }
+        <ul className="flex flex-col gap-1.5">
+          <AnimatePresence initial={false}>
+            {sorted.map((s) => (
+              <motion.li
+                key={s.id}
+                layout
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="bg-muted/70 flex min-h-11 items-center gap-2.5 rounded-[12px] px-3 py-1.5"
               >
-                {s.title}
-              </span>
-              {!readOnly && (
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={() =>
-                    deleteMut.mutate({
+                <Checkbox
+                  id={`st-${s.id}`}
+                  checked={s.isDone}
+                  disabled={readOnly || toggleMut.isPending}
+                  onCheckedChange={() =>
+                    toggleMut.mutate({
                       userId,
                       planId,
                       itemId,
                       subtaskId: s.id,
                     })
                   }
-                  aria-label="ลบ"
+                />
+                <label
+                  htmlFor={`st-${s.id}`}
+                  className={cn(
+                    'flex-1 text-sm',
+                    s.isDone && 'text-text-secondary line-through',
+                    !readOnly && 'cursor-pointer',
+                  )}
                 >
-                  <Trash2 className="size-3.5" />
-                </Button>
-              )}
-            </li>
-          ))}
+                  {s.title}
+                </label>
+                {!readOnly && (
+                  <Button
+                    size="icon-sm"
+                    variant="ghost"
+                    className="text-muted-foreground hover:text-danger-strong"
+                    onClick={() =>
+                      deleteMut.mutate({
+                        userId,
+                        planId,
+                        itemId,
+                        subtaskId: s.id,
+                      })
+                    }
+                    aria-label={`ลบงานย่อย ${s.title}`}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                )}
+              </motion.li>
+            ))}
+          </AnimatePresence>
         </ul>
       )}
 
       {!readOnly && (
         <div className="flex gap-2">
+          <label htmlFor={`st-new-${itemId}`} className="sr-only">
+            ชื่องานย่อยใหม่
+          </label>
           <Input
+            id={`st-new-${itemId}`}
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
             onKeyDown={(e) => {
@@ -99,15 +121,16 @@ export function SubtaskList({ userId, planId, itemId, subtasks, readOnly }: Subt
                 handleAdd()
               }
             }}
-            placeholder="เพิ่มงานย่อย..."
+            placeholder="เพิ่มงานย่อย แล้วกด Enter"
             maxLength={500}
-            className="h-8"
           />
           <Button
             type="button"
-            size="sm"
+            variant="soft"
+            size="icon"
             onClick={handleAdd}
             disabled={!newTitle.trim() || addMut.isPending}
+            aria-label="เพิ่มงานย่อย"
           >
             <Plus className="size-4" />
           </Button>

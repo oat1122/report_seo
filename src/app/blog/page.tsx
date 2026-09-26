@@ -11,10 +11,10 @@ export default async function BlogWriterHomePage() {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8">
-        <header className="flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold tracking-tight">ลูกค้าที่ดูแล</h1>
-          <p className="text-muted-foreground text-sm">
+      <div className="flex flex-col gap-5">
+        <header className="flex flex-col gap-1.5">
+          <h1 className="text-[26px] leading-tight font-semibold sm:text-[28px]">ลูกค้าที่ดูแล</h1>
+          <p className="text-text-secondary max-w-2xl text-sm leading-relaxed">
             เลือกลูกค้าเพื่อดู keyword และจัดการแผนบทความรายเดือน
           </p>
         </header>

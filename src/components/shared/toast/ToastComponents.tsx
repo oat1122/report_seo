@@ -1,20 +1,48 @@
-import { CheckCircle2, CircleAlert, Loader2 } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { Check, Loader2, X } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
-const ToastContent = ({ icon, message }: { icon: React.ReactNode; message: string }) => (
+// เนื้อหา toast (UI Kit Toast): วงกลมไอคอน 28px + ข้อความ 14px
+const ToastContent = ({
+  icon,
+  tone,
+  message,
+}: {
+  icon: ReactNode
+  tone: string
+  message: string
+}) => (
   <div className="flex items-center gap-3">
-    {icon}
-    <p className="text-sm">{message}</p>
+    <span
+      aria-hidden
+      className={cn('flex size-7 shrink-0 items-center justify-center rounded-full', tone)}
+    >
+      {icon}
+    </span>
+    <p className="text-sm leading-snug">{message}</p>
   </div>
 )
 
 export const PendingToast = ({ message }: { message: string }) => (
-  <ToastContent icon={<Loader2 className="size-5 animate-spin" />} message={message} />
+  <ToastContent
+    tone="bg-info-subtle text-info-strong"
+    icon={<Loader2 className="size-4 animate-spin" />}
+    message={message}
+  />
 )
 
 export const SuccessToast = ({ message }: { message: string }) => (
-  <ToastContent icon={<CheckCircle2 className="text-success size-5" />} message={message} />
+  <ToastContent
+    tone="bg-secondary text-secondary-foreground"
+    icon={<Check className="size-4" strokeWidth={2.5} />}
+    message={message}
+  />
 )
 
 export const ErrorToast = ({ message }: { message: string }) => (
-  <ToastContent icon={<CircleAlert className="text-destructive size-5" />} message={message} />
+  <ToastContent
+    tone="bg-danger-subtle text-danger-strong"
+    icon={<X className="size-4" strokeWidth={2.5} />}
+    message={message}
+  />
 )

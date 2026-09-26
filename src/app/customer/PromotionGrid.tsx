@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { Gem, Rocket, Sparkles, ZoomIn } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { motion } from '@/components/motion'
 import { cn } from '@/lib/utils'
 import { PromotionImageDialog } from './PromotionImageDialog'
 
@@ -21,37 +22,11 @@ interface PromotionItem {
   recommended?: boolean
 }
 
-const accentClass: Record<
-  Accent,
-  {
-    bar: string
-    badgeBg: string
-    badgeText: string
-    title: string
-    hoverBorder: string
-  }
-> = {
-  info: {
-    bar: 'bg-info',
-    badgeBg: 'bg-info',
-    badgeText: 'text-info-foreground',
-    title: 'text-info',
-    hoverBorder: 'hover:border-info focus-within:border-info',
-  },
-  secondary: {
-    bar: 'bg-secondary',
-    badgeBg: 'bg-secondary',
-    badgeText: 'text-secondary-foreground',
-    title: 'text-success',
-    hoverBorder: 'hover:border-secondary focus-within:border-secondary',
-  },
-  primary: {
-    bar: 'bg-primary',
-    badgeBg: 'bg-primary',
-    badgeText: 'text-primary-foreground',
-    title: 'text-primary',
-    hoverBorder: 'hover:border-primary focus-within:border-primary',
-  },
+// แถบสีบน + ป้ายมุมขวา (ตัวอักษรบนพื้นผ่านเกณฑ์ contrast ทั้งสองธีม)
+const accentClass: Record<Accent, { bar: string; badge: string }> = {
+  info: { bar: 'bg-info-strong', badge: 'bg-info-subtle text-foreground' },
+  secondary: { bar: 'bg-secondary', badge: 'bg-secondary text-secondary-foreground' },
+  primary: { bar: 'bg-primary', badge: 'bg-primary text-primary-foreground' },
 }
 
 const PROMOTIONS: PromotionItem[] = [
@@ -59,7 +34,7 @@ const PROMOTIONS: PromotionItem[] = [
     src: '/img/Promotion/Basic.png',
     alt: 'Basic Promotion - แพ็กเกจสำหรับผู้เริ่มต้น',
     badge: 'BASIC',
-    badgeIcon: <Gem className="size-4" />,
+    badgeIcon: <Gem aria-hidden />,
     accent: 'info',
     title: 'แพ็กเกจเริ่มต้น',
     description: 'เหมาะสำหรับธุรกิจขนาดเล็กที่ต้องการเริ่มต้นทำ SEO',
@@ -68,7 +43,7 @@ const PROMOTIONS: PromotionItem[] = [
     src: '/img/Promotion/Business_Pro.png',
     alt: 'Business Pro Promotion - แพ็กเกจสำหรับธุรกิจ',
     badge: 'PRO',
-    badgeIcon: <Rocket className="size-4" />,
+    badgeIcon: <Rocket aria-hidden />,
     accent: 'secondary',
     title: 'แพ็กเกจมืออาชีพ',
     description: 'สำหรับธุรกิจที่ต้องการผลลัพธ์ SEO ที่เห็นผลชัดเจน',
@@ -78,7 +53,7 @@ const PROMOTIONS: PromotionItem[] = [
     src: '/img/Promotion/Special_number.png',
     alt: 'Special Number Promotion - แพ็กเกจพิเศษ',
     badge: 'SPECIAL',
-    badgeIcon: <Sparkles className="size-4" />,
+    badgeIcon: <Sparkles aria-hidden />,
     accent: 'primary',
     title: 'แพ็กเกจพิเศษ',
     description: 'แพ็กเกจสุดพิเศษที่ออกแบบมาเพื่อคุณโดยเฉพาะ',
@@ -89,57 +64,48 @@ function PromotionCard({ item, onOpen }: { item: PromotionItem; onOpen: () => vo
   const a = accentClass[item.accent]
 
   return (
-    <Card
-      className={cn(
-        'group relative overflow-hidden rounded-2xl border-2 transition-shadow',
-        a.hoverBorder,
-      )}
-    >
-      <span className={cn('absolute inset-x-0 top-0 z-10 h-1', a.bar)} />
-      <button
-        type="button"
-        onClick={onOpen}
-        aria-label={`ขยายรูปโปรโมชัน ${item.title}`}
-        className="block w-full"
-      >
-        <div className="relative aspect-[5/3] overflow-hidden">
-          <Badge
-            className={cn(
-              'absolute top-3 right-3 z-10 gap-1 px-3 py-1 font-bold shadow-md',
-              a.badgeBg,
-              a.badgeText,
-            )}
-          >
-            {item.badgeIcon}
-            {item.badge}
-          </Badge>
-
-          {item.recommended && (
-            <Badge className="bg-secondary text-secondary-foreground absolute top-3 left-3 z-10 animate-pulse px-2 py-1 text-xs font-extrabold">
-              แนะนำ
+    <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }} className="h-full">
+      <Card className="group relative h-full gap-0 py-0">
+        <span aria-hidden className={cn('absolute inset-x-0 top-0 z-10 h-1', a.bar)} />
+        <button
+          type="button"
+          onClick={onOpen}
+          aria-label={`ขยายรูปโปรโมชัน ${item.title}`}
+          className="focus-visible:ring-ring/70 block w-full outline-none focus-visible:ring-[3px] focus-visible:ring-inset"
+        >
+          <div className="relative aspect-[5/3] overflow-hidden">
+            <Badge className={cn('absolute top-3 right-3 z-10 font-semibold shadow-sm', a.badge)}>
+              {item.badgeIcon}
+              {item.badge}
             </Badge>
-          )}
 
-          {/* Zoom overlay on hover */}
-          <div className="bg-foreground/55 pointer-events-none absolute top-1/2 left-1/2 z-10 flex size-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full opacity-0 transition-opacity group-hover:opacity-100">
-            <ZoomIn className="text-background size-7" />
+            {item.recommended && (
+              <Badge className="bg-secondary text-secondary-foreground absolute top-3 left-3 z-10 font-semibold shadow-sm">
+                แนะนำ
+              </Badge>
+            )}
+
+            {/* Zoom hint on hover / keyboard focus */}
+            <div className="bg-foreground/55 pointer-events-none absolute top-1/2 left-1/2 z-10 flex size-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
+              <ZoomIn aria-hidden className="text-background size-7" />
+            </div>
+
+            <Image
+              src={item.src}
+              alt={item.alt}
+              fill
+              sizes="(max-width: 600px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              className="object-cover"
+            />
           </div>
+        </button>
 
-          <Image
-            src={item.src}
-            alt={item.alt}
-            fill
-            sizes="(max-width: 600px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="object-cover"
-          />
-        </div>
-      </button>
-
-      <CardContent className="p-5">
-        <h3 className={cn('mb-1 text-lg font-bold', a.title)}>{item.title}</h3>
-        <p className="text-muted-foreground text-sm leading-relaxed">{item.description}</p>
-      </CardContent>
-    </Card>
+        <CardContent className="flex flex-col gap-1 py-5">
+          <h3 className="text-[17px] font-semibold">{item.title}</h3>
+          <p className="text-text-secondary text-sm leading-relaxed">{item.description}</p>
+        </CardContent>
+      </Card>
+    </motion.div>
   )
 }
 
@@ -148,7 +114,7 @@ export default function PromotionGrid() {
 
   return (
     <>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 md:gap-[18px] lg:grid-cols-3">
         {PROMOTIONS.map((promo) => (
           <PromotionCard key={promo.src} item={promo} onOpen={() => setOpenImage(promo.src)} />
         ))}
