@@ -28,6 +28,17 @@ export interface WorkProgressPlan {
   updatedAt: Date
 }
 
+// การ์ดในหน้ารายการแผน — คำนวณฝั่ง server ใน query เดียว แทนการโหลด detail ทีละแผน
+export interface PlanProgressSummary {
+  overall: number
+  total: number
+  completed: number
+}
+
+export interface WorkProgressPlanListItem extends WorkProgressPlan {
+  progress: PlanProgressSummary
+}
+
 // Detail view สำหรับ getPlanDetail use case — รวม nested rows ที่ UI ต้องใช้
 export interface WorkProgressPlanDetail extends WorkProgressPlan {
   periods: WorkProgressPeriod[]

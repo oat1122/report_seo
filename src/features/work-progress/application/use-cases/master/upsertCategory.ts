@@ -1,5 +1,6 @@
 import { BadRequestError, NotFoundError } from '@/lib/errors'
 import { updateCategorySchema, upsertCategorySchema } from '../../../schemas'
+import { assertCanDeactivate } from './deactivateMasterRow'
 import type { WorkProgressMasterRepository } from '../../ports/WorkProgressMasterRepository'
 
 export function createCategoryUseCase(masterRepo: WorkProgressMasterRepository) {
@@ -35,6 +36,9 @@ export function updateCategoryUseCase(masterRepo: WorkProgressMasterRepository) 
     }
     const existing = await masterRepo.findCategoryById(id)
     if (!existing) throw new NotFoundError('ไม่พบหมวดหมู่')
+    if (existing.isActive && parsed.data.isActive === false) {
+      await assertCanDeactivate(masterRepo, 'category', existing)
+    }
     return masterRepo.updateCategory(id, parsed.data)
   }
 }

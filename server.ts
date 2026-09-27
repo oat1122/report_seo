@@ -174,6 +174,16 @@ app.prepare().then(() => {
     expressNext()
   })
 
+  // next start สแกน public/ ครั้งเดียวตอน boot → ไฟล์ที่อัปโหลดทีหลังจะ 404 จน restart
+  // เสิร์ฟ /uploads จากดิสก์ตรง ๆ ก่อนส่งต่อให้ Next (ไม่เจอ = fallthrough ไป Next เหมือนเดิม)
+  expressApp.use(
+    '/uploads',
+    express.static(path.join(process.cwd(), 'public', 'uploads'), {
+      index: false,
+      setHeaders: (res) => res.setHeader('X-Content-Type-Options', 'nosniff'),
+    }),
+  )
+
   expressApp.all('*', (req, res) => {
     return handle(req, res)
   })

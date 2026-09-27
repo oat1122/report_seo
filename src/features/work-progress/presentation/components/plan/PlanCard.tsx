@@ -1,6 +1,5 @@
 'use client'
 
-import { useMemo } from 'react'
 import Link from 'next/link'
 import {
   Archive,
@@ -15,7 +14,6 @@ import { AnimatedNumber, GrowBar, motion } from '@/components/motion'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,16 +22,10 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import { PERIOD_LABEL, formatPlanRange } from './planDisplay'
-import { useWorkProgressPlan } from '../../hooks/useWorkProgressPlan'
-import {
-  calcPlanOverallPercent,
-  isItemCompleted,
-} from '@/features/work-progress/domain/policies/progress-calculator'
-import type { WorkProgressPlan } from '@/features/work-progress'
+import type { PlanProgressSummary, WorkProgressPlanListItem } from '@/features/work-progress'
 
 interface PlanCardProps {
-  userId: string
-  plan: WorkProgressPlan
+  plan: WorkProgressPlanListItem
   href: string
   onEdit: () => void
   onArchiveToggle: () => void
@@ -43,7 +35,6 @@ interface PlanCardProps {
 
 // การ์ดแผน: ทั้งใบคลิกไปหน้าแผน (stretched link) · เมนูจัดการอยู่เหนือ link
 export function PlanCard({
-  userId,
   plan,
   href,
   onEdit,
@@ -137,76 +128,45 @@ export function PlanCard({
 
         {plan.note && <p className="text-text-secondary line-clamp-2 text-xs">{plan.note}</p>}
 
-        <PlanCardProgress userId={userId} planId={plan.id} range={range} />
+        <PlanCardProgress stats={plan.progress} range={range} />
       </Card>
     </motion.div>
   )
 }
 
-// ความคืบหน้าของแผน — ใช้ query รายละเอียดแผนเดียวกับหน้าแผน (cache ร่วมกันเมื่อกดเข้าไป)
-function PlanCardProgress({
-  userId,
-  planId,
-  range,
-}: {
-  userId: string
-  planId: string
-  range: string | null
-}) {
-  const { data, isLoading, isError } = useWorkProgressPlan(userId, planId)
-
-  const stats = useMemo(() => {
-    if (!data) return null
-    return {
-      overall: calcPlanOverallPercent(data.items),
-      total: data.items.length,
-      completed: data.items.filter(isItemCompleted).length,
-    }
-  }, [data])
-
+// ความคืบหน้าของแผน — server คำนวณมากับรายการแผน (query เดียว ไม่ต้องโหลด detail ทีละการ์ด)
+function PlanCardProgress({ stats, range }: { stats: PlanProgressSummary; range: string | null }) {
   return (
     <div className="mt-auto flex flex-col gap-3">
       <div className="flex flex-col gap-2">
         <div className="flex items-baseline justify-between gap-2">
           <span className="text-text-secondary text-[13px]">ความคืบหน้ารวม</span>
-          {isLoading ? (
-            <Skeleton className="h-6 w-12" />
-          ) : stats ? (
-            <AnimatedNumber
-              value={stats.overall}
-              format={(n) => `${Math.round(n)}%`}
-              className="text-[22px] leading-none font-semibold tabular-nums"
-            />
-          ) : (
-            <span className="text-text-secondary text-[22px] leading-none font-semibold">—</span>
-          )}
+          <AnimatedNumber
+            value={stats.overall}
+            format={(n) => `${Math.round(n)}%`}
+            className="text-[22px] leading-none font-semibold tabular-nums"
+          />
         </div>
         <div
           role="progressbar"
           aria-label="ความคืบหน้ารวมของแผน"
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-valuenow={stats?.overall}
+          aria-valuenow={stats.overall}
           className="bg-info-subtle h-2.5 overflow-hidden rounded-full"
         >
-          {stats && (
-            <GrowBar
-              value={stats.overall}
-              className={cn(
-                'h-full rounded-full',
-                stats.overall >= 100 ? 'bg-secondary' : 'bg-info-strong',
-              )}
-            />
-          )}
+          <GrowBar
+            value={stats.overall}
+            className={cn(
+              'h-full rounded-full',
+              stats.overall >= 100 ? 'bg-secondary' : 'bg-info-strong',
+            )}
+          />
         </div>
       </div>
       <div className="border-border text-text-secondary flex flex-wrap justify-between gap-x-3 gap-y-1 border-t pt-2.5 text-xs">
         <span className="tabular-nums">
-          {isLoading
-            ? 'กำลังโหลด...'
-            : isError || !stats
-              ? 'โหลดความคืบหน้าไม่สำเร็จ'
-              : `${stats.total.toLocaleString('th-TH')} items · เสร็จ ${stats.completed.toLocaleString('th-TH')}`}
+          {`${stats.total.toLocaleString('th-TH')} items · เสร็จ ${stats.completed.toLocaleString('th-TH')}`}
         </span>
         {range && <span>{range}</span>}
       </div>

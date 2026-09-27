@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ListPlus, Pencil } from 'lucide-react'
+import { ListPlus } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -12,30 +12,19 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import type { FieldErrors } from '../FieldError'
-import type { WorkProgressItemWithMarks } from '@/features/work-progress/domain/WorkProgressPlan'
 import { ItemFormFields } from '../item/ItemFormFields'
-import {
-  EMPTY_ITEM_FORM,
-  itemFormFrom,
-  useSubmitItemForm,
-  type ItemFormState,
-} from '../item/itemForm'
+import { EMPTY_ITEM_FORM, useSubmitItemForm, type ItemFormState } from '../item/itemForm'
 
 interface ItemEditDialogProps {
   userId: string
   planId: string
   open: boolean
   onOpenChange: (open: boolean) => void
-  initial?: WorkProgressItemWithMarks | null
 }
 
-export function ItemEditDialog({
-  userId,
-  planId,
-  open,
-  onOpenChange,
-  initial,
-}: ItemEditDialogProps) {
+// สร้าง item ใหม่เท่านั้น — การแก้ไขอยู่ใน ItemDetailSheet
+
+export function ItemEditDialog({ userId, planId, open, onOpenChange }: ItemEditDialogProps) {
   const { submit, submitting } = useSubmitItemForm(userId, planId)
 
   const [form, setForm] = useState<ItemFormState>(EMPTY_ITEM_FORM)
@@ -44,21 +33,17 @@ export function ItemEditDialog({
   useEffect(() => {
     if (!open) return
     setErrors({})
-    setForm(initial ? itemFormFrom(initial) : EMPTY_ITEM_FORM)
-  }, [open, initial])
-
-  const isEdit = Boolean(initial)
+    setForm(EMPTY_ITEM_FORM)
+  }, [open])
 
   const handleSubmit = async () => {
-    const result = await submit(form, initial)
+    const result = await submit(form, null)
     if (result) {
       setErrors(result)
       return
     }
     onOpenChange(false)
   }
-
-  const Icon = isEdit ? Pencil : ListPlus
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -68,12 +53,10 @@ export function ItemEditDialog({
             aria-hidden
             className="bg-info-subtle text-info-strong flex size-11 shrink-0 items-center justify-center rounded-[14px]"
           >
-            <Icon className="size-5" />
+            <ListPlus className="size-5" />
           </span>
           <div className="flex min-w-0 flex-col gap-1">
-            <DialogTitle className="text-xl font-semibold">
-              {isEdit ? 'แก้ไข item' : 'เพิ่ม item'}
-            </DialogTitle>
+            <DialogTitle className="text-xl font-semibold">เพิ่ม item</DialogTitle>
             <DialogDescription className="text-text-secondary text-[13px]">
               กิจกรรมหนึ่งบรรทัดในแผน — เลือกหมวดและสถานะ
             </DialogDescription>
@@ -85,7 +68,7 @@ export function ItemEditDialog({
           onChange={(patch) => setForm((s) => ({ ...s, ...patch }))}
           errors={errors}
           onClearError={(key) => setErrors((prev) => ({ ...prev, [key]: '' }))}
-          isEdit={isEdit}
+          isEdit={false}
           idPrefix="ie"
         />
 

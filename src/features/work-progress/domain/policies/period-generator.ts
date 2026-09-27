@@ -1,6 +1,6 @@
 import type { PeriodTypeCode } from '../types'
 
-const THAI_MONTHS = [
+export const THAI_MONTHS = [
   'ม.ค.',
   'ก.พ.',
   'มี.ค.',

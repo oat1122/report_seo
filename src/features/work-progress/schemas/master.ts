@@ -7,52 +7,66 @@ const codeSchema = z
 
 const hexColorSchema = z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'color ต้องเป็น hex #rrggbb')
 
-export const upsertCategorySchema = z.object({
+// create ใส่ default ได้ — update ต้อง partial จาก fields ที่ไม่มี default
+// (zod v4 .partial() ยังเติม default ของ field ข้างใน → PATCH {isActive} จะทับ isTerminal/orderIndex เดิม)
+
+const categoryFields = z.object({
   code: codeSchema,
   name: z.string().min(1).max(100),
   description: z.string().max(2000).optional().nullable(),
   color: hexColorSchema.optional().nullable(),
   icon: z.string().max(50).optional().nullable(),
-  orderIndex: z.number().int().min(0).optional().default(0),
-  isActive: z.boolean().optional().default(true),
+  orderIndex: z.number().int().min(0),
+  isActive: z.boolean(),
 })
 
-export const updateCategorySchema = upsertCategorySchema.partial().extend({
-  code: codeSchema.optional(), // อัปเดต code ได้แต่ต้องคง pattern
+export const upsertCategorySchema = categoryFields.extend({
+  orderIndex: categoryFields.shape.orderIndex.default(0),
+  isActive: categoryFields.shape.isActive.default(true),
 })
+
+export const updateCategorySchema = categoryFields.partial()
 
 export type UpsertCategoryInput = z.infer<typeof upsertCategorySchema>
 export type UpdateCategoryInput = z.infer<typeof updateCategorySchema>
 
-export const upsertStatusSchema = z.object({
+const statusFields = z.object({
   code: codeSchema,
   name: z.string().min(1).max(100),
   color: hexColorSchema.optional().nullable(),
-  orderIndex: z.number().int().min(0).optional().default(0),
-  isTerminal: z.boolean().optional().default(false),
-  isDefault: z.boolean().optional().default(false),
-  isActive: z.boolean().optional().default(true),
+  orderIndex: z.number().int().min(0),
+  isTerminal: z.boolean(),
+  isDefault: z.boolean(),
+  isActive: z.boolean(),
 })
 
-export const updateStatusSchema = upsertStatusSchema.partial().extend({
-  code: codeSchema.optional(),
+export const upsertStatusSchema = statusFields.extend({
+  orderIndex: statusFields.shape.orderIndex.default(0),
+  isTerminal: statusFields.shape.isTerminal.default(false),
+  isDefault: statusFields.shape.isDefault.default(false),
+  isActive: statusFields.shape.isActive.default(true),
 })
+
+export const updateStatusSchema = statusFields.partial()
 
 export type UpsertStatusInput = z.infer<typeof upsertStatusSchema>
 export type UpdateStatusInput = z.infer<typeof updateStatusSchema>
 
-export const upsertMarkTypeSchema = z.object({
+const markTypeFields = z.object({
   code: codeSchema,
   name: z.string().min(1).max(100),
   color: hexColorSchema.optional().nullable(),
   icon: z.string().max(50).optional().nullable(),
-  orderIndex: z.number().int().min(0).optional().default(0),
-  isActive: z.boolean().optional().default(true),
+  orderIndex: z.number().int().min(0),
+  isActive: z.boolean(),
 })
 
-export const updateMarkTypeSchema = upsertMarkTypeSchema.partial().extend({
-  code: codeSchema.optional(),
+export const upsertMarkTypeSchema = markTypeFields.extend({
+  orderIndex: markTypeFields.shape.orderIndex.default(0),
+  isActive: markTypeFields.shape.isActive.default(true),
 })
+
+export const updateMarkTypeSchema = markTypeFields.partial()
 
 export type UpsertMarkTypeInput = z.infer<typeof upsertMarkTypeSchema>
 export type UpdateMarkTypeInput = z.infer<typeof updateMarkTypeSchema>

@@ -3,6 +3,13 @@ import type { WorkProgressItem } from '../../domain/WorkProgressItem'
 import type { WorkProgressItemPeriodMark } from '../../domain/WorkProgressItem'
 import type { PeriodSeed } from '../../domain/policies/period-generator'
 
+// field ขั้นต่ำที่ progress-calculator ต้องใช้
+export interface PlanProgressItemRow {
+  weight: number
+  status: { isTerminal: boolean }
+  subtasks: Array<{ isDone: boolean }>
+}
+
 export interface CreatePlanData {
   customerId: string
   title: string
@@ -151,7 +158,7 @@ export interface WorkProgressRepository {
   listByCustomer(
     customerId: string,
     options: { includeArchived: boolean; limit: number },
-  ): Promise<WorkProgressPlan[]>
+  ): Promise<Array<WorkProgressPlan & { items: PlanProgressItemRow[] }>>
   findById(planId: string): Promise<WorkProgressPlan | null>
   findDetail(planId: string): Promise<WorkProgressPlanDetail | null>
   updatePlan(planId: string, data: UpdatePlanData): Promise<WorkProgressPlan>

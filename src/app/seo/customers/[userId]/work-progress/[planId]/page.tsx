@@ -1,4 +1,4 @@
-import { requireStaff } from '@/lib/auth-utils'
+import { requireCustomerPageAccess, requireStaff } from '@/lib/auth-utils'
 import { DashboardLayout } from '@/components/Layout/DashboardLayout'
 import { CustomerWorkspaceHeader } from '@/features/users/presentation/components/workspace/CustomerWorkspaceHeader'
 import { PlanGrid } from '@/features/work-progress/presentation/components/plan/PlanGrid'
@@ -16,6 +16,7 @@ interface PageProps {
 export default async function SeoPlanDetailPage({ params }: PageProps) {
   await requireStaff()
   const { userId, planId } = await params
+  await requireCustomerPageAccess(userId)
   const basePath = `/seo/customers/${userId}/work-progress`
   return (
     <DashboardLayout>

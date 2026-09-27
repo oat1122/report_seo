@@ -14,8 +14,8 @@ const paramsSchema = z.object({
 })
 
 export const GET = withApiHandler({ params: paramsSchema }, async ({ params }) => {
-  await customerAccessGuard({ byUserId: params.customerId }, 'manage')
-  const doc = await getDocument(params.documentId)
+  const ctx = await customerAccessGuard({ byUserId: params.customerId }, 'manage')
+  const doc = await getDocument(params.documentId, ctx.customer.id)
   if (!doc) throw new NotFoundError('ไม่พบเอกสาร')
   return ok(doc)
 })
@@ -33,7 +33,7 @@ export const PATCH = withApiHandler(
 )
 
 export const DELETE = withApiHandler({ params: paramsSchema }, async ({ params }) => {
-  await customerAccessGuard({ byUserId: params.customerId }, 'manage')
-  await deleteDocument(params.documentId)
+  const ctx = await customerAccessGuard({ byUserId: params.customerId }, 'manage')
+  await deleteDocument(params.documentId, ctx.customer.id)
   return noContent()
 })

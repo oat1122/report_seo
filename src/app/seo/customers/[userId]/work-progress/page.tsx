@@ -1,4 +1,4 @@
-import { requireStaff } from '@/lib/auth-utils'
+import { requireCustomerPageAccess, requireStaff } from '@/lib/auth-utils'
 import { DashboardLayout } from '@/components/Layout/DashboardLayout'
 import { CustomerWorkspaceHeader } from '@/features/users/presentation/components/workspace/CustomerWorkspaceHeader'
 import { PlanList } from '@/features/work-progress/presentation/components/plan/PlanList'
@@ -14,6 +14,7 @@ interface PageProps {
 export default async function SeoWorkProgressListPage({ params }: PageProps) {
   await requireStaff()
   const { userId } = await params
+  await requireCustomerPageAccess(userId)
   return (
     <DashboardLayout>
       <div className="flex flex-col gap-5">

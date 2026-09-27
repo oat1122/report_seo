@@ -6,7 +6,7 @@ describe('userCreateSchema', () => {
     const result = userCreateSchema.safeParse({
       name: 'Dev',
       email: 'dev@example.com',
-      password: 'secret123',
+      password: 'secret1234',
       role: 'SEO_DEV',
     })
     expect(result.success).toBe(true)
@@ -38,7 +38,7 @@ describe('userCreateSchema', () => {
     const result = userCreateSchema.safeParse({
       name: 'X',
       email: 'x@example.com',
-      password: 'secret123',
+      password: 'secret1234',
       role: 'CUSTOMER',
       companyName: 'Acme',
       domain: 'acme.com',

@@ -237,6 +237,8 @@ export type {
 
 export type {
   WorkProgressPlan,
+  WorkProgressPlanListItem,
+  PlanProgressSummary,
   WorkProgressPlanDetail,
   WorkProgressItemWithMarks,
   WorkProgressPeriodMarkWithType,

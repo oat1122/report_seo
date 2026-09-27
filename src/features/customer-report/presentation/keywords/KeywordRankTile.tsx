@@ -4,7 +4,8 @@ import { MiniSparkline } from '../components/MiniSparkline'
 import { KeywordEvidenceDialog } from '../components/KeywordEvidenceDialog'
 import { DeltaPill } from './DeltaPill'
 import { KdBadge } from './KdBadge'
-import { BRACKET_STYLE, fmtInt } from './keyword-view'
+import { BRACKET_STYLE } from './keyword-view'
+import { formatNumber } from '../lib/formatters'
 
 // การ์ดราย keyword (md ขึ้นไป) — อันดับใหญ่ + delta + sparkline + traffic/KD
 export const KeywordRankTile = ({ card }: { card: KeywordRankCard }) => {
@@ -54,7 +55,7 @@ export const KeywordRankTile = ({ card }: { card: KeywordRankCard }) => {
       <dl className="border-border/70 mt-auto grid grid-cols-2 gap-2 border-t pt-2.5">
         <div className="flex flex-col gap-0.5">
           <dt className="text-text-secondary text-[11px]">Traffic / เดือน</dt>
-          <dd className="text-sm font-semibold tabular-nums">{fmtInt(card.traffic)}</dd>
+          <dd className="text-sm font-semibold tabular-nums">{formatNumber(card.traffic)}</dd>
         </div>
         <div className="flex flex-col items-start gap-0.5">
           <dt className="text-text-secondary text-[11px]">ความยาก (KD)</dt>

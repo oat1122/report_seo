@@ -1,37 +1,16 @@
-import { NotFoundError } from '@/lib/errors'
+import { BadRequestError, NotFoundError } from '@/lib/errors'
 import type { PaymentRepository } from '../../ports/PaymentRepository'
 
 export function approveRejectProofUseCase(repo: PaymentRepository) {
-  return async (proofId: string, status: 'APPROVED' | 'REJECTED') => {
+  return async (customerId: string, proofId: string, status: 'APPROVED' | 'REJECTED') => {
     const proof = await repo.findProofById(proofId)
-    if (!proof) throw new NotFoundError('ไม่พบหลักฐานการชำระเงิน')
-
-    const updated = await repo.updateProofStatus(proofId, status)
-
-    if (proof.billingCycleId) {
-      const cycle = await repo.findCycleById(proof.billingCycleId)
-
-      if (
-        status === 'APPROVED' &&
-        cycle &&
-        (cycle.status === 'PENDING' || cycle.status === 'REVIEWING')
-      ) {
-        await repo.updateCycle(proof.billingCycleId, {
-          status: 'PAID',
-          paidDate: new Date(),
-        })
-
-        const pendingCount = await repo.countPendingCyclesByPlan(cycle.planId)
-        if (pendingCount === 0) {
-          await repo.completePlan(cycle.planId)
-        }
-      }
-
-      if (status === 'REJECTED' && cycle && cycle.status === 'REVIEWING') {
-        await repo.updateCycle(proof.billingCycleId, { status: 'PENDING' })
-      }
+    if (!proof || proof.customerId !== customerId) {
+      throw new NotFoundError('ไม่พบหลักฐานการชำระเงิน')
     }
-
-    return updated
+    // ตัดสินได้ครั้งเดียว — กัน REJECT หลัง APPROVE แล้ว cycle ค้าง PAID (หรือกลับกัน)
+    // proof + cycle + plan เปลี่ยนใน transaction เดียว: พังกลางทาง = ไม่มีอะไรเปลี่ยน กดใหม่ได้
+    const decided = proof.status === 'PENDING' ? await repo.decideProof(proofId, status) : null
+    if (!decided) throw new BadRequestError('หลักฐานนี้ถูกตรวจสอบไปแล้ว')
+    return decided
   }
 }

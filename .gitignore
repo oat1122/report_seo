@@ -58,3 +58,7 @@ graphify-out/
 /test-results/
 /playwright-report/
 /blob-report/
+
+# DB dumps — ห้าม commit (มีข้อมูลลูกค้า/password hash)
+/Dump/
+*.sql.zip

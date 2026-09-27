@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { withApiHandler, ok, noContent } from '@/infrastructure/http'
-import { ForbiddenError, NotFoundError } from '@/lib/errors'
+import { BadRequestError, ForbiddenError, NotFoundError } from '@/lib/errors'
 import { Role } from '@/types/auth'
 import {
   getUserById,
@@ -27,9 +27,13 @@ export const PUT = withApiHandler({ params: idParamsSchema }, async ({ req, sess
   const isAdmin = session.user.role === Role.ADMIN
   if (!isOwner && !isAdmin) throw new ForbiddenError()
 
-  const raw = await req.json()
+  const raw = await req.json().catch(() => {
+    throw new BadRequestError('Invalid JSON body')
+  })
   const input = isAdmin ? userUpdateSchema.parse(raw) : userSelfUpdateSchema.parse(raw)
-  return ok(await updateUser(params.id, input))
+  await updateUser(params.id, input)
+  // applyUpdate คืน admin select เสมอ — อ่านใหม่ตามสิทธิ์เหมือน GET กัน field admin หลุดถึง owner
+  return ok(await getUserById(params.id, { includeAdminFields: isAdmin }))
 })
 
 export const DELETE = withApiHandler(

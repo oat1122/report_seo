@@ -1,20 +1,7 @@
 import type React from 'react'
 
 // วันที่แบบไทยปี ค.ศ. (rule 8) — "28 ก.ย. 2026"
-const thaiDateFormatter = new Intl.DateTimeFormat('th-TH-u-ca-gregory', {
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-})
-
-export const formatThaiDate = (date: Date | string | number) =>
-  thaiDateFormatter.format(new Date(date))
-
-/** ตัวเลขค่าโดเมน/keyword — คั่นหลักพัน ทศนิยมไม่เกิน 1 ตำแหน่ง · ไม่มีค่า = '—' */
-export const formatMetric = (value: number | null | undefined) =>
-  value === null || value === undefined || Number.isNaN(value)
-    ? '—'
-    : value.toLocaleString('en-US', { maximumFractionDigits: 1 })
+export { formatDateCE as formatThaiDate } from '@/lib/date'
 
 /**
  * handler ของฟอร์ม keyword (useMetricsModal) รับ ChangeEvent ของ input

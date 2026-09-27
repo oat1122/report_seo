@@ -6,6 +6,12 @@ import bcrypt from 'bcrypt'
 const prisma = new PrismaClient()
 
 async function main() {
+  // seed บังคับรีเซ็ตรหัสทุกบัญชีเป็น password123 — ห้ามรันกับ production เด็ดขาด
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'Refusing to seed: NODE_ENV=production (seed resets passwords to a known value)',
+    )
+  }
   console.log('▶ เริ่มต้น Seed ข้อมูล...')
 
   // Hash password สำหรับทุก user

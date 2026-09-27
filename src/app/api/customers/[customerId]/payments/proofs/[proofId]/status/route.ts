@@ -12,7 +12,7 @@ export const PATCH = withApiHandler(
   { params: paramsSchema, body: updateProofStatusSchema },
   async ({ params, body, session }) => {
     const ctx = await customerAccessGuard({ byUserId: params.customerId }, 'manage')
-    const result = await approveRejectProof(params.proofId, body.status)
+    const result = await approveRejectProof(ctx.customer.id, params.proofId, body.status)
 
     const isApproved = body.status === 'APPROVED'
     createNotification({

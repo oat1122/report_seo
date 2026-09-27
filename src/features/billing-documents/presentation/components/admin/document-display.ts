@@ -25,10 +25,4 @@ export function formatMoney(amount: number | string): string {
 }
 
 /** วันที่ ค.ศ. แบบสั้น เช่น 28 ก.ย. 2026 */
-export function formatDocDate(date: string | Date): string {
-  return new Date(date).toLocaleDateString('th-TH-u-ca-gregory', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
-}
+export { formatDateCE as formatDocDate } from '@/lib/date'

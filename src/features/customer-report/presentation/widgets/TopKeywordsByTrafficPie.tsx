@@ -8,7 +8,7 @@ import { computeTrafficContribution } from '../lib/historyCalculations'
 import { ChartTooltipRow, DARK_TOOLTIP_CLASS } from '../keywords/ChartTooltipRow'
 import { ReportCard } from '../keywords/ReportCard'
 import { SummaryNote } from '../keywords/SummaryNote'
-import { fmtInt } from '../keywords/keyword-view'
+import { formatNumber } from '../lib/formatters'
 
 interface TopKeywordsByTrafficPieProps {
   keywords: Array<{ keyword: string; traffic: number }>
@@ -125,7 +125,7 @@ export const TopKeywordsByTrafficPie = ({ keywords, topN = 5 }: TopKeywordsByTra
                     </span>
                   </span>
                   <span className="shrink-0 whitespace-nowrap">
-                    <strong className="font-semibold">{fmtInt(d.traffic)}</strong>{' '}
+                    <strong className="font-semibold">{formatNumber(d.traffic)}</strong>{' '}
                     <span className="text-text-secondary">({d.pct.toFixed(0)}%)</span>
                   </span>
                 </li>

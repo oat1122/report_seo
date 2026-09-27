@@ -1,14 +1,9 @@
 // helper ระดับ view ของหน้าการชำระเงิน — pure ทั้งหมด ไม่แตะ React/network
 
+import { formatDateCE } from '@/lib/date'
 import type { BillingCycleStatus, BillingCycleWithPlan } from '../../../domain/BillingCycle'
 import type { PaymentPlanStatus, PaymentPlanType } from '../../../domain/PaymentPlan'
 
-/** วันที่ ค.ศ. + เดือนย่อไทย ตามกฎ UI Kit: "28 ก.ย. 2026" */
-const DATE_FORMAT = new Intl.DateTimeFormat('th-TH-u-ca-gregory', {
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-})
 const TIME_FORMAT = new Intl.DateTimeFormat('th-TH', {
   hour: '2-digit',
   minute: '2-digit',
@@ -19,10 +14,8 @@ const AMOUNT_FORMAT = new Intl.NumberFormat('th-TH', {
   maximumFractionDigits: 2,
 })
 
-export function formatPaymentDate(date: Date | string | null | undefined): string {
-  if (!date) return '—'
-  return DATE_FORMAT.format(new Date(date))
-}
+/** วันที่ ค.ศ. + เดือนย่อไทย ตามกฎ UI Kit: "28 ก.ย. 2026" */
+export const formatPaymentDate = formatDateCE
 
 /** "26 ก.ย. 2026 14:32 น." */
 export function formatPaymentDateTime(date: Date | string): string {

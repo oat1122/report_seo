@@ -1,11 +1,12 @@
+import { cache } from 'react'
 import { getServerSession, type Session } from 'next-auth'
 import { authOptions } from './nextAuthOptions'
 import { ForbiddenError, UnauthorizedError } from '@/lib/errors'
 import { Role } from '@/types/auth'
 
-export async function getCurrentSession(): Promise<Session | null> {
-  return getServerSession(authOptions)
-}
+// cache ต่อ request: jwt callback ยิง DB ทุกครั้ง และหน้าเดียวอาจเรียก session หลายรอบ
+// (requireRole + customerAccessGuard) — จุดเดียวที่ควรเรียก getServerSession
+export const getCurrentSession = cache((): Promise<Session | null> => getServerSession(authOptions))
 
 export async function requireSession(): Promise<Session> {
   const session = await getCurrentSession()

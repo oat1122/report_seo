@@ -8,6 +8,6 @@ const paramsSchema = z.object({
 })
 
 export const POST = withApiHandler({ params: paramsSchema }, async ({ params }) => {
-  await customerAccessGuard({ byUserId: params.customerId }, 'manage')
-  return ok(await reactivatePaymentPlan(params.planId))
+  const ctx = await customerAccessGuard({ byUserId: params.customerId }, 'manage')
+  return ok(await reactivatePaymentPlan(ctx.customer.id, params.planId))
 })

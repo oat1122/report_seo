@@ -41,7 +41,11 @@ export function updatePlanUseCase(
       data.year = input.startYear!
       data.startDate = periods[0]?.startDate ?? null
       data.endDate = periods[periods.length - 1]?.endDate ?? null
-      await repo.replacePeriods(planId, periods)
+      // dialog ส่งช่วงเดือนมาทุกครั้งที่ save — แตะ period เฉพาะเมื่อช่วงเปลี่ยนจริง
+      const sameRange =
+        plan.startDate?.getTime() === data.startDate?.getTime() &&
+        plan.endDate?.getTime() === data.endDate?.getTime()
+      if (!sameRange) await repo.replacePeriods(planId, periods)
     }
 
     const updated = await repo.updatePlan(planId, data)

@@ -1,11 +1,12 @@
 import { z } from 'zod'
+import { queryBoolean } from '@/schemas/common'
 import { paginationQuerySchema } from '@/lib/pagination'
 import { NOTIFICATION_TYPES } from '../domain/NotificationTypes'
 
 const notificationTypeValues = Object.values(NOTIFICATION_TYPES) as [string, ...string[]]
 
 export const listNotificationsQuerySchema = paginationQuerySchema.extend({
-  unreadOnly: z.coerce.boolean().optional().default(false),
+  unreadOnly: queryBoolean.optional().default(false),
 })
 
 export type ListNotificationsQuery = z.infer<typeof listNotificationsQuerySchema>

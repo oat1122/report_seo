@@ -3,7 +3,8 @@ import type { KeywordRankCard } from '../lib/historyCalculations'
 import { KeywordEvidenceDialog } from '../components/KeywordEvidenceDialog'
 import { DeltaPill } from './DeltaPill'
 import { KdBadge } from './KdBadge'
-import { BRACKET_STYLE, fmtInt } from './keyword-view'
+import { BRACKET_STYLE } from './keyword-view'
+import { formatNumber } from '../lib/formatters'
 
 // แถวราย keyword บนมือถือ (< md) — แทนการ์ด/ตาราง ไม่ให้เกิด scroll แนวนอนที่ 390px
 export const KeywordRankRow = ({ card }: { card: KeywordRankCard }) => {
@@ -28,7 +29,7 @@ export const KeywordRankRow = ({ card }: { card: KeywordRankCard }) => {
           <KdBadge kd={card.kd} />
         </div>
         <p className="text-text-secondary text-xs tabular-nums">
-          Traffic {fmtInt(card.traffic)}/เดือน
+          Traffic {formatNumber(card.traffic)}/เดือน
         </p>
       </div>
 

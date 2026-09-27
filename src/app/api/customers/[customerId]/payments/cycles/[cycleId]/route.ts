@@ -10,7 +10,7 @@ const paramsSchema = z.object({
 export const PATCH = withApiHandler(
   { params: paramsSchema, body: updateBillingCycleSchema },
   async ({ params, body }) => {
-    await customerAccessGuard({ byUserId: params.customerId }, 'manage')
-    return ok(await updateBillingCycle(params.cycleId, body))
+    const ctx = await customerAccessGuard({ byUserId: params.customerId }, 'manage')
+    return ok(await updateBillingCycle(ctx.customer.id, params.cycleId, body))
   },
 )

@@ -1,13 +1,10 @@
 // Formatters สำหรับ UI รายงาน — ปี ค.ศ. เสมอ (Handoff rule 8: "28 ก.ย. 2026", "08:00 น.")
 // th-TH ปกติได้ปี พ.ศ. → บังคับ calendar gregory
 
-const TH_CE = 'th-TH-u-ca-gregory'
-
-const dateFmt = new Intl.DateTimeFormat(TH_CE, { day: 'numeric', month: 'short', year: 'numeric' })
 const numberFmt = new Intl.NumberFormat('th-TH')
 
 /** "28 ก.ย. 2026" */
-export const formatDateCE = (date: Date | string | number): string => dateFmt.format(new Date(date))
+export { formatDateCE } from '@/lib/date'
 
 /** "08:00 น." */
 export const formatTimeTH = (date: Date | string | number): string => {

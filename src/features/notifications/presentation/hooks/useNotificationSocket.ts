@@ -4,7 +4,7 @@ import { useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useQueryClient } from '@tanstack/react-query'
 import { io } from 'socket.io-client'
-import { toast } from 'sonner'
+import { toast } from 'react-toastify'
 import type { Notification } from '../../domain/Notification'
 import { NOTIFICATION_QUERY_KEYS } from './useNotifications'
 
@@ -21,9 +21,9 @@ export function useNotificationSocket() {
         queryKey: NOTIFICATION_QUERY_KEYS.list,
       })
 
-      toast(notification.title, {
-        description: notification.body ?? undefined,
-      })
+      toast.info(
+        notification.body ? `${notification.title} — ${notification.body}` : notification.title,
+      )
     },
     [queryClient],
   )

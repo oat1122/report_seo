@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { queryBoolean } from '@/schemas/common'
 import { WorkProgressPeriodType } from '@prisma/client'
 
 const templateSubtaskSeedSchema = z.object({
@@ -6,21 +7,26 @@ const templateSubtaskSeedSchema = z.object({
   orderIndex: z.number().int().min(0).optional(),
 })
 
-const templateItemBaseSchema = z.object({
+const templateItemFields = z.object({
   categoryId: z.string().uuid(),
   activity: z.string().min(1).max(2000),
   description: z.string().max(5000).optional().nullable(),
   duration: z.string().max(100).optional().nullable(),
-  weight: z.number().int().min(1).max(100).optional().default(1),
+  weight: z.number().int().min(1).max(100),
   orderIndex: z.number().int().min(0).optional(),
   defaultPeriods: z.record(z.string(), z.unknown()).optional().nullable(),
   subtasks: z.array(templateSubtaskSeedSchema).max(200).optional(),
 })
 
+// update ต้อง partial จาก fields ที่ไม่มี default — zod v4 .partial() ยังเติม weight=1 ทับค่าเดิม
+const templateItemBaseSchema = templateItemFields.extend({
+  weight: templateItemFields.shape.weight.default(1),
+})
+
 export const addTemplateItemSchema = templateItemBaseSchema
 export type AddTemplateItemInput = z.infer<typeof addTemplateItemSchema>
 
-export const updateTemplateItemSchema = templateItemBaseSchema.partial()
+export const updateTemplateItemSchema = templateItemFields.partial()
 export type UpdateTemplateItemInput = z.infer<typeof updateTemplateItemSchema>
 
 export const upsertTemplateSchema = z.object({
@@ -58,7 +64,7 @@ export const reorderTemplateItemsSchema = z.object({
 export type ReorderTemplateItemsInput = z.infer<typeof reorderTemplateItemsSchema>
 
 export const listTemplatesQuerySchema = z.object({
-  includeInactive: z.coerce.boolean().optional().default(false),
+  includeInactive: queryBoolean.optional().default(false),
 })
 export type ListTemplatesQuery = z.infer<typeof listTemplatesQuerySchema>
 

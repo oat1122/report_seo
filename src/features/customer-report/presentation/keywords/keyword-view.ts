@@ -11,8 +11,6 @@ import type {
 // pure (ไม่มี JSX) — แยกไว้เพื่อเทสต์ได้ และให้ทุก widget ใช้สี/ป้ายชุดเดียวกัน
 // ============================================================
 
-export const fmtInt = (n: number): string => Math.round(n).toLocaleString('th-TH')
-
 // ---------- KD ----------
 
 export type KdKey = 'EASY' | 'MEDIUM' | 'HARD'

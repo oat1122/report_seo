@@ -46,7 +46,11 @@ export interface PaymentRepository {
   ): Promise<PaymentProof>
   list(filter: PaymentListFilter): Promise<PaymentProofWithCustomer[]>
   findProofById(proofId: string): Promise<PaymentProof | null>
-  updateProofStatus(proofId: string, status: 'APPROVED' | 'REJECTED'): Promise<PaymentProof>
+  /**
+   * ตัดสิน proof ที่ยัง PENDING + sync สถานะ cycle/plan ใน transaction เดียว
+   * คืน null ถ้า proof ไม่ PENDING แล้ว (ถูกตัดสินไปก่อน / กดซ้ำพร้อมกัน)
+   */
+  decideProof(proofId: string, status: 'APPROVED' | 'REJECTED'): Promise<PaymentProof | null>
 
   // --- Payment Plan ---
   createPlanWithCycles(
@@ -61,7 +65,9 @@ export interface PaymentRepository {
 
   // --- Billing Cycle ---
   findCycleById(cycleId: string): Promise<BillingCycle | null>
-  listCyclesByPlan(planId: string): Promise<BillingCycleWithPlan[]>
+  /** null ถ้า cycle ไม่ใช่ของ customer นี้ — ใช้กัน IDOR ข้ามลูกค้า */
+  findCycleForCustomer(cycleId: string, customerId: string): Promise<BillingCycle | null>
+  listCyclesByPlan(planId: string, customerId: string): Promise<BillingCycleWithPlan[]>
   listCyclesByCustomer(customerId: string): Promise<BillingCycleWithPlan[]>
   updateCycle(cycleId: string, data: UpdateCycleData): Promise<BillingCycle>
   updatePendingCyclesAmount(planId: string, amount: number): Promise<void>

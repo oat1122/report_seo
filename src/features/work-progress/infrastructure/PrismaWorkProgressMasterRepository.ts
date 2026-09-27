@@ -141,8 +141,14 @@ export class PrismaWorkProgressMasterRepository implements WorkProgressMasterRep
 
   async countReferences(kind: MasterKind, id: string): Promise<number> {
     switch (kind) {
-      case 'category':
-        return prisma.workProgressItem.count({ where: { categoryId: id } })
+      case 'category': {
+        // template item ก็อ้าง category — ปิดทั้งที่ template ยังใช้ แก้ template item นั้นไม่ได้อีก
+        const [items, templateItems] = await Promise.all([
+          prisma.workProgressItem.count({ where: { categoryId: id } }),
+          prisma.workProgressTemplateItem.count({ where: { categoryId: id } }),
+        ])
+        return items + templateItems
+      }
       case 'status':
         return prisma.workProgressItem.count({ where: { statusId: id } })
       case 'markType':

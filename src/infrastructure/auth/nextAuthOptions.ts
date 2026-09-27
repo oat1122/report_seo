@@ -108,7 +108,17 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id
         token.role = user.role
+        return token
       }
+      // re-check ทุกครั้งที่อ่าน session: ลดสิทธิ์/ลบ user แล้วมีผลทันที แทนที่จะรอ token (rolling 7 วัน)
+      // throw = next-auth ล้าง cookie + session เป็น null → ถูก logout
+      // ponytail: 1 PK lookup ต่อ getServerSession; ถ้าเป็นคอขวดค่อยใส่ cache สั้น ๆ
+      const current = await prismaBase.user.findFirst({
+        where: { id: token.id as string, deletedAt: null },
+        select: { role: true },
+      })
+      if (!current) throw new Error('Session revoked: user not found or deleted')
+      token.role = current.role as Role
       return token
     },
     async session({ session, token }) {

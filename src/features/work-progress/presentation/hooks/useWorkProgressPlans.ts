@@ -2,7 +2,12 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from '@/infrastructure/http/axios'
-import type { WorkProgressPlan, CreatePlanInput, UpdatePlanInput } from '@/features/work-progress'
+import type {
+  WorkProgressPlan,
+  WorkProgressPlanListItem,
+  CreatePlanInput,
+  UpdatePlanInput,
+} from '@/features/work-progress'
 
 type ApiData<T> = { data: T }
 
@@ -16,10 +21,10 @@ interface UsePlansOptions {
 
 export const useWorkProgressPlans = (userId: string, opts: UsePlansOptions = {}) => {
   const includeArchived = opts.includeArchived ?? false
-  return useQuery<WorkProgressPlan[], Error>({
+  return useQuery<WorkProgressPlanListItem[], Error>({
     queryKey: plansKey(userId, includeArchived),
     queryFn: async () => {
-      const { data } = await axios.get<ApiData<WorkProgressPlan[]>>(
+      const { data } = await axios.get<ApiData<WorkProgressPlanListItem[]>>(
         `/customers/${userId}/work-progress`,
         { params: { includeArchived } },
       )

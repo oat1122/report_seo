@@ -1,15 +1,8 @@
 import { z } from 'zod'
-
-const UNSAFE_URL_PROTOCOL = /^(javascript|data|vbscript|file):/i
+import { httpUrlSchema } from '@/schemas/common'
 
 export const addLinkAttachmentSchema = z.object({
-  url: z
-    .string()
-    .url()
-    .max(2000)
-    .refine((u) => !UNSAFE_URL_PROTOCOL.test(u), {
-      message: 'URL ไม่ปลอดภัย',
-    }),
+  url: httpUrlSchema,
   caption: z.string().max(500).nullable().optional(),
 })
 

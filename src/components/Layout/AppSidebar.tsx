@@ -9,6 +9,8 @@ import { motion } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { Skeleton } from '@/components/ui/skeleton'
 import { findActiveHref, type ShellConfig } from './nav-config'
+import { getRoleLabel } from '@/lib/role-display'
+import type { Role } from '@/types/auth'
 
 export function BrandLogo({ compact = false }: { compact?: boolean }) {
   return (
@@ -36,17 +38,6 @@ export function initialsOf(name: string) {
   if (!clean) return '?'
   const parts = clean.split(/\s+/)
   return (parts.length > 1 ? parts[0][0] + parts[1][0] : clean.slice(0, 2)).toUpperCase()
-}
-
-const ROLE_LABEL: Record<string, string> = {
-  ADMIN: 'ผู้ดูแลระบบ',
-  SEO_DEV: 'SEO Developer',
-  CUSTOMER: 'ลูกค้า',
-  BLOG_WRITER: 'ผู้เขียนบทความ',
-}
-
-export function roleLabel(role: string | undefined) {
-  return (role && ROLE_LABEL[role]) || 'ผู้ใช้งาน'
 }
 
 /** รายการเมนู — ใช้ทั้ง sidebar (desktop) และ sheet (มือถือ) */
@@ -133,7 +124,9 @@ export function UserCard({
         {name ? (
           <>
             <span className="truncate text-sm font-medium">{name}</span>
-            <span className="text-text-secondary text-xs">{roleLabel(role)}</span>
+            <span className="text-text-secondary text-xs">
+              {role ? getRoleLabel(role as Role) : 'ผู้ใช้งาน'}
+            </span>
           </>
         ) : (
           <>

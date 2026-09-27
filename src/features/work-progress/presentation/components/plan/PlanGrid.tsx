@@ -56,7 +56,6 @@ export function PlanGrid({ userId, planId, readOnly }: PlanGridProps) {
   const deleteMut = useDeleteItem()
   const reorderMut = useReorderItems()
 
-  const [editing, setEditing] = useState<WorkProgressItemWithMarks | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<WorkProgressItemWithMarks | null>(null)
   const [detailItem, setDetailItem] = useState<WorkProgressItemWithMarks | null>(null)
@@ -153,10 +152,7 @@ export function PlanGrid({ userId, planId, readOnly }: PlanGridProps) {
     )
   }
 
-  const openCreate = () => {
-    setEditing(null)
-    setDialogOpen(true)
-  }
+  const openCreate = () => setDialogOpen(true)
 
   if (isLoading) {
     return (
@@ -366,7 +362,6 @@ export function PlanGrid({ userId, planId, readOnly }: PlanGridProps) {
         planId={planId}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        initial={editing}
       />
 
       <ItemDetailSheet

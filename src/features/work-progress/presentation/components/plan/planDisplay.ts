@@ -7,20 +7,9 @@ export const PERIOD_LABEL: Record<string, string> = {
   CUSTOM: 'กำหนดเอง',
 }
 
-export const THAI_MONTHS = [
-  'ม.ค.',
-  'ก.พ.',
-  'มี.ค.',
-  'เม.ย.',
-  'พ.ค.',
-  'มิ.ย.',
-  'ก.ค.',
-  'ส.ค.',
-  'ก.ย.',
-  'ต.ค.',
-  'พ.ย.',
-  'ธ.ค.',
-] as const
+import { THAI_MONTHS } from '../../../domain/policies/period-generator'
+
+export { THAI_MONTHS }
 
 type DateLike = Date | string | null | undefined
 
@@ -31,16 +20,7 @@ function toDate(d: DateLike): Date | null {
 }
 
 // วันที่แบบ "2 ก.ย. 2026" — ปี ค.ศ. ตามกฎ UI Kit
-const CE_DATE = new Intl.DateTimeFormat('th-TH-u-ca-gregory', {
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-})
-
-export function formatThaiDate(d: DateLike): string {
-  const date = toDate(d)
-  return date ? CE_DATE.format(date) : '—'
-}
+export { formatDateCE as formatThaiDate } from '@/lib/date'
 
 // ช่วงของแผน: "ม.ค. – ธ.ค. 2026" · ข้ามปี "ต.ค. 2025 – ก.ย. 2026" · ไม่มีช่วง → ปี หรือ null
 export function formatPlanRange(plan: {

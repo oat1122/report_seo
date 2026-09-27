@@ -10,7 +10,7 @@ import { sanitizeFilename } from '@/infrastructure/upload/validators'
 export function assignDocumentToCycleUseCase(deps: DocumentGenerationDeps) {
   return async (documentId: string, customerId: string, billingCycleId: string | null) => {
     const doc = await deps.repo.getDocument(documentId)
-    if (!doc) throw new NotFoundError('ไม่พบเอกสาร')
+    if (!doc || doc.customerId !== customerId) throw new NotFoundError('ไม่พบเอกสาร')
 
     if (!billingCycleId) {
       return deps.repo.setDocumentCycle(documentId, null)

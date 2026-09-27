@@ -182,7 +182,7 @@ function BlogPlanBoardInner({ customerId, canManage, canRespond }: BlogPlanBoard
     route.view && !isLoading
       ? renderView({
           route,
-          article: articles.find((item) => item.id === route.articleId) ?? null,
+          article: selectedArticle,
           allArticles: allData?.articles ?? [],
           isLoadingAll,
           canManage,

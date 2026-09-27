@@ -131,18 +131,6 @@ export function CardGridSkeleton({
   )
 }
 
-export function HeroCardSkeleton({ className }: { className?: string }) {
-  return (
-    <div
-      className={cn(GLASS_CARD, 'flex flex-col items-center justify-center gap-3 p-8', className)}
-    >
-      <Shimmer className="size-12 rounded-xl" />
-      <Shimmer className="h-7 w-64 max-w-full" />
-      <Shimmer className="h-4 w-80 max-w-full" />
-    </div>
-  )
-}
-
 export function FormSkeleton({ rows = 5, className }: { rows?: number; className?: string }) {
   return (
     <div className={cn(GLASS_CARD, 'space-y-5 p-6', className)}>

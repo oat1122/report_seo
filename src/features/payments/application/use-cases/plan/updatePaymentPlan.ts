@@ -2,9 +2,9 @@ import { NotFoundError } from '@/lib/errors'
 import type { PaymentRepository, UpdatePlanData } from '../../ports/PaymentRepository'
 
 export function updatePaymentPlanUseCase(repo: PaymentRepository) {
-  return async (planId: string, data: UpdatePlanData) => {
+  return async (customerId: string, planId: string, data: UpdatePlanData) => {
     const existing = await repo.findPlanById(planId)
-    if (!existing) throw new NotFoundError('ไม่พบแผนชำระเงิน')
+    if (!existing || existing.customerId !== customerId) throw new NotFoundError('ไม่พบแผนชำระเงิน')
 
     const updated = await repo.updatePlan(planId, data)
 

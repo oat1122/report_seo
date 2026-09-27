@@ -16,14 +16,18 @@ const paramsSchema = z.object({ customerId: z.string().uuid() })
 export const GET = withApiHandler(
   { params: paramsSchema, query: paymentListQuerySchema },
   async ({ params, query, session }) => {
-    await customerAccessGuard({ byUserId: params.customerId }, 'read')
+    const ctx = await customerAccessGuard({ byUserId: params.customerId }, 'read')
     return ok(
-      await listPaymentProofs(query ?? {}, {
-        user: {
-          id: session.user.id,
-          role: session.user.role as Role,
+      // บังคับ scope ตามลูกค้าใน path — ไม่งั้น ADMIN เห็นสลิปของทุกลูกค้าในหน้าลูกค้าคนเดียว
+      await listPaymentProofs(
+        { ...query, customerId: ctx.customer.id },
+        {
+          user: {
+            id: session.user.id,
+            role: session.user.role as Role,
+          },
         },
-      }),
+      ),
     )
   },
 )

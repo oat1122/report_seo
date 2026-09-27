@@ -1,5 +1,8 @@
+import { unlink } from 'fs/promises'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/infrastructure/prisma/client'
+import { resolveUploadPath } from '@/lib/upload-paths'
+import { logger } from '@/lib/logger'
 import type { WorkProgressPlan, WorkProgressPlanDetail } from '../domain/WorkProgressPlan'
 import type { WorkProgressItem, WorkProgressItemPeriodMark } from '../domain/WorkProgressItem'
 import type {
@@ -157,14 +160,20 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
     return rows
   }
 
-  listByCustomer(
-    customerId: string,
-    options: { includeArchived: boolean; limit: number },
-  ): Promise<WorkProgressPlan[]> {
+  listByCustomer(customerId: string, options: { includeArchived: boolean; limit: number }) {
     return prisma.workProgressPlan.findMany({
       where: {
         customerId,
         ...(options.includeArchived ? {} : { isArchived: false }),
+      },
+      include: {
+        items: {
+          select: {
+            weight: true,
+            status: { select: { isTerminal: true } },
+            subtasks: { select: { isDone: true } },
+          },
+        },
       },
       orderBy: [{ year: 'desc' }, { createdAt: 'desc' }],
       take: options.limit,
@@ -202,18 +211,31 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
   }
 
   async replacePeriods(planId: string, periods: readonly PeriodSeed[]): Promise<void> {
+    // คง period เดิมที่ label (เดือน-ปี) ตรงกัน → marks ของเดือนนั้นไม่หาย (mark cascade ตาม period)
+    // ลบเฉพาะเดือนที่หลุดออกจากช่วงใหม่
     await prisma.$transaction(async (tx) => {
-      await tx.workProgressPeriod.deleteMany({ where: { planId } })
-      if (periods.length > 0) {
-        await tx.workProgressPeriod.createMany({
-          data: periods.map((p) => ({
-            planId,
-            seq: p.seq,
-            label: p.label,
-            startDate: p.startDate ?? null,
-            endDate: p.endDate ?? null,
-          })),
-        })
+      const existing = await tx.workProgressPeriod.findMany({
+        where: { planId },
+        select: { id: true, label: true },
+      })
+      const idByLabel = new Map(existing.map((p) => [p.label, p.id]))
+      const keptIds = periods.flatMap((p) => idByLabel.get(p.label) ?? [])
+      await tx.workProgressPeriod.deleteMany({ where: { planId, id: { notIn: keptIds } } })
+      // ขยับ seq ที่เหลือออกไปก่อน กันชน @@unique([planId, seq]) ระหว่างเรียงลำดับใหม่
+      await tx.workProgressPeriod.updateMany({
+        where: { planId },
+        data: { seq: { increment: 100_000 } },
+      })
+      for (const p of periods) {
+        const data = {
+          seq: p.seq,
+          label: p.label,
+          startDate: p.startDate ?? null,
+          endDate: p.endDate ?? null,
+        }
+        const id = idByLabel.get(p.label)
+        if (id) await tx.workProgressPeriod.update({ where: { id }, data })
+        else await tx.workProgressPeriod.create({ data: { planId, ...data } })
       }
     })
   }
@@ -226,7 +248,9 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
   }
 
   async deletePlan(planId: string): Promise<void> {
+    const files = await attachmentFileUrls({ item: { planId } })
     await prisma.workProgressPlan.delete({ where: { id: planId } })
+    await removeUploadedFiles(files)
   }
 
   // ─── Item CRUD ──────────────────────────────────────────
@@ -278,7 +302,9 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
   }
 
   async deleteItem(itemId: string): Promise<void> {
+    const files = await attachmentFileUrls({ itemId })
     await prisma.workProgressItem.delete({ where: { id: itemId } })
+    await removeUploadedFiles(files)
   }
 
   async reorderItems(
@@ -368,9 +394,11 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
     planId: string,
     itemIds: ReadonlyArray<string>,
   ): Promise<{ count: number }> {
+    const files = await attachmentFileUrls({ item: { planId }, itemId: { in: [...itemIds] } })
     const result = await prisma.workProgressItem.deleteMany({
       where: { planId, id: { in: [...itemIds] } },
     })
+    await removeUploadedFiles(files)
     return { count: result.count }
   }
 
@@ -601,4 +629,26 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
       sumProgress: Number(r.sumProgress ?? 0),
     }))
   }
+}
+
+// cascade ลบแค่ row ของไฟล์แนบ — ไฟล์จริงอยู่ใน public/uploads ยังเปิดผ่าน URL เดิมได้ ต้องลบเอง
+// เก็บ URL ก่อนลบ DB แล้วลบไฟล์หลัง DB สำเร็จ (ลบไฟล์พลาด = log เฉย ๆ ไม่ทำให้ request พัง)
+async function attachmentFileUrls(where: Prisma.WorkProgressAttachmentWhereInput) {
+  const rows = await prisma.workProgressAttachment.findMany({
+    where: { ...where, kind: { not: 'LINK' } },
+    select: { url: true },
+  })
+  return rows.map((r) => r.url)
+}
+
+async function removeUploadedFiles(urls: string[]) {
+  await Promise.all(
+    urls.map(async (url) => {
+      try {
+        await unlink(resolveUploadPath(url, 'work-progress'))
+      } catch (err) {
+        logger.warn({ err, url }, 'failed to remove work-progress attachment file')
+      }
+    }),
+  )
 }

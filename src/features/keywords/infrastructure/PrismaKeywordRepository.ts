@@ -1,3 +1,4 @@
+import { unlink } from 'fs/promises'
 // ต้องใช้ extended prisma (`@/infrastructure/prisma/client`) เท่านั้น
 // เพื่อให้ middleware ใน client.ts สร้าง KeywordReportHistory snapshot อัตโนมัติ
 // ตอน update — ห้ามใช้ prismaBase ที่นี่ (จะ silently skip history)
@@ -9,6 +10,8 @@ import type {
 } from '../domain/KeywordReport'
 import type { KeywordRepository } from '../application/ports/KeywordRepository'
 import type { KeywordInput } from '../schemas'
+import { resolveUploadPath } from '@/lib/upload-paths'
+import { logger } from '@/lib/logger'
 
 export class PrismaKeywordRepository implements KeywordRepository {
   async findByCustomerId(customerInternalId: string): Promise<KeywordReport[]> {
@@ -48,7 +51,21 @@ export class PrismaKeywordRepository implements KeywordRepository {
   }
 
   async delete(keywordId: string): Promise<void> {
+    // cascade ลบแค่ row รูป — ไฟล์ใน public/uploads ยังเปิดผ่าน URL เดิมได้ ต้องลบเองหลัง DB สำเร็จ
+    const images = await prisma.keywordReportImage.findMany({
+      where: { keywordReportId: keywordId },
+      select: { imageUrl: true },
+    })
     await prisma.keywordReport.delete({ where: { id: keywordId } })
+    await Promise.all(
+      images.map(async ({ imageUrl }) => {
+        try {
+          await unlink(resolveUploadPath(imageUrl, 'keyword-evidence'))
+        } catch (err) {
+          logger.warn({ err, imageUrl }, 'failed to remove keyword evidence file')
+        }
+      }),
+    )
   }
 
   async countImages(keywordId: string): Promise<number> {

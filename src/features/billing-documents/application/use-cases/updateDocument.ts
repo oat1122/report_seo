@@ -31,7 +31,9 @@ export function updateDocumentUseCase(deps: DocumentGenerationDeps) {
     },
   ) => {
     const existingDoc = await deps.repo.getDocument(documentId)
-    if (!existingDoc) throw new NotFoundError('ไม่พบเอกสาร')
+    if (!existingDoc || existingDoc.customerId !== input.customerId) {
+      throw new NotFoundError('ไม่พบเอกสาร')
+    }
 
     const company = await deps.getCompanySettings()
     if (!company) {

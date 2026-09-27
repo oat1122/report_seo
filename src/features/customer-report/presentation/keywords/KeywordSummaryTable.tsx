@@ -18,7 +18,8 @@ import { DeltaPill } from './DeltaPill'
 import { KdBadge } from './KdBadge'
 import { KeywordRankRow } from './KeywordRankRow'
 import { ReportCard } from './ReportCard'
-import { BRACKET_STYLE, fmtInt } from './keyword-view'
+import { BRACKET_STYLE } from './keyword-view'
+import { formatNumber } from '../lib/formatters'
 
 // ตารางสรุปทุก keyword — desktop = table-fixed, มือถือ = รายการการ์ด (กฎข้อ 6)
 export const KeywordSummaryTable = () => {
@@ -80,7 +81,9 @@ export const KeywordSummaryTable = () => {
                 <TableCell>
                   <DeltaPill card={card} />
                 </TableCell>
-                <TableCell className="text-right tabular-nums">{fmtInt(card.traffic)}</TableCell>
+                <TableCell className="text-right tabular-nums">
+                  {formatNumber(card.traffic)}
+                </TableCell>
                 <TableCell>
                   <KdBadge kd={card.kd} />
                 </TableCell>

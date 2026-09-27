@@ -1,4 +1,5 @@
-import { BadRequestError, NotFoundError } from '@/lib/errors'
+import { BadRequestError, ConflictError, NotFoundError } from '@/lib/errors'
+import { assertCanDeactivate } from './deactivateMasterRow'
 import { updateStatusSchema, upsertStatusSchema } from '../../../schemas'
 import type { WorkProgressMasterRepository } from '../../ports/WorkProgressMasterRepository'
 
@@ -36,6 +37,13 @@ export function updateStatusUseCase(masterRepo: WorkProgressMasterRepository) {
     }
     const existing = await masterRepo.findStatusById(id)
     if (!existing) throw new NotFoundError('ไม่พบสถานะ')
+    // ห้ามทำให้ระบบไม่มีสถานะเริ่มต้น — สร้าง/clone แผนทุกลูกค้าจะพัง (findDefaultStatus = null)
+    if (existing.isDefault && (parsed.data.isDefault === false || parsed.data.isActive === false)) {
+      throw new ConflictError('ตั้งสถานะอื่นเป็นค่าเริ่มต้นก่อน แล้วค่อยแก้สถานะนี้')
+    }
+    if (existing.isActive && parsed.data.isActive === false) {
+      await assertCanDeactivate(masterRepo, 'status', existing)
+    }
     return masterRepo.updateStatus(id, parsed.data)
   }
 }

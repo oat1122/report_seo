@@ -1,5 +1,6 @@
 import { BadRequestError, NotFoundError } from '@/lib/errors'
 import { updateMarkTypeSchema, upsertMarkTypeSchema } from '../../../schemas'
+import { assertCanDeactivate } from './deactivateMasterRow'
 import type { WorkProgressMasterRepository } from '../../ports/WorkProgressMasterRepository'
 
 export function createMarkTypeUseCase(masterRepo: WorkProgressMasterRepository) {
@@ -34,6 +35,9 @@ export function updateMarkTypeUseCase(masterRepo: WorkProgressMasterRepository) 
     }
     const existing = await masterRepo.findMarkTypeById(id)
     if (!existing) throw new NotFoundError('ไม่พบประเภทเครื่องหมาย')
+    if (existing.isActive && parsed.data.isActive === false) {
+      await assertCanDeactivate(masterRepo, 'markType', existing)
+    }
     return masterRepo.updateMarkType(id, parsed.data)
   }
 }

@@ -28,7 +28,8 @@ export const userCreateSchema = z
 export type UserCreateInput = z.infer<typeof userCreateSchema>
 
 // Update payload — admin only field set; CUSTOMER fields optional
-export const userUpdateSchema = z.object({
+// strict: field เกิน (password/role ของ self-update) = 400 ไม่ใช่ตัดทิ้งเงียบ ๆ
+export const userUpdateSchema = z.strictObject({
   name: z.string().trim().min(1).optional(),
   email: z.email().optional(),
   role: z.enum(Role).optional(),
@@ -44,7 +45,7 @@ export const userUpdateSchema = z.object({
 export type UserUpdateInput = z.infer<typeof userUpdateSchema>
 
 // CUSTOMER/SEO_DEV self-update — name + email เท่านั้น
-export const userSelfUpdateSchema = z.object({
+export const userSelfUpdateSchema = z.strictObject({
   name: z.string().trim().min(1).optional(),
   email: z.email().optional(),
 })

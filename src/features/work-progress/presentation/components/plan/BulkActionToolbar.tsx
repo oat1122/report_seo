@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { toast } from 'sonner'
+import { toast } from 'react-toastify'
 import { ChevronDown, Trash2, X } from 'lucide-react'
 import { motion } from '@/components/motion'
 import { Button } from '@/components/ui/button'

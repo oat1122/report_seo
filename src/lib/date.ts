@@ -7,15 +7,22 @@ export function bangkokToday(): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok' }).format(new Date())
 }
 
-/** วันที่แบบสั้นภาษาไทยสำหรับตาราง/timeline — คืน '—' เมื่อยังไม่กำหนด */
-export function formatShortDate(date: Date | string | null | undefined): string {
-  if (!date) return '—'
-  return new Date(date).toLocaleDateString('th-TH', {
-    day: '2-digit',
-    month: 'short',
-    year: '2-digit',
-  })
+// ปี ค.ศ. เสมอตามกฎ UI Kit (th-TH ปกติได้ พ.ศ. → บังคับ calendar gregory)
+const CE_DATE = new Intl.DateTimeFormat('th-TH-u-ca-gregory', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+})
+
+/** "28 ก.ย. 2026" — ไม่มีค่า/วันที่พัง = '—' · ตัวเดียวของทั้งระบบ (feature ต่าง ๆ alias ชื่อเอง) */
+export function formatDateCE(date: Date | string | number | null | undefined): string {
+  if (date == null || date === '') return '—'
+  const d = new Date(date)
+  return Number.isNaN(d.getTime()) ? '—' : CE_DATE.format(d)
 }
+
+/** วันที่สำหรับตาราง/timeline — เดิมออกปี พ.ศ. 2 หลัก ขัดกฎ ค.ศ. ของ UI Kit จึงใช้ตัวเดียวกัน */
+export const formatShortDate = formatDateCE
 
 /** ค่าเริ่มต้นของ <input type="date"> — คืน '' เมื่อไม่มีค่า */
 export function toDateInputValue(date: Date | string | null | undefined): string {

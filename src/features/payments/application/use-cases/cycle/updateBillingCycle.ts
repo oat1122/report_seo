@@ -2,8 +2,8 @@ import { NotFoundError } from '@/lib/errors'
 import type { PaymentRepository, UpdateCycleData } from '../../ports/PaymentRepository'
 
 export function updateBillingCycleUseCase(repo: PaymentRepository) {
-  return async (cycleId: string, data: UpdateCycleData) => {
-    const existing = await repo.findCycleById(cycleId)
+  return async (customerId: string, cycleId: string, data: UpdateCycleData) => {
+    const existing = await repo.findCycleForCustomer(cycleId, customerId)
     if (!existing) throw new NotFoundError('ไม่พบรอบจ่ายเงิน')
 
     const updated = await repo.updateCycle(cycleId, data)

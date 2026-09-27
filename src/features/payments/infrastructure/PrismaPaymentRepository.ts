@@ -77,12 +77,43 @@ export class PrismaPaymentRepository implements PaymentRepository {
     return { ...row, billingCycleId: row.billingCycleId ?? null }
   }
 
-  async updateProofStatus(proofId: string, status: 'APPROVED' | 'REJECTED'): Promise<PaymentProof> {
-    const row = await prisma.paymentProof.update({
-      where: { id: proofId },
-      data: { status },
+  async decideProof(
+    proofId: string,
+    status: 'APPROVED' | 'REJECTED',
+  ): Promise<PaymentProof | null> {
+    return prisma.$transaction(async (tx) => {
+      // claim แบบมีเงื่อนไข — กันสองคนกดพร้อมกันแล้ว cycle/plan ถูกแก้ซ้ำ
+      const claimed = await tx.paymentProof.updateMany({
+        where: { id: proofId, status: 'PENDING' },
+        data: { status },
+      })
+      if (claimed.count === 0) return null
+      const proof = await tx.paymentProof.findUniqueOrThrow({ where: { id: proofId } })
+
+      const cycle = proof.billingCycleId
+        ? await tx.billingCycle.findUnique({ where: { id: proof.billingCycleId } })
+        : null
+      if (cycle && status === 'APPROVED' && ['PENDING', 'REVIEWING'].includes(cycle.status)) {
+        await tx.billingCycle.update({
+          where: { id: cycle.id },
+          data: { status: 'PAID', paidDate: new Date() },
+        })
+        const unpaid = await tx.billingCycle.count({
+          where: { planId: cycle.planId, status: { in: ['PENDING', 'REVIEWING', 'OVERDUE'] } },
+        })
+        if (unpaid === 0) {
+          await tx.paymentPlan.update({
+            where: { id: cycle.planId },
+            data: { status: 'COMPLETED' },
+          })
+        }
+      }
+      if (cycle && status === 'REJECTED' && cycle.status === 'REVIEWING') {
+        await tx.billingCycle.update({ where: { id: cycle.id }, data: { status: 'PENDING' } })
+      }
+
+      return { ...proof, billingCycleId: proof.billingCycleId ?? null }
     })
-    return { ...row, billingCycleId: row.billingCycleId ?? null }
   }
 
   // --- Payment Plan ---
@@ -198,9 +229,16 @@ export class PrismaPaymentRepository implements PaymentRepository {
     return this.mapCycle(row)
   }
 
-  async listCyclesByPlan(planId: string): Promise<BillingCycleWithPlan[]> {
+  async findCycleForCustomer(cycleId: string, customerId: string): Promise<BillingCycle | null> {
+    const row = await prisma.billingCycle.findFirst({
+      where: { id: cycleId, plan: { customerId } },
+    })
+    return row ? this.mapCycle(row) : null
+  }
+
+  async listCyclesByPlan(planId: string, customerId: string): Promise<BillingCycleWithPlan[]> {
     const rows = await prisma.billingCycle.findMany({
-      where: { planId },
+      where: { planId, plan: { customerId } },
       include: {
         plan: { select: { id: true, description: true, type: true } },
         proofs: { orderBy: { uploadDate: 'desc' } },

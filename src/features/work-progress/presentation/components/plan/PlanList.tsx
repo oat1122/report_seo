@@ -137,7 +137,6 @@ export function PlanList({ userId, basePath, readOnly }: PlanListProps) {
                 transition={{ duration: 0.25 }}
               >
                 <PlanCard
-                  userId={userId}
                   plan={plan}
                   href={`${basePath}/${plan.id}`}
                   readOnly={readOnly}

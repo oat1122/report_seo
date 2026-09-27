@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { Copy, FileCode2, Eye } from 'lucide-react'
-import { toast } from 'sonner'
+import { toast } from 'react-toastify'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
@@ -79,8 +79,8 @@ export function TemplatePreview() {
     <div className="flex h-screen flex-col gap-4 p-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-foreground">ทดสอบ Render เอกสาร (Dev)</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-foreground text-xl font-bold">ทดสอบ Render เอกสาร (Dev)</h1>
+          <p className="text-muted-foreground text-sm">
             พรีวิวเทมเพลต PDF จาก infrastructure/templates ด้วยข้อมูลตัวอย่าง
           </p>
         </div>
@@ -130,7 +130,7 @@ export function TemplatePreview() {
       </div>
 
       {viewMode === 'preview' ? (
-        <div className="min-h-0 flex-1 overflow-auto rounded-md border border-border bg-muted p-6">
+        <div className="border-border bg-muted min-h-0 flex-1 overflow-auto rounded-md border p-6">
           <div className="relative mx-auto" style={{ width: '210mm' }}>
             <iframe
               key={htmlUrl}
@@ -138,16 +138,16 @@ export function TemplatePreview() {
               src={htmlUrl}
               title="template-preview"
               onLoad={fitPagesToContent}
-              className="block border border-border bg-background shadow-sm"
+              className="border-border bg-background block border shadow-sm"
               style={{ width: '210mm', height: `${frameHeight}px` }}
             />
             {pageBreaks.map((page) => (
               <div
                 key={page}
-                className="pointer-events-none absolute inset-x-0 border-t border-dashed border-muted-foreground/50"
+                className="border-muted-foreground/50 pointer-events-none absolute inset-x-0 border-t border-dashed"
                 style={{ top: `${page * A4_PAGE_HEIGHT_PX}px` }}
               >
-                <span className="absolute -top-3 right-2 rounded bg-muted px-2 text-xs text-muted-foreground">
+                <span className="bg-muted text-muted-foreground absolute -top-3 right-2 rounded px-2 text-xs">
                   หน้า {page + 1}
                 </span>
               </div>
@@ -155,7 +155,7 @@ export function TemplatePreview() {
           </div>
         </div>
       ) : (
-        <pre className="min-h-0 flex-1 overflow-auto rounded-md border border-border bg-muted p-4 text-xs text-foreground">
+        <pre className="border-border bg-muted text-foreground min-h-0 flex-1 overflow-auto rounded-md border p-4 text-xs">
           <code>{htmlSource}</code>
         </pre>
       )}

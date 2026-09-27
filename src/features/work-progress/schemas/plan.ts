@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { queryBoolean } from '@/schemas/common'
 import { WorkProgressPeriodType } from '@prisma/client'
 
 export const customPeriodSchema = z.object({
@@ -112,7 +113,7 @@ export const updatePlanSchema = z
 export type UpdatePlanInput = z.infer<typeof updatePlanSchema>
 
 export const listPlansQuerySchema = z.object({
-  includeArchived: z.coerce.boolean().optional().default(false),
+  includeArchived: queryBoolean.optional().default(false),
   limit: z.coerce.number().int().min(1).max(100).optional().default(50),
 })
 

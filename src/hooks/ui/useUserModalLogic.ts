@@ -7,6 +7,13 @@ import { showPromiseToast } from '@/components/shared/toast/lib/toastify'
 import axios from '@/lib/axios'
 import { toast } from 'react-toastify'
 import { Role } from '@/types/auth'
+import { userSelfUpdateSchema, userUpdateSchema } from '@/schemas/user'
+
+// ส่งเฉพาะ field ที่ schema ฝั่ง server รับ — schema เป็น strict (field เกิน = 400)
+const pickKeys = (src: object, keys: string[]) =>
+  Object.fromEntries(
+    Object.entries(src).filter(([key, value]) => keys.includes(key) && value !== undefined),
+  )
 
 export const useUserModalLogic = () => {
   const dispatch = useAppDispatch()
@@ -55,10 +62,12 @@ export const useUserModalLogic = () => {
       infoToUpdate.seoDevId = sessionUser.id
     }
 
+    // server เลือก schema ตาม role เดียวกันนี้ (ADMIN = update เต็ม, คนอื่น = แก้ตัวเองได้แค่ name/email)
+    const updateSchema = sessionUser?.role === Role.ADMIN ? userUpdateSchema : userSelfUpdateSchema
     const promise = isEditing
       ? updateUserMutation.mutateAsync({
           id: infoToUpdate.id!,
-          user: infoToUpdate,
+          user: pickKeys(infoToUpdate, Object.keys(updateSchema.shape)) as typeof infoToUpdate,
         })
       : addUserMutation.mutateAsync(infoToUpdate)
 

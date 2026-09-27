@@ -8,14 +8,14 @@ const paramsSchema = z.object({
 })
 
 export const GET = withApiHandler({ params: paramsSchema }, async ({ params }) => {
-  await customerAccessGuard({ byUserId: params.customerId }, 'read')
-  return ok(await getPaymentPlan(params.planId))
+  const ctx = await customerAccessGuard({ byUserId: params.customerId }, 'read')
+  return ok(await getPaymentPlan(ctx.customer.id, params.planId))
 })
 
 export const PATCH = withApiHandler(
   { params: paramsSchema, body: updatePaymentPlanSchema },
   async ({ params, body }) => {
-    await customerAccessGuard({ byUserId: params.customerId }, 'manage')
-    return ok(await updatePaymentPlan(params.planId, body))
+    const ctx = await customerAccessGuard({ byUserId: params.customerId }, 'manage')
+    return ok(await updatePaymentPlan(ctx.customer.id, params.planId, body))
   },
 )

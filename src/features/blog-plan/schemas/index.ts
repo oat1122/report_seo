@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { httpUrlSchema } from '@/schemas/common'
 
 export const BLOG_STAGE_CODES = [
   'SUBMIT_TOPIC',
@@ -45,7 +46,7 @@ export const updateArticleSchema = z
     targetYear: z.coerce.number().int().min(2000).max(2100),
     targetMonth: z.coerce.number().int().min(1).max(12),
     startDate: z.coerce.date().nullable(),
-    publishedUrl: z.url().max(2000).nullable(),
+    publishedUrl: httpUrlSchema.nullable(),
     note: z.string().trim().max(5000).nullable(),
     orderIndex: z.coerce.number().int().min(0),
     keywords: z.array(articleKeywordInputSchema).max(20),
@@ -74,7 +75,7 @@ export const BLOG_MESSAGE_MAX_LENGTH = 15_000
  */
 export const submitStageWorkSchema = z.object({
   message: z.string().trim().max(BLOG_MESSAGE_MAX_LENGTH).nullable().default(null),
-  linkUrl: z.url().max(2000).nullable().default(null),
+  linkUrl: httpUrlSchema.nullable().default(null),
 })
 
 export const submitFeedbackSchema = z.object({
