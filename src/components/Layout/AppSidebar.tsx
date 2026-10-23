@@ -160,7 +160,7 @@ export function AppSidebar({
   return (
     <aside className="relative z-[1] hidden border-r border-white/85 bg-[var(--sidebar-glass)] md:block dark:border-white/5">
       {/* sticky ภายใน aside: เมนูค้างอยู่เมื่อเลื่อนหน้า (กรอบใช้ overflow-clip จึง sticky ได้) */}
-      <div className="sticky top-0 flex max-h-dvh flex-col gap-7 px-[18px] py-7 md:h-[calc(100dvh-4rem)] lg:h-[calc(100dvh-5.5rem)]">
+      <div className="sticky top-0 flex max-h-dvh flex-col gap-7 px-[18px] py-7 md:h-dvh">
         <div className="flex flex-col gap-2 px-1.5">
           <Link href="/" aria-label="หน้าแรก SEO PRIME" className="w-fit">
             <BrandLogo />
