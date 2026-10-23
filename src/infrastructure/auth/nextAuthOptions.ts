@@ -67,9 +67,10 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          const user = await prismaBase.user.findUnique({
+          // Postgres เทียบตัวพิมพ์ ต่างจาก MariaDB เดิม (_ci) — insensitive ให้อีเมลที่เคย login ได้ยังได้
+          const user = await prismaBase.user.findFirst({
             where: {
-              email: credentials.email,
+              email: { equals: credentials.email, mode: 'insensitive' },
               deletedAt: null,
             },
           })

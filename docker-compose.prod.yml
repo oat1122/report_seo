@@ -1,0 +1,42 @@
+# production บน VPS: ~/apps/report-seo/src (git clone) · ของที่ต้องรอดข้าม deploy อยู่ข้างนอก src:
+#   ../.env      NEXTAUTH_SECRET NEXTAUTH_URL AHREFS_API_KEY PIN_Ahrefs_SYNC DB_PASSWORD (600)
+#   ../uploads   ไฟล์ที่ผู้ใช้อัปโหลด (public/uploads)
+#   ../logs      access log + pino (server/logs)
+# รัน: docker compose --env-file ../.env -f docker-compose.prod.yml up -d --build  (scripts/deploy.sh ทำให้)
+name: report-seo
+
+services:
+  app:
+    build: .
+    container_name: report-seo
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:?DB_PASSWORD missing in ../.env}@db:5432/seodb
+    ports:
+      - 127.0.0.1:3031:3000
+    volumes:
+      - ../uploads:/app/public/uploads
+      - ../logs:/app/server/logs
+    depends_on:
+      db:
+        condition: service_healthy
+    mem_limit: 1g
+
+  db:
+    image: postgres:17
+    container_name: report-seo-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD missing in ../.env}
+      POSTGRES_DB: seodb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d seodb']
+      interval: 5s
+      retries: 20
+    mem_limit: 256m
+
+volumes:
+  pgdata:

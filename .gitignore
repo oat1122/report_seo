@@ -62,3 +62,4 @@ graphify-out/
 # DB dumps — ห้าม commit (มีข้อมูลลูกค้า/password hash)
 /Dump/
 *.sql.zip
+dumb/

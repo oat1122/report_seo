@@ -198,9 +198,9 @@ export class PrismaBillingDocumentRepository implements BillingDocumentRepositor
     if (filters?.customerId) where.customerId = filters.customerId
     if (filters?.search) {
       where.OR = [
-        { documentNumber: { contains: filters.search } },
-        { customer: { name: { contains: filters.search } } },
-        { customerName: { contains: filters.search } },
+        { documentNumber: { contains: filters.search, mode: 'insensitive' } },
+        { customer: { name: { contains: filters.search, mode: 'insensitive' } } },
+        { customerName: { contains: filters.search, mode: 'insensitive' } },
       ]
     }
 
@@ -274,7 +274,7 @@ export class PrismaBillingDocumentRepository implements BillingDocumentRepositor
     const trimmed = query.trim()
     const rows = await prisma.customer.findMany({
       where: trimmed
-        ? { OR: [{ name: { contains: trimmed } }, { domain: { contains: trimmed } }] }
+        ? { OR: [{ name: { contains: trimmed, mode: 'insensitive' } }, { domain: { contains: trimmed, mode: 'insensitive' } }] }
         : undefined,
       select: customerForDocumentSelect,
       orderBy: { name: 'asc' },

@@ -93,11 +93,11 @@ export class PrismaAdminHubRepository implements AdminHubRepository {
     Array<{ customerId: string; avgPercent: number }>
   > {
     const rows = await prisma.$queryRaw<Array<{ customerId: string; avgPercent: number }>>`
-      SELECT p.customerId, ROUND(AVG(i.progressPercent)) as avgPercent
+      SELECT p."customerId", ROUND(AVG(i."progressPercent")) as "avgPercent"
       FROM workprogressplan p
-      JOIN workprogressitem i ON i.planId = p.id
-      WHERE p.isArchived = false
-      GROUP BY p.customerId
+      JOIN workprogressitem i ON i."planId" = p.id
+      WHERE p."isArchived" = false
+      GROUP BY p."customerId"
     `
     return rows.map((r) => ({
       customerId: r.customerId,

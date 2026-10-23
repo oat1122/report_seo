@@ -594,14 +594,14 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
           }>
         >(Prisma.sql`
           SELECT
-            i.categoryId       AS categoryId,
-            m.markTypeId       AS markTypeId,
+            i."categoryId"     AS "categoryId",
+            m."markTypeId"     AS "markTypeId",
             COUNT(*)           AS count,
-            COALESCE(SUM(m.progressPercent), 0) AS sumProgress
+            COALESCE(SUM(m."progressPercent"), 0) AS "sumProgress"
           FROM workprogressitemperiodmark m
-          JOIN workprogressitem i ON i.id = m.itemId
-          WHERE i.planId = ${planId} AND i.categoryId = ${options.categoryId}
-          GROUP BY i.categoryId, m.markTypeId
+          JOIN workprogressitem i ON i.id = m."itemId"
+          WHERE i."planId" = ${planId} AND i."categoryId" = ${options.categoryId}
+          GROUP BY i."categoryId", m."markTypeId"
         `)
       : await prisma.$queryRaw<
           Array<{
@@ -612,14 +612,14 @@ export class PrismaWorkProgressRepository implements WorkProgressRepository {
           }>
         >(Prisma.sql`
           SELECT
-            i.categoryId       AS categoryId,
-            m.markTypeId       AS markTypeId,
+            i."categoryId"     AS "categoryId",
+            m."markTypeId"     AS "markTypeId",
             COUNT(*)           AS count,
-            COALESCE(SUM(m.progressPercent), 0) AS sumProgress
+            COALESCE(SUM(m."progressPercent"), 0) AS "sumProgress"
           FROM workprogressitemperiodmark m
-          JOIN workprogressitem i ON i.id = m.itemId
-          WHERE i.planId = ${planId}
-          GROUP BY i.categoryId, m.markTypeId
+          JOIN workprogressitem i ON i.id = m."itemId"
+          WHERE i."planId" = ${planId}
+          GROUP BY i."categoryId", m."markTypeId"
         `)
 
     return rows.map((r) => ({

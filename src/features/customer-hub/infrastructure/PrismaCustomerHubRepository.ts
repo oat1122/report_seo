@@ -68,10 +68,10 @@ export class PrismaCustomerHubRepository implements CustomerHubRepository {
 
   private async getWorkProgressAvg(customerId: string): Promise<number | null> {
     const rows = await prisma.$queryRaw<Array<{ avgPercent: number }>>`
-      SELECT ROUND(AVG(i.progressPercent)) as avgPercent
+      SELECT ROUND(AVG(i."progressPercent")) as "avgPercent"
       FROM workprogressplan p
-      JOIN workprogressitem i ON i.planId = p.id
-      WHERE p.customerId = ${customerId} AND p.isArchived = false
+      JOIN workprogressitem i ON i."planId" = p.id
+      WHERE p."customerId" = ${customerId} AND p."isArchived" = false
     `
     return rows.length > 0 && rows[0].avgPercent != null ? Number(rows[0].avgPercent) : null
   }
