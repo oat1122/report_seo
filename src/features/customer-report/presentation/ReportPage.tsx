@@ -162,7 +162,7 @@ const ReportTabs = ({
             <TabsTrigger
               key={value}
               value={value}
-              className="data-active:text-primary-foreground h-11 min-w-0 flex-auto rounded-[11px] px-2 text-[13px] data-active:bg-transparent data-active:shadow-none dark:data-active:bg-transparent"
+              className="data-active:text-primary-foreground data-active:hover:text-primary-foreground h-11 min-w-0 flex-auto rounded-[11px] px-2 text-[13px] data-active:bg-transparent data-active:shadow-none dark:data-active:bg-transparent"
             >
               {activeTab === value && (
                 <motion.span
